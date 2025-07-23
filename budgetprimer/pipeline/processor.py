@@ -57,6 +57,9 @@ def process_budget_data(
     df['amount_millions'] = df['amount'] / 1_000_000
     df['is_capital'] = df['section'] == BudgetSection.CAPITAL_IMPROVEMENT.value
     
+    # Sort by program_id to make it easier to review related allocations
+    df = df.sort_values(by='program_id')
+    
     logger.info(f"Processed {len(df)} budget records")
     return df
 

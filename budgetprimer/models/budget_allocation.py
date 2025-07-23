@@ -19,24 +19,32 @@ class BudgetSection(Enum):
 class FundType(Enum):
     """Budget fund types based on Hawaii's classification."""
     # General Funds
-    GENERAL = 'A'  # General Fund
+    GENERAL = 'A'               # General funds
     
     # Special Funds
-    SPECIAL = 'B'  # Special Fund
-    TRUST = 'T'    # Trust Fund
-    SPECIAL_MANAGEMENT = 'S'  # Special Management Area Fund
-    SPECIAL_OUTLAY = 'W'  # Special Outlay Fund
+    SPECIAL = 'B'               # Special funds
+    GENERAL_OBLIGATION_BOND = 'C'  # General obligation bond fund
+    GENERAL_OBLIGATION_BOND_SPECIAL = 'D'  # General obligation bond fund with debt service cost to be paid from special funds
+    REVENUE_BOND = 'E'          # Revenue bond funds
     
     # Federal Funds
-    FEDERAL = 'F'  # Federal Funds
+    FEDERAL_AID_INTERSTATE = 'J'  # Federal aid interstate funds
+    FEDERAL_AID_PRIMARY = 'K'    # Federal aid primary funds
+    FEDERAL_AID_SECONDARY = 'L'  # Federal aid secondary funds
+    FEDERAL_AID_URBAN = 'M'      # Federal aid urban funds
+    FEDERAL = 'N'                # Federal funds
+    OTHER_FEDERAL = 'P'          # Other federal funds
     
-    # Other Funds
-    BOND = 'D'     # General Obligation Bond Fund
-    REVENUE_BOND = 'R'  # Revenue Bond Fund
-    OTHER = 'X'    # Other Funds
+    # Other Fund Types
+    PRIVATE_CONTRIBUTIONS = 'R'  # Private contributions
+    TRUST = 'T'                 # Trust funds
+    INTERDEPARTMENTAL = 'U'     # Interdepartmental transfers
+    ARP = 'V'                   # American Rescue Plan funds
+    REVOLVING = 'W'             # Revolving funds
+    OTHER = 'X'                 # Other funds
     
     # Default/Unknown
-    UNKNOWN = 'U'  # Unknown/Unspecified
+    UNKNOWN = 'Z'               # Unknown/Unspecified
     
     @classmethod
     def from_string(cls, value: str) -> FundType:
@@ -67,15 +75,43 @@ class FundType(Enum):
     @property
     def category(self) -> str:
         """Get the fund category (General, Special, Federal, Other)."""
+        # General Funds
         if self == FundType.GENERAL:
             return "General Fund"
-        elif self in [FundType.FEDERAL]:
+            
+        # Federal Funds
+        elif self in [
+            FundType.FEDERAL_AID_INTERSTATE,
+            FundType.FEDERAL_AID_PRIMARY,
+            FundType.FEDERAL_AID_SECONDARY,
+            FundType.FEDERAL_AID_URBAN,
+            FundType.FEDERAL,
+            FundType.OTHER_FEDERAL,
+            FundType.ARP
+        ]:
             return "Federal Funds"
-        elif self in [FundType.SPECIAL, FundType.TRUST, 
-                     FundType.SPECIAL_MANAGEMENT, FundType.SPECIAL_OUTLAY]:
+            
+        # Special Funds
+        elif self in [
+            FundType.SPECIAL,
+            FundType.GENERAL_OBLIGATION_BOND,
+            FundType.GENERAL_OBLIGATION_BOND_SPECIAL,
+            FundType.REVENUE_BOND,
+            FundType.TRUST,
+            FundType.REVOLVING
+        ]:
             return "Special Funds"
-        else:
+            
+        # Other Funds
+        elif self in [
+            FundType.PRIVATE_CONTRIBUTIONS,
+            FundType.INTERDEPARTMENTAL,
+            FundType.OTHER
+        ]:
             return "Other Funds"
+            
+        # Default/Unknown
+        return "Uncategorized Funds"
 
 
 @dataclass
@@ -95,6 +131,7 @@ class BudgetAllocation:
     category: Optional[str] = None
     subcategory: Optional[str] = None
     notes: str = ""
+    line_number: Optional[int] = None  # To track original parsing order
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     @classmethod

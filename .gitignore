@@ -31,7 +31,8 @@ ENV/
 *.swo
 
 # Data files
-data/raw/
+data/raw/*
+!data/raw/HB 300 CD 1.txt
 data/processed/
 data/output/
 
