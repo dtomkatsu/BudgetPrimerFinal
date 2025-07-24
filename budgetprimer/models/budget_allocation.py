@@ -17,12 +17,35 @@ class BudgetSection(Enum):
 
 
 class FundType(Enum):
-    """Budget fund types based on Hawaii's classification."""
+    """Budget fund types based on Hawaii's classification.
+    
+    Mapping:
+        A - General funds
+        B - Special funds
+        C - General obligation bond fund
+        D - General obligation bond fund with debt service cost to be paid from special funds
+        E - Revenue bond funds
+        J - Federal aid interstate funds
+        K - Federal aid primary funds
+        L - Federal aid secondary funds
+        M - Federal aid urban funds
+        N - Federal funds
+        P - Other federal funds
+        R - Private contributions
+        S - County funds
+        T - Trust funds
+        U - Interdepartmental transfers
+        V - American Rescue Plan funds
+        W - Revolving funds
+        X - Other funds
+    """
     # General Funds
     GENERAL = 'A'               # General funds
     
     # Special Funds
     SPECIAL = 'B'               # Special funds
+    
+    # Bond Funds
     GENERAL_OBLIGATION_BOND = 'C'  # General obligation bond fund
     GENERAL_OBLIGATION_BOND_SPECIAL = 'D'  # General obligation bond fund with debt service cost to be paid from special funds
     REVENUE_BOND = 'E'          # Revenue bond funds
@@ -37,6 +60,7 @@ class FundType(Enum):
     
     # Other Fund Types
     PRIVATE_CONTRIBUTIONS = 'R'  # Private contributions
+    COUNTY = 'S'                # County funds
     TRUST = 'T'                 # Trust funds
     INTERDEPARTMENTAL = 'U'     # Interdepartmental transfers
     ARP = 'V'                   # American Rescue Plan funds
@@ -74,44 +98,35 @@ class FundType(Enum):
     
     @property
     def category(self) -> str:
-        """Get the fund category (General, Special, Federal, Other)."""
-        # General Funds
-        if self == FundType.GENERAL:
-            return "General Fund"
-            
-        # Federal Funds
-        elif self in [
-            FundType.FEDERAL_AID_INTERSTATE,
-            FundType.FEDERAL_AID_PRIMARY,
-            FundType.FEDERAL_AID_SECONDARY,
-            FundType.FEDERAL_AID_URBAN,
-            FundType.FEDERAL,
-            FundType.OTHER_FEDERAL,
-            FundType.ARP
-        ]:
-            return "Federal Funds"
-            
-        # Special Funds
-        elif self in [
-            FundType.SPECIAL,
-            FundType.GENERAL_OBLIGATION_BOND,
-            FundType.GENERAL_OBLIGATION_BOND_SPECIAL,
-            FundType.REVENUE_BOND,
-            FundType.TRUST,
-            FundType.REVOLVING
-        ]:
-            return "Special Funds"
-            
-        # Other Funds
-        elif self in [
-            FundType.PRIVATE_CONTRIBUTIONS,
-            FundType.INTERDEPARTMENTAL,
-            FundType.OTHER
-        ]:
-            return "Other Funds"
-            
-        # Default/Unknown
-        return "Uncategorized Funds"
+        """Get the exact fund type name based on the official Hawaii budget classification.
+        
+        Each fund type letter maps directly to its corresponding name.
+        """
+        # Map each fund type to its exact name
+        fund_type_names = {
+            'A': 'General Funds',
+            'B': 'Special Funds',
+            'C': 'General Obligation Bond Fund',
+            'D': 'General Obligation Bond Fund with Debt Service Cost to be Paid from Special Funds',
+            'E': 'Revenue Bond Funds',
+            'J': 'Federal Aid Interstate Funds',
+            'K': 'Federal Aid Primary Funds',
+            'L': 'Federal Aid Secondary Funds',
+            'M': 'Federal Aid Urban Funds',
+            'N': 'Federal Funds',
+            'P': 'Other Federal Funds',
+            'R': 'Private Contributions',
+            'S': 'County Funds',
+            'T': 'Trust Funds',
+            'U': 'Interdepartmental Transfers',
+            'V': 'American Rescue Plan Funds',
+            'W': 'Revolving Funds',
+            'X': 'Other Funds',
+            'Z': 'Uncategorized Funds'
+        }
+        
+        # Return the corresponding name or 'Uncategorized Funds' if not found
+        return fund_type_names.get(self.value, 'Uncategorized Funds')
 
 
 @dataclass

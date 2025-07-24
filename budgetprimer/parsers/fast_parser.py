@@ -244,7 +244,8 @@ class FastBudgetParser(BaseBudgetParser):
                     continue
                 
                 # Check for indented amounts in INVESTMENT CAPITAL section
-                if current_section == 'INVESTMENT CAPITAL' and current_program and original_line.startswith((' ', '\t', '\u00A0')):
+                if (current_section == 'INVESTMENT CAPITAL' and current_program and 
+                    (original_line.startswith((' ', '\t', '\u00A0')) or bool(re.search(r'\d', original_line)))):
 
                     
                     # Try the single-amount indented pattern first (for lines like 'TRN      5,000,000N           N')
@@ -255,18 +256,24 @@ class FastBudgetParser(BaseBudgetParser):
                         fy26_fund = (single_amount_match.group(3) or 'A').upper()
                         
                         if int(fy26_amt) > 0:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(int(fy26_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
+                            try:
+                                fund_type = FundType.from_string(fy26_fund)
+                                allocations.append(BudgetAllocation(
+                                    program_id=current_program,
+                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                    department_code=dept,
+                                    department_name=dept,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    fund_type=fund_type,
+                                    fiscal_year=2026,
+                                    amount=float(int(fy26_amt)),
+                                    category=current_category or 'Uncategorized',
+                                    line_number=i + 1,
+                                    notes=f'Investment Capital - Fund Type: {fy26_fund}'
+                                ))
+                                self.logger.debug(f"Added investment capital: {current_program} - {fy26_amt}{fy26_fund}")
+                            except Exception as e:
+                                self.logger.warning(f"Error creating allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
                         continue  # Skip to next line after processing
                     
                     # Try the general indented amount pattern (for lines with two amounts)
@@ -279,70 +286,45 @@ class FastBudgetParser(BaseBudgetParser):
                         fy27_fund = (indented_match.group(5) or fy26_fund).upper()
                         
                         if int(fy26_amt) > 0:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(int(fy26_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
+                            try:
+                                fund_type = FundType.from_string(fy26_fund)
+                                allocations.append(BudgetAllocation(
+                                    program_id=current_program,
+                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                    department_code=dept,
+                                    department_name=dept,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    fund_type=fund_type,
+                                    fiscal_year=2026,
+                                    amount=float(int(fy26_amt)),
+                                    category=current_category or 'Uncategorized',
+                                    line_number=i + 1,
+                                    notes=f'Investment Capital - Fund Type: {fy26_fund}'
+                                ))
+                                self.logger.debug(f"Added investment capital: {current_program} - {fy26_amt}{fy26_fund}")
+                            except Exception as e:
+                                self.logger.warning(f"Error creating allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
                         
-                        if int(fy27_amt) > 0 and fy27_fund:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(int(fy27_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
+                        if int(fy27_amt) > 0:
+                            try:
+                                fund_type = FundType.from_string(fy27_fund)
+                                allocations.append(BudgetAllocation(
+                                    program_id=current_program,
+                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                    department_code=dept,
+                                    department_name=dept,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    fund_type=fund_type,
+                                    fiscal_year=2027,
+                                    amount=float(int(fy27_amt)),
+                                    category=current_category or 'Uncategorized',
+                                    line_number=i + 1,
+                                    notes=f'Investment Capital - Fund Type: {fy27_fund}'
+                                ))
+                                self.logger.debug(f"Added investment capital: {current_program} - {fy27_amt}{fy27_fund}")
+                            except Exception as e:
+                                self.logger.warning(f"Error creating allocation for {current_program} {fy27_amt}{fy27_fund}: {e}")
                         continue  # Skip to next line after processing
-                    if indented_match and indented_match.group(1):
-                        dept = indented_match.group(1)
-                        fy26_amt = indented_match.group(2).replace(',', '') if indented_match.group(2) else '0'
-                        fy26_fund = (indented_match.group(3) or 'A').upper()
-                        fy27_amt = (indented_match.group(4) or '0').replace(',', '') if indented_match.group(4) else '0'
-                        fy27_fund = (indented_match.group(5) or fy26_fund).upper()
-                        
-                        if int(fy26_amt) > 0:
-                            # Add FY26 entry
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(int(fy26_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
-                        # Add FY27 entry if amount is greater than 0
-                        if int(fy27_amt) > 0 and fy27_fund:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(int(fy27_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        continue  # Skip to next line after processing amount
                     
                     # Try the simple investment line pattern (for single amounts on a line)
                     line_match = self._compiled_patterns['investment_line'].match(line)
@@ -352,20 +334,25 @@ class FastBudgetParser(BaseBudgetParser):
                         fund = (line_match.group(3) or 'A').upper()
                         
                         if int(amount) > 0:
-                            # Assume it's for FY26 if we don't have a year indicator
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fund),
-                                fiscal_year=2026,  # Default to FY26
-                                amount=float(int(amount)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        continue  # Skip to next line after processing simple amount
+                            try:
+                                fund_type = FundType.from_string(fund)
+                                allocations.append(BudgetAllocation(
+                                    program_id=current_program,
+                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                    department_code=dept,
+                                    department_name=dept,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    fund_type=fund_type,
+                                    fiscal_year=2026,  # Default to FY26
+                                    amount=float(int(amount)),
+                                    category=current_category or 'Uncategorized',
+                                    line_number=i + 1,
+                                    notes=f'Investment Capital - Fund Type: {fund}'
+                                ))
+                                self.logger.debug(f"Added investment capital: {current_program} - {amount}{fund}")
+                            except Exception as e:
+                                self.logger.warning(f"Error creating allocation for {current_program} {amount}{fund}: {e}")
+                        continue  # Skip to next line after processing
                     
                     # Skip to next line after processing
                     continue
@@ -646,8 +633,11 @@ class FastBudgetParser(BaseBudgetParser):
                     if amount_line_match:
                         amount_matches.append(amount_line_match.groups())
                 else:
-                    # Try to match amount lines with department code at the start
-                    amount_line_match = re.match(r'^\s*([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line.strip())
+                    # Try to match amount with fund type (e.g., "TRN      5,000,000N           N" or "TRN       700,000S         S")
+                    amount_match = re.search(r'([A-Z]+)?\s*([\d,]+)([A-Z])(?:\s+[A-Z])?\s*$', line.strip())
+                    if not amount_match:
+                        # Try alternative format with fund type at the end after spaces
+                        amount_match = re.search(r'([A-Z]+)?\s*([\d,]+)(?:\s+)([A-Z])\s*$', line.strip())
                     if amount_line_match:
                         amount_matches.append(amount_line_match.groups())
                 
