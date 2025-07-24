@@ -18,11 +18,14 @@ from budgetprimer.models import BudgetSection
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Set to DEBUG to see all messages
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
+
+# Enable debug logging for our parser
+logging.getLogger('budgetprimer.parsers').setLevel(logging.DEBUG)
 
 def main():
     """Main function to parse and save budget data."""

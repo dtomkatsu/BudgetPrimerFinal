@@ -1,0 +1,3 @@
+DEBUG - Processing indented line for TRN131: '                                          TRN     5,000,000N         N              '
+DEBUG - Stripped line: 'TRN     5,000,000N         N'
+DEBUG - Found TRN595 program: 'HIGHWAYS ADMINISTRATION'

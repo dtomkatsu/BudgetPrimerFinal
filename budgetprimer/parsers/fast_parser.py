@@ -39,6 +39,10 @@ class FastBudgetParser(BaseBudgetParser):
                 r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
                 re.IGNORECASE
             ),
+            'operating_line': re.compile(
+                r'^OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])(?:\s+([\d,]+)([A-Z]?))?\s*$',
+                re.IGNORECASE
+            ),
             'amount_line_with_fund': re.compile(
                 r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
                 re.IGNORECASE
@@ -119,14 +123,21 @@ class FastBudgetParser(BaseBudgetParser):
         """Read the content of a file with appropriate encoding detection."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
+                content = f.read()
         except UnicodeDecodeError:
             # Fallback to latin-1 if utf-8 fails
             with open(file_path, 'r', encoding='latin-1') as f:
-                return f.read()
+                content = f.read()
+        
+        # Normalize line endings and clean up non-breaking spaces
+        content = content.replace('\r\n', '\n').replace('\r', '\n')
+        # Replace non-breaking spaces with regular spaces
+        content = content.replace('\u00A0', ' ')
+        return content
     
     def _extract_allocations(self, content: str) -> List[BudgetAllocation]:
         """Extract budget allocations from content using the original parser's logic."""
+        self.logger.debug("Starting _extract_allocations")
         allocations = []
         current_dept = None
         current_program = None
@@ -163,6 +174,8 @@ class FastBudgetParser(BaseBudgetParser):
                 if not line:
                     continue
                 
+
+                
                 # Check for category header (e.g., "A.  ECONOMIC DEVELOPMENT")
                 category_match = self._compiled_patterns['category'].match(line)
                 if category_match:
@@ -182,6 +195,7 @@ class FastBudgetParser(BaseBudgetParser):
                     current_program_name = program_name  # Store the name separately
                     current_dept = program_id[:3]  # First 3 letters are department code
                     current_section = None
+
                     continue
                 
                 # First check if this is an INVESTMENT CAPITAL line with amounts
@@ -231,10 +245,7 @@ class FastBudgetParser(BaseBudgetParser):
                 
                 # Check for indented amounts in INVESTMENT CAPITAL section
                 if current_section == 'INVESTMENT CAPITAL' and current_program and original_line.startswith((' ', '\t', '\u00A0')):
-                    # Debug logging for TRN131
-                    if 'TRN131' in str(current_program):
-                        print(f"DEBUG - Processing indented line for TRN131: {repr(original_line)}")
-                        print(f"DEBUG - Stripped line: {repr(line)}")
+
                     
                     # Try the single-amount indented pattern first (for lines like 'TRN      5,000,000N           N')
                     single_amount_match = self._compiled_patterns['indented_single_amount'].match(line)
@@ -303,6 +314,7 @@ class FastBudgetParser(BaseBudgetParser):
                         fy27_fund = (indented_match.group(5) or fy26_fund).upper()
                         
                         if int(fy26_amt) > 0:
+                            # Add FY26 entry
                             allocations.append(BudgetAllocation(
                                 program_id=current_program,
                                 program_name=current_program_name if 'current_program_name' in locals() else current_program,
@@ -316,44 +328,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 line_number=i + 1  # 1-based line number
                             ))
                         
-                        if int(fy27_amt) > 0 and fy27_fund:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(int(fy27_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        continue  # Skip to next line after processing indented amount
-                    
-                    # Try the full investment amount pattern (for non-indented lines)
-                    amount_match = self._compiled_patterns['investment_amount'].match(line)
-                    if amount_match and amount_match.group(1):
-                        dept = amount_match.group(1)
-                        fy26_amt = amount_match.group(2).replace(',', '') if amount_match.group(2) else '0'
-                        fy26_fund = (amount_match.group(3) or 'A').upper()
-                        fy27_amt = (amount_match.group(4) or '0').replace(',', '') if amount_match.group(4) else '0'
-                        fy27_fund = (amount_match.group(5) or fy26_fund).upper()
-                        
-                        if int(fy26_amt) > 0:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program,
-                                program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                department_code=dept,
-                                department_name=dept,
-                                section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(int(fy26_amt)),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
+                        # Add FY27 entry if amount is greater than 0
                         if int(fy27_amt) > 0 and fy27_fund:
                             allocations.append(BudgetAllocation(
                                 program_id=current_program,
@@ -447,11 +422,61 @@ class FastBudgetParser(BaseBudgetParser):
                     except (ValueError, AttributeError) as e:
                         self.logger.debug(f"Error parsing amount with fund suffix '{line}': {e}")
                 
+                # Check for OPERATING line FIRST (before section header checks)
+                if 'OPERATING' in original_line:
+                    current_section = 'OPERATING'
+                    
+
+                    
+                    # Check for OPERATING with amounts on same line (PDF format)
+                    # Format: OPERATING [spaces] TRN [spaces] [AMOUNT]A [spaces] A
+                    pdf_pattern = r'^\s*OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])\s+([A-Z])\s*$'
+                    operating_match = re.search(pdf_pattern, original_line)
+                    
+                    if operating_match:
+                        dept = operating_match.group(1)
+                        fy26_amt = (operating_match.group(2) or '0').replace(',', '')
+                        fy26_fund = (operating_match.group(3) or 'A').upper()
+                        
+                        # Handle blank FY27 appropriations (indicated by a letter after spaces)
+                        fy27_amt = '0'  # Default to 0 for FY27 if blank
+                        fy27_fund = fy26_fund  # Default to same fund type as FY26
+                        
+                        # For PDF format, group 4 contains the FY27 fund type (blank appropriation)
+                        if len(operating_match.groups()) >= 4 and operating_match.group(4):
+                            fy27_fund = operating_match.group(4).upper()
+                        
+
+                        
+                        # Create allocation for this operating amount
+                        allocation = BudgetAllocation(
+                            program_id=current_program,
+                            program_name=current_program_name,
+                            department_code=dept,
+                            department_name=dept,
+                            section=BudgetSection.OPERATING,
+                            fund_type=FundType.from_string(fy26_fund),
+                            fiscal_year=2026,
+                            amount=float(int(fy26_amt)),
+                            category=current_category or 'Uncategorized',
+                            notes='',
+                            line_number=i+1
+                        )
+                        allocations.append(allocation)
+                        
+
+                        
+                        # Skip the rest of the processing since we found a match
+                        continue
+                
+
+                
                 # Check for section headers (Operating, Capital Improvement)
                 section_match = None
                 
                 # First try the section with amounts pattern
                 section_match = self._compiled_patterns['section_with_amounts'].match(line)
+
                 if section_match:
                     current_section = 'OPERATING'  # Default section type
                     current_fund = None
@@ -601,8 +626,21 @@ class FastBudgetParser(BaseBudgetParser):
                 # Handle amount lines (with or without OPERATING prefix)
                 amount_matches = []
                 
+                # Check for OPERATING with amounts on the same line
+                if line.startswith('OPERATING'):
+                    operating_match = self._compiled_patterns['operating_line'].match(original_line.strip())
+                    if operating_match:
+                        # This is an OPERATING line with amounts
+                        dept = operating_match.group(1)
+                        fy26_amt = (operating_match.group(2) or '0').replace(',', '')
+                        fy26_fund = (operating_match.group(3) or 'A').upper()
+                        fy27_amt = (operating_match.group(4) or '0').replace(',', '') if operating_match.group(4) else '0'
+                        fy27_fund = (operating_match.group(5) or fy26_fund).upper()
+                        
+                        # Add to matches as a tuple that matches our expected format
+                        amount_matches.append((dept, fy26_amt, fy26_fund, fy27_amt, fy27_fund))
                 # Check if this is an indented line with just amounts
-                if line.strip() and line.startswith(' ' * 30):  # Check for significant indentation
+                elif line.strip() and line.startswith(' ' * 30):  # Check for significant indentation
                     # This is an indented continuation line
                     amount_line_match = re.match(r'^\s+([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line)
                     if amount_line_match:
@@ -661,6 +699,7 @@ class FastBudgetParser(BaseBudgetParser):
                             self.logger.debug(f"Error parsing amounts '{fy26_amount}', '{fy27_amount}': {e}")    
             
             except Exception as e:
+
                 self.logger.warning(f"Error processing line {i + 1}: {str(e)}")
                 continue
         
