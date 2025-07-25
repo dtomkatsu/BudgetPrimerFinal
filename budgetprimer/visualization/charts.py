@@ -19,31 +19,55 @@ from ..models import BudgetAllocation, BudgetSection, FundType
 logger = logging.getLogger(__name__)
 
 # Color palettes
+# Updated to match the reference chart styles
 FUND_TYPE_COLORS = {
-    'A': '#1f77b4',  # General Fund
-    'B': '#ff7f0e',  # Special Fund
-    'F': '#2ca02c',  # Federal Funds
-    'D': '#d62728',  # Bond Funds
-    'T': '#9467bd',  # Trust Funds
-    'S': '#8c564b',  # Special Management Area Funds
-    'W': '#e377c2',  # Special Outlay Funds
-    'R': '#7f7f7f',  # Revenue Bond Funds
-    'X': '#bcbd22',  # Other Funds
-    'U': '#17becf'   # Unknown/Unspecified
+    'A': '#1f4e79',  # Dark blue - General Fund
+    'B': '#2d8659',  # Green - Special Fund
+    'F': '#2c2c2c',  # Black/dark gray - Federal Funds
+    'D': '#5fb3d4',  # Light blue/teal - Bond Funds
+    'T': '#8c6bb1',  # Purple - Trust Funds
+    'S': '#8c6d46',  # Brown - Special Management Area Funds
+    'W': '#e377c2',  # Pink - Special Outlay Funds
+    'R': '#7f7f7f',  # Gray - Revenue Bond Funds
+    'X': '#bcbd22',  # Olive - Other Funds
+    'U': '#17becf'   # Cyan - Unknown/Unspecified
+}
+
+# Chart element colors
+CHART_COLORS = {
+    'operating': '#1f4e79',      # Dark blue
+    'onetime': '#2d8659',        # Green
+    'emergency': '#2c2c2c',      # Black/dark gray
+    'cip': '#5fb3d4'            # Light blue/teal
 }
 
 # Styling
-# Try seaborn-v0_8 style if available, otherwise use default
 plt.style.use('seaborn-v0_8' if 'seaborn-v0_8' in plt.style.available else 'default')
-sns.set_theme(style="whitegrid")
+sns.set_theme(style="whitegrid", font_scale=1.1)
 
 # Chart defaults
-DEFAULT_FIGSIZE = (12, 8)
+DEFAULT_FIGSIZE = (14, 10)
 DEFAULT_FONTSIZE = 12
-DEFAULT_TITLE_FONTSIZE = 14
-DEFAULT_LABEL_FONTSIZE = 10
-DEFAULT_LEGEND_FONTSIZE = 10
+DEFAULT_TITLE_FONTSIZE = 16
+DEFAULT_LABEL_FONTSIZE = 11
+DEFAULT_LEGEND_FONTSIZE = 11
 DEFAULT_DPI = 300
+
+# Set default font family
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Helvetica']
+plt.rcParams['axes.titlesize'] = DEFAULT_TITLE_FONTSIZE
+plt.rcParams['axes.labelsize'] = DEFAULT_LABEL_FONTSIZE
+plt.rcParams['xtick.labelsize'] = DEFAULT_LABEL_FONTSIZE - 1
+plt.rcParams['ytick.labelsize'] = DEFAULT_LABEL_FONTSIZE - 1
+plt.rcParams['legend.fontsize'] = DEFAULT_LEGEND_FONTSIZE
+plt.rcParams['figure.titlesize'] = DEFAULT_TITLE_FONTSIZE + 2
+
+# Custom styles
+plt.rcParams['axes.edgecolor'] = '#333333'
+plt.rcParams['axes.linewidth'] = 0.8
+plt.rcParams['grid.color'] = '#e0e0e0'
+plt.rcParams['grid.alpha'] = 0.7
 
 
 def create_pie_chart(
@@ -277,44 +301,103 @@ def create_means_of_finance_chart(
     if df_year.empty:
         raise ValueError(f"No data found for fiscal year {fiscal_year}")
     
-    # Aggregate by fund type
+    # Group by fund type and sum amounts
     fund_summary = df_year.groupby('fund_type')['amount'].sum().reset_index()
     
-    # Add fund category and sort
-    fund_summary['category'] = fund_summary['fund_type'].apply(
-        lambda x: FundType(x).category if pd.notna(x) else 'Unknown'
-    )
+    # Map fund type codes to human-readable names
+    fund_summary['category'] = fund_summary['fund_type'].map({
+        'A': 'General Fund',
+        'B': 'Special Fund',
+        'F': 'Federal Funds',
+        'D': 'Bond Funds',
+        'T': 'Trust Funds',
+        'S': 'SMA Funds',
+        'W': 'Special Outlay',
+        'R': 'Revenue Bonds',
+        'X': 'Other Funds',
+        'U': 'Unknown'
+    })
     
-    # Convert to millions for display
-    fund_summary['amount_millions'] = fund_summary['amount'] / 1_000_000
+    # Convert to billions for display
+    fund_summary['amount_billions'] = fund_summary['amount'] / 1_000_000_000
     
-    # Sort by amount (descending)
+    # Sort by amount in descending order
     fund_summary = fund_summary.sort_values('amount', ascending=False)
     
     # Create chart title if not provided
     if title is None:
-        title = f"Means of Finance - FY{fiscal_year}\n" \
-                f"Total: ${fund_summary['amount_millions'].sum():,.0f}M"
+        total = fund_summary['amount'].sum() / 1_000_000_000  # Convert to billions
+        title = f"Figure 1. Means of Finance for FY{fiscal_year}\nTotal: ${total:,.1f}B"
     
-    # Create the pie chart
-    fig = create_pie_chart(
-        data=fund_summary,
-        values='amount_millions',
-        names='category',
-        title=title,
-        colors=FUND_TYPE_COLORS,
+    # Create figure with larger size
+    fig, ax = plt.subplots(figsize=kwargs.pop('figsize', (12, 10)))
+    
+    # Create the pie chart with updated styling
+    wedges, texts, autotexts = ax.pie(
+        fund_summary['amount'],
+        labels=fund_summary['category'],
+        colors=[FUND_TYPE_COLORS[ft] for ft in fund_summary['fund_type']],
         autopct='%1.1f%%',
-        startangle=140,
-        wedgeprops={'edgecolor': 'white', 'linewidth': 0.5},
+        startangle=90,
+        wedgeprops={'edgecolor': 'white', 'linewidth': 1},
+        textprops={'fontsize': DEFAULT_LABEL_FONTSIZE},
+        pctdistance=0.85,
+        labeldistance=1.1,
         **kwargs
     )
+    
+    # Make the pie chart a donut by drawing a white circle in the center
+    centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+    fig.gca().add_artist(centre_circle)
+    
+    # Equal aspect ratio ensures that pie is drawn as a circle
+    ax.axis('equal')
+    
+    # Add total amount in the center
+    total_billions = fund_summary['amount'].sum() / 1_000_000_000
+    plt.text(0, 0, f'${total_billions:,.1f}B', 
+             ha='center', va='center', 
+             fontsize=18, fontweight='bold')
+    
+    # Add title
+    plt.title(title, fontsize=DEFAULT_TITLE_FONTSIZE + 2, pad=20, loc='left')
+    
+    # Adjust legend
+    plt.legend(wedges, fund_summary['category'],
+              title="Fund Type",
+              loc="center left",
+              bbox_to_anchor=(1, 0, 0.5, 1),
+              frameon=False)
+    
+    # Adjust layout to prevent legend cutoff
+    plt.tight_layout(rect=[0, 0, 0.8, 1])
     
     # Save the chart if output file is provided
     if output_file:
         output_path = Path(output_file)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(output_path, dpi=DEFAULT_DPI, bbox_inches='tight')
-        logger.info(f"Saved means of finance chart to {output_path}")
+        
+        # Save as PNG
+        fig.savefig(
+            output_path, 
+            dpi=DEFAULT_DPI, 
+            bbox_inches='tight',
+            facecolor='white',
+            edgecolor='none',
+            transparent=False
+        )
+        logger.info(f"Saved chart to {output_path}")
+        
+        # Also save as PDF for high quality
+        pdf_path = output_path.with_suffix('.pdf')
+        fig.savefig(
+            pdf_path,
+            bbox_inches='tight',
+            facecolor='white',
+            edgecolor='none',
+            transparent=False
+        )
+        logger.info(f"Saved PDF version to {pdf_path}")
     
     return fig
 
@@ -336,7 +419,7 @@ def create_department_budget_chart(
         n_departments: Number of top departments to show
         title: Chart title (default: auto-generated)
         output_file: Optional path to save the chart
-        **kwargs: Additional keyword arguments for create_bar_chart()
+        **kwargs: Additional keyword arguments for styling
         
     Returns:
         Matplotlib Figure object
@@ -350,48 +433,103 @@ def create_department_budget_chart(
     if df_year.empty:
         raise ValueError(f"No data found for fiscal year {fiscal_year}")
     
-    # Aggregate by department
-    dept_summary = df_year.groupby(['department_code', 'department_name'])['amount'].sum().reset_index()
+    # Aggregate by department and section (operating, capital, etc.)
+    dept_summary = df_year.groupby(['department_code', 'department_name', 'section'])['amount'].sum().unstack(fill_value=0).reset_index()
+    
+    # Add missing columns if they don't exist
+    for col in ['OPERATING', 'CAPITAL_IMPROVEMENT']:
+        if col not in dept_summary.columns:
+            dept_summary[col] = 0
+    
+    # Calculate total budget for each department
+    dept_summary['total'] = dept_summary[['OPERATING', 'CAPITAL_IMPROVEMENT']].sum(axis=1)
     
     # Sort and get top N departments
-    dept_summary = dept_summary.sort_values('amount', ascending=False).head(n_departments)
+    top_depts = dept_summary.nlargest(n_departments, 'total')
     
-    # Convert to millions for display
-    dept_summary['amount_millions'] = dept_summary['amount'] / 1_000_000
+    # Convert to billions for display
+    top_depts['total_billions'] = top_depts['total'] / 1_000_000_000
+    top_depts['operating_billions'] = top_depts['OPERATING'] / 1_000_000_000
+    top_depts['capital_billions'] = top_depts['CAPITAL_IMPROVEMENT'] / 1_000_000_000
     
-    # Create a combined label with code and name
-    dept_summary['label'] = dept_summary.apply(
-        lambda x: f"{x['department_code']} - {x['department_name']}", axis=1
-    )
+    # Sort by total in descending order
+    top_depts = top_depts.sort_values('total', ascending=True)  # Reversed for horizontal bar
     
     # Create chart title if not provided
     if title is None:
-        title = f"Top {n_departments} Department Budgets - FY{fiscal_year}\n" \
-                f"Total Shown: ${dept_summary['amount_millions'].sum():,.0f}M"
+        total = top_depts['total'].sum() / 1_000_000_000  # Convert to billions
+        title = f"Figure 2. Department Budgets for FY{fiscal_year}\nTotal: ${total:,.1f}B"
     
-    # Create the bar chart
-    fig = create_bar_chart(
-        data=dept_summary,
-        x='amount_millions',
-        y='label',
-        title=title,
-        xlabel='Budget (Millions $)',
-        ylabel='Department',
-        horizontal=True,
-        palette='viridis',
-        **kwargs
+    # Create figure with larger size
+    fig, ax = plt.subplots(figsize=kwargs.pop('figsize', (14, 10)))
+    
+    # Define colors for stacked bars
+    colors = [CHART_COLORS['operating'], CHART_COLORS['cip']]
+    
+    # Create stacked horizontal bars
+    bars1 = ax.barh(
+        range(len(top_depts)),
+        top_depts['operating_billions'],
+        color=colors[0],
+        label='Operating Budget',
+        height=0.7
     )
     
-    # Add value labels
-    ax = fig.axes[0]
-    for i, v in enumerate(dept_summary['amount_millions']):
-        ax.text(v + (dept_summary['amount_millions'].max() * 0.01),
-                i, f"${v:,.0f}M",
-                va='center',
-                fontsize=DEFAULT_LABEL_FONTSIZE)
+    bars2 = ax.barh(
+        range(len(top_depts)),
+        top_depts['capital_billions'],
+        left=top_depts['operating_billions'],
+        color=colors[1],
+        label='Capital Budget',
+        height=0.7
+    )
     
-    # Adjust layout
-    plt.tight_layout()
+    # Add department labels on the left
+    y_labels = [f"{row['department_code']} - {row['department_name']}" for _, row in top_depts.iterrows()]
+    ax.set_yticks(range(len(top_depts)))
+    ax.set_yticklabels(y_labels, fontsize=DEFAULT_LABEL_FONTSIZE)
+    
+    # Add value labels on the right of each bar
+    for i, (operating, capital) in enumerate(zip(top_depts['operating_billions'], 
+                                               top_depts['capital_billions'])):
+        total = operating + capital
+        # Format the label based on the value size
+        if total >= 1.0:
+            label = f'${total:,.1f}B'
+        else:
+            # Show in millions if less than $1B
+            label = f'${total*1000:,.0f}M'
+            
+        ax.text(total + 0.05, i, label, 
+               va='center', ha='left', 
+               fontsize=DEFAULT_LABEL_FONTSIZE,
+               fontweight='bold')
+    
+    # Set x-axis label
+    ax.set_xlabel('Budget (Billions $)', fontsize=DEFAULT_LABEL_FONTSIZE + 1)
+    
+    # Add grid lines
+    ax.xaxis.grid(True, linestyle='--', alpha=0.7, color='#dddddd')
+    ax.set_axisbelow(True)
+    
+    # Remove spines
+    for spine in ['top', 'right', 'left']:
+        ax.spines[spine].set_visible(False)
+    
+    # Add title
+    ax.set_title(title, fontsize=DEFAULT_TITLE_FONTSIZE + 2, pad=20, loc='left')
+    
+    # Add legend at the bottom
+    ax.legend(
+        loc='upper center',
+        bbox_to_anchor=(0.5, -0.1),
+        ncol=2,
+        frameon=False,
+        fontsize=DEFAULT_LEGEND_FONTSIZE
+    )
+    
+    # Adjust layout to make room for legend
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
     
     # Save the chart if output file is provided
     if output_file:
@@ -420,7 +558,7 @@ def create_cip_funding_chart(
         n_projects: Number of top projects to show
         title: Chart title (default: auto-generated)
         output_file: Optional path to save the chart
-        **kwargs: Additional keyword arguments for create_bar_chart()
+        **kwargs: Additional keyword arguments for styling
         
     Returns:
         Matplotlib Figure object
@@ -438,45 +576,82 @@ def create_cip_funding_chart(
         raise ValueError(f"No CIP data found for fiscal year {fiscal_year}")
     
     # Sort and get top N projects
-    top_projects = df_cip.nlargest(n_projects, 'amount')
+    top_projects = df_cip.nlargest(n_projects, 'amount').copy()
     
     # Convert to millions for display
     top_projects['amount_millions'] = top_projects['amount'] / 1_000_000
     
     # Create a truncated program name for display
-    max_name_length = 50
+    max_name_length = 60
     top_projects['short_name'] = top_projects['program_name'].apply(
         lambda x: (x[:max_name_length] + '...') if len(x) > max_name_length else x
     )
     
+    # Add department code to the label if available
+    if 'department_code' in top_projects.columns:
+        top_projects['label'] = top_projects.apply(
+            lambda x: f"{x['department_code']} - {x['short_name']}", 
+            axis=1
+        )
+    else:
+        top_projects['label'] = top_projects['short_name']
+    
+    # Sort by amount (ascending for horizontal bar)
+    top_projects = top_projects.sort_values('amount', ascending=True)
+    
     # Create chart title if not provided
     if title is None:
-        title = f"Top {n_projects} Capital Improvement Projects - FY{fiscal_year}\n" \
-                f"Total Shown: ${top_projects['amount_millions'].sum():,.0f}M"
+        total = top_projects['amount_millions'].sum()
+        title = f"Figure 3. Top {n_projects} Capital Improvement Projects - FY{fiscal_year}\n" \
+                f"Total Shown: ${total:,.0f}M"
     
-    # Create the bar chart
-    fig = create_bar_chart(
-        data=top_projects,
-        x='amount_millions',
-        y='short_name',
-        title=title,
-        xlabel='Funding (Millions $)',
-        ylabel='Project',
-        horizontal=True,
-        palette='rocket',
-        **kwargs
+    # Create figure with larger size
+    fig, ax = plt.subplots(figsize=kwargs.pop('figsize', (14, 10)))
+    
+    # Create horizontal bars
+    bars = ax.barh(
+        range(len(top_projects)),
+        top_projects['amount_millions'],
+        color=CHART_COLORS['cip'],
+        height=0.7
     )
     
-    # Add value labels
-    ax = fig.axes[0]
-    for i, v in enumerate(top_projects['amount_millions']):
-        ax.text(v + (top_projects['amount_millions'].max() * 0.01),
-                i, f"${v:,.1f}M",
-                va='center',
-                fontsize=DEFAULT_LABEL_FONTSIZE)
+    # Add project labels on the left
+    ax.set_yticks(range(len(top_projects)))
+    ax.set_yticklabels(top_projects['label'], fontsize=DEFAULT_LABEL_FONTSIZE)
+    
+    # Add value labels on the right of each bar
+    for i, amount in enumerate(top_projects['amount_millions']):
+        # Format the label based on the value size
+        if amount >= 100:
+            label = f'${amount:,.0f}M'
+        elif amount >= 10:
+            label = f'${amount:,.1f}M'
+        else:
+            label = f'${amount:,.2f}M'
+            
+        ax.text(amount + (top_projects['amount_millions'].max() * 0.01), 
+                i, label, 
+                va='center', ha='left',
+                fontsize=DEFAULT_LABEL_FONTSIZE,
+                fontweight='bold')
+    
+    # Set x-axis label
+    ax.set_xlabel('Funding (Millions $)', fontsize=DEFAULT_LABEL_FONTSIZE + 1)
+    
+    # Add grid lines
+    ax.xaxis.grid(True, linestyle='--', alpha=0.7, color='#dddddd')
+    ax.set_axisbelow(True)
+    
+    # Remove spines
+    for spine in ['top', 'right', 'left']:
+        ax.spines[spine].set_visible(False)
+    
+    # Add title
+    ax.set_title(title, fontsize=DEFAULT_TITLE_FONTSIZE + 2, pad=20, loc='left')
     
     # Adjust layout
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 1])
     
     # Save the chart if output file is provided
     if output_file:

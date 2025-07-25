@@ -1,0 +1,8 @@
+program_id,program_name,department_code,department_name,section,fund_type,fiscal_year,amount,positions,ceiling,allocation_type,category,subcategory,notes,fund_category
+TRN595,HIGHWAYS ADMINISTRATION,TRN,TRN,Capital Improvement,N,2026,614705000.0,,,,Transportation,,Investment Capital - Fund Type: N,Federal Funds
+EDN100,SCHOOL-BASED BUDGETING,EDN,EDN,Capital Improvement,C,2026,323300000.0,,,,Education,,,General Obligation Bond Fund
+TRN195,AIRPORTS ADMINISTRATION,TRN,TRN,Capital Improvement,X,2026,301200000.0,,,,Transportation,,Investment Capital - Fund Type: X,Other Funds
+TRN195,AIRPORTS ADMINISTRATION,TRN,TRN,Capital Improvement,E,2026,294381000.0,,,,Transportation,,Investment Capital - Fund Type: E,Revenue Bond Funds
+TRN595,HIGHWAYS ADMINISTRATION,TRN,TRN,Capital Improvement,E,2026,156684000.0,,,,Transportation,,Investment Capital - Fund Type: E,Revenue Bond Funds
+TRN114,ELLISON ONIZUKA KONA INTERNATIONAL AIRPORT AT KEAHOLE,TRN,TRN,Capital Improvement,E,2026,137045000.0,,,,Transportation,,,Revenue Bond Funds
+BED170,AGRIBUSINESS DEVELOPMENT AND RESEARCH,BED,BED,Capital Improvement,C,2026,111201000.0,,,,Economic Development,,,General Obligation Bond Fund

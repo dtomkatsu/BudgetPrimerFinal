@@ -73,7 +73,7 @@ class FastBudgetParser(BaseBudgetParser):
                 re.IGNORECASE
             ),
             'investment_line': re.compile(
-                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z]?)\s*$',
+                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
                 re.IGNORECASE
             ),
             'indented_amount': re.compile(
@@ -112,6 +112,9 @@ class FastBudgetParser(BaseBudgetParser):
             if not self.validate(allocations):
                 self.logger.warning("Validation failed for some allocations")
             
+            # Post-process to remove suspicious duplicates
+            allocations = self._remove_suspicious_duplicates(allocations)
+        
             self.logger.info(f"Successfully parsed {len(allocations)} budget allocations")
             return allocations
             
@@ -218,7 +221,7 @@ class FastBudgetParser(BaseBudgetParser):
                             program_name=program_name,
                             department_code=dept,
                             department_name=dept,
-                            section=BudgetSection.CAPITAL_IMPROVEMENT,
+                            section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
                             fund_type=FundType.from_string(fy26_fund),
                             fiscal_year=2026,
                             amount=float(int(fy26_amt)),
@@ -232,7 +235,7 @@ class FastBudgetParser(BaseBudgetParser):
                             program_name=program_name,
                             department_code=dept,
                             department_name=dept,
-                            section=BudgetSection.CAPITAL_IMPROVEMENT,
+                            section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
                             fund_type=FundType.from_string(fy27_fund),
                             fiscal_year=2027,
                             amount=float(int(fy27_amt)),
@@ -263,7 +266,7 @@ class FastBudgetParser(BaseBudgetParser):
                                     program_name=current_program_name if 'current_program_name' in locals() else current_program,
                                     department_code=dept,
                                     department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
                                     fund_type=fund_type,
                                     fiscal_year=2026,
                                     amount=float(int(fy26_amt)),
@@ -293,7 +296,7 @@ class FastBudgetParser(BaseBudgetParser):
                                     program_name=current_program_name if 'current_program_name' in locals() else current_program,
                                     department_code=dept,
                                     department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
                                     fund_type=fund_type,
                                     fiscal_year=2026,
                                     amount=float(int(fy26_amt)),
@@ -313,7 +316,7 @@ class FastBudgetParser(BaseBudgetParser):
                                     program_name=current_program_name if 'current_program_name' in locals() else current_program,
                                     department_code=dept,
                                     department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
                                     fund_type=fund_type,
                                     fiscal_year=2027,
                                     amount=float(int(fy27_amt)),
@@ -326,32 +329,61 @@ class FastBudgetParser(BaseBudgetParser):
                                 self.logger.warning(f"Error creating allocation for {current_program} {fy27_amt}{fy27_fund}: {e}")
                         continue  # Skip to next line after processing
                     
-                    # Try the simple investment line pattern (for single amounts on a line)
+                    # Handle investment line pattern (can have one or two amounts)
                     line_match = self._compiled_patterns['investment_line'].match(line)
                     if line_match and line_match.group(1):
                         dept = line_match.group(1)
-                        amount = line_match.group(2).replace(',', '') if line_match.group(2) else '0'
-                        fund = (line_match.group(3) or 'A').upper()
                         
-                        if int(amount) > 0:
-                            try:
-                                fund_type = FundType.from_string(fund)
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,
-                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                    department_code=dept,
-                                    department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                    fund_type=fund_type,
-                                    fiscal_year=2026,  # Default to FY26
-                                    amount=float(int(amount)),
-                                    category=current_category or 'Uncategorized',
-                                    line_number=i + 1,
-                                    notes=f'Investment Capital - Fund Type: {fund}'
-                                ))
-                                self.logger.debug(f"Added investment capital: {current_program} - {amount}{fund}")
-                            except Exception as e:
-                                self.logger.warning(f"Error creating allocation for {current_program} {amount}{fund}: {e}")
+                        # Process first amount (FY26)
+                        if line_match.group(2):  # If first amount exists
+                            fy26_amt = line_match.group(2).replace(',', '')
+                            fy26_fund = (line_match.group(3) or 'A').upper()
+                            
+                            if int(fy26_amt) > 0:
+                                try:
+                                    fund_type = FundType.from_string(fy26_fund)
+                                    allocations.append(BudgetAllocation(
+                                        program_id=current_program,
+                                        program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                        department_code=dept,
+                                        department_name=dept,
+                                        section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                        fund_type=fund_type,
+                                        fiscal_year=2026,
+                                        amount=float(int(fy26_amt)),
+                                        category=current_category or 'Uncategorized',
+                                        line_number=i + 1,
+                                        notes=f'Investment Capital - Fund Type: {fy26_fund} - Column 1'
+                                    ))
+                                    self.logger.debug(f"Added FY26 investment: {current_program} - {fy26_amt}{fy26_fund}")
+                                except Exception as e:
+                                    self.logger.warning(f"Error creating FY26 allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
+                        
+                        # Process second amount (FY27) if it exists
+                        if line_match.group(4):
+                            fy27_amt = line_match.group(4).replace(',', '')
+                            fy27_fund = (line_match.group(5) or fy26_fund if line_match.group(3) else 'A').upper()
+                            
+                            if int(fy27_amt) > 0:
+                                try:
+                                    fund_type = FundType.from_string(fy27_fund)
+                                    allocations.append(BudgetAllocation(
+                                        program_id=current_program,
+                                        program_name=current_program_name if 'current_program_name' in locals() else current_program,
+                                        department_code=dept,
+                                        department_name=dept,
+                                        section=BudgetSection.CAPITAL_IMPROVEMENT,
+                                        fund_type=fund_type,
+                                        fiscal_year=2027,
+                                        amount=float(int(fy27_amt)),
+                                        category=current_category or 'Uncategorized',
+                                        line_number=i + 1,
+                                        notes=f'Investment Capital - Fund Type: {fy27_fund} - Column 2'
+                                    ))
+                                    self.logger.debug(f"Added FY27 investment: {current_program} - {fy27_amt}{fy27_fund}")
+                                except Exception as e:
+                                    self.logger.warning(f"Error creating FY27 allocation for {current_program} {fy27_amt}{fy27_fund}: {e}")
+                        
                         continue  # Skip to next line after processing
                     
                     # Skip to next line after processing
@@ -381,7 +413,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=program_name,
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy26_fund),
                                 fiscal_year=2026,
                                 amount=float(fy26_num),
@@ -396,7 +428,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=program_name,
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy27_fund),
                                 fiscal_year=2027,
                                 amount=float(fy27_num),
@@ -490,7 +522,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=program_name,
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy26_fund),
                                 fiscal_year=2026,
                                 amount=float(fy26_num),
@@ -508,7 +540,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=program_name,
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy27_fund),
                                 fiscal_year=2027,
                                 amount=float(fy27_num),
@@ -548,7 +580,7 @@ class FastBudgetParser(BaseBudgetParser):
                                     program_name=current_program or 'Unknown Program',
                                     department_code=dept_code,
                                     department_name=dept_code,
-                                    section=section_enum,
+                                    section=BudgetSection.OPERATING,
                                     fund_type=FundType.from_string(fund_type),
                                     fiscal_year=2026,
                                     amount=float(fy26_num),
@@ -561,7 +593,7 @@ class FastBudgetParser(BaseBudgetParser):
                                     program_name=current_program or 'Unknown Program',
                                     department_code=dept_code,
                                     department_name=dept_code,
-                                    section=section_enum,
+                                    section=BudgetSection.OPERATING,
                                     fund_type=FundType.from_string(fund_type),
                                     fiscal_year=2027,
                                     amount=float(fy27_num),
@@ -588,7 +620,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=current_program or 'Unknown Program',
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy26_fund),
                                 fiscal_year=2026,
                                 amount=float(fy26_amount),
@@ -601,7 +633,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 program_name=current_program or 'Unknown Program',
                                 department_code=dept_code,
                                 department_name=dept_code,
-                                section=section_enum,
+                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
                                 fund_type=FundType.from_string(fy27_fund),
                                 fiscal_year=2027,
                                 amount=float(fy27_amount),
@@ -694,6 +726,57 @@ class FastBudgetParser(BaseBudgetParser):
                 continue
         
         return allocations
+    
+    def _remove_suspicious_duplicates(self, allocations: List[BudgetAllocation]) -> List[BudgetAllocation]:
+        """
+        Remove suspicious duplicate allocations that have the same program_id, fiscal_year, 
+        and amount but different fund types. This typically indicates parsing errors.
+        """
+        if not allocations:
+            return allocations
+        
+        # Group allocations by program_id, fiscal_year, section
+        groups = {}
+        for alloc in allocations:
+            key = (alloc.program_id, alloc.fiscal_year, alloc.section)
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(alloc)
+        
+        cleaned_allocations = []
+        duplicates_removed = 0
+        
+        for key, group in groups.items():
+            program_id, fiscal_year, section = key
+            
+            # Check for suspicious duplicates (same amount, different fund types)
+            amount_groups = {}
+            for alloc in group:
+                amount = alloc.amount
+                if amount not in amount_groups:
+                    amount_groups[amount] = []
+                amount_groups[amount].append(alloc)
+            
+            # Process each amount group
+            for amount, amount_group in amount_groups.items():
+                if len(amount_group) > 1 and amount > 100_000_000:  # Multiple entries with same large amount
+                    # This is suspicious - likely a parsing error
+                    # Keep only the first one (usually the most reliable fund type)
+                    fund_types = [alloc.fund_type.value for alloc in amount_group]
+                    self.logger.warning(
+                        f"Removing {len(amount_group)-1} suspicious duplicates for {program_id} FY{fiscal_year} "
+                        f"${amount:,.0f} - fund types: {fund_types}"
+                    )
+                    cleaned_allocations.append(amount_group[0])  # Keep only the first one
+                    duplicates_removed += len(amount_group) - 1
+                else:
+                    # No duplicates or amount is small enough to be legitimate
+                    cleaned_allocations.extend(amount_group)
+        
+        if duplicates_removed > 0:
+            self.logger.info(f"Removed {duplicates_removed} suspicious duplicate allocations")
+        
+        return cleaned_allocations
     
     def _create_allocation(
             self,
