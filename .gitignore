@@ -33,6 +33,7 @@ ENV/
 # Data files
 data/raw/*
 !data/raw/HB 300 CD 1.txt
+!data/raw/vetoes/
 data/processed/
 data/output/
 
