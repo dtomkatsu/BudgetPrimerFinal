@@ -34,7 +34,9 @@ ENV/
 data/raw/*
 !data/raw/HB 300 CD 1.txt
 !data/raw/vetoes/
-data/processed/
+data/processed/*
+!data/processed/budget_parsed*.csv
+!data/processed/budget_allocations*.csv
 data/output/
 
 # Logs

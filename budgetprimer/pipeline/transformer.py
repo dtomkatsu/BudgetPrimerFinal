@@ -49,10 +49,15 @@ def _apply_veto_change(
     program_id = change.get('program_id')
     fiscal_year = str(change.get('fiscal_year', ''))
     
-    # Find matching allocations
+    # Get the fund type from the change (default to 'A' if not specified)
+    change_fund_type = change.get('fund_type', 'A')
+    
+    # Find matching allocations (must match program_id, fiscal_year, and fund_type)
     matches = [
         (i, alloc) for i, alloc in enumerate(allocations)
-        if alloc.program_id == program_id and str(alloc.fiscal_year) == fiscal_year
+        if (alloc.program_id == program_id and 
+            str(alloc.fiscal_year) == fiscal_year and
+            alloc.fund_type.value == change_fund_type)
     ]
     
     if not matches:

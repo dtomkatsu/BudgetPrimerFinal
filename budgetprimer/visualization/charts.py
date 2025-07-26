@@ -22,11 +22,14 @@ logger = logging.getLogger(__name__)
 # Updated to match the reference chart styles
 FUND_TYPE_COLORS = {
     'A': '#1f4e79',  # Dark blue - General Fund
-    'B': '#2d8659',  # Green - Special Fund
-    'F': '#2c2c2c',  # Black/dark gray - Federal Funds
-    'D': '#5fb3d4',  # Light blue/teal - Bond Funds
-    'T': '#8c6bb1',  # Purple - Trust Funds
-    'S': '#8c6d46',  # Brown - Special Management Area Funds
+    'B': '#2d8659',  # Green - Special Funds
+    'C': '#8c510a',  # Brown - General Obligation Bond Fund
+    'D': '#d8b365',  # Tan - GO Bond Fund with Debt Service from Special Funds
+    'E': '#5ab4ac',  # Teal - Revenue Bond Funds
+    'F': '#d53e4f',  # Red - Federal Funds (F)
+    'N': '#d53e4f',  # Red - Federal Funds (N) - Same as F
+    'P': '#d53e4f',  # Red - Federal Funds (P) - Same as F
+    'T': '#c51b7d',  # Magenta - Trust Funds
     'W': '#e377c2',  # Pink - Special Outlay Funds
     'R': '#7f7f7f',  # Gray - Revenue Bond Funds
     'X': '#bcbd22',  # Olive - Other Funds
@@ -296,27 +299,31 @@ def create_means_of_finance_chart(
         raise ValueError("Cannot create chart with empty data")
     
     # Filter data for the specified fiscal year
-    df_year = data[data['fiscal_year'] == fiscal_year].copy()
+    fund_df = data[data['fiscal_year'] == fiscal_year].copy()
     
-    if df_year.empty:
+    if fund_df.empty:
         raise ValueError(f"No data found for fiscal year {fiscal_year}")
     
-    # Group by fund type and sum amounts
-    fund_summary = df_year.groupby('fund_type')['amount'].sum().reset_index()
+    # Create simplified fund categories for MOF chart
+    def categorize_fund_type(fund_type):
+        if fund_type == 'A':
+            return 'General Funds'
+        elif fund_type == 'B':
+            return 'Special Funds'
+        elif fund_type in ['N', 'P', 'F']:
+            return 'Federal Funds'
+        else:
+            return 'Other Funds'
     
-    # Map fund type codes to human-readable names
-    fund_summary['category'] = fund_summary['fund_type'].map({
-        'A': 'General Fund',
-        'B': 'Special Fund',
-        'F': 'Federal Funds',
-        'D': 'Bond Funds',
-        'T': 'Trust Funds',
-        'S': 'SMA Funds',
-        'W': 'Special Outlay',
-        'R': 'Revenue Bonds',
-        'X': 'Other Funds',
-        'U': 'Unknown'
-    })
+    fund_df['mof_category'] = fund_df['fund_type'].apply(categorize_fund_type)
+    
+    # Group by MOF category and sum amounts
+    fund_summary = fund_df.groupby('mof_category', observed=True).agg({
+        'amount': 'sum'
+    }).reset_index()
+    
+    # Rename columns for consistency with existing code
+    fund_summary = fund_summary.rename(columns={'mof_category': 'category'})
     
     # Convert to billions for display
     fund_summary['amount_billions'] = fund_summary['amount'] / 1_000_000_000
@@ -329,45 +336,29 @@ def create_means_of_finance_chart(
         total = fund_summary['amount'].sum() / 1_000_000_000  # Convert to billions
         title = f"Figure 1. Means of Finance for FY{fiscal_year}\nTotal: ${total:,.1f}B"
     
-    # Create figure with larger size
-    fig, ax = plt.subplots(figsize=kwargs.pop('figsize', (12, 10)))
+    # Define colors for MOF categories
+    mof_colors = {
+        'General Funds': '#1f4e79',   # Dark blue
+        'Special Funds': '#2d8659',   # Green
+        'Federal Funds': '#d53e4f',   # Red
+        'Other Funds': '#bcbd22'      # Olive
+    }
     
-    # Create the pie chart with updated styling
-    wedges, texts, autotexts = ax.pie(
-        fund_summary['amount'],
-        labels=fund_summary['category'],
-        colors=[FUND_TYPE_COLORS[ft] for ft in fund_summary['fund_type']],
-        autopct='%1.1f%%',
-        startangle=90,
-        wedgeprops={'edgecolor': 'white', 'linewidth': 1},
-        textprops={'fontsize': DEFAULT_LABEL_FONTSIZE},
-        pctdistance=0.85,
-        labeldistance=1.1,
-        **kwargs
+    # Filter out invalid kwargs for pie chart
+    valid_pie_kwargs = {k: v for k, v in kwargs.items() 
+                       if k in ['figsize', 'fontsize', 'autopct', 'startangle', 'explode', 'shadow', 'ax']}
+    
+    # Create the pie chart
+    fig = create_pie_chart(
+        data=fund_summary,
+        values='amount',
+        names='category',
+        title=title,
+        colors=mof_colors,  # Pass the dictionary directly
+        **valid_pie_kwargs
     )
     
-    # Make the pie chart a donut by drawing a white circle in the center
-    centre_circle = plt.Circle((0, 0), 0.70, fc='white')
-    fig.gca().add_artist(centre_circle)
-    
-    # Equal aspect ratio ensures that pie is drawn as a circle
-    ax.axis('equal')
-    
-    # Add total amount in the center
-    total_billions = fund_summary['amount'].sum() / 1_000_000_000
-    plt.text(0, 0, f'${total_billions:,.1f}B', 
-             ha='center', va='center', 
-             fontsize=18, fontweight='bold')
-    
-    # Add title
-    plt.title(title, fontsize=DEFAULT_TITLE_FONTSIZE + 2, pad=20, loc='left')
-    
-    # Adjust legend
-    plt.legend(wedges, fund_summary['category'],
-              title="Fund Type",
-              loc="center left",
-              bbox_to_anchor=(1, 0, 0.5, 1),
-              frameon=False)
+    # The create_pie_chart function handles all the styling and layout
     
     # Adjust layout to prevent legend cutoff
     plt.tight_layout(rect=[0, 0, 0.8, 1])

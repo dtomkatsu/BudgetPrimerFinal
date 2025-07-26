@@ -76,10 +76,18 @@ def analyze_budget_totals(csv_path: str) -> Dict[str, pd.DataFrame]:
         else:
             df['fiscal_year'] = '2026'  # Default to 2026 if not found
     
-    # Check for and handle duplicate entries
+    # Check for and flag duplicate entries
     if df.duplicated().any():
-        print(f"\nWarning: Found {df.duplicated().sum()} duplicate rows. Removing duplicates.")
-        df = df.drop_duplicates()
+        dup_count = df.duplicated().sum()
+        print(f"\nWarning: Found {dup_count} duplicate rows. These will be flagged but not removed.")
+        # Add a duplicate flag column
+        df['is_duplicate'] = df.duplicated(keep=False)
+        # Print info about duplicates for debugging
+        if dup_count > 0:
+            print("\nSample of duplicate rows (first 5):")
+            print(df[df.duplicated(keep=False)].head().to_string())
+    else:
+        df['is_duplicate'] = False
     
     # Check for unusually large amounts
     if 'amount' in df.columns:

@@ -10,7 +10,12 @@ __version__ = "0.1.0"
 # Import key components for easier access
 from .models.budget_allocation import BudgetAllocation, FundType
 from .parsers.budget_parser import parse_budget_file
-from .pipeline import process_budget_data, transform_to_post_veto
+from .pipeline import (
+    process_budget_data, 
+    transform_to_post_veto,
+    process_budget_with_vetoes,
+    load_veto_changes
+)
 
 # Set up logging
 import logging

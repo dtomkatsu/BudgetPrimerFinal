@@ -2,7 +2,7 @@
 Budget data processing pipeline.
 
 This module provides functions for processing and transforming budget data
-through various stages of the analysis pipeline.
+through various stages of the analysis pipeline, including veto processing.
 """
 
 from .transformer import (
@@ -16,13 +16,24 @@ from .processor import (
     aggregate_by_category,
     calculate_summary_statistics
 )
+from .veto_processor import (
+    load_veto_changes,
+    process_budget_with_vetoes
+)
 
 __all__ = [
-    'transform_to_post_veto',
-    'apply_veto_changes',
-    'reconcile_fund_types',
-    'validate_budget_data',
+    # Core processing
     'process_budget_data',
     'aggregate_by_category',
-    'calculate_summary_statistics'
+    'calculate_summary_statistics',
+    
+    # Veto processing
+    'transform_to_post_veto',
+    'apply_veto_changes',
+    'load_veto_changes',
+    'process_budget_with_vetoes',
+    
+    # Utility
+    'reconcile_fund_types',
+    'validate_budget_data'
 ]
