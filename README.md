@@ -32,7 +32,7 @@ BudgetPrimerFinal/
 - **Comprehensive data models** for budget allocations
 - **Robust fund type extraction** with proper validation
 - **Precise transformation pipeline** from pre-veto to post-veto data
-- **High-quality visualizations** matching official styles
+- **High-quality visualizations** matching official styles with a modular, extensible chart system
 - **Detailed Budget Analysis**: Comprehensive breakdowns by section, fund type, and program
 
 ## Prerequisites
@@ -80,14 +80,133 @@ budget_data = parse_budget_file("data/raw/budget_document.txt")
 processed_data = process_budget_data(budget_data)
 ```
 
-### Visualization
+## Visualization
+
+The BudgetPrimer provides a powerful, modular charting system for creating consistent, publication-quality visualizations of budget data. The system is built around a base `BudgetChart` class with specialized chart types for different budget views.
+
+### Chart Types
+
+1. **Department Budget Chart**
+   - Horizontal bar chart showing operating vs. capital budgets by department
+   - Special handling for key departments (Judiciary, Legislature, OHA)
+   - Consistent color scheme and sorting
+
+2. **Means of Finance Chart**
+   - Pie chart showing budget breakdown by fund type (General, Special, Federal, etc.)
+   - Custom color mapping for different fund types
+   - Clear labeling and legend
+
+3. **CIP Funding Chart**
+   - Bar chart showing Capital Improvement Project funding by program
+   - Filtering by fiscal year and program type
+   - Consistent styling with other charts
+
+### Using the Chart System
+
+#### Basic Usage (Legacy Functions)
 
 ```python
-from budgetprimer.visualization import create_means_of_finance_chart
+from budgetprimer.visualization import (
+    create_department_budget_chart,
+    create_means_of_finance_chart,
+    create_cip_funding_chart
+)
 
-# Create a pie chart of funding sources
-chart = create_means_of_finance_chart(processed_data)
-chart.save("output/visualizations/means_of_finance.png")
+# Create a department budget chart
+dept_chart = create_department_budget_chart(
+    data=budget_df,
+    fiscal_year=2026,
+    title="Top 15 Departments by Budget (FY2026)",
+    output_file="output/charts/top_departments.png"
+)
+
+# Create a means of finance chart
+mof_chart = create_means_of_finance_chart(
+    data=budget_df,
+    fiscal_year=2026,
+    title="Means of Finance (FY2026)",
+    output_file="output/charts/means_of_finance.png"
+)
+```
+
+#### Advanced Usage (Modular System)
+
+```python
+from budgetprimer.visualization.charts import DepartmentChart, MeansOfFinanceChart, CIPChart
+
+# Create a department chart with custom settings
+dept_chart = DepartmentChart(
+    data=budget_df,
+    fiscal_year=2026,
+    n_departments=10,  # Show top 10 departments
+    figsize=(12, 8)
+)
+dept_chart.prepare_data()
+fig = dept_chart.create_figure()
+fig.savefig("output/charts/custom_dept_chart.png")
+
+# Create a means of finance chart with custom colors
+mof_chart = MeansOfFinanceChart(
+    data=budget_df,
+    fiscal_year=2026,
+    title="Custom MOF Chart",
+    colors={
+        'A': '#1f77b4',  # Custom colors for fund types
+        'B': '#ff7f0e',
+        'C': '#2ca02c',
+        'N': '#000000'   # Federal funds in black
+    }
+)
+mof_chart.prepare_data()
+fig = mof_chart.create_figure()
+fig.savefig("output/charts/custom_mof_chart.png")
+```
+
+### Chart Customization
+
+All charts support the following customization options:
+
+- `figsize`: Figure dimensions as a tuple (width, height)
+- `dpi`: Resolution in dots per inch
+- `title`: Chart title
+- `title_fontsize`: Font size for the title
+- `label_fontsize`: Font size for axis labels
+- `tick_fontsize`: Font size for tick labels
+- `legend_fontsize`: Font size for legend text
+- `colors`: Dictionary mapping fund types to colors
+
+### Creating Custom Charts
+
+To create a new chart type, extend the `BudgetChart` base class and implement the required methods:
+
+```python
+from budgetprimer.visualization.charts.base import BudgetChart
+
+class MyCustomChart(BudgetChart):
+    def prepare_data(self):
+        """Prepare and process data for visualization."""
+        # Data processing logic here
+        pass
+    
+    def create_figure(self):
+        """Create and return a matplotlib Figure object."""
+        # Chart creation logic here
+        pass
+```
+
+### Output Formats
+
+Charts can be saved in multiple formats:
+
+```python
+# Save as PNG (default)
+chart.save("output/charts/chart.png")
+
+# Save as PDF (vector format)
+chart.save("output/charts/chart.pdf")
+
+# Save as SVG (scalable vector graphics)
+chart.save("output/charts/chart.svg")
 ```
 
 ## HB 300 Format
