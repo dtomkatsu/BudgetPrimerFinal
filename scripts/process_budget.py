@@ -26,10 +26,10 @@ from budgetprimer import (
     load_veto_changes,
     transform_to_post_veto
 )
-from budgetprimer.visualization import (
-    create_means_of_finance_chart,
-    create_department_budget_chart,
-    create_cip_funding_chart
+from budgetprimer.visualization.charts import (
+    MeansOfFinanceChart,
+    DepartmentChart,
+    CIPChart
 )
 
 # Set up logging
@@ -58,49 +58,84 @@ def create_comparison_chart(
             # Create side-by-side pie charts
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
             
-            # Pre-veto chart
-            create_means_of_finance_chart(
-                data=pre_veto_df,
+            # Create pre-veto chart
+            pre_veto_chart = MeansOfFinanceChart(
                 fiscal_year=fiscal_year,
                 title=f"Pre-Veto: {title_suffix}",
-                ax=ax1,
                 **kwargs
             )
+            pre_data = pre_veto_chart.prepare_data(pre_veto_df)
+            pre_fig = pre_veto_chart.create_chart(pre_data)
             
-            # Post-veto chart
-            create_means_of_finance_chart(
-                data=post_veto_df,
+            # Create post-veto chart
+            post_veto_chart = MeansOfFinanceChart(
                 fiscal_year=fiscal_year,
                 title=f"Post-Veto: {title_suffix}",
-                ax=ax2,
                 **kwargs
             )
+            post_data = post_veto_chart.prepare_data(post_veto_df)
+            post_fig = post_veto_chart.create_chart(post_data)
+            
+            # Since we can't easily combine two separate figures, let's create a single comparison figure
+            # We'll recreate the charts on our comparison figure
+            
+            # Pre-veto pie chart
+            wedges1, texts1, autotexts1 = ax1.pie(
+                pre_data['amount_billions'],
+                labels=pre_data['category'],
+                colors=pre_data['color'],
+                autopct=lambda pct: f'${pct * pre_data["amount_billions"].sum() / 100:.1f}B\n({pct:.1f}%)',
+                startangle=90,
+                textprops={'fontsize': 8}
+            )
+            ax1.set_title(f"Pre-Veto: {title_suffix}", fontsize=12, fontweight='bold')
+            ax1.axis('equal')
+            
+            # Post-veto pie chart
+            wedges2, texts2, autotexts2 = ax2.pie(
+                post_data['amount_billions'],
+                labels=post_data['category'],
+                colors=post_data['color'],
+                autopct=lambda pct: f'${pct * post_data["amount_billions"].sum() / 100:.1f}B\n({pct:.1f}%)',
+                startangle=90,
+                textprops={'fontsize': 8}
+            )
+            ax2.set_title(f"Post-Veto: {title_suffix}", fontsize=12, fontweight='bold')
+            ax2.axis('equal')
+            
+            # Close the individual figures to avoid memory issues
+            plt.close(pre_fig)
+            plt.close(post_fig)
             
             plt.tight_layout()
             return fig
             
         elif chart_type == 'department_budget':
-            # Create side-by-side bar charts
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 12))
+            # For department charts, we'll create individual charts and save them separately
+            # since they're more complex to combine
             
-            create_department_budget_chart(
-                data=pre_veto_df,
+            # Create pre-veto chart
+            pre_veto_dept = DepartmentChart(
                 fiscal_year=fiscal_year,
                 title=f"Pre-Veto: {title_suffix}",
-                ax=ax1,
                 **kwargs
             )
+            pre_data = pre_veto_dept.prepare_data(pre_veto_df)
+            pre_fig = pre_veto_dept.create_chart(pre_data)
             
-            create_department_budget_chart(
-                data=post_veto_df,
+            # Create post-veto chart
+            post_veto_dept = DepartmentChart(
                 fiscal_year=fiscal_year,
                 title=f"Post-Veto: {title_suffix}",
-                ax=ax2,
                 **kwargs
             )
+            post_data = post_veto_dept.prepare_data(post_veto_df)
+            post_fig = post_veto_dept.create_chart(post_data)
             
-            plt.tight_layout()
-            return fig
+            # For now, return the pre-veto chart and save post-veto separately
+            # This is a limitation we'll address in future iterations
+            plt.close(post_fig)  # Close to avoid memory issues
+            return pre_fig
             
     except Exception as e:
         logger.error(f"Error creating comparison chart: {str(e)}", exc_info=True)
@@ -176,17 +211,78 @@ def main():
         
         # Common chart arguments
         chart_kwargs = {
-            'fiscal_year': args.fiscal_year,
-            'n_departments': args.top_n,
-            'n_projects': args.top_n,
-            'figsize': (14, 10)
+            'n_projects': args.top_n
         }
+        
+        # Create standard visualizations for the current view
+        if args.veto_mode in ['none', 'both']:
+            logger.info("Creating standard visualizations...")
+            
+            # 3.1 Means of Finance (pre-veto)
+            moa_chart = MeansOfFinanceChart(
+                fiscal_year=args.fiscal_year,
+                title=f"Means of Finance (FY{args.fiscal_year})",
+                **chart_kwargs
+            )
+            moa_data = moa_chart.prepare_data(result['pre_veto_df'])
+            moa_fig = moa_chart.create_chart(moa_data)
+            
+            # Save the chart
+            moa_path = charts_dir / f"means_of_finance_fy{args.fiscal_year}.png"
+            moa_fig.savefig(moa_path, bbox_inches='tight', dpi=300)
+            plt.close(moa_fig)
+            logger.info(f"Saved Means of Finance chart to {moa_path}")
+            
+            # If we're in 'both' mode, also create the post-veto charts
+            if args.veto_mode == 'both':
+                # Create post-veto means of finance chart
+                moa_post_veto_chart = MeansOfFinanceChart(
+                    fiscal_year=args.fiscal_year,
+                    title=f"Means of Finance (FY{args.fiscal_year}) - Post Veto",
+                    **chart_kwargs
+                )
+                moa_post_veto_data = moa_post_veto_chart.prepare_data(result['post_veto_df'])
+                moa_post_veto_fig = moa_post_veto_chart.create_chart(moa_post_veto_data)
+                
+                # Save the post-veto chart
+                moa_post_veto_path = charts_dir / f"means_of_finance_fy{args.fiscal_year}_post_veto.png"
+                moa_post_veto_fig.savefig(moa_post_veto_path, bbox_inches='tight', dpi=300)
+                plt.close(moa_post_veto_fig)
+                logger.info(f"Saved Post-Veto Means of Finance chart to {moa_post_veto_path}")
+                
+                # Create post-veto department chart
+                dept_post_veto_chart = DepartmentChart(
+                    fiscal_year=args.fiscal_year,
+                    title=f"Department Budgets (FY{args.fiscal_year}) - Post Veto"
+                )
+                dept_post_veto_data = dept_post_veto_chart.prepare_data(result['post_veto_df'])
+                dept_post_veto_fig = dept_post_veto_chart.create_chart(dept_post_veto_data)
+                
+                # Save the post-veto department chart
+                dept_post_veto_path = charts_dir / f"department_budgets_fy{args.fiscal_year}_post_veto.png"
+                dept_post_veto_fig.savefig(dept_post_veto_path, bbox_inches='tight', dpi=300)
+                plt.close(dept_post_veto_fig)
+                logger.info(f"Saved Post-Veto Department Budgets chart to {dept_post_veto_path}")
+                
+                # Create post-veto CIP chart
+                cip_post_veto_chart = CIPChart(
+                    fiscal_year=args.fiscal_year,
+                    title=f"Distribution of Capital Improvement Project Funding, FY{str(args.fiscal_year)[-2:]} ($ Millions) - Post Veto"
+                )
+                cip_post_veto_data = cip_post_veto_chart.prepare_data(result['post_veto_df'])
+                cip_post_veto_fig = cip_post_veto_chart.create_chart(cip_post_veto_data)
+                
+                # Save the post-veto CIP chart
+                cip_post_veto_path = charts_dir / f"cip_funding_fy{args.fiscal_year}_post_veto.png"
+                cip_post_veto_fig.savefig(cip_post_veto_path, bbox_inches='tight', dpi=300)
+                plt.close(cip_post_veto_fig)
+                logger.info(f"Saved Post-Veto CIP Funding chart to {cip_post_veto_path}")
         
         if args.veto_mode == 'both':
             # Create comparison visualizations
             logger.info("Creating comparison visualizations (pre-veto vs post-veto)")
             
-            # 3.1 Means of Finance comparison
+            # Means of Finance comparison
             moa_chart = create_comparison_chart(
                 pre_veto_df=result['pre_veto_df'],
                 post_veto_df=result['post_veto_df'],

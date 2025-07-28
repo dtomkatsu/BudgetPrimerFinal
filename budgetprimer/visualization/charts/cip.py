@@ -7,18 +7,16 @@ from .base import BudgetChart, CHART_COLORS, DEFAULT_TITLE_FONTSIZE, DEFAULT_LAB
 
 
 class CIPChart(BudgetChart):
-    """Capital Improvement Program funding chart."""
+    """Capital Improvement Program funding pie chart by category."""
     
-    def __init__(self, n_departments: int = 10, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialize the CIP chart.
         
         Args:
-            n_departments: Number of top departments to show
             **kwargs: Additional parameters passed to BudgetChart
         """
-        super().__init__(figsize=(12, 8), **kwargs)
-        self.n_departments = n_departments
+        super().__init__(figsize=(10, 8), **kwargs)
         
     def prepare_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -31,28 +29,46 @@ class CIPChart(BudgetChart):
             Processed data ready for visualization
         """
         # Filter for CIP data only
-        cip_data = data[data['section'] == 'CAPITAL_IMPROVEMENT'].copy()
+        cip_data = data[data['section'] == 'Capital Improvement'].copy()
         
         if cip_data.empty:
             raise ValueError(f"No CIP data found for fiscal year {self.fiscal_year}")
         
-        # Group by department and sum amounts
-        dept_summary = cip_data.groupby(['department_code', 'department_name'])['amount'].sum().reset_index()
+        # Clean up category names
+        cip_data['category'] = cip_data['category'].fillna('Uncategorized')
+        cip_data['category'] = cip_data['category'].str.strip()
         
-        # Sort by amount and get top N departments
-        top_depts = dept_summary.nlargest(self.n_departments, 'amount')
+        # Group categories as per reference: Transportation, Formal Education, Economic Development, Health, and All Others
+        main_categories = ['Transportation', 'Education', 'Economic Development', 'Health']
         
-        # Convert to millions for display
-        top_depts['amount_millions'] = top_depts['amount'] / 1_000_000
+        # Create consolidated category totals
+        consolidated_totals = {}
+        for category in main_categories:
+            if category == 'Education':
+                # Map 'Education' to 'Formal Education' for display
+                consolidated_totals['Formal Education'] = cip_data[cip_data['category'] == category]['amount'].sum()
+            else:
+                consolidated_totals[category] = cip_data[cip_data['category'] == category]['amount'].sum()
         
-        # Sort by amount in descending order for chart display
-        top_depts = top_depts.sort_values('amount', ascending=True)  # Reversed for horizontal bar
+        # Sum all other categories into 'All Others'
+        other_categories = cip_data[~cip_data['category'].isin(main_categories)]['amount'].sum()
+        consolidated_totals['All Others'] = other_categories
         
-        return top_depts
+        # Convert to pandas Series and sort by value (descending)
+        category_totals = pd.Series(consolidated_totals).sort_values(ascending=False)
+        
+        # Remove categories with zero funding
+        category_totals = category_totals[category_totals > 0]
+        
+        return pd.DataFrame({
+            'category': category_totals.index,
+            'amount': category_totals.values,
+            'amount_millions': category_totals.values / 1e6
+        })
         
     def create_chart(self, processed_data: pd.DataFrame) -> plt.Figure:
         """
-        Create the CIP funding chart.
+        Create the CIP funding pie chart.
         
         Args:
             processed_data: Data prepared by prepare_data()
@@ -60,50 +76,66 @@ class CIPChart(BudgetChart):
         Returns:
             Matplotlib Figure object
         """
-        top_depts = processed_data
-        
         # Create figure
         fig, ax = plt.subplots(figsize=self.figsize)
         
-        # Create horizontal bar chart
-        bars = ax.barh(
-            range(len(top_depts)),
-            top_depts['amount_millions'],
-            color=CHART_COLORS['cip'],
-            height=0.7
+        # Define colors matching the reference chart (blues and teals)
+        colors = ['#5DADE2', '#17A2B8', '#138D75', '#1B4F72', '#2C3E50']  # Light blue to dark blue/teal
+        
+        # Create a function to format the values on pie slices
+        def make_autopct(values):
+            def my_autopct(pct):
+                total = sum(values)
+                val = int(round(pct*total/100.0))
+                return f'${val/1e6:.0f}'
+            return my_autopct
+        
+        # Create the pie chart with values displayed on slices
+        wedges, texts, autotexts = ax.pie(
+            processed_data['amount'],
+            labels=None,  # No labels on slices, we'll use legend
+            colors=colors[:len(processed_data)],
+            autopct=make_autopct(processed_data['amount']),
+            startangle=90,
+            textprops={'fontsize': 14, 'fontweight': 'bold', 'color': 'white'}
         )
         
-        # Add department labels on the left
-        y_labels = [f"{row['department_code']} - {row['department_name']}" 
-                   for _, row in top_depts.iterrows()]
-        ax.set_yticks(range(len(top_depts)))
-        ax.set_yticklabels(y_labels, fontsize=DEFAULT_LABEL_FONTSIZE)
+        # Customize the value text on pie slices
+        for autotext in autotexts:
+            autotext.set_color('white')
+            autotext.set_fontsize(14)
+            autotext.set_fontweight('bold')
         
-        # Add value labels on the right of each bar
-        for i, amount in enumerate(top_depts['amount_millions']):
-            label = self.format_currency(amount * 1_000_000, use_billions=False)
-            ax.text(amount + max(top_depts['amount_millions']) * 0.01, i, label,
-                   va='center', ha='left', 
-                   fontsize=DEFAULT_LABEL_FONTSIZE,
-                   fontweight='bold')
+        # Create legend with category names only (matching reference style)
+        legend_labels = list(processed_data['category'])
+        ax.legend(
+            wedges, 
+            legend_labels, 
+            title="",
+            loc="center left", 
+            bbox_to_anchor=(1, 0, 0.5, 1),
+            fontsize=12, 
+            title_fontsize=12
+        )
         
-        # Set x-axis label
-        ax.set_xlabel('CIP Funding (Millions $)', fontsize=DEFAULT_LABEL_FONTSIZE + 1)
+        # Calculate total for title
+        total_cip = processed_data['amount'].sum()
         
-        # Add grid lines
-        ax.xaxis.grid(True, linestyle='--', alpha=0.7, color='#dddddd')
-        
-        # Customize appearance
-        self.setup_axes(ax, remove_spines=True)
-        
-        # Set title
+        # Set title matching the reference format
         if self.title is None:
-            total_millions = top_depts['amount_millions'].sum()
-            self.title = f"Figure 3. Top {self.n_departments} Departments - CIP Funding for FY{self.fiscal_year}\nTotal: ${total_millions:,.0f}M"
+            self.title = f'Figure 4. Distribution of Capital Improvement Project Funding, FY{self.fiscal_year[-2:]} ($ Millions)'
         
-        ax.set_title(self.title, fontsize=DEFAULT_TITLE_FONTSIZE + 2, pad=20, loc='left')
+        ax.set_title(
+            self.title, 
+            fontsize=14, 
+            fontweight='bold', 
+            pad=20
+        )
+        
+        # Ensure the pie chart is circular
+        ax.axis('equal')
         
         # Adjust layout
-        plt.tight_layout(rect=[0, 0, 1, 1])
+        plt.tight_layout()
         
         return fig

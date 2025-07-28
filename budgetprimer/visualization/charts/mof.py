@@ -20,23 +20,23 @@ class MeansOfFinanceChart(BudgetChart):
         
         # Fund type color mapping
         self.fund_colors = {
-            'A': CHART_COLORS['general'],     # General Fund - Blue
-            'B': CHART_COLORS['special'],     # Special Fund - Green  
-            'N': CHART_COLORS['federal'],     # Federal Fund - Very dark blue
-            'R': CHART_COLORS['revolving'],   # Revolving Fund - Orange/yellow
-            'T': CHART_COLORS['trust'],       # Trust Fund - Red
-            'W': CHART_COLORS['bond'],        # Bond Fund - Purple
-            'Other': CHART_COLORS['other']    # Other - Gray
+            'A': CHART_COLORS['general'],  # General Fund - Blue
+            'B': CHART_COLORS['special'],  # Special Fund - Green
+            'N': CHART_COLORS['federal'],  # Federal Fund - Very dark blue
+            'R': CHART_COLORS['other'],    # Revolving -> Other
+            'T': CHART_COLORS['other'],    # Trust -> Other
+            'W': CHART_COLORS['other'],    # Bond -> Other
+            'Other': CHART_COLORS['other']  # Other - Gray
         }
         
-        # Fund type labels for legend
+        # Fund type labels for legend - group R, T, W under 'Other Funds'
         self.fund_labels = {
             'A': 'General Funds',
-            'B': 'Special Funds', 
+            'B': 'Special Funds',
             'N': 'Federal Funds',
-            'R': 'Revolving Funds',
-            'T': 'Trust Funds',
-            'W': 'Bond Funds',
+            'R': 'Other Funds',
+            'T': 'Other Funds',
+            'W': 'Other Funds',
             'Other': 'Other Funds'
         }
         
@@ -51,7 +51,7 @@ class MeansOfFinanceChart(BudgetChart):
             Processed data ready for visualization
         """
         # Filter for operating budget only (exclude CIP)
-        operating_data = data[data['section'] == 'OPERATING'].copy()
+        operating_data = data[data['section'] == 'Operating'].copy()
         
         if operating_data.empty:
             raise ValueError(f"No operating budget data found for fiscal year {self.fiscal_year}")
