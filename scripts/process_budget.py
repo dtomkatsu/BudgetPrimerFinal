@@ -114,20 +114,18 @@ def create_comparison_chart(
             # For department charts, we'll create individual charts and save them separately
             # since they're more complex to combine
             
-            # Create pre-veto chart
+            # Create pre-veto chart (no kwargs to avoid limiting departments)
             pre_veto_dept = DepartmentChart(
                 fiscal_year=fiscal_year,
-                title=f"Pre-Veto: {title_suffix}",
-                **kwargs
+                title=f"Pre-Veto: All Department Budgets (FY{fiscal_year})"
             )
             pre_data = pre_veto_dept.prepare_data(pre_veto_df)
             pre_fig = pre_veto_dept.create_chart(pre_data)
             
-            # Create post-veto chart
+            # Create post-veto chart (no kwargs to avoid limiting departments)
             post_veto_dept = DepartmentChart(
                 fiscal_year=fiscal_year,
-                title=f"Post-Veto: {title_suffix}",
-                **kwargs
+                title=f"Post-Veto: All Department Budgets (FY{fiscal_year})"
             )
             post_data = post_veto_dept.prepare_data(post_veto_df)
             post_fig = post_veto_dept.create_chart(post_data)
@@ -211,7 +209,7 @@ def main():
         
         # Common chart arguments
         chart_kwargs = {
-            'n_projects': args.top_n
+            'n_projects': args.top_n  # Only used for CIP charts, not department charts
         }
         
         # Create standard visualizations for the current view
@@ -250,10 +248,10 @@ def main():
                 plt.close(moa_post_veto_fig)
                 logger.info(f"Saved Post-Veto Means of Finance chart to {moa_post_veto_path}")
                 
-                # Create post-veto department chart
+                # Create post-veto department chart (show all departments)
                 dept_post_veto_chart = DepartmentChart(
                     fiscal_year=args.fiscal_year,
-                    title=f"Department Budgets (FY{args.fiscal_year}) - Post Veto"
+                    title=f"All Department Budgets (FY{args.fiscal_year}) - Post Veto"
                 )
                 dept_post_veto_data = dept_post_veto_chart.prepare_data(result['post_veto_df'])
                 dept_post_veto_fig = dept_post_veto_chart.create_chart(dept_post_veto_data)
@@ -296,17 +294,17 @@ def main():
                 moa_chart.savefig(moa_output, dpi=300, bbox_inches='tight')
                 logger.info(f"Saved Means of Finance comparison to {moa_output}")
             
-            # 3.2 Department budget comparison
+            # 3.2 Department budget comparison (all departments)
             dept_chart = create_comparison_chart(
                 pre_veto_df=result['pre_veto_df'],
                 post_veto_df=result['post_veto_df'],
                 fiscal_year=args.fiscal_year,
                 chart_type='department_budget',
-                title_suffix=f"Top {args.top_n} Department Budgets (FY{args.fiscal_year})",
-                **chart_kwargs
+                title_suffix=f"All Department Budgets (FY{args.fiscal_year})"
+                # No kwargs passed to avoid limiting departments
             )
             if dept_chart:
-                dept_output = charts_dir / f'top_departments_fy{args.fiscal_year}_comparison.png'
+                dept_output = charts_dir / f'all_departments_fy{args.fiscal_year}_comparison.png'
                 dept_chart.savefig(dept_output, dpi=300, bbox_inches='tight')
                 logger.info(f"Saved Department Budget comparison to {dept_output}")
             

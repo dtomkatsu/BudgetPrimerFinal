@@ -19,30 +19,36 @@ class DepartmentChart(BudgetChart):
         """
         super().__init__(figsize=(12, 10), **kwargs)
         
-        # First map department codes to full names
+        # First map department codes to full names - include ALL codes from data
         self.code_to_name = {
             'AGR': 'Department of Agriculture',
+            'AGS': 'Department of Accounting and General Services',
             'ATG': 'Department of the Attorney General',
+            'BED': 'Department of Business, Economic Development and Tourism',
             'BUF': 'Department of Budget and Finance',
             'CCA': 'Department of Commerce and Consumer Affairs',
+            'CCH': 'City and County of Honolulu',
+            'COH': 'County of Hawaii',
+            'COK': 'County of Kauai',
             'DEF': 'Department of Defense',
-            'PSD': 'Department of Corrections and Rehabilitation',
-            'DOE': 'Department of Education',
-            'DOH': 'Department of Health',
-            'DHHL': 'Department of Hawaiian Home Lands',
+            'EDN': 'Department of Education',
+            'GOV': 'Office of the Governor',
+            'HHL': 'Department of Hawaiian Home Lands',
+            'HMS': 'Department of Human Services',
             'HRD': 'Department of Human Resources Development',
-            'DHS': 'Department of Human Services',
-            'DLIR': 'Department of Labor and Industrial Relations',
-            'DLNR': 'Department of Land and Natural Resources',
-            'DAGS': 'Department of Accounting and General Services',
-            'DBEDT': 'Department of Business, Economic Development and Tourism',
-            'DOTAX': 'Department of Taxation',
-            'DOT': 'Department of Transportation',
-            'UOH': 'University of Hawaii',
-            'DLE': 'Department of Law Enforcement'
+            'HTH': 'Department of Health',
+            'LAW': 'Department of Law Enforcement',
+            'LBR': 'Department of Labor and Industrial Relations',
+            'LNR': 'Department of Land and Natural Resources',
+            'LTG': 'Office of the Lieutenant Governor',
+            'P': 'General Administration',
+            'PSD': 'Department of Corrections and Rehabilitation',
+            'TAX': 'Department of Taxation',
+            'TRN': 'Department of Transportation',
+            'UOH': 'University of Hawaii'
         }
         
-        # Then map full names to display names - must match reference script exactly
+        # Then map full names to display names - include all departments
         self.dept_mapping = {
             'Department of Human Services': 'Human Services',
             'Department of Budget and Finance': 'Budget & Finance',
@@ -62,7 +68,13 @@ class DepartmentChart(BudgetChart):
             'Department of Law Enforcement': 'Law Enforcement',
             'Department of Agriculture': 'Agriculture',
             'Department of Taxation': 'Taxation',
-            'Department of Human Resources Development': 'Human Resources'
+            'Department of Human Resources Development': 'Human Resources',
+            'City and County of Honolulu': 'Honolulu County',
+            'County of Hawaii': 'Hawaii County',
+            'County of Kauai': 'Kauai County',
+            'Office of the Governor': 'Governor',
+            'Office of the Lieutenant Governor': 'Lieutenant Governor',
+            'General Administration': 'General Admin'
         }
         
         # Colors to match the official chart
@@ -105,15 +117,12 @@ class DepartmentChart(BudgetChart):
             'Department of Human Resources Development'  # We'll handle HR specially
         ]
         
-        # Remove any row where dept_name is 'TOTAL' or contains 'County of' or 'Subaccount'
-        # Also remove special departments that we'll add back later
-        # Also remove Governor and Lieutenant Governor offices since they'll be combined
+        # Remove only TOTAL rows and Subaccounts - keep all real departments including counties and governor offices
         dept_summary = dept_summary[~dept_summary['department_name'].str.upper().str.contains('TOTAL', na=False)]
-        dept_summary = dept_summary[~dept_summary['department_name'].str.contains('County of', case=False, na=False)]
         dept_summary = dept_summary[~dept_summary['department_name'].str.contains('Subaccount', case=False, na=False)]
-        dept_summary = dept_summary[~dept_summary['department_name'].isin(special_dept_names)]  # Remove special departments
-        dept_summary = dept_summary[~dept_summary['department_name'].str.contains('Office of the Governor', case=False, na=False)]
-        dept_summary = dept_summary[~dept_summary['department_name'].str.contains('Office of the Lieutenant Governor', case=False, na=False)]
+        # Note: We now keep counties and governor offices to show ALL departments
+        # Only remove the special departments that will be added back manually
+        dept_summary = dept_summary[~dept_summary['department_name'].isin(special_dept_names)]
         
         # Reset index after filtering
         dept_summary = dept_summary.reset_index(drop=True)
@@ -145,12 +154,12 @@ class DepartmentChart(BudgetChart):
         # Mark regular departments
         dept_summary['is_special'] = False
         
-        # Sort regular departments by total amount (descending)
-        dept_summary = dept_summary.sort_values('Total_B', ascending=False)
+        # Sort regular departments by total amount (ascending - smallest at top)
+        dept_summary = dept_summary.sort_values('Total_B', ascending=True)
         
-        # Combine special and regular departments (special at top)
+        # Combine special and regular departments (special at bottom like reference)
         special_df = pd.DataFrame(special_depts)
-        all_depts = pd.concat([special_df, dept_summary], ignore_index=True)
+        all_depts = pd.concat([dept_summary, special_df], ignore_index=True)
         
         return all_depts
         
@@ -169,10 +178,8 @@ class DepartmentChart(BudgetChart):
         # Create figure
         fig, ax = plt.subplots(figsize=self.figsize)
         
-        # Sort by total amount (descending) for display order
-        all_depts = all_depts.sort_values('Total_B', ascending=True)  # Sort ascending for plotting (top to bottom)
-        
-        # Calculate y-positions - reverse order so highest budgets are at top
+        # Keep the order from prepare_data (ascending - smallest at top, largest at bottom)
+        # Calculate y-positions
         y_positions = np.arange(len(all_depts))
         
         # Create stacked bars (horizontal)
