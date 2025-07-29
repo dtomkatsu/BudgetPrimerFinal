@@ -144,11 +144,11 @@ class DepartmentChart(BudgetChart):
         # Map department names for display
         dept_summary['dept_display'] = dept_summary['department_name'].map(self.dept_mapping).fillna(dept_summary['department_name'])
         
-        # Add special departments manually (based on reference script)
+        # Add special departments with fixed amounts (in billions)
         special_depts = [
-            {'dept_display': 'OHA', 'Operating_B': 0.1, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.1, 'is_special': True},
-            {'dept_display': 'Legislature', 'Operating_B': 0.05, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.05, 'is_special': True},
-            {'dept_display': 'Judiciary', 'Operating_B': 0.2, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.2, 'is_special': True}
+            {'dept_display': 'OHA', 'Operating_B': 0.0046, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.0046, 'is_special': True},
+            {'dept_display': 'Legislature', 'Operating_B': 0.044, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.044, 'is_special': True},
+            {'dept_display': 'Judiciary', 'Operating_B': 0.2017, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.2017, 'is_special': True}
         ]
         
         # Mark regular departments
