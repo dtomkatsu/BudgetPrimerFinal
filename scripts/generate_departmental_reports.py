@@ -545,6 +545,17 @@ class DepartmentalBudgetAnalyzer:
         total_departments = len(dept_info)
         largest_dept = dept_info[0] if dept_info else ('', '', 0)
         
+        # Calculate operating vs capital budget totals
+        operating_total = self.df[self.df['section'] == 'Operating']['amount'].sum() / 1_000_000
+        capital_total = self.df[self.df['section'] == 'Capital Improvement']['amount'].sum() / 1_000_000
+        
+        # Helper function to format budget amounts
+        def format_budget(amount_millions):
+            if amount_millions >= 1000:
+                return f"${amount_millions/1000:,.1f}B"
+            else:
+                return f"${amount_millions:,.0f}M"
+        
         html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -799,7 +810,7 @@ class DepartmentalBudgetAnalyzer:
         <div class="summary-cards">
             <div class="summary-card">
                 <h3>Total Budget</h3>
-                <div class="value">${total_budget:,.0f}M</div>
+                <div class="value">{format_budget(total_budget)}</div>
                 <div class="label">All Departments</div>
             </div>
             <div class="summary-card">
@@ -809,8 +820,21 @@ class DepartmentalBudgetAnalyzer:
             </div>
             <div class="summary-card">
                 <h3>Largest Department</h3>
-                <div class="value">${largest_dept[2]:,.0f}M</div>
+                <div class="value">{format_budget(largest_dept[2])}</div>
                 <div class="label">{largest_dept[1]}</div>
+            </div>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Operating Budget</h3>
+                <div class="value">{format_budget(operating_total)}</div>
+                <div class="label">All Departments Combined</div>
+            </div>
+            <div class="summary-card">
+                <h3>Capital Budget</h3>
+                <div class="value">{format_budget(capital_total)}</div>
+                <div class="label">Capital Improvement Projects</div>
             </div>
         </div>
     </div>
@@ -826,11 +850,17 @@ class DepartmentalBudgetAnalyzer:
 """
         
         for code, name, total in dept_info:
+            # Format the budget amount
+            if total >= 1000:
+                budget_display = f"{total/1000:.1f}B Total Budget"
+            else:
+                budget_display = f"{total:.1f}M Total Budget"
+            
             html += f"""
         <a href="{code.lower()}_budget_report.html" class="dept-card">
             <div class="dept-name">{name}</div>
             <div class="dept-code">{code}</div>
-            <div class="dept-budget">${total:.1f}M Total Budget</div>
+            <div class="dept-budget">${budget_display}</div>
         </a>
 """
         
