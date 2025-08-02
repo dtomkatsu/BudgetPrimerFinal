@@ -528,35 +528,35 @@ class DepartmentalBudgetAnalyzer:
             min-height: 100vh;
         }
         
-        .header {{
+        .header {
             text-align: center;
             margin-bottom: 40px;
             padding: 30px;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }}
+        }
         
-        .header h1 {{
+        .header h1 {
             color: #2c3e50;
             margin: 0;
             font-size: 2.5em;
-        }}
+        }
         
-        .header p {{
+        .header p {
             color: #7f8c8d;
             font-size: 1.1em;
             margin: 15px 0 0 0;
-        }}
+        }
         
-        .departments-grid {{
+        .departments-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin: 30px 0;
-        }}
+        }
         
-        .dept-card {{
+        .dept-card {
             background-color: #fff;
             border-radius: 12px;
             padding: 25px;
@@ -564,24 +564,24 @@ class DepartmentalBudgetAnalyzer:
             transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
             color: inherit;
-        }}
+        }
         
-        .dept-card:hover {{
+        .dept-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             text-decoration: none;
             color: inherit;
-        }}
+        }
         
-        .dept-name {{
+        .dept-name {
             font-size: 1.4em;
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 8px;
             line-height: 1.3;
-        }}
+        }
         
-        .dept-code {{
+        .dept-code {
             font-size: 0.9em;
             font-weight: 600;
             color: #3498db;
@@ -590,15 +590,15 @@ class DepartmentalBudgetAnalyzer:
             border-radius: 4px;
             display: inline-block;
             margin-bottom: 12px;
-        }}
+        }
         
-        .dept-budget {{
+        .dept-budget {
             color: #27ae60;
             font-weight: bold;
             font-size: 1.2em;
-        }}
+        }
         
-        .footer {{
+        .footer {
             margin-top: 50px;
             padding: 25px;
             background-color: #fff;
@@ -606,7 +606,7 @@ class DepartmentalBudgetAnalyzer:
             text-align: center;
             color: #7f8c8d;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }}
+        }
     </style>
 </head>
 <body>
