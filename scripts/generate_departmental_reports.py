@@ -527,7 +527,7 @@ class DepartmentalBudgetAnalyzer:
     
     def create_index_page(self, dept_codes: list) -> str:
         """Create an index page linking to all department reports."""
-        # Get department names
+        # Get department names and budget breakdown
         dept_info = []
         for code in dept_codes:
             dept_data = self.df[self.df['department_code'] == code]
@@ -535,7 +535,12 @@ class DepartmentalBudgetAnalyzer:
                 # Use full department name from mapping
                 name = self.department_names.get(code, code)
                 total = dept_data['amount'].sum() / 1_000_000
-                dept_info.append((code, name, total))
+                
+                # Calculate operating vs capital breakdown
+                operating = dept_data[dept_data['section'] == 'Operating']['amount'].sum() / 1_000_000
+                capital = dept_data[dept_data['section'] == 'Capital Improvement']['amount'].sum() / 1_000_000
+                
+                dept_info.append((code, name, total, operating, capital))
         
         # Sort by total budget (descending)
         dept_info.sort(key=lambda x: x[2], reverse=True)
@@ -760,6 +765,35 @@ class DepartmentalBudgetAnalyzer:
             font-weight: 700;
             font-size: 1.5rem;
             letter-spacing: -0.025em;
+            margin-bottom: 16px;
+        }}
+        
+        .dept-breakdown {{
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }}
+        
+        .breakdown-item {{
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+        }}
+        
+        .breakdown-label {{
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }}
+        
+        .breakdown-value {{
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
         }}
         
         .footer {{
@@ -849,18 +883,33 @@ class DepartmentalBudgetAnalyzer:
     <div class="departments-grid" id="departmentsGrid">
 """
         
-        for code, name, total in dept_info:
-            # Format the budget amount
-            if total >= 1000:
-                budget_display = f"{total/1000:.1f}B Total Budget"
-            else:
-                budget_display = f"{total:.1f}M Total Budget"
+        for code, name, total, operating, capital in dept_info:
+            # Format the budget amounts
+            def format_amount(amount):
+                if amount >= 1000:
+                    return f"{amount/1000:.1f}B"
+                else:
+                    return f"{amount:.0f}M"
+            
+            total_display = format_amount(total)
+            operating_display = format_amount(operating)
+            capital_display = format_amount(capital)
             
             html += f"""
         <a href="{code.lower()}_budget_report.html" class="dept-card">
             <div class="dept-name">{name}</div>
             <div class="dept-code">{code}</div>
-            <div class="dept-budget">${budget_display}</div>
+            <div class="dept-budget">${total_display} Total Budget</div>
+            <div class="dept-breakdown">
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Operating:</span>
+                    <span class="breakdown-value">${operating_display}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Capital:</span>
+                    <span class="breakdown-value">${capital_display}</span>
+                </div>
+            </div>
         </a>
 """
         
