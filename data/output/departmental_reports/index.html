@@ -5,96 +5,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hawaii State Budget FY 2026 - Departmental Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
-            color: #333;
+            color: #1a202c;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            font-size: 16px;
         }
         
         .header {
             text-align: center;
             margin-bottom: 40px;
-            padding: 30px;
+            padding: 40px;
             background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         .header h1 {
-            color: #2c3e50;
-            margin: 0;
-            font-size: 2.5em;
+            color: #1a202c;
+            margin: 0 0 12px 0;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
         }
         
         .header p {
-            color: #7f8c8d;
-            font-size: 1.1em;
-            margin: 15px 0 0 0;
+            color: #4a5568;
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin: 0;
+        }
+        
+        .summary-section {
+            margin-bottom: 40px;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .summary-card h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        .summary-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .summary-card .label {
+            font-size: 1rem;
+            color: #718096;
+            font-weight: 500;
+        }
+        
+        .search-section {
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 24px 16px 48px;
+            font-size: 1.125rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            font-size: 1.25rem;
         }
         
         .departments-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
         }
         
         .dept-card {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dept-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
         
         .dept-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             text-decoration: none;
             color: inherit;
         }
         
         .dept-name {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 8px;
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 12px;
             line-height: 1.3;
+            letter-spacing: -0.025em;
         }
         
         .dept-code {
-            font-size: 0.9em;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #3498db;
-            background-color: #ecf0f1;
-            padding: 4px 8px;
-            border-radius: 4px;
+            color: #667eea;
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            padding: 6px 12px;
+            border-radius: 8px;
             display: inline-block;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         .dept-budget {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 1.2em;
+            color: #38a169;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.025em;
         }
         
         .footer {
-            margin-top: 50px;
-            padding: 25px;
+            margin-top: 60px;
+            padding: 32px;
             background-color: #fff;
-            border-radius: 12px;
+            border-radius: 16px;
             text-align: center;
-            color: #7f8c8d;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            color: #4a5568;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .footer p {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.25rem;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .departments-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dept-card {
+                padding: 24px;
+            }
         }
     </style>
 </head>
@@ -104,7 +248,34 @@
         <p>Departmental Budget Reports (Post-Veto)</p>
     </div>
     
-    <div class="departments-grid">
+    <div class="summary-section">
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Budget</h3>
+                <div class="value">$23,260M</div>
+                <div class="label">All Departments</div>
+            </div>
+            <div class="summary-card">
+                <h3>Departments</h3>
+                <div class="value">25</div>
+                <div class="label">State Agencies</div>
+            </div>
+            <div class="summary-card">
+                <h3>Largest Department</h3>
+                <div class="value">$4,804M</div>
+                <div class="label">HUMAN SERVICES</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="search-section">
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search departments by name or code...">
+        </div>
+    </div>
+    
+    <div class="departments-grid" id="departmentsGrid">
 
         <a href="hms_budget_report.html" class="dept-card">
             <div class="dept-name">HUMAN SERVICES</div>
@@ -262,5 +433,74 @@
         <p>Generated from Hawaii State Budget FY 2026 Post-Veto Data</p>
         <p>Data source: HB300 CD1 - State of Hawaii Operating and Capital Budget</p>
     </div>
+    
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const departmentsGrid = document.getElementById('departmentsGrid');
+        const deptCards = departmentsGrid.querySelectorAll('.dept-card');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            deptCards.forEach(card => {
+                const deptName = card.querySelector('.dept-name').textContent.toLowerCase();
+                const deptCode = card.querySelector('.dept-code').textContent.toLowerCase();
+                
+                if (deptName.includes(searchTerm) || deptCode.includes(searchTerm) || searchTerm === '') {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+            
+            // Show/hide "no results" message
+            const visibleCards = departmentsGrid.querySelectorAll('.dept-card:not(.hidden)');
+            let noResultsMsg = document.getElementById('noResultsMsg');
+            
+            if (visibleCards.length === 0 && searchTerm !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMsg';
+                    noResultsMsg.style.cssText = `
+                        text-align: center;
+                        padding: 60px 20px;
+                        color: #4a5568;
+                        font-size: 1.125rem;
+                        background-color: #fff;
+                        border-radius: 16px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                        margin: 20px 0;
+                    `;
+                    noResultsMsg.innerHTML = `
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
+                        <div style="font-weight: 600; margin-bottom: 8px;">No departments found</div>
+                        <div>Try searching with different keywords</div>
+                    `;
+                    departmentsGrid.appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        });
+        
+        // Add smooth scrolling for better UX
+        searchInput.addEventListener('focus', function() {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            if (e.key === 'Escape' && document.activeElement === searchInput) {
+                searchInput.blur();
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
 </body>
 </html>
