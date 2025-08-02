@@ -70,6 +70,35 @@ class DepartmentalBudgetAnalyzer:
             'Federal Funds': '#2c3e50',      # Dark blue/gray
             'Other Funds': '#17a2b8'         # Cyan
         }
+        
+        # Department code to full name mapping
+        self.department_names = {
+            'AGR': 'AGRICULTURE',
+            'AGS': 'ACCOUNTING AND GENERAL SERVICES',
+            'ATG': 'ATTORNEY GENERAL',
+            'BED': 'BUSINESS, ECONOMIC DEVELOPMENT & TOURISM',
+            'BUF': 'BUDGET AND FINANCE',
+            'CCA': 'COMMERCE AND CONSUMER AFFAIRS',
+            'CCH': 'CITY AND COUNTY OF HONOLULU',
+            'COH': 'COUNTY OF HAWAII',
+            'COK': 'COUNTY OF KAUAI',
+            'DEF': 'DEFENSE',
+            'EDN': 'EDUCATION',
+            'GOV': 'GOVERNOR',
+            'HHL': 'HAWAIIAN HOME LANDS',
+            'HMS': 'HUMAN SERVICES',
+            'HRD': 'HUMAN RESOURCES DEVELOPMENT',
+            'HTH': 'HEALTH',
+            'LAW': 'LAW ENFORCEMENT',
+            'LBR': 'LABOR AND INDUSTRIAL RELATIONS',
+            'LNR': 'LAND AND NATURAL RESOURCES',
+            'LTG': 'LIEUTENANT GOVERNOR',
+            'P': 'LEGISLATURE',
+            'PSD': 'PUBLIC SAFETY',
+            'TAX': 'TAXATION',
+            'TRN': 'TRANSPORTATION',
+            'UOH': 'UNIVERSITY OF HAWAII'
+        }
     
     def get_department_summary(self, dept_code: str) -> dict:
         """
@@ -87,7 +116,8 @@ class DepartmentalBudgetAnalyzer:
             logger.warning(f"No data found for department {dept_code}")
             return None
         
-        dept_name = dept_data['department_name'].iloc[0]
+        # Use full department name from mapping
+        dept_name = self.department_names.get(dept_code, dept_code)
         
         # Map fund types
         dept_data['fund_category_mapped'] = dept_data['fund_type'].map(self.fund_mappings)
@@ -502,7 +532,8 @@ class DepartmentalBudgetAnalyzer:
         for code in dept_codes:
             dept_data = self.df[self.df['department_code'] == code]
             if not dept_data.empty:
-                name = dept_data['department_name'].iloc[0]
+                # Use full department name from mapping
+                name = self.department_names.get(code, code)
                 total = dept_data['amount'].sum() / 1_000_000
                 dept_info.append((code, name, total))
         
