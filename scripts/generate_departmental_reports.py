@@ -5,6 +5,13 @@ Creates individual department reports similar to the AGR example provided.
 """
 
 import pandas as pd
+# Disable pandas' IPython display integration
+pd.set_option('display.notebook_repr_html', False)
+pd.set_option('display.max_columns', None)
+
+import matplotlib
+# Set the backend to 'Agg' to prevent display issues
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,6 +20,12 @@ import base64
 from io import BytesIO
 import argparse
 import logging
+import traceback
+import sys
+
+# Ensure matplotlib doesn't try to use display
+os.environ['MPLBACKEND'] = 'Agg'
+plt.ioff()  # Turn off interactive mode
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -83,13 +96,13 @@ class DepartmentalBudgetAnalyzer:
         operating_data = dept_data[dept_data['section'] == 'Operating']
         operating_by_fund = operating_data.groupby('fund_category_mapped')['amount'].sum()
         
-        # Calculate other appropriations (non-operating)
-        other_data = dept_data[dept_data['section'] != 'Operating']
-        other_total = other_data['amount'].sum()
+        # Calculate CIP projects (Capital Improvement section)
+        cip_data = dept_data[dept_data['section'] == 'Capital Improvement']
+        cip_total = cip_data['amount'].sum()
         
-        # Calculate CIP projects (look for CIP in program names)
-        cip_mask = dept_data['program_name'].str.contains('CIP', case=False, na=False)
-        cip_total = dept_data[cip_mask]['amount'].sum()
+        # Calculate other appropriations (non-operating, non-CIP)
+        other_data = dept_data[(dept_data['section'] != 'Operating') & (dept_data['section'] != 'Capital Improvement')]
+        other_total = other_data['amount'].sum()
         
         # Total operating budget
         total_operating = operating_by_fund.sum()
@@ -125,55 +138,96 @@ class DepartmentalBudgetAnalyzer:
         Returns:
             Base64 encoded image string
         """
-        fig, ax = plt.subplots(figsize=(10, 6))
-        
-        # Prepare data for stacked bar chart
-        fund_types = ['General Funds', 'Special Funds', 'Federal Funds', 'Other Funds']
-        amounts = [summary['operating_budget'][ft] / 1_000_000 for ft in fund_types]  # Convert to millions
-        colors = [self.colors[ft] for ft in fund_types]
-        
-        # Create horizontal stacked bar
-        left = 0
-        bars = []
-        for i, (amount, color, label) in enumerate(zip(amounts, colors, fund_types)):
-            if amount > 0:  # Only show non-zero amounts
-                bar = ax.barh(0, amount, left=left, color=color, label=label, height=0.6)
-                bars.append(bar)
-                left += amount
-        
-        # Formatting
-        ax.set_xlim(0, sum(amounts) * 1.1)
-        ax.set_ylim(-0.5, 0.5)
-        ax.set_xlabel('Amount (Millions of Dollars)', fontsize=12)
-        ax.set_title(f'{summary["department_code"]} Operating Budget', fontsize=14, fontweight='bold')
-        
-        # Remove y-axis
-        ax.set_yticks([])
-        ax.spines['left'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        
-        # Add legend
-        ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
-        
-        # Add value labels on bars
-        left = 0
-        for amount, label in zip(amounts, fund_types):
-            if amount > 0:
-                ax.text(left + amount/2, 0, f'${amount:.1f}M', 
-                       ha='center', va='center', fontweight='bold', color='white')
-                left += amount
-        
-        plt.tight_layout()
-        
-        # Convert to base64 string
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
-        buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.getvalue()).decode()
-        plt.close()
-        
-        return image_base64
+        try:
+            # Create figure with explicit backend
+            plt.switch_backend('Agg')
+            fig, ax = plt.subplots(figsize=(10, 6))
+            
+            # Prepare data for stacked bar chart
+            fund_types = ['General Funds', 'Special Funds', 'Federal Funds', 'Other Funds']
+            amounts = [summary['operating_budget'][ft] / 1_000_000 for ft in fund_types]  # Convert to millions
+            colors = [self.colors[ft] for ft in fund_types]
+            
+            # Check if we have any data to plot
+            total_amount = sum(amounts)
+            if total_amount == 0:
+                # Create a simple placeholder chart
+                ax.text(0.5, 0.5, 'No Operating Budget Data', 
+                       ha='center', va='center', transform=ax.transAxes, fontsize=14)
+                ax.set_xlim(0, 1)
+                ax.set_ylim(0, 1)
+            else:
+                # Create horizontal stacked bar
+                left = 0
+                bars = []
+                for i, (amount, color, label) in enumerate(zip(amounts, colors, fund_types)):
+                    if amount > 0:  # Only show non-zero amounts
+                        bar = ax.barh(0, amount, left=left, color=color, label=label, height=0.6)
+                        bars.append(bar)
+                        left += amount
+                
+                # Formatting
+                ax.set_xlim(0, max(total_amount * 1.1, 1))  # Ensure minimum xlim
+                ax.set_ylim(-0.5, 0.5)
+                ax.set_xlabel('Amount (Millions of Dollars)', fontsize=12)
+                
+                # Add legend only if we have bars
+                if bars:
+                    ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
+                
+                # Add value labels on bars
+                left = 0
+                for amount, label in zip(amounts, fund_types):
+                    if amount > 0:
+                        ax.text(left + amount/2, 0, f'${amount:.1f}M', 
+                               ha='center', va='center', fontweight='bold', color='white')
+                        left += amount
+            
+            ax.set_title(f'{summary["department_code"]} Operating Budget', fontsize=14, fontweight='bold')
+            
+            # Remove y-axis
+            ax.set_yticks([])
+            ax.spines['left'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            
+            plt.tight_layout()
+            
+            # Convert to base64 string
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+            buffer.seek(0)
+            image_base64 = base64.b64encode(buffer.getvalue()).decode()
+            plt.close(fig)  # Explicitly close the figure
+            plt.clf()  # Clear the current figure
+            
+            return image_base64
+            
+        except Exception as e:
+            logger.error(f"Error creating chart for {summary['department_code']}: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Return a simple placeholder image as base64
+            try:
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.text(0.5, 0.5, f'Chart Error\n{summary["department_code"]}', 
+                       ha='center', va='center', transform=ax.transAxes, fontsize=14)
+                ax.set_xlim(0, 1)
+                ax.set_ylim(0, 1)
+                ax.set_xticks([])
+                ax.set_yticks([])
+                
+                buffer = BytesIO()
+                plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+                buffer.seek(0)
+                image_base64 = base64.b64encode(buffer.getvalue()).decode()
+                plt.close(fig)
+                plt.clf()
+                
+                return image_base64
+            except:
+                # If even the error chart fails, return empty string
+                return ""
     
     def generate_html_report(self, summary: dict) -> str:
         """
@@ -294,30 +348,38 @@ class DepartmentalBudgetAnalyzer:
         }}
         
         .summary-stats {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
             margin: 30px 0;
         }}
         
-        .stat-card {{
+        .budget-card {{
             background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             text-align: center;
+            flex: 0 1 300px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }}
         
-        .stat-value {{
-            font-size: 2em;
+        .budget-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }}
+        
+        .budget-amount {{
+            font-size: 2.2em;
             font-weight: bold;
-            color: #3498db;
-            margin-bottom: 5px;
+            color: #2c3e50;
+            margin-bottom: 8px;
         }}
         
-        .stat-label {{
+        .budget-label {{
             color: #7f8c8d;
-            font-size: 0.9em;
+            font-size: 1.1em;
+            font-weight: 500;
         }}
         
         .footer {{
@@ -333,29 +395,25 @@ class DepartmentalBudgetAnalyzer:
 </head>
 <body>
     <div class="header">
-        <h1>{summary['department_code']} FY25 Operating Budget</h1>
+        <h1>{summary['department_code']} FY26 Operating Budget</h1>
         <h2>{summary['department_name']}</h2>
     </div>
     
     <div class="summary-stats">
-        <div class="stat-card">
-            <div class="stat-value">${summary['operating_budget']['total'] / 1_000_000:.1f} Million</div>
-            <div class="stat-label">Total Operating Budget</div>
+        <div class="budget-card">
+            <div class="budget-amount">${summary['operating_budget']['total'] / 1_000_000:,.1f}M</div>
+            <div class="budget-label">Total Operating</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-value">${summary['other_appropriations'] / 1_000_000:.1f} Million</div>
-            <div class="stat-label">Other Appropriations</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">${summary['cip_projects'] / 1_000_000:.1f} Million</div>
-            <div class="stat-label">Capital Improvement Projects</div>
+        <div class="budget-card">
+            <div class="budget-amount">${summary['cip_projects'] / 1_000_000:,.1f}M</div>
+            <div class="budget-label">Capital Improvement Projects</div>
         </div>
     </div>
     
     <table class="budget-table">
         <thead>
             <tr>
-                <th>{summary['department_code']} FY25 Operating Budget:</th>
+                <th>{summary['department_code']} FY26 Operating Budget:</th>
                 <th class="amount">${summary['operating_budget']['total'] / 1_000_000:.1f} Million</th>
             </tr>
         </thead>
@@ -376,12 +434,9 @@ class DepartmentalBudgetAnalyzer:
                 <td>Other Funds:</td>
                 <td class="amount">${op_budget['Other Funds'] / 1_000_000:.1f} Million</td>
             </tr>
-            <tr>
-                <td>FY25 Other Appropriations:</td>
-                <td class="amount">${summary['other_appropriations'] / 1_000_000:.1f} Million</td>
-            </tr>
+
             <tr class="total-row">
-                <td>FY25 Capital Improvement Projects:</td>
+                <td>FY26 Capital Improvement Projects:</td>
                 <td class="amount">${summary['cip_projects'] / 1_000_000:.1f} Million</td>
             </tr>
         </tbody>
@@ -418,8 +473,10 @@ class DepartmentalBudgetAnalyzer:
         # Generate individual department reports
         for dept_code in dept_codes:
             try:
+                logger.info(f"Processing department: {dept_code}")
                 summary = self.get_department_summary(dept_code)
                 if summary:
+                    logger.info(f"Got summary for {dept_code}, generating HTML report...")
                     html_report = self.generate_html_report(summary)
                     
                     # Save to file
@@ -429,12 +486,14 @@ class DepartmentalBudgetAnalyzer:
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(html_report)
                     
-                    logger.info(f"Generated report for {dept_code}: {filepath}")
+                    logger.info(f"Successfully generated report for {dept_code}: {filepath}")
                 else:
                     logger.warning(f"Skipped {dept_code} - no data available")
                     
             except Exception as e:
                 logger.error(f"Error generating report for {dept_code}: {e}")
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                # Continue with next department instead of stopping
     
     def create_index_page(self, dept_codes: list) -> str:
         """Create an index page linking to all department reports."""
@@ -460,43 +519,44 @@ class DepartmentalBudgetAnalyzer:
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
             color: #333;
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
         
-        .header {
+        .header {{
             text-align: center;
             margin-bottom: 40px;
             padding: 30px;
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        }}
         
-        .header h1 {
+        .header h1 {{
             color: #2c3e50;
             margin: 0;
             font-size: 2.5em;
-        }
+        }}
         
-        .header p {
+        .header p {{
             color: #7f8c8d;
             font-size: 1.1em;
             margin: 15px 0 0 0;
-        }
+        }}
         
-        .departments-grid {
+        .departments-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin: 30px 0;
-        }
+        }}
         
-        .dept-card {
+        .dept-card {{
             background-color: #fff;
             border-radius: 12px;
             padding: 25px;
@@ -504,36 +564,41 @@ class DepartmentalBudgetAnalyzer:
             transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
             color: inherit;
-        }
+        }}
         
-        .dept-card:hover {
+        .dept-card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             text-decoration: none;
             color: inherit;
-        }
+        }}
         
-        .dept-code {
+        .dept-name {{
             font-size: 1.4em;
             font-weight: bold;
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-        
-        .dept-name {
             color: #2c3e50;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }}
         
-        .dept-budget {
+        .dept-code {{
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #3498db;
+            background-color: #ecf0f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }}
+        
+        .dept-budget {{
             color: #27ae60;
             font-weight: bold;
             font-size: 1.2em;
-        }
+        }}
         
-        .footer {
+        .footer {{
             margin-top: 50px;
             padding: 25px;
             background-color: #fff;
@@ -541,7 +606,7 @@ class DepartmentalBudgetAnalyzer:
             text-align: center;
             color: #7f8c8d;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        }}
     </style>
 </head>
 <body>
@@ -556,8 +621,8 @@ class DepartmentalBudgetAnalyzer:
         for code, name, total in dept_info:
             html += f"""
         <a href="{code.lower()}_budget_report.html" class="dept-card">
-            <div class="dept-code">{code}</div>
             <div class="dept-name">{name}</div>
+            <div class="dept-code">{code}</div>
             <div class="dept-budget">${total:.1f}M Total Budget</div>
         </a>
 """

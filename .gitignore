@@ -37,7 +37,8 @@ data/raw/*
 data/processed/*
 !data/processed/budget_parsed*.csv
 !data/processed/budget_allocations*.csv
-data/output/
+data/output/*
+!data/output/departmental_reports/
 
 # Logs
 *.log
