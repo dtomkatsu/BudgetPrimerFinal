@@ -561,6 +561,18 @@ class DepartmentalBudgetAnalyzer:
             else:
                 return f"${amount_millions:,.0f}M"
         
+        # Helper function to format chart data as JavaScript array
+        def format_chart_data():
+            chart_data = []
+            for code, name, total, operating, capital in dept_info:
+                chart_data.append({
+                    'code': code,
+                    'name': name,
+                    'operating': operating,
+                    'capital': capital
+                })
+            return str(chart_data).replace("'", '"')
+        
         html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -583,7 +595,7 @@ class DepartmentalBudgetAnalyzer:
             padding: 20px;
             line-height: 1.6;
             color: #1a202c;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #007fb2 0%, #005a7d 100%);
             min-height: 100vh;
             font-size: 16px;
         }}
@@ -624,11 +636,11 @@ class DepartmentalBudgetAnalyzer:
         }}
         
         .summary-card {{
-            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
             border-radius: 16px;
             padding: 32px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,127,178,0.1);
+            border: 1px solid rgba(0,127,178,0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }}
         
@@ -687,9 +699,9 @@ class DepartmentalBudgetAnalyzer:
         
         .search-input:focus {{
             outline: none;
-            border-color: #667eea;
+            border-color: #007fb2;
             background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 127, 178, 0.1);
         }}
         
         .search-icon {{
@@ -709,14 +721,14 @@ class DepartmentalBudgetAnalyzer:
         }}
         
         .dept-card {{
-            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            background: linear-gradient(135deg, #f8fcff 0%, #eef7ff 100%);
             border-radius: 16px;
             padding: 32px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,127,178,0.08);
             transition: all 0.3s ease;
             text-decoration: none;
             color: inherit;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(0,127,178,0.15);
             position: relative;
             overflow: hidden;
         }}
@@ -728,7 +740,7 @@ class DepartmentalBudgetAnalyzer:
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #007fb2 0%, #005a7d 100%);
         }}
         
         .dept-card:hover {{
@@ -750,8 +762,8 @@ class DepartmentalBudgetAnalyzer:
         .dept-code {{
             font-size: 0.75rem;
             font-weight: 600;
-            color: #667eea;
-            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            color: #007fb2;
+            background: linear-gradient(135deg, #e6f3ff 0%, #d9ecff 100%);
             padding: 6px 12px;
             border-radius: 8px;
             display: inline-block;
@@ -794,6 +806,152 @@ class DepartmentalBudgetAnalyzer:
             font-size: 1rem;
             font-weight: 600;
             color: #2d3748;
+        }}
+        
+        .chart-section {{
+            margin-bottom: 40px;
+        }}
+        
+        .chart-container {{
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,127,178,0.08);
+            border: 1px solid rgba(0,127,178,0.1);
+        }}
+        
+        .chart-title {{
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 32px;
+            text-align: center;
+        }}
+        
+        .chart-wrapper {{
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 600px;
+            overflow-y: auto;
+        }}
+        
+        .dept-chart-row {{
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }}
+        
+        .dept-chart-row:last-child {{
+            border-bottom: none;
+        }}
+        
+        .dept-label {{
+            width: 200px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #007fb2;
+            text-decoration: none;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }}
+        
+        .dept-label:hover {{
+            color: #005a7d;
+            text-decoration: underline;
+        }}
+        
+        .chart-bars {{
+            display: flex;
+            flex: 1;
+            gap: 8px;
+            align-items: center;
+            margin-left: 16px;
+        }}
+        
+        .bar-group {{
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }}
+        
+        .bar-container {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .bar-label {{
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #4a5568;
+            width: 60px;
+            text-align: right;
+        }}
+        
+        .bar {{
+            height: 20px;
+            border-radius: 4px;
+            position: relative;
+            min-width: 2px;
+            transition: all 0.3s ease;
+        }}
+        
+        .bar-operating {{
+            background: linear-gradient(90deg, #007fb2 0%, #0099d4 100%);
+        }}
+        
+        .bar-capital {{
+            background: linear-gradient(90deg, #38a169 0%, #48bb78 100%);
+        }}
+        
+        .bar-value {{
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }}
+        
+        .chart-legend {{
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }}
+        
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .legend-color {{
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }}
+        
+        .legend-operating {{
+            background: linear-gradient(90deg, #007fb2 0%, #0099d4 100%);
+        }}
+        
+        .legend-capital {{
+            background: linear-gradient(90deg, #38a169 0%, #48bb78 100%);
+        }}
+        
+        .legend-text {{
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4a5568;
         }}
         
         .footer {{
@@ -869,6 +1027,15 @@ class DepartmentalBudgetAnalyzer:
                 <h3>Capital Budget</h3>
                 <div class="value">{format_budget(capital_total)}</div>
                 <div class="label">Capital Improvement Projects</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-section">
+        <div class="chart-container">
+            <h2 class="chart-title">Operating vs Capital Budget by Department</h2>
+            <div class="chart-wrapper" id="budgetChart">
+                <!-- Chart will be generated here -->
             </div>
         </div>
     </div>
@@ -988,6 +1155,75 @@ class DepartmentalBudgetAnalyzer:
                 searchInput.dispatchEvent(new Event('input'));
             }
         });
+        
+        // Generate budget chart
+        function generateBudgetChart() {
+            const chartContainer = document.getElementById('budgetChart');
+            const departments = {format_chart_data()};
+            
+            // Find the maximum value for scaling
+            const maxValue = Math.max(...departments.map(d => Math.max(d.operating, d.capital)));
+            
+            let chartHTML = '';
+            
+            departments.forEach(dept => {
+                const operatingWidth = (dept.operating / maxValue) * 100;
+                const capitalWidth = (dept.capital / maxValue) * 100;
+                
+                // Format amounts for display
+                function formatAmount(amount) {
+                    if (amount >= 1000) {
+                        return `${{amount/1000:.1f}}B`;
+                    } else if (amount >= 1) {
+                        return `${{amount:.0f}}M`;
+                    } else {
+                        return `${{amount:.1f}}M`;
+                    }
+                }
+                
+                chartHTML += `
+                    <div class="dept-chart-row">
+                        <a href="${{dept.code.toLowerCase()}}_budget_report.html" class="dept-label">
+                            ${{dept.name}}
+                        </a>
+                        <div class="chart-bars">
+                            <div class="bar-group">
+                                <div class="bar-container">
+                                    <div class="bar-label">Operating</div>
+                                    <div class="bar bar-operating" style="width: ${{operatingWidth}}%">
+                                        <span class="bar-value">${{formatAmount(dept.operating)}}</span>
+                                    </div>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-label">Capital</div>
+                                    <div class="bar bar-capital" style="width: ${{capitalWidth}}%">
+                                        <span class="bar-value">${{formatAmount(dept.capital)}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHTML += `
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-operating"></div>
+                        <span class="legend-text">Operating Budget</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-capital"></div>
+                        <span class="legend-text">Capital Budget</span>
+                    </div>
+                </div>
+            `;
+            
+            chartContainer.innerHTML = chartHTML;
+        }
+        
+        // Generate chart on page load
+        generateBudgetChart();
     </script>
 </body>
 </html>
