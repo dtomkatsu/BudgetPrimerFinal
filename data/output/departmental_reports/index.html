@@ -952,7 +952,7 @@
         // Generate budget chart
         function generateBudgetChart() {
             const chartContainer = document.getElementById('budgetChart');
-            const departments = {format_chart_data()};
+            const departments = {chart_data_json};
             
             // Find the maximum value for scaling
             const maxValue = Math.max(...departments.map(d => Math.max(d.operating, d.capital)));
@@ -966,11 +966,11 @@
                 // Format amounts for display
                 function formatAmount(amount) {
                     if (amount >= 1000) {
-                        return `${{amount/1000:.1f}}B`;
+                        return (amount / 1000).toFixed(1) + 'B';
                     } else if (amount >= 1) {
-                        return `${{amount:.0f}}M`;
+                        return amount.toFixed(0) + 'M';
                     } else {
-                        return `${{amount:.1f}}M`;
+                        return amount.toFixed(1) + 'M';
                     }
                 }
                 

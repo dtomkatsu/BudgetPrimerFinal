@@ -17,6 +17,7 @@ import numpy as np
 import os
 from pathlib import Path
 import base64
+import json  # For embedding chart data as JSON
 from io import BytesIO
 import argparse
 import logging
@@ -561,17 +562,17 @@ class DepartmentalBudgetAnalyzer:
             else:
                 return f"${amount_millions:,.0f}M"
         
-        # Helper function to format chart data as JavaScript array
-        def format_chart_data():
-            chart_data = []
-            for code, name, total, operating, capital in dept_info:
-                chart_data.append({
-                    'code': code,
-                    'name': name,
-                    'operating': operating,
-                    'capital': capital
-                })
-            return str(chart_data).replace("'", '"')
+        # Prepare chart data JSON for embedding in the JavaScript code
+        chart_data = [
+            {
+                "code": code,
+                "name": name,
+                "operating": operating,
+                "capital": capital
+            } for code, name, total, operating, capital in dept_info
+        ]
+        chart_data_json = json.dumps(chart_data)
+        print(f"DEBUG: chart_data_json = {chart_data_json}")
         
         html = f"""
 <!DOCTYPE html>
@@ -1159,7 +1160,7 @@ class DepartmentalBudgetAnalyzer:
         // Generate budget chart
         function generateBudgetChart() {
             const chartContainer = document.getElementById('budgetChart');
-            const departments = {format_chart_data()};
+            const departments = {chart_data_json};
             
             // Find the maximum value for scaling
             const maxValue = Math.max(...departments.map(d => Math.max(d.operating, d.capital)));
@@ -1173,11 +1174,11 @@ class DepartmentalBudgetAnalyzer:
                 // Format amounts for display
                 function formatAmount(amount) {
                     if (amount >= 1000) {
-                        return `${{amount/1000:.1f}}B`;
+                        return (amount / 1000).toFixed(1) + 'B';
                     } else if (amount >= 1) {
-                        return `${{amount:.0f}}M`;
+                        return amount.toFixed(0) + 'M';
                     } else {
-                        return `${{amount:.1f}}M`;
+                        return amount.toFixed(1) + 'M';
                     }
                 }
                 
