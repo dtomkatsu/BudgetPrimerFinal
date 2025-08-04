@@ -107,8 +107,61 @@
         
         .search-container {
             position: relative;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
+        }
+        
+        .search-row {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .sort-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .sort-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .sort-btn:hover {
+            background-color: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+        
+        .sort-btn.active {
+            background-color: #007fb2;
+            border-color: #007fb2;
+            color: white;
+        }
+        
+        .sort-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .sort-btn[data-order="asc"] .sort-arrow {
+            transform: rotate(180deg);
         }
         
         .search-input {
@@ -459,14 +512,28 @@
 
     <div class="search-section">
         <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search departments by name or code...">
+            <div class="search-row">
+                <div class="search-input-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search departments by name or code...">
+                </div>
+                <div class="sort-buttons">
+                    <button class="sort-btn" data-sort="operating" data-order="desc">
+                        <span>Operating Budget</span>
+                        <span class="sort-arrow">↓</span>
+                    </button>
+                    <button class="sort-btn" data-sort="capital" data-order="desc">
+                        <span>Capital Budget</span>
+                        <span class="sort-arrow">↓</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
     <div class="departments-grid" id="departmentsGrid">
 
-        <a href="hms_budget_report.html" class="dept-card">
+        <a href="hms_budget_report.html" class="dept-card" data-operating="4770.041975" data-capital="34.4">
             <div class="dept-name">HUMAN SERVICES</div>
             <div class="dept-code">HMS</div>
             <div class="dept-budget">$4.8B Total Budget</div>
@@ -482,7 +549,7 @@
             </div>
         </a>
 
-        <a href="buf_budget_report.html" class="dept-card">
+        <a href="buf_budget_report.html" class="dept-card" data-operating="4349.371728" data-capital="0.0">
             <div class="dept-name">BUDGET AND FINANCE</div>
             <div class="dept-code">BUF</div>
             <div class="dept-budget">$4.3B Total Budget</div>
@@ -498,7 +565,7 @@
             </div>
         </a>
 
-        <a href="edn_budget_report.html" class="dept-card">
+        <a href="edn_budget_report.html" class="dept-card" data-operating="3115.627838" data-capital="378.3">
             <div class="dept-name">EDUCATION</div>
             <div class="dept-code">EDN</div>
             <div class="dept-budget">$3.5B Total Budget</div>
@@ -514,7 +581,7 @@
             </div>
         </a>
 
-        <a href="trn_budget_report.html" class="dept-card">
+        <a href="trn_budget_report.html" class="dept-card" data-operating="1646.16348" data-capital="1781.045">
             <div class="dept-name">TRANSPORTATION</div>
             <div class="dept-code">TRN</div>
             <div class="dept-budget">$3.4B Total Budget</div>
@@ -530,7 +597,7 @@
             </div>
         </a>
 
-        <a href="hth_budget_report.html" class="dept-card">
+        <a href="hth_budget_report.html" class="dept-card" data-operating="2234.523494" data-capital="112.198">
             <div class="dept-name">HEALTH</div>
             <div class="dept-code">HTH</div>
             <div class="dept-budget">$2.3B Total Budget</div>
@@ -546,7 +613,7 @@
             </div>
         </a>
 
-        <a href="uoh_budget_report.html" class="dept-card">
+        <a href="uoh_budget_report.html" class="dept-card" data-operating="1363.950984" data-capital="209.206">
             <div class="dept-name">UNIVERSITY OF HAWAII</div>
             <div class="dept-code">UOH</div>
             <div class="dept-budget">$1.6B Total Budget</div>
@@ -562,7 +629,7 @@
             </div>
         </a>
 
-        <a href="bed_budget_report.html" class="dept-card">
+        <a href="bed_budget_report.html" class="dept-card" data-operating="292.608072" data-capital="366.101">
             <div class="dept-name">BUSINESS, ECONOMIC DEVELOPMENT & TOURISM</div>
             <div class="dept-code">BED</div>
             <div class="dept-budget">$659M Total Budget</div>
@@ -578,7 +645,7 @@
             </div>
         </a>
 
-        <a href="lbr_budget_report.html" class="dept-card">
+        <a href="lbr_budget_report.html" class="dept-card" data-operating="463.806077" data-capital="20.0">
             <div class="dept-name">LABOR AND INDUSTRIAL RELATIONS</div>
             <div class="dept-code">LBR</div>
             <div class="dept-budget">$484M Total Budget</div>
@@ -594,7 +661,7 @@
             </div>
         </a>
 
-        <a href="ags_budget_report.html" class="dept-card">
+        <a href="ags_budget_report.html" class="dept-card" data-operating="261.234034" data-capital="215.524">
             <div class="dept-name">ACCOUNTING AND GENERAL SERVICES</div>
             <div class="dept-code">AGS</div>
             <div class="dept-budget">$477M Total Budget</div>
@@ -610,7 +677,7 @@
             </div>
         </a>
 
-        <a href="lnr_budget_report.html" class="dept-card">
+        <a href="lnr_budget_report.html" class="dept-card" data-operating="324.957895" data-capital="75.655">
             <div class="dept-name">LAND AND NATURAL RESOURCES</div>
             <div class="dept-code">LNR</div>
             <div class="dept-budget">$401M Total Budget</div>
@@ -626,7 +693,7 @@
             </div>
         </a>
 
-        <a href="psd_budget_report.html" class="dept-card">
+        <a href="psd_budget_report.html" class="dept-card" data-operating="320.439082" data-capital="10.0">
             <div class="dept-name">PUBLIC SAFETY</div>
             <div class="dept-code">PSD</div>
             <div class="dept-budget">$330M Total Budget</div>
@@ -642,7 +709,7 @@
             </div>
         </a>
 
-        <a href="def_budget_report.html" class="dept-card">
+        <a href="def_budget_report.html" class="dept-card" data-operating="113.204466" data-capital="106.121">
             <div class="dept-name">DEFENSE</div>
             <div class="dept-code">DEF</div>
             <div class="dept-budget">$219M Total Budget</div>
@@ -658,7 +725,7 @@
             </div>
         </a>
 
-        <a href="hhl_budget_report.html" class="dept-card">
+        <a href="hhl_budget_report.html" class="dept-card" data-operating="165.159472" data-capital="20.0">
             <div class="dept-name">HAWAIIAN HOME LANDS</div>
             <div class="dept-code">HHL</div>
             <div class="dept-budget">$185M Total Budget</div>
@@ -674,7 +741,7 @@
             </div>
         </a>
 
-        <a href="atg_budget_report.html" class="dept-card">
+        <a href="atg_budget_report.html" class="dept-card" data-operating="135.47516" data-capital="0.0">
             <div class="dept-name">ATTORNEY GENERAL</div>
             <div class="dept-code">ATG</div>
             <div class="dept-budget">$135M Total Budget</div>
@@ -690,7 +757,7 @@
             </div>
         </a>
 
-        <a href="cca_budget_report.html" class="dept-card">
+        <a href="cca_budget_report.html" class="dept-card" data-operating="119.071633" data-capital="0.0">
             <div class="dept-name">COMMERCE AND CONSUMER AFFAIRS</div>
             <div class="dept-code">CCA</div>
             <div class="dept-budget">$119M Total Budget</div>
@@ -706,7 +773,7 @@
             </div>
         </a>
 
-        <a href="law_budget_report.html" class="dept-card">
+        <a href="law_budget_report.html" class="dept-card" data-operating="101.676615" data-capital="3.0">
             <div class="dept-name">LAW ENFORCEMENT</div>
             <div class="dept-code">LAW</div>
             <div class="dept-budget">$105M Total Budget</div>
@@ -722,7 +789,7 @@
             </div>
         </a>
 
-        <a href="agr_budget_report.html" class="dept-card">
+        <a href="agr_budget_report.html" class="dept-card" data-operating="75.708926" data-capital="5.001">
             <div class="dept-name">AGRICULTURE</div>
             <div class="dept-code">AGR</div>
             <div class="dept-budget">$81M Total Budget</div>
@@ -738,7 +805,7 @@
             </div>
         </a>
 
-        <a href="tax_budget_report.html" class="dept-card">
+        <a href="tax_budget_report.html" class="dept-card" data-operating="43.315613" data-capital="0.0">
             <div class="dept-name">TAXATION</div>
             <div class="dept-code">TAX</div>
             <div class="dept-budget">$43M Total Budget</div>
@@ -754,7 +821,7 @@
             </div>
         </a>
 
-        <a href="hrd_budget_report.html" class="dept-card">
+        <a href="hrd_budget_report.html" class="dept-card" data-operating="37.052068" data-capital="0.0">
             <div class="dept-name">HUMAN RESOURCES DEVELOPMENT</div>
             <div class="dept-code">HRD</div>
             <div class="dept-budget">$37M Total Budget</div>
@@ -770,7 +837,7 @@
             </div>
         </a>
 
-        <a href="cok_budget_report.html" class="dept-card">
+        <a href="cok_budget_report.html" class="dept-card" data-operating="0.0" data-capital="26.0">
             <div class="dept-name">COUNTY OF KAUAI</div>
             <div class="dept-code">COK</div>
             <div class="dept-budget">$26M Total Budget</div>
@@ -786,7 +853,7 @@
             </div>
         </a>
 
-        <a href="cch_budget_report.html" class="dept-card">
+        <a href="cch_budget_report.html" class="dept-card" data-operating="0.0" data-capital="10.0">
             <div class="dept-name">CITY AND COUNTY OF HONOLULU</div>
             <div class="dept-code">CCH</div>
             <div class="dept-budget">$10M Total Budget</div>
@@ -802,7 +869,7 @@
             </div>
         </a>
 
-        <a href="coh_budget_report.html" class="dept-card">
+        <a href="coh_budget_report.html" class="dept-card" data-operating="0.0" data-capital="7.0">
             <div class="dept-name">COUNTY OF HAWAII</div>
             <div class="dept-code">COH</div>
             <div class="dept-budget">$7M Total Budget</div>
@@ -818,7 +885,7 @@
             </div>
         </a>
 
-        <a href="gov_budget_report.html" class="dept-card">
+        <a href="gov_budget_report.html" class="dept-card" data-operating="4.701872" data-capital="0.0">
             <div class="dept-name">GOVERNOR</div>
             <div class="dept-code">GOV</div>
             <div class="dept-budget">$5M Total Budget</div>
@@ -834,7 +901,7 @@
             </div>
         </a>
 
-        <a href="ltg_budget_report.html" class="dept-card">
+        <a href="ltg_budget_report.html" class="dept-card" data-operating="2.563665" data-capital="0.0">
             <div class="dept-name">LIEUTENANT GOVERNOR</div>
             <div class="dept-code">LTG</div>
             <div class="dept-budget">$3M Total Budget</div>
@@ -850,7 +917,7 @@
             </div>
         </a>
 
-        <a href="p_budget_report.html" class="dept-card">
+        <a href="p_budget_report.html" class="dept-card" data-operating="0.16445" data-capital="0.0">
             <div class="dept-name">LEGISLATURE</div>
             <div class="dept-code">P</div>
             <div class="dept-budget">$0M Total Budget</div>
@@ -913,6 +980,46 @@
                 noResultsMsg.style.display = (searchTerm !== '' && !hasVisibleCards) ? 'block' : 'none';
             }
             
+            // Sort departments function
+            function sortDepartments(sortBy, order) {
+                const deptCards = Array.from(departmentsGrid.querySelectorAll('.dept-card'));
+                
+                deptCards.sort((a, b) => {
+                    const aValue = parseFloat(a.dataset[sortBy]);
+                    const bValue = parseFloat(b.dataset[sortBy]);
+                    return order === 'desc' ? bValue - aValue : aValue - bValue;
+                });
+                
+                // Re-append cards in new order
+                deptCards.forEach(card => departmentsGrid.appendChild(card));
+            }
+            
+            // Handle sort button clicks
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sortBy = this.dataset.sort;
+                    const currentOrder = this.dataset.order;
+                    const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+                    
+                    // Update button state
+                    this.dataset.order = newOrder;
+                    this.classList.add('active');
+                    this.querySelector('.sort-arrow').textContent = newOrder === 'desc' ? '↓' : '↑';
+                    
+                    // Reset other buttons
+                    document.querySelectorAll('.sort-btn').forEach(otherBtn => {
+                        if (otherBtn !== this) {
+                            otherBtn.classList.remove('active');
+                            otherBtn.dataset.order = 'desc';
+                            otherBtn.querySelector('.sort-arrow').textContent = '↓';
+                        }
+                    });
+                    
+                    // Sort departments
+                    sortDepartments(sortBy, newOrder);
+                });
+            });
+            
             // Add event listeners
             searchInput.addEventListener('input', performSearch);
             searchInput.addEventListener('keyup', function(e) {
@@ -922,8 +1029,19 @@
                 }
             });
             
+            // Focus search on Cmd+K / Ctrl+K
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+            
             // Initial search to handle any pre-filled search terms
             performSearch();
+            
+            // Default sort by operating budget (descending)
+            document.querySelector('.sort-btn[data-sort="operating"]').click();
         });
     </script>
                         text-align: center;

@@ -683,8 +683,61 @@ class DepartmentalBudgetAnalyzer:
         
         .search-container {{
             position: relative;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
+        }}
+        
+        .search-row {{
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }}
+        
+        .search-input-container {{
+            position: relative;
+            width: 100%;
+        }}
+        
+        .sort-buttons {{
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }}
+        
+        .sort-btn {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }}
+        
+        .sort-btn:hover {{
+            background-color: #e2e8f0;
+            border-color: #cbd5e1;
+        }}
+        
+        .sort-btn.active {{
+            background-color: #007fb2;
+            border-color: #007fb2;
+            color: white;
+        }}
+        
+        .sort-arrow {{
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }}
+        
+        .sort-btn[data-order="asc"] .sort-arrow {{
+            transform: rotate(180deg);
         }}
         
         .search-input {{
@@ -1035,8 +1088,22 @@ class DepartmentalBudgetAnalyzer:
 
     <div class="search-section">
         <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search departments by name or code...">
+            <div class="search-row">
+                <div class="search-input-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search departments by name or code...">
+                </div>
+                <div class="sort-buttons">
+                    <button class="sort-btn" data-sort="operating" data-order="desc">
+                        <span>Operating Budget</span>
+                        <span class="sort-arrow">↓</span>
+                    </button>
+                    <button class="sort-btn" data-sort="capital" data-order="desc">
+                        <span>Capital Budget</span>
+                        <span class="sort-arrow">↓</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1056,7 +1123,7 @@ class DepartmentalBudgetAnalyzer:
             capital_display = format_amount(capital)
             
             html += f"""
-        <a href="{code.lower()}_budget_report.html" class="dept-card">
+        <a href="{code.lower()}_budget_report.html" class="dept-card" data-operating="{operating}" data-capital="{capital}">
             <div class="dept-name">{name}</div>
             <div class="dept-code">{code}</div>
             <div class="dept-budget">${total_display} Total Budget</div>
@@ -1121,6 +1188,46 @@ class DepartmentalBudgetAnalyzer:
                 noResultsMsg.style.display = (searchTerm !== '' && !hasVisibleCards) ? 'block' : 'none';
             }
             
+            // Sort departments function
+            function sortDepartments(sortBy, order) {
+                const deptCards = Array.from(departmentsGrid.querySelectorAll('.dept-card'));
+                
+                deptCards.sort((a, b) => {
+                    const aValue = parseFloat(a.dataset[sortBy]);
+                    const bValue = parseFloat(b.dataset[sortBy]);
+                    return order === 'desc' ? bValue - aValue : aValue - bValue;
+                });
+                
+                // Re-append cards in new order
+                deptCards.forEach(card => departmentsGrid.appendChild(card));
+            }
+            
+            // Handle sort button clicks
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sortBy = this.dataset.sort;
+                    const currentOrder = this.dataset.order;
+                    const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+                    
+                    // Update button state
+                    this.dataset.order = newOrder;
+                    this.classList.add('active');
+                    this.querySelector('.sort-arrow').textContent = newOrder === 'desc' ? '↓' : '↑';
+                    
+                    // Reset other buttons
+                    document.querySelectorAll('.sort-btn').forEach(otherBtn => {
+                        if (otherBtn !== this) {
+                            otherBtn.classList.remove('active');
+                            otherBtn.dataset.order = 'desc';
+                            otherBtn.querySelector('.sort-arrow').textContent = '↓';
+                        }
+                    });
+                    
+                    // Sort departments
+                    sortDepartments(sortBy, newOrder);
+                });
+            });
+            
             // Add event listeners
             searchInput.addEventListener('input', performSearch);
             searchInput.addEventListener('keyup', function(e) {
@@ -1130,8 +1237,19 @@ class DepartmentalBudgetAnalyzer:
                 }
             });
             
+            // Focus search on Cmd+K / Ctrl+K
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+            
             // Initial search to handle any pre-filled search terms
             performSearch();
+            
+            // Default sort by operating budget (descending)
+            document.querySelector('.sort-btn[data-sort="operating"]').click();
         });
     </script>
                         text-align: center;
