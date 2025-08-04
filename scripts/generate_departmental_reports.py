@@ -1032,15 +1032,7 @@ class DepartmentalBudgetAnalyzer:
         </div>
     </div>
     
-    <div class="chart-section">
-        <div class="chart-container">
-            <h2 class="chart-title">Operating vs Capital Budget by Department</h2>
-            <div class="chart-wrapper" id="budgetChart">
-                <!-- Chart will be generated here -->
-            </div>
-        </div>
-    </div>
-    
+
     <div class="search-section">
         <div class="search-container">
             <span class="search-icon">🔍</span>
@@ -1091,33 +1083,57 @@ class DepartmentalBudgetAnalyzer:
     
     <script>
         // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const departmentsGrid = document.getElementById('departmentsGrid');
-        const deptCards = departmentsGrid.querySelectorAll('.dept-card');
-        
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const departmentsGrid = document.getElementById('departmentsGrid');
             
-            deptCards.forEach(card => {
-                const deptName = card.querySelector('.dept-name').textContent.toLowerCase();
-                const deptCode = card.querySelector('.dept-code').textContent.toLowerCase();
+            // Create no results message element
+            const noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'noResultsMsg';
+            noResultsMsg.style.cssText = `
+                text-align: center;
+                padding: 2rem;
+                font-size: 1.1rem;
+                color: #666;
+                display: none;
+            `;
+            noResultsMsg.textContent = 'No departments found matching your search.';
+            departmentsGrid.parentNode.insertBefore(noResultsMsg, departmentsGrid.nextSibling);
+            
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const deptCards = departmentsGrid.querySelectorAll('.dept-card');
+                let hasVisibleCards = false;
                 
-                if (deptName.includes(searchTerm) || deptCode.includes(searchTerm) || searchTerm === '') {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
+                deptCards.forEach(card => {
+                    const deptName = card.querySelector('.dept-name').textContent.toLowerCase();
+                    const deptCode = card.querySelector('.dept-code').textContent.toLowerCase();
+                    
+                    if (searchTerm === '' || deptName.includes(searchTerm) || deptCode.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        hasVisibleCards = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide no results message
+                noResultsMsg.style.display = (searchTerm !== '' && !hasVisibleCards) ? 'block' : 'none';
+            }
+            
+            // Add event listeners
+            searchInput.addEventListener('input', performSearch);
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    performSearch();
                 }
             });
             
-            // Show/hide "no results" message
-            const visibleCards = departmentsGrid.querySelectorAll('.dept-card:not(.hidden)');
-            let noResultsMsg = document.getElementById('noResultsMsg');
-            
-            if (visibleCards.length === 0 && searchTerm !== '') {
-                if (!noResultsMsg) {
-                    noResultsMsg = document.createElement('div');
-                    noResultsMsg.id = 'noResultsMsg';
-                    noResultsMsg.style.cssText = `
+            // Initial search to handle any pre-filled search terms
+            performSearch();
+        });
+    </script>
                         text-align: center;
                         padding: 60px 20px;
                         color: #4a5568;
@@ -1127,104 +1143,11 @@ class DepartmentalBudgetAnalyzer:
                         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
                         margin: 20px 0;
                     `;
-                    noResultsMsg.innerHTML = `
-                        <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
-                        <div style="font-weight: 600; margin-bottom: 8px;">No departments found</div>
-                        <div>Try searching with different keywords</div>
-                    `;
-                    departmentsGrid.appendChild(noResultsMsg);
-                }
-            } else if (noResultsMsg) {
-                noResultsMsg.remove();
             }
+            
+            // Initial search to handle any pre-filled search terms
+            performSearch();
         });
-        
-        // Add smooth scrolling for better UX
-        searchInput.addEventListener('focus', function() {
-            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-        
-        // Add keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-            if (e.key === 'Escape' && document.activeElement === searchInput) {
-                searchInput.blur();
-                searchInput.value = '';
-                searchInput.dispatchEvent(new Event('input'));
-            }
-        });
-        
-        // Generate budget chart
-        function generateBudgetChart() {
-            const chartContainer = document.getElementById('budgetChart');
-            const departments = {chart_data_json};
-            
-            // Find the maximum value for scaling
-            const maxValue = Math.max(...departments.map(d => Math.max(d.operating, d.capital)));
-            
-            let chartHTML = '';
-            
-            departments.forEach(dept => {
-                const operatingWidth = (dept.operating / maxValue) * 100;
-                const capitalWidth = (dept.capital / maxValue) * 100;
-                
-                // Format amounts for display
-                function formatAmount(amount) {
-                    if (amount >= 1000) {
-                        return (amount / 1000).toFixed(1) + 'B';
-                    } else if (amount >= 1) {
-                        return amount.toFixed(0) + 'M';
-                    } else {
-                        return amount.toFixed(1) + 'M';
-                    }
-                }
-                
-                chartHTML += `
-                    <div class="dept-chart-row">
-                        <a href="${{dept.code.toLowerCase()}}_budget_report.html" class="dept-label">
-                            ${{dept.name}}
-                        </a>
-                        <div class="chart-bars">
-                            <div class="bar-group">
-                                <div class="bar-container">
-                                    <div class="bar-label">Operating</div>
-                                    <div class="bar bar-operating" style="width: ${{operatingWidth}}%">
-                                        <span class="bar-value">${{formatAmount(dept.operating)}}</span>
-                                    </div>
-                                </div>
-                                <div class="bar-container">
-                                    <div class="bar-label">Capital</div>
-                                    <div class="bar bar-capital" style="width: ${{capitalWidth}}%">
-                                        <span class="bar-value">${{formatAmount(dept.capital)}}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            chartHTML += `
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <div class="legend-color legend-operating"></div>
-                        <span class="legend-text">Operating Budget</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color legend-capital"></div>
-                        <span class="legend-text">Capital Budget</span>
-                    </div>
-                </div>
-            `;
-            
-            chartContainer.innerHTML = chartHTML;
-        }
-        
-        // Generate chart on page load
-        generateBudgetChart();
     </script>
 </body>
 </html>
