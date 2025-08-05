@@ -32,16 +32,21 @@ plt.ioff()  # Turn off interactive mode
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Default department description to use when none is found
+DEFAULT_DEPT_DESCRIPTION = "No description available for this department."
+
 class DepartmentalBudgetAnalyzer:
     """Generate departmental budget reports with HTML tables and charts."""
     
-    def __init__(self, data_file: str, output_dir: str = "data/output/departmental_reports"):
+    def __init__(self, data_file: str, output_dir: str = "data/output/departmental_reports",
+                 descriptions_file: str = "data/processed/department_descriptions.json"):
         """
         Initialize the analyzer.
         
         Args:
             data_file: Path to the budget allocations CSV file
             output_dir: Directory to save HTML reports
+            descriptions_file: Path to the JSON file containing department descriptions
         """
         self.data_file = data_file
         self.output_dir = Path(output_dir)
@@ -50,6 +55,9 @@ class DepartmentalBudgetAnalyzer:
         # Load data
         self.df = pd.read_csv(data_file)
         logger.info(f"Loaded {len(self.df)} budget allocations")
+        
+        # Load department descriptions
+        self.descriptions = self._load_descriptions(descriptions_file)
         
         # Fund type mappings to match the reference
         self.fund_mappings = {
@@ -99,6 +107,35 @@ class DepartmentalBudgetAnalyzer:
             'TAX': 'TAXATION',
             'TRN': 'TRANSPORTATION',
             'UOH': 'UNIVERSITY OF HAWAII'
+        }
+        
+        # Department code to display name mapping (for the descriptions)
+        self.display_names = {
+            'AGR': 'Department of Agriculture',
+            'AGS': 'Department of Accounting & General Services',
+            'ATG': 'Department of the Attorney General',
+            'BED': 'Department of Business, Economic Development & Tourism',
+            'BUF': 'Department of Budget & Finance',
+            'CCA': 'Department of Commerce & Consumer Affairs',
+            'CCH': 'City and County of Honolulu',
+            'COH': 'County of Hawaii',
+            'COK': 'County of Kauai',
+            'DEF': 'Department of Defense',
+            'EDN': 'Department of Education',
+            'GOV': 'Office of the Governor',
+            'HHL': 'Department of Hawaiian Home Lands',
+            'HMS': 'Department of Human Services',
+            'HRD': 'Department of Human Resources Development',
+            'HTH': 'Department of Health',
+            'LAW': 'Department of Law Enforcement',
+            'LBR': 'Department of Labor & Industrial Relations',
+            'LNR': 'Department of Land & Natural Resources',
+            'LTG': 'Office of the Lieutenant Governor',
+            'P': 'State Legislature',
+            'PSD': 'Department of Corrections and Rehabilitation',
+            'TAX': 'Department of Taxation',
+            'TRN': 'Department of Transportation',
+            'UOH': 'University of Hawaii System'
         }
     
     def get_department_summary(self, dept_code: str) -> dict:
@@ -260,6 +297,51 @@ class DepartmentalBudgetAnalyzer:
                 # If even the error chart fails, return empty string
                 return ""
     
+    def _load_descriptions(self, descriptions_file: str) -> dict:
+        """
+        Load department descriptions from a JSON file.
+        
+        Args:
+            descriptions_file: Path to the JSON file containing department descriptions
+            
+        Returns:
+            Dictionary mapping department codes to their descriptions
+        """
+        try:
+            with open(descriptions_file, 'r', encoding='utf-8') as f:
+                descriptions = json.load(f)
+            logger.info(f"Loaded descriptions for {len(descriptions)} departments")
+            return descriptions
+        except FileNotFoundError:
+            logger.warning(f"Department descriptions file not found: {descriptions_file}")
+            return {}
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing department descriptions: {e}")
+            return {}
+    
+    def get_department_description(self, dept_code: str) -> str:
+        """
+        Get the description for a department.
+        
+        Args:
+            dept_code: Department code (e.g., 'AGR')
+            
+        Returns:
+            Department description as a string
+        """
+        # Get the display name for the department
+        display_name = self.display_names.get(dept_code, dept_code)
+        
+        # Try to get the description for the department
+        dept_info = self.descriptions.get(dept_code, {})
+        
+        # If we have a description, use it
+        if 'description' in dept_info:
+            return dept_info['description']
+            
+        # Otherwise, use the display name with a default message
+        return f"{display_name} is a department of the State of Hawaii. {DEFAULT_DEPT_DESCRIPTION}"
+    
     def generate_html_report(self, summary: dict) -> str:
         """
         Generate HTML report for a department.
@@ -271,6 +353,10 @@ class DepartmentalBudgetAnalyzer:
             HTML string
         """
         chart_base64 = self.create_department_chart(summary)
+        
+        # Get department description
+        dept_code = summary['department_code']
+        dept_description = self.get_department_description(dept_code)
         
         # Convert amounts to millions for display
         op_budget = summary['operating_budget']
@@ -422,12 +508,38 @@ class DepartmentalBudgetAnalyzer:
             color: #7f8c8d;
             font-size: 0.9em;
         }}
+        
+        .dept-description {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }}
+        
+        .dept-description h3 {{
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }}
+        
+        .dept-description p {{
+            margin: 0;
+            line-height: 1.6;
+            color: #4a5568;
+        }}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>{summary['department_code']} FY26 Operating Budget</h1>
         <h2>{summary['department_name']}</h2>
+    </div>
+    
+    <div class="dept-description">
+        <h3>About {summary['department_name']}</h3>
+        <p>{dept_description}</p>
     </div>
     
     <div class="summary-stats">
