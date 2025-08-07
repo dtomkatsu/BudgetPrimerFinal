@@ -238,7 +238,11 @@ class DepartmentalBudgetAnalyzer:
                 
                 for i, (amount, color, label) in enumerate(zip(amounts, colors, fund_types)):
                     segment_center = left + amount/2
-                    text = f'${amount:,.1f}M' if amount >= 1 else f'${amount:,.2f}M'
+                    # Format as billions if ≥ 1000 million, otherwise as millions
+                    if amount >= 1000:
+                        text = f'${amount/1000:,.1f}B'
+                    else:
+                        text = f'${amount:,.0f}M'
                     
                     if amount > total_amount * 0.1:  
                         brightness = sum(matplotlib.colors.to_rgb(color)[:3])/3
@@ -292,7 +296,11 @@ class DepartmentalBudgetAnalyzer:
                                 y_offset = offset
                                 break
                         
-                        amount_text = f'${amount:,.1f}M' if amount >= 1 else f'${amount:,.2f}M'
+                        # Format as billions if ≥ 1000 million, otherwise as millions
+                        if amount >= 1000:
+                            amount_text = f'${amount/1000:,.1f}B'
+                        else:
+                            amount_text = f'${amount:,.0f}M'
                         
                         txt = ax.text(segment_start + amount/2, y_offset, amount_text,
                                      ha='center', va='center',
@@ -672,11 +680,17 @@ class DepartmentalBudgetAnalyzer:
     
     <div class="summary-stats">
         <div class="budget-card">
-            <div class="budget-amount">${summary['operating_budget']['total'] / 1_000_000:,.1f}M</div>
+            <div class="budget-amount">
+                {'$' + f"{summary['operating_budget']['total'] / 1_000_000_000:,.1f}B" if summary['operating_budget']['total'] >= 1_000_000_000 
+                  else '$' + f"{summary['operating_budget']['total'] / 1_000_000:,.0f}M"}
+            </div>
             <div class="budget-label">Total Operating</div>
         </div>
         <div class="budget-card">
-            <div class="budget-amount">${summary['cip_projects'] / 1_000_000:,.1f}M</div>
+            <div class="budget-amount">
+                {'$' + f"{summary['cip_projects'] / 1_000_000_000:,.1f}B" if summary['cip_projects'] >= 1_000_000_000 
+                  else '$' + f"{summary['cip_projects'] / 1_000_000:,.0f}M"}
+            </div>
             <div class="budget-label">Capital Improvement Projects</div>
         </div>
     </div>
@@ -685,30 +699,48 @@ class DepartmentalBudgetAnalyzer:
         <thead>
             <tr>
                 <th>{summary['department_code']} FY26 Operating Budget:</th>
-                <th class="amount">${summary['operating_budget']['total'] / 1_000_000:.1f} Million</th>
+                <th class="amount">
+                    {'$' + f"{summary['operating_budget']['total'] / 1_000_000_000:,.1f} Billion" if summary['operating_budget']['total'] >= 1_000_000_000 
+                      else '$' + f"{summary['operating_budget']['total'] / 1_000_000:,.0f} Million"}
+                </th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>General Funds:</td>
-                <td class="amount">${op_budget['General Funds'] / 1_000_000:.1f} Million</td>
+                <td class="amount">
+                    {'$' + f"{op_budget['General Funds'] / 1_000_000_000:,.1f}B" if op_budget['General Funds'] >= 1_000_000_000 
+                      else '$' + f"{op_budget['General Funds'] / 1_000_000:,.0f}M"}
+                </td>
             </tr>
             <tr>
                 <td>Special Funds:</td>
-                <td class="amount">${op_budget['Special Funds'] / 1_000_000:.1f} Million</td>
+                <td class="amount">
+                    {'$' + f"{op_budget['Special Funds'] / 1_000_000_000:,.1f}B" if op_budget['Special Funds'] >= 1_000_000_000 
+                      else '$' + f"{op_budget['Special Funds'] / 1_000_000:,.0f}M"}
+                </td>
             </tr>
             <tr>
                 <td>Federal Funds:</td>
-                <td class="amount">${op_budget['Federal Funds'] / 1_000_000:.1f} Million</td>
+                <td class="amount">
+                    {'$' + f"{op_budget['Federal Funds'] / 1_000_000_000:,.1f}B" if op_budget['Federal Funds'] >= 1_000_000_000 
+                      else '$' + f"{op_budget['Federal Funds'] / 1_000_000:,.0f}M"}
+                </td>
             </tr>
             <tr>
                 <td>Other Funds:</td>
-                <td class="amount">${op_budget['Other Funds'] / 1_000_000:.1f} Million</td>
+                <td class="amount">
+                    {'$' + f"{op_budget['Other Funds'] / 1_000_000_000:,.1f}B" if op_budget['Other Funds'] >= 1_000_000_000 
+                      else '$' + f"{op_budget['Other Funds'] / 1_000_000:,.0f}M"}
+                </td>
             </tr>
 
             <tr class="total-row">
                 <td>FY26 Capital Improvement Projects:</td>
-                <td class="amount">${summary['cip_projects'] / 1_000_000:.1f} Million</td>
+                <td class="amount">
+                    {'$' + f"{summary['cip_projects'] / 1_000_000_000:,.1f} Billion" if summary['cip_projects'] >= 1_000_000_000 
+                      else '$' + f"{summary['cip_projects'] / 1_000_000:,.0f} Million"}
+                </td>
             </tr>
         </tbody>
     </table>
@@ -800,9 +832,9 @@ class DepartmentalBudgetAnalyzer:
         # Helper function to format budget amounts
         def format_budget(amount_millions):
             if amount_millions >= 1000:
-                return f"${amount_millions/1000:,.1f}B"
+                return f"${amount_millions/1000:,.1f}B"  # Show as billions with 1 decimal
             else:
-                return f"${amount_millions:,.0f}M"
+                return f"${amount_millions:,.0f}M"  # Show as millions with no decimals
         
         # Prepare chart data JSON for embedding in the JavaScript code
         chart_data = [
@@ -1356,9 +1388,9 @@ class DepartmentalBudgetAnalyzer:
             # Format the budget amounts
             def format_amount(amount):
                 if amount >= 1000:
-                    return f"{amount/1000:.1f}B"
+                    return f"${amount/1000:,.1f}B"  # Show as billions with 1 decimal and dollar sign
                 else:
-                    return f"{amount:.0f}M"
+                    return f"${amount:,.0f}M"  # Show as millions with no decimals and dollar sign
             
             total_display = format_amount(total)
             operating_display = format_amount(operating)
@@ -1368,15 +1400,15 @@ class DepartmentalBudgetAnalyzer:
         <a href="{code.lower()}_budget_report.html" class="dept-card" data-operating="{operating}" data-capital="{capital}">
             <div class="dept-name">{name}</div>
             <div class="dept-code">{code}</div>
-            <div class="dept-budget">${total_display} Total Budget</div>
+            <div class="dept-budget">{total_display} Total Budget</div>
             <div class="dept-breakdown">
                 <div class="breakdown-item">
                     <span class="breakdown-label">Operating:</span>
-                    <span class="breakdown-value">${operating_display}</span>
+                    <span class="breakdown-value">{operating_display}</span>
                 </div>
                 <div class="breakdown-item">
                     <span class="breakdown-label">Capital:</span>
-                    <span class="breakdown-value">${capital_display}</span>
+                    <span class="breakdown-value">{capital_display}</span>
                 </div>
             </div>
         </a>
