@@ -34,6 +34,7 @@ BudgetPrimerFinal/
 - **Precise transformation pipeline** from pre-veto to post-veto data
 - **High-quality visualizations** matching official styles with a modular, extensible chart system
 - **Detailed Budget Analysis**: Comprehensive breakdowns by section, fund type, and program
+- **Department Descriptions**: Informative descriptions for each department with automatic inclusion in reports
 
 ## Prerequisites
 
@@ -67,6 +68,31 @@ BudgetPrimerFinal/
 
 ## Usage
 
+### Department Descriptions
+
+The system includes a comprehensive database of department descriptions that are automatically included in generated reports. These descriptions provide context about each department's role and responsibilities.
+
+#### Updating Descriptions
+
+1. Edit the source file: `data/raw/Department Descriptions.txt`
+2. Run the parser to update the JSON file:
+   ```bash
+   python scripts/parse_department_descriptions.py
+   ```
+3. The updated descriptions will be included in the next report generation
+
+Descriptions are stored in JSON format in `data/processed/department_descriptions.json` with the following structure:
+
+```json
+{
+  "AGR": {
+    "name": "Department of Agriculture",
+    "description": "Detailed description of the department's role and responsibilities..."
+  },
+  ...
+}
+```
+
 ### Data Processing
 
 ```python
@@ -80,7 +106,36 @@ budget_data = parse_budget_file("data/raw/budget_document.txt")
 processed_data = process_budget_data(budget_data)
 ```
 
-## Visualization
+### Department Reports
+
+The system generates detailed HTML reports for each department, including:
+
+- Department name and code
+- Informative description of the department's role
+- Budget summary with operating and capital expenditures
+- Visualizations of budget breakdown
+- Detailed line-item budget data
+
+To generate department reports:
+
+```python
+from budgetprimer.reports import generate_departmental_reports
+
+# Generate all department reports
+generate_departmental_reports(
+    budget_data=processed_data,
+    output_dir="output/reports/departments"
+)
+
+# Generate a report for a specific department
+generate_departmental_reports(
+    budget_data=processed_data,
+    departments=["AGR", "EDN", "TRN"],
+    output_dir="output/reports/selected_departments"
+)
+```
+
+### Visualization
 
 The BudgetPrimer provides a powerful, modular charting system for creating consistent, publication-quality visualizations of budget data. The system is built around a base `BudgetChart` class with specialized chart types for different budget views.
 

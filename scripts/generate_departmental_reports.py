@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 import base64
 import json  # For embedding chart data as JSON
+import io
 from io import BytesIO
 import argparse
 import logging
@@ -198,7 +199,7 @@ class DepartmentalBudgetAnalyzer:
     
     def create_department_chart(self, summary: dict) -> str:
         """
-        Create a horizontal stacked bar chart for department budget.
+        Create a horizontal stacked bar chart for department budget with non-overlapping labels.
         
         Args:
             summary: Department summary dictionary
@@ -207,86 +208,172 @@ class DepartmentalBudgetAnalyzer:
             Base64 encoded image string
         """
         try:
-            # Create figure with explicit backend
             plt.switch_backend('Agg')
-            fig, ax = plt.subplots(figsize=(10, 6))
+            plt.rcParams.update({'font.size': 14, 'axes.titlesize': 16, 'axes.labelsize': 14})
             
-            # Prepare data for stacked bar chart
+            fig, ax = plt.subplots(figsize=(16, 8), dpi=150)
+            
             fund_types = ['General Funds', 'Special Funds', 'Federal Funds', 'Other Funds']
-            amounts = [summary['operating_budget'][ft] / 1_000_000 for ft in fund_types]  # Convert to millions
+            amounts = [summary['operating_budget'][ft] / 1_000_000 for ft in fund_types]
             colors = [self.colors[ft] for ft in fund_types]
             
-            # Check if we have any data to plot
-            total_amount = sum(amounts)
-            if total_amount == 0:
-                # Create a simple placeholder chart
+            filtered_data = sorted([(amt, color, label) for amt, color, label in 
+                                  zip(amounts, colors, fund_types) if amt > 0],
+                                 key=lambda x: x[0], reverse=True)
+            
+            if not filtered_data:
                 ax.text(0.5, 0.5, 'No Operating Budget Data', 
-                       ha='center', va='center', transform=ax.transAxes, fontsize=14)
-                ax.set_xlim(0, 1)
-                ax.set_ylim(0, 1)
+                        ha='center', va='center', fontsize=16)
+                ax.axis('off')
             else:
-                # Create horizontal stacked bar
+                amounts, colors, fund_types = zip(*filtered_data)
+                total_amount = sum(amounts)
                 left = 0
-                bars = []
+                
+                bars = ax.barh(0, amounts[0], left=left, color=colors[0], 
+                              label=fund_types[0], height=0.6, alpha=0.9)
+                bars_list = [bars[0]]
+                label_positions = []
+                text_objects = []
+                
                 for i, (amount, color, label) in enumerate(zip(amounts, colors, fund_types)):
-                    if amount > 0:  # Only show non-zero amounts
-                        bar = ax.barh(0, amount, left=left, color=color, label=label, height=0.6)
-                        bars.append(bar)
+                    segment_center = left + amount/2
+                    text = f'${amount:,.1f}M' if amount >= 1 else f'${amount:,.2f}M'
+                    
+                    if amount > total_amount * 0.1:  
+                        brightness = sum(matplotlib.colors.to_rgb(color)[:3])/3
+                        text_color = 'white' if brightness < 0.6 else 'black'
+                        
+                        txt = ax.text(segment_center, 0, text, 
+                                     ha='center', va='center',
+                                     color=text_color,
+                                     fontweight='bold', 
+                                     fontsize=14,
+                                     bbox=dict(facecolor='none', 
+                                               edgecolor='none',
+                                               alpha=0.7,
+                                               boxstyle='round,pad=0.2'))
+                        label_positions.append((left, left + amount))
+                        text_objects.append(txt)
+                    else:
+                        label_positions.append(None)
+                        text_objects.append(None)
+                    
+                    if i < len(amounts) - 1:
                         left += amount
+                        bar = ax.barh(0, amounts[i+1], left=left, 
+                                    color=colors[i+1], 
+                                    label=fund_types[i+1], 
+                                    height=0.6, 
+                                    alpha=0.9)
+                        bars_list.append(bar[0])
                 
-                # Formatting
-                ax.set_xlim(0, max(total_amount * 1.1, 1))  # Ensure minimum xlim
-                ax.set_ylim(-0.5, 0.5)
-                ax.set_xlabel('Amount (Millions of Dollars)', fontsize=12)
+                for i, (amount, color, label) in enumerate(zip(amounts, colors, fund_types)):
+                    if label_positions[i] is None or amount <= total_amount * 0.1:
+                        segment_start = sum(amounts[:i])
+                        segment_end = segment_start + amount
+                        
+                        if text_objects[i] is not None:
+                            text_objects[i].remove()
+                        
+                        y_offset = 0
+                        for offset in [0.7, -0.7, 1.4, -1.4, 2.1, -2.1]:
+                            overlap = False
+                            for j, pos in enumerate(label_positions):
+                                if pos is None or j == i:
+                                    continue
+                                start, end = pos
+                                if ((segment_start <= end and segment_end >= start) or
+                                    (segment_start >= start and segment_start <= end) or
+                                    (segment_end >= start and segment_end <= end)):
+                                    overlap = True
+                                    break
+                            if not overlap:
+                                y_offset = offset
+                                break
+                        
+                        amount_text = f'${amount:,.1f}M' if amount >= 1 else f'${amount:,.2f}M'
+                        
+                        txt = ax.text(segment_start + amount/2, y_offset, amount_text,
+                                     ha='center', va='center',
+                                     bbox=dict(facecolor='white', 
+                                               alpha=0.9, 
+                                               edgecolor='#666666',
+                                               boxstyle='round,pad=0.6'),
+                                     fontsize=12,
+                                     fontweight='bold')
+                        
+                        if y_offset != 0:
+                            ax.plot([segment_start + amount/2, segment_start + amount/2], 
+                                    [0 if y_offset > 0 else -0.3, y_offset * 0.9], 
+                                    'k-', lw=1.5, alpha=0.6)
                 
-                # Add legend only if we have bars
-                if bars:
-                    ax.legend(loc='upper right', bbox_to_anchor=(1, 1))
+                ax.set_xlim(0, total_amount * 1.2)  
+                ax.set_ylim(-3, 3)  
                 
-                # Add value labels on bars
-                left = 0
-                for amount, label in zip(amounts, fund_types):
-                    if amount > 0:
-                        ax.text(left + amount/2, 0, f'${amount:.1f}M', 
-                               ha='center', va='center', fontweight='bold', color='white')
-                        left += amount
+                ax.xaxis.grid(True, linestyle='--', alpha=0.3, color='#666666')
+                ax.set_xlabel('Amount (Millions of Dollars)', 
+                            fontsize=14, 
+                            labelpad=15,
+                            fontweight='bold')
+                ax.set_yticks([])  
+                
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+                
+                if len(fund_types) > 1:
+                    # Create legend with proper formatting
+                    legend = ax.legend(
+                        handles=bars_list,
+                        labels=fund_types,  # Explicitly set labels from fund_types
+                        bbox_to_anchor=(0.5, -0.15), 
+                        loc='upper center',
+                        ncol=min(4, len(fund_types)),  # Limit columns for better layout
+                        frameon=False,
+                        fontsize=12,
+                        handletextpad=0.8,
+                        columnspacing=1.5,
+                        borderpad=1.0
+                    )
+                    
+                    # Make legend text bold and set proper color
+                    for text in legend.get_texts():
+                        text.set_fontweight('bold')
+                        text.set_color('#2c3e50')  # Dark gray for better readability
+
+            plt.tight_layout(pad=3.0)
             
-            ax.set_title(f'{summary["department_code"]} Operating Budget', fontsize=14, fontweight='bold')
+            # Set title with improved styling
+            ax.set_title(
+                f'{summary["department_code"]} Operating Budget (FY26)',
+                fontsize=24,
+                pad=20,
+                fontweight='bold',
+                color='#2c3e50'
+            )
             
-            # Remove y-axis
-            ax.set_yticks([])
-            ax.spines['left'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
+            # Save to bytes buffer with high quality settings
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+            plt.close(fig)
             
-            plt.tight_layout()
-            
-            # Convert to base64 string
-            buffer = BytesIO()
-            plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
-            buffer.seek(0)
-            image_base64 = base64.b64encode(buffer.getvalue()).decode()
-            plt.close(fig)  # Explicitly close the figure
-            plt.clf()  # Clear the current figure
-            
-            return image_base64
+            # Encode to base64
+            data = base64.b64encode(buf.getbuffer()).decode('ascii')
+            return data
             
         except Exception as e:
-            logger.error(f"Error creating chart for {summary['department_code']}: {e}")
+            logger.error(f"Error creating chart for {summary.get('department_code', 'unknown')}: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             
             # Return a simple placeholder image as base64
             try:
-                fig, ax = plt.subplots(figsize=(10, 6))
-                ax.text(0.5, 0.5, f'Chart Error\n{summary["department_code"]}', 
-                       ha='center', va='center', transform=ax.transAxes, fontsize=14)
-                ax.set_xlim(0, 1)
-                ax.set_ylim(0, 1)
-                ax.set_xticks([])
-                ax.set_yticks([])
+                fig, ax = plt.subplots(figsize=(10, 2))
+                ax.text(0.5, 0.5, f'Chart Error: {str(e)[:50]}...', 
+                       ha='center', va='center', fontsize=10)
+                ax.axis('off')
                 
                 buffer = BytesIO()
-                plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+                plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
                 buffer.seek(0)
                 image_base64 = base64.b64encode(buffer.getvalue()).decode()
                 plt.close(fig)
@@ -294,7 +381,6 @@ class DepartmentalBudgetAnalyzer:
                 
                 return image_base64
             except:
-                # If even the error chart fails, return empty string
                 return ""
     
     def _load_descriptions(self, descriptions_file: str) -> dict:
@@ -446,22 +532,64 @@ class DepartmentalBudgetAnalyzer:
         
         .chart-container {{
             text-align: center;
-            margin: 30px 0;
+            margin: 20px auto;
             padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            max-width: 1200px;
+            width: 95%;
+            box-sizing: border-box;
+            overflow: hidden;
         }}
         
         .chart-container h3 {{
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin: 0 0 15px 0;
+            padding: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+        }}
+        
+        .chart-container .chart-wrapper {{
+            width: 100%;
+            margin: 0 auto;
+            overflow: visible;
+            text-align: center;
         }}
         
         .chart-container img {{
             max-width: 100%;
             height: auto;
+            max-height: 600px;
+            width: auto;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            display: block;
+            object-fit: contain;
+        }}
+        
+        @media (max-width: 1200px) {{
+            .chart-container {{
+                padding: 15px;
+                width: 98%;
+            }}
+            
+            .chart-container img {{
+                max-height: 500px;
+            }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .chart-container {{
+                padding: 10px;
+                margin: 10px auto;
+            }}
+            
+            .chart-container img {{
+                max-height: 400px;
+            }}
         }}
         
         .summary-stats {{
@@ -587,7 +715,9 @@ class DepartmentalBudgetAnalyzer:
     
     <div class="chart-container">
         <h3>Figure 15. {summary['department_code']} Operating Budget</h3>
-        <img src="data:image/png;base64,{chart_base64}" alt="{summary['department_code']} Budget Chart">
+        <div class="chart-wrapper">
+            <img src="data:image/png;base64,{chart_base64}" alt="{summary['department_code']} Budget Chart">
+        </div>
     </div>
     
     <div class="footer">
@@ -655,8 +785,8 @@ class DepartmentalBudgetAnalyzer:
                 
                 dept_info.append((code, name, total, operating, capital))
         
-        # Sort by total budget (descending)
-        dept_info.sort(key=lambda x: x[2], reverse=True)
+        # Sort by operating budget (descending), then by total budget (descending)
+        dept_info.sort(key=lambda x: (-x[3], -x[2]))  # x[3] is operating budget, x[2] is total budget
         
         # Calculate totals for summary cards
         total_budget = sum(info[2] for info in dept_info)
@@ -1361,7 +1491,11 @@ class DepartmentalBudgetAnalyzer:
             performSearch();
             
             // Default sort by operating budget (descending)
-            document.querySelector('.sort-btn[data-sort="operating"]').click();
+            const operatingBtn = document.querySelector('.sort-btn[data-sort="operating"]');
+            operatingBtn.dataset.order = 'desc';
+            operatingBtn.querySelector('.sort-arrow').textContent = '↓';
+            operatingBtn.classList.add('active');
+            sortDepartments('operating', 'desc');
         });
     </script>
                         text-align: center;
