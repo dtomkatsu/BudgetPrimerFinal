@@ -1,3 +1,20 @@
+### Watch Mode (Auto Rebuild + Validate)
+Regenerate reports and run validations automatically when key files change.
+
+Requirements:
+```bash
+pip install watchdog
+```
+
+Run:
+```bash
+python scripts/watch_and_rebuild.py
+```
+
+This will:
+- Rebuild reports via `scripts/generate_departmental_reports.py`
+- Run validations via `scripts/validate_reports.py` (checks duplicate `$`, amount formatting, etc.)
+
 # BudgetPrimerFinal
 
 A streamlined, well-structured Python tool for processing, analyzing, and visualizing Hawaii State Budget data, with special support for HB 300 format and veto processing.

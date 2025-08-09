@@ -1,0 +1,73 @@
+{
+  "operating": {
+    "A": {
+      "expected": 3403864000,
+      "parsed": 3403864000.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "N": {
+      "expected": 27650000,
+      "parsed": 27650000.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "W": {
+      "expected": 1800000,
+      "parsed": 1800000.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "B": {
+      "expected": 304436637,
+      "parsed": 304436637.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "T": {
+      "expected": 12750000,
+      "parsed": 12750000.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "P": {
+      "expected": 0,
+      "parsed": 0,
+      "difference": 0,
+      "passed": true
+    }
+  },
+  "capital": {
+    "C": {
+      "expected": 730000000,
+      "parsed": 730000000.0,
+      "difference": 0.0,
+      "passed": true
+    }
+  },
+  "totals": {
+    "operating": {
+      "expected": 3750500637,
+      "parsed": 3750500637.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "capital": {
+      "expected": 730000000,
+      "parsed": 730000000.0,
+      "difference": 0.0,
+      "passed": true
+    },
+    "grand": {
+      "expected": 4480500637,
+      "parsed": 4480500637.0,
+      "difference": 0.0,
+      "passed": true
+    }
+  },
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10
+  }
+}
