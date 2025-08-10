@@ -85,6 +85,59 @@ BudgetPrimerFinal/
 
 ## Usage
 
+### Sample Testing Workflow
+
+The project includes a sample testing system to validate the budget parser with controlled test cases. This is particularly useful for:
+
+1. Verifying parser accuracy with known inputs/outputs
+2. Testing edge cases in budget data
+3. Ensuring consistent behavior across code changes
+
+#### Running Sample Tests
+
+1. Generate a sample budget PDF and expected totals:
+   ```bash
+   python sample/generate_sample_budget.py
+   ```
+   This creates:
+   - `sample/sample_budget.pdf`: A sample budget document
+   - `sample/expected_totals.json`: Expected totals by fund type and section
+
+2. Run the validation script to test the parser:
+   ```bash
+   python sample/validate_parser.py
+   ```
+   This will:
+   - Extract text from the sample PDF
+   - Parse it using the main budget parser
+   - Compare the results against expected totals
+   - Report any discrepancies
+
+#### Customizing Sample Data
+
+To modify the sample budget data:
+1. Edit the `SAMPLE_DATA` dictionary in `sample/generate_sample_budget.py`
+2. The structure is organized by departments, programs, and allocations
+3. Key fields to customize:
+   - Department codes and names
+   - Program numbers, codes, and names
+   - Position counts (permanent `*` and temporary `#`)
+   - Allocations with section, fund type, and amount
+
+Example of adding a new program:
+```python
+{
+    "number": 11,  # Next sequential number
+    "code": "NEW101",
+    "name": "NEW PROGRAM NAME",
+    "positions": {"*": 5.0, "#": 2.0},  # 5 permanent, 2 temp positions
+    "allocations": [
+        {"section": "OPERATING", "fund_type": "A", "amount": 1_000_000},
+        {"section": "INVESTMENT CAPITAL", "fund_type": "C", "amount": 5_000_000}
+    ]
+}
+```
+
 ### Department Descriptions
 
 The system includes a comprehensive database of department descriptions that are automatically included in generated reports. These descriptions provide context about each department's role and responsibilities.
