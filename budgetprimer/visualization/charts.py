@@ -514,9 +514,9 @@ def create_department_budget_chart(
     
     # Create special departments data
     special_data = [
-        {'dept_display': 'Judiciary', 'Operating_B': 0.3, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0},
-        {'dept_display': 'Legislature', 'Operating_B': 0.2, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0},
-        {'dept_display': 'OHA', 'Operating_B': 0.1, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0},
+        {'dept_display': 'Judiciary', 'Operating_B': 0.21457, 'CIP_B': 0.0129, 'OneTime_B': 0, 'Emergency_B': 0},
+        {'dept_display': 'Legislature', 'Operating_B': 0.05163, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0},
+        {'dept_display': 'OHA', 'Operating_B': 0.006, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0},
         {'dept_display': 'Human Resources', 'Operating_B': 0.05, 'CIP_B': 0, 'OneTime_B': 0, 'Emergency_B': 0}
     ]
     

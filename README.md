@@ -165,16 +165,113 @@ Descriptions are stored in JSON format in `data/processed/department_description
 
 ### Data Processing
 
+The budget processing workflow follows these steps:
+
+1. **PDF Extraction**: The original budget PDF is extracted to text for parsing
+2. **Text Parsing**: The extracted text is parsed using the FastBudgetParser
+3. **Data Processing**: The parsed data is processed through the pipeline
+
+#### File Names and Workflow
+
+```
+Input:  data/raw/HB300 CD1.pdf                    # Original budget PDF
+        ↓ (PDF extraction)
+Extract: data/raw/HB300_CD1_better.txt            # Clean extracted text
+        ↓ (Budget parsing)
+Output: data/processed/budget_parsed.csv          # Parsed budget allocations
+        data/processed/budget_parsed_fy2026.csv   # FY 2026 allocations
+        data/processed/budget_parsed_fy2027.csv   # FY 2027 allocations
+```
+
+#### Code Usage
+
 ```python
-from budgetprimer.parsers.budget_parser import parse_budget_file
+from budgetprimer.parsers.fast_parser import FastBudgetParser
 from budgetprimer.pipeline import process_budget_data
 
-# Parse a budget file
-budget_data = parse_budget_file("data/raw/budget_document.txt")
+# Parse the PDF-extracted text file
+parser = FastBudgetParser()
+budget_data = parser.parse("data/raw/HB300_CD1_better.txt")
 
 # Process through the full pipeline
 processed_data = process_budget_data(budget_data)
 ```
+
+#### Key Files by Section
+
+**Raw Data Files:**
+- `data/raw/HB300 CD1.pdf` - Original budget PDF document
+- `data/raw/HB300_CD1_better.txt` - PDF-extracted text (recommended for parsing)
+- `data/raw/HB 300 CD 1.txt` - Alternative text version (legacy)
+- `data/raw/Department Descriptions.txt` - Department descriptions source
+
+**Processed Data Files:**
+- `data/processed/budget_parsed.csv` - Main parsed budget allocations
+- `data/processed/budget_parsed_fy2026.csv` - FY 2026 specific allocations
+- `data/processed/budget_parsed_fy2027.csv` - FY 2027 specific allocations
+- `data/processed/department_descriptions.json` - Processed department descriptions
+
+**Veto Processing Files:**
+- `data/raw/vetoes/` - Veto data directory
+- `data/processed/budget_allocations_fy2026_post_veto.csv` - Post-veto budget data
+
+**Validation Files:**
+- `validation/line_checker.py` - Line validation tool
+- `validation/sample/` - Sample budget validation system
+
+### Line Checker Tool
+
+The line checker is a validation tool that helps identify lines in the budget document that contain monetary values but weren't processed by the main parser. This is particularly useful for finding parsing gaps and ensuring comprehensive budget coverage.
+
+#### Running the Line Checker
+
+```bash
+# Basic usage
+python validation/line_checker.py "data/raw/HB300_CD1_better.txt"
+
+# Get just the unprocessed line numbers and amounts
+python validation/line_checker.py "data/raw/HB300_CD1_better.txt" | grep -A 1 -B 1 "^Line [0-9]\+:" | grep -v "^--$"
+```
+
+#### What It Does
+
+1. Scans the input file for lines containing monetary values
+2. Compares against lines processed by the main parser
+3. Reports unprocessed lines with monetary values, including:
+   - Line numbers
+   - Line content
+   - Detected monetary amounts
+   - Context (previous and next lines)
+
+#### Common Unprocessed Patterns
+
+The tool helps identify several common patterns that might be missed by the main parser:
+
+1. **Legislative Add-ons**:
+   ```
+   1. $225,000.00 808 CLEANUPS
+   ```
+
+2. **Capital Improvement Projects**:
+   ```
+   $71,000,000 or so much thereof as may be necessary for fiscal year
+   ```
+
+3. **Housing Projects**:
+   ```
+   for fiscal year 2025-2026, the sum of $56,000,000 or so much
+   ```
+
+4. **University Funding**:
+   ```
+   the sums of $30,750,000 out of general obligation bond funds
+   ```
+
+#### Interpreting Results
+
+- **High number of unprocessed lines**: May indicate a need to update the main parser's patterns
+- **Specific patterns consistently missed**: Can help identify new patterns to add to the parser
+- **False positives**: Some lines may be intentionally excluded (e.g., narrative text with dollar amounts)
 
 ### Department Reports
 

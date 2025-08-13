@@ -117,11 +117,20 @@ class DepartmentChart(BudgetChart):
             'Department of Human Resources Development'  # We'll handle HR specially
         ]
         
-        # Remove only TOTAL rows and Subaccounts - keep all real departments including counties and governor offices
+        # Departments to exclude from the chart
+        exclude_depts = [
+            'City and County of Honolulu',
+            'County of Hawaii',
+            'County of Kauai',
+            'General Administration'
+        ]
+        
+        # Filter out TOTAL rows, Subaccounts, and excluded departments
         dept_summary = dept_summary[~dept_summary['department_name'].str.upper().str.contains('TOTAL', na=False)]
         dept_summary = dept_summary[~dept_summary['department_name'].str.contains('Subaccount', case=False, na=False)]
-        # Note: We now keep counties and governor offices to show ALL departments
-        # Only remove the special departments that will be added back manually
+        dept_summary = dept_summary[~dept_summary['department_name'].isin(exclude_depts)]
+        
+        # Remove special departments that will be added back manually
         dept_summary = dept_summary[~dept_summary['department_name'].isin(special_dept_names)]
         
         # Reset index after filtering
@@ -146,9 +155,9 @@ class DepartmentChart(BudgetChart):
         
         # Add special departments with fixed amounts (in billions)
         special_depts = [
-            {'dept_display': 'OHA', 'Operating_B': 0.0046, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.0046, 'is_special': True},
-            {'dept_display': 'Legislature', 'Operating_B': 0.044, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.044, 'is_special': True},
-            {'dept_display': 'Judiciary', 'Operating_B': 0.2017, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.2017, 'is_special': True}
+            {'dept_display': 'OHA', 'Operating_B': 0.006, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.006, 'is_special': True},  # $6M operating
+            {'dept_display': 'Legislature', 'Operating_B': 0.05163, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0, 'Total_B': 0.05163, 'is_special': True},  # $51.63M operating
+            {'dept_display': 'Judiciary', 'Operating_B': 0.21457, 'OneTime_B': 0, 'Emergency_B': 0, 'CIP_B': 0.0129, 'Total_B': 0.22747, 'is_special': True}  # $214.57M operating + $12.9M capital
         ]
         
         # Mark regular departments
@@ -255,10 +264,10 @@ class DepartmentChart(BudgetChart):
         
         ax.set_title(self.title, fontsize=14, fontweight='bold', pad=24, loc='left')
         
-        # Set x-axis with grid lines at each $1B
-        ax.set_xlim(0, 6.5)
-        ax.set_xticks([0, 1, 2, 3, 4, 5, 6])
-        ax.set_xticklabels(['$0B', '$1B', '$2B', '$3B', '$4B', '$5B', '$6B'], fontsize=11)
+        # Set x-axis with grid lines at each $1B, capping at $5B
+        ax.set_xlim(0, 5.0)
+        ax.set_xticks([0, 1, 2, 3, 4, 5])
+        ax.set_xticklabels(['$0B', '$1B', '$2B', '$3B', '$4B', '$5B'], fontsize=11)
         
         # Add vertical grid lines at each $1B
         ax.xaxis.grid(True, which='major', linestyle='-', linewidth=0.5, alpha=0.3)

@@ -281,67 +281,54 @@ def main():
             logger.info("Creating comparison visualizations (pre-veto vs post-veto)")
             
             # Means of Finance comparison
-            moa_chart = create_comparison_chart(
-                pre_veto_df=result['pre_veto_df'],
-                post_veto_df=result['post_veto_df'],
+            moa_chart = MeansOfFinanceChart(
                 fiscal_year=args.fiscal_year,
-                chart_type='means_of_finance',
-                title_suffix=f"Means of Finance (FY{args.fiscal_year})",
-                **chart_kwargs
+                title=f"Hawaii State Budget - Means of Finance (FY{args.fiscal_year} - Pre-Veto vs Post-Veto)"
             )
-            if moa_chart:
-                moa_output = charts_dir / f'means_of_finance_fy{args.fiscal_year}_comparison.png'
-                moa_chart.savefig(moa_output, dpi=300, bbox_inches='tight')
-                logger.info(f"Saved Means of Finance comparison to {moa_output}")
+            moa_output = charts_dir / f'means_of_finance_fy{args.fiscal_year}_comparison.png'
+            moa_fig = moa_chart.create(result['post_veto_df'], output_file=moa_output)
+            logger.info(f"Saved Means of Finance comparison to {moa_output}")
             
             # 3.2 Department budget comparison (all departments)
-            dept_chart = create_comparison_chart(
-                pre_veto_df=result['pre_veto_df'],
-                post_veto_df=result['post_veto_df'],
+            dept_chart = DepartmentChart(
                 fiscal_year=args.fiscal_year,
-                chart_type='department_budget',
-                title_suffix=f"All Department Budgets (FY{args.fiscal_year})"
-                # No kwargs passed to avoid limiting departments
+                title=f"Hawaii State Budget - Department Budgets (FY{args.fiscal_year} - Pre-Veto vs Post-Veto)"
             )
-            if dept_chart:
-                dept_output = charts_dir / f'all_departments_fy{args.fiscal_year}_comparison.png'
-                dept_chart.savefig(dept_output, dpi=300, bbox_inches='tight')
-                logger.info(f"Saved Department Budget comparison to {dept_output}")
+            dept_output = charts_dir / f'all_departments_fy{args.fiscal_year}_comparison.png'
+            dept_fig = dept_chart.create(result['post_veto_df'], output_file=dept_output)
+            logger.info(f"Saved Department Budget comparison to {dept_output}")
             
         else:
             # Create standard visualizations (single view)
             veto_suffix = "_post_veto" if args.veto_mode == 'apply' else ""
             
             # 3.1 Means of Finance pie chart
-            moa_chart = create_means_of_finance_chart(
-                data=df,
-                title=f"Hawaii State Budget - Means of Finance (FY{args.fiscal_year}{' - Post-Veto' if args.veto_mode == 'apply' else ''})",
-                **chart_kwargs
+            moa_chart = MeansOfFinanceChart(
+                fiscal_year=args.fiscal_year,
+                title=f"Hawaii State Budget - Means of Finance (FY{args.fiscal_year}{' - Post-Veto' if args.veto_mode == 'apply' else ''})"
             )
             moa_output = charts_dir / f'means_of_finance_fy{args.fiscal_year}{veto_suffix}.png'
-            moa_chart.savefig(moa_output, dpi=300, bbox_inches='tight')
+            moa_fig = moa_chart.create(df, output_file=moa_output)
             logger.info(f"Saved Means of Finance chart to {moa_output}")
             
             # 3.2 Department budget chart
-            dept_chart = create_department_budget_chart(
-                data=df,
-                title=f"Top {args.top_n} Department Budgets (FY{args.fiscal_year}{' - Post-Veto' if args.veto_mode == 'apply' else ''})",
-                **chart_kwargs
+            dept_chart = DepartmentChart(
+                fiscal_year=args.fiscal_year,
+                title=f"Hawaii State Budget - Department Budgets (FY{args.fiscal_year}{veto_suffix})"
             )
             dept_output = charts_dir / f'top_departments_fy{args.fiscal_year}{veto_suffix}.png'
-            dept_chart.savefig(dept_output, dpi=300, bbox_inches='tight')
+            dept_fig = dept_chart.create(df, output_file=dept_output)
             logger.info(f"Saved Department Budget chart to {dept_output}")
             
             # 3.3 CIP funding chart (if there are capital projects)
             if 'Capital Improvement' in df['section'].unique():
-                cip_chart = create_cip_funding_chart(
-                    data=df,
-                    title=f"Top {args.top_n} Capital Improvement Projects (FY{args.fiscal_year}{' - Post-Veto' if args.veto_mode == 'apply' else ''})",
-                    **chart_kwargs
+                cip_chart = CIPChart(
+                    fiscal_year=args.fiscal_year,
+                    title=f"Hawaii State Budget - Capital Improvement Projects (FY{args.fiscal_year}{veto_suffix})"
                 )
                 cip_output = charts_dir / f'top_cip_projects_fy{args.fiscal_year}{veto_suffix}.png'
-                cip_chart.savefig(cip_output, dpi=300, bbox_inches='tight')
-                logger.info(f"Saved CIP Funding chart to {cip_output}")
+                cip_fig = cip_chart.create(df, output_file=cip_output)
+                logger.info(f"Saved CIP chart to {cip_output}")
         
         logger.info("Processing completed successfully!")
         return 0
