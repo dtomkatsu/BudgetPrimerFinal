@@ -1,0 +1,5 @@
+department_code,department_name,amount,description,fund_type,section
+LBR,Department of Labor and Industrial Relations,50000000,Grants for nonprofits in Hawaii that face federal funding cuts; DLIR may contract Aloha United Way to administer the money,A,One-Time
+ATG,Department of the Attorney General,400000000,Maui wildfires settlement trust,A,One-Time
+EDN,Department of Education,565000,Subsidized meals for students in ALICE category,A,One-Time
+CCA,Department of Commerce and Consumer Affairs,100000,Insurance commissioner study on property insurance policy premiums for apartments,A,One-Time

@@ -536,6 +536,87 @@ data/output/charts/
   └── top_departments_fy2026_comparison.png   # Department budget comparison
 ```
 
+## Handling One-Time Appropriations
+
+The budget visualization system supports centralized management of one-time appropriations through a CSV configuration file. This approach eliminates hardcoded values and makes it easy to add, modify, or remove one-time appropriations.
+
+### Current One-Time Appropriations (FY2026)
+
+The system currently includes these one-time appropriations:
+- **$400 million (ATG)**: Maui wildfires settlement trust
+- **$50 million (LBR)**: Grants for nonprofits in Hawaii that face federal funding cuts; DLIR may contract Aloha United Way to administer the money
+- **$565,000 (EDN)**: Subsidized meals for students in ALICE category
+- **$100,000 (CCA)**: Insurance commissioner study on property insurance policy premiums for apartments
+
+### Configuration File
+
+One-time appropriations are managed through: `data/config/one_time_appropriations_fy2026.csv`
+
+**File Format:**
+```csv
+department_code,department_name,amount,description,fund_type,section
+ATG,Department of the Attorney General,400000000,Maui wildfires settlement trust,A,One-Time
+LBR,Department of Labor and Industrial Relations,50000000,Grants for nonprofits in Hawaii that face federal funding cuts; DLIR may contract Aloha United Way to administer the money,A,One-Time
+EDN,Department of Education,565000,Subsidized meals for students in ALICE category,A,One-Time
+CCA,Department of Commerce and Consumer Affairs,100000,Insurance commissioner study on property insurance policy premiums for apartments,A,One-Time
+```
+
+### Adding a New One-Time Appropriation
+
+1. **Edit the CSV file** (`data/config/one_time_appropriations_fy2026.csv`)
+   - Add a new row with the appropriation details
+   - Use the department code (e.g., 'ATG', 'LBR', 'EDN', 'CCA')
+   - Enter the amount in dollars (not billions)
+   - Specify fund type (usually 'A' for General Funds)
+   - Set section to 'One-Time'
+
+2. **No code changes required** - the system automatically:
+   - Loads appropriations from the CSV during processing
+   - Adds them to the post-veto budget data
+   - Includes them in all charts and reports
+
+### Regenerating Visualizations and Reports
+
+After updating the one-time appropriations CSV, regenerate all outputs:
+
+#### 1. Regenerate Main Visualizations
+   ```bash
+   python scripts/process_budget.py "data/raw/HB300_CD1_better.txt" --veto-mode apply --veto-file data/raw/vetoes/governor_vetoes_fy2026_actual.csv --output-dir data/output
+   ```
+
+#### 2. Regenerate Departmental Reports
+   ```bash
+   python scripts/generate_departmental_reports.py data/processed/budget_allocations_fy2026_post_veto.csv
+   ```
+
+**Note**: The one-time appropriations file is automatically loaded during step 1, so no additional parameters are needed.
+
+### Verifying the Changes
+
+#### 1. Check Main Visualizations
+   - **Department Chart**: 
+     - Look for a separate green bar for the one-time appropriation
+     - Location: `data/output/charts/top_departments_fy2026_post_veto.png`
+   - **Means of Finance Chart**:
+     - Verify the General Funds total includes the one-time amount
+     - Location: `data/output/charts/means_of_finance_fy2026_post_veto.png`
+
+#### 2. Check Departmental Reports
+   - **HTML Reports**:
+     - Location: `data/output/departmental_reports/`
+     - Open `index.html` to view all department reports
+     - Navigate to the specific department's report (e.g., `ATG.html` for Attorney General)
+   - **Verify**:
+     - Total budget reflects the one-time appropriation
+     - Funding breakdown shows the increase in General Funds
+     - Charts and tables are updated with the new values
+
+#### 3. Check Data Files
+   - **Post-veto CSV**: `data/processed/budget_allocations_fy2026_post_veto.csv`
+     - Look for entries with `section = "One-Time"`
+     - Verify amounts and department codes match the configuration CSV
+   - **One-time appropriations are labeled as "One-Time" section** in both source and post-veto CSV files
+
 ### Integration with Analysis
 
 The veto processing pipeline is fully integrated with the analysis tools:

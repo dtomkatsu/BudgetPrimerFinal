@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def process_budget_data(
     allocations: List[BudgetAllocation],
     fiscal_year: Optional[int] = None,
-    section: Optional[BudgetSection] = None
+    section: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Process budget allocations into a structured DataFrame.
@@ -47,8 +47,8 @@ def process_budget_data(
         df = df[df['fiscal_year'] == fiscal_year]
     
     # Filter by section if specified
-    if section is not None:
-        df = df[df['section'] == section.value]
+    if section is not None and section != 'all':
+        df = df[df['section'] == section]
     
     # Convert amount to numeric
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')

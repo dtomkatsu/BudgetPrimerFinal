@@ -37,6 +37,7 @@ data/raw/*
 data/processed/*
 !data/processed/budget_parsed*.csv
 !data/processed/budget_allocations*.csv
+!data/processed/department_descriptions.json
 data/output/*
 !data/output/departmental_reports/
 

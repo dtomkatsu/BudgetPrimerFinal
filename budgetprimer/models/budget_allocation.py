@@ -13,6 +13,7 @@ class BudgetSection(Enum):
     """Budget section types."""
     OPERATING = "Operating"
     CAPITAL_IMPROVEMENT = "Capital Improvement"
+    ONE_TIME = "One-Time"
     UNSPECIFIED = "Unspecified"
 
 

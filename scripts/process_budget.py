@@ -146,11 +146,17 @@ def main():
     parser.add_argument('input_file', help='Path to the budget file to process')
     parser.add_argument('--output-dir', default='data/output', help='Output directory for results')
     parser.add_argument('--fiscal-year', type=int, default=2026, help='Fiscal year to analyze')
-    parser.add_argument('--top-n', type=int, default=15, help='Number of top items to show in charts')
+    parser.add_argument('--section', choices=['operating', 'capital', 'all'], default='all',
+                        help='Budget section to analyze')
     parser.add_argument('--veto-mode', choices=['none', 'apply', 'both'], default='none',
-                      help="How to handle vetoes: 'none' (default), 'apply' (show post-veto only), 'both' (compare pre/post)")
-    parser.add_argument('--veto-file', default='data/raw/vetoes/governor_vetoes_fy2026_actual.csv',
-                      help='Path to the veto CSV file (default: data/raw/vetoes/governor_vetoes_fy2026_actual.csv)')
+                        help='Veto processing mode')
+    parser.add_argument('--veto-file', type=Path,
+                        help='Path to veto changes CSV file')
+    parser.add_argument('--one-time-appropriations', type=Path,
+                        default=Path('data/config/one_time_appropriations_fy2026.csv'),
+                        help='Path to one-time appropriations CSV file')
+    parser.add_argument('--top-n', type=int, default=15,
+                        help='Number of top items to show in charts')
     args = parser.parse_args()
     
     # Create output directories
@@ -176,12 +182,14 @@ def main():
         # Step 2: Process the budget data with optional veto handling
         logger.info("Processing budget data...")
         
-        # Process with veto mode handling
+        # Process budget data with optional veto processing and one-time appropriations
         result = process_budget_with_vetoes(
             allocations=allocations,
             veto_mode=args.veto_mode,
-            veto_file=Path(args.veto_file) if args.veto_file else None,
-            fiscal_year=args.fiscal_year
+            veto_file=args.veto_file,
+            one_time_appropriations_file=args.one_time_appropriations,
+            fiscal_year=args.fiscal_year,
+            section=args.section
         )
         
         # Get the appropriate DataFrame based on veto mode

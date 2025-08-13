@@ -140,9 +140,21 @@ class DepartmentChart(BudgetChart):
         dept_summary['Operating_B'] = dept_summary['Operating'] / 1e9
         dept_summary['CIP_B'] = dept_summary['Capital Improvement'] / 1e9
         
-        # Add one-time appropriation for Department of Labor and Industrial Relations
-        dept_summary.loc[dept_summary['department_name'] == 'Department of Labor and Industrial Relations', 'OneTime_B'] = 0.05  # $50M
-        dept_summary['OneTime_B'] = dept_summary.get('OneTime_B', 0).fillna(0)
+        # Add one-time appropriations from data (if any exist in the 'One-Time' section)
+        one_time_data = data[data['section'] == 'One-Time']
+        if not one_time_data.empty:
+            one_time_summary = one_time_data.groupby('department_code')['amount'].sum() / 1e9
+            for dept_code, amount in one_time_summary.items():
+                dept_name = self.code_to_name.get(dept_code)
+                if dept_name:
+                    mask = dept_summary['department_name'] == dept_name
+                    dept_summary.loc[mask, 'OneTime_B'] = amount
+        
+        # Ensure OneTime_B column exists and fill NaN values
+        if 'OneTime_B' not in dept_summary.columns:
+            dept_summary['OneTime_B'] = 0
+        else:
+            dept_summary['OneTime_B'] = dept_summary['OneTime_B'].fillna(0)
         
         # Add emergency appropriations (all zeros for now)
         dept_summary['Emergency_B'] = 0

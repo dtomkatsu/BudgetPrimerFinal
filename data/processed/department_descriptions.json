@@ -1,0 +1,90 @@
+{
+  "AGR": {
+    "name": "The Department of Agriculture",
+    "description": "This department carries out programs to conserve, develop, and use lands and resources for agricultural use. It continues to help Hawaiʻi transition from plantation-era agricultural practices toward a diversified agriculture model, and supports the development of new programs such as aquaculture. The department is also responsible for plant and animal pest and disease control, including managing animal quarantine."
+  },
+  "AGS": {
+    "name": "The Department of Accounting & General Services",
+    "description": "This department manages statewide functions, including accounting and expenditures, facility acquisition and maintenance, the state motor pool, statewide information technology systems, and risk management. In addition, AGS counts among its programs the Hawaiʻi State Foundation on Culture & the Arts, the Hawaiʻi State Archives, and the Hawaiʻi State Office of Elections."
+  },
+  "ATG": {
+    "name": "The Department of the Attorney General",
+    "description": "This department provides legal support to the state's departments, prosecutes cases of tax and benefit fraud, and oversees fiduciary responsibilities for charitable nonprofits and trusts. The ATG is responsible for enforcing cigarette tax requirements and the tobacco settlement, maintains the system that collects and shares criminal history records, and manages the Child Support Enforcement Program. The department has been allocated $400 million in one-time general funds for the Maui wildfire settlement trust to support recovery and compensation efforts."
+  },
+  "BED": {
+    "name": "The Department of Business, Economic Development & Tourism",
+    "description": "This department is responsible for a wide array of programs: low- and moderate-income housing development via the Hawaiʻi Community Development Authority (HCDA) and Hawaiʻi Housing Finance & Development Corporation (HHFDC); promoting the visitor industry through the Hawaiʻi Tourism Authority; overseeing the Foreign Trade Zone; and managing the Hawaiʻi Clean Energy Initiative. The department also researches and publishes Hawaiʻi census and population data, information about the state's economic performance, and the State Data Book."
+  },
+  "BUF": {
+    "name": "The Department of Budget & Finance",
+    "description": "This department coordinates statewide budget forecasting and management, and oversees the state's investments and financing. Agencies in BUF are the Employees' Retirement System (ERS), the Employer-Union Health Care Trust Fund (EUTF), and the Office of the Public Defender. The BUF budget also includes costs related to debt service and all payroll taxes and fringe benefits for state and county employees. This bill sets aside emergency state funding to cover new labor contracts and pay increases for public employees in Hawaii for the year 2024–2025. The amounts include: * $79,197,312 for general contract costs for most state workers. * An additional $14,000,000 for the Department of Education, University of Hawaii, and other departments. * $11,540,875 for employees at Hawaii Health Systems. * $960,600 and $5,140,600 for other specific bargaining units, plus other smaller funds from special, federal, and trust sources. In simple terms, this bill provides over $100 million, mostly from the general fund, to pay for raises and other costs agreed upon in new contracts for state employees and teachers."
+  },
+  "CCA": {
+    "name": "The Department of Commerce & Consumer Affairs",
+    "description": "This department upholds business standards and protects consumer interests. Its programs include the Public Utilities Commission (PUC), the insurance division, business registration and securities regulation, professional and vocational licensing, and the Office of Consumer Protection. CCA has the distinction of being the only executive department that receives no general funds to support its operations."
+  },
+  "DEF": {
+    "name": "The Department of Defense",
+    "description": "This department coordinates the Hawaiʻi National Guard and maintains the emergency management system, including planning and communications for disasters. In addition, it administers the Youth Challenge Academy for at-risk young people, and the Office of Veterans Services."
+  },
+  "EDN": {
+    "name": "The Department of Education",
+    "description": "This statewide system delivers public education for K–12, including public charter schools. In addition, the statewide library system is under the administration of EDN. EDN is semi-autonomous, with its own Board of Education. It employs more staff than any other department. The Offices of the Governor and Lieutenant Governor (GOV/LTG) The governor's office is responsible for the highest level of vision and direction for the state and supports intergovernmental relationships with other states and countries through its executive departments and budgetary resources. The lieutenant governor undertakes projects assigned by the governor, and exercises executive power when the governor is out of state or otherwise unable to carry out their duties."
+  },
+  "HHL": {
+    "name": "The Department of Hawaiian Home Lands",
+    "description": "This department manages the Hawaiian Homes Trust. The department identifies beneficiary needs and plans and develops land for homesteading and income-production purposes."
+  },
+  "HMS": {
+    "name": "The Department of Human Services",
+    "description": "This department manages public benefit programs including Medicaid (Med-QUEST), the Supplemental Nutrition Assistance Program (SNAP), Temporary Assistance for Needy Families (TANF), general assistance, and public housing. Child and adult protective services, in-community youth programs, and the Hawaiʻi Youth Correctional Facility are also overseen by the department. The State Commission on the Status of Women and the Fatherhood Commission are attached to HMS. The department is supported by more federal dollars than any other because most of its programs are partially funded by the federal government. In FY 2025, the department received $5,467,164 in emergency funding. The money will be used to upgrade the computer system that helps manage food stamp (SNAP) benefits in Hawaii. The goal is to fix mistakes in how benefits are given out, avoid future penalties, and possibly save the state money by not having to pay the rest of a federal fine."
+  },
+  "HRD": {
+    "name": "The Department of Human Resources Development",
+    "description": "This department provides recruitment and human resources development for the state."
+  },
+  "HTH": {
+    "name": "The Department of Health",
+    "description": "This department has wide-ranging responsibilities for public health, the environment, food safety, behavioral health, and communicable and chronic disease prevention and control. The Department of Health includes the Hansen's disease facility at Kalaupapa, the Executive Office on Aging, the State Health Planning and Development Agency, the Disability and Communications Access Board, the Hawaiʻi Health Systems Corporation, and the Hawaiʻi State Forensic Mental Health Hospital. For FY 2025, the department was given $10,660,000 in emergency state funding. The money will be used to fix problems in the Hale Ho‘ola Building at the Hawaii State Hospital. These problems include water leaks, mold, and other construction defects that make the building unsafe for staff and patients. The money will also help pay legal fees related to fixing these issues."
+  },
+  "LBR": {
+    "name": "The Department of Labor & Industrial Relations",
+    "description": "This department enforces labor laws, and administers the state Unemployment Insurance, Workers' Compensation, and Temporary Disability Insurance programs. Compliance with the state's Prepaid Health Care Act is overseen by this department. LBR's Office of Community Services oversees grants and programs aimed at helping economically disadvantaged residents gain self-sufficiency."
+  },
+  "LNR": {
+    "name": "The Department of Land & Natural Resources",
+    "description": "This department is responsible for protecting Hawaiʻi's natural resources, preserving native species, and ensuring safe recreational sites. It oversees historic preservation, manages state parks, and administers land conveyances and recordings. The department is the steward for Kahoʻolawe and Mauna Kea."
+  },
+  "LAW": {
+    "name": "The Department of Law Enforcement",
+    "description": "The Legislature authorized the creation of a new Department of Law Enforcement during the 2022 session through HB2171. Its purpose is to \"consolidate and administer the criminal law enforcement and investigation functions,\" and now has responsibility for some programs that were previously administered by other departments. It currently manages Narcotics Enforcement, the Sheriff's Office, Criminal Investigation, Enforcement Training, and Homeland Security."
+  },
+  "PSD": {
+    "name": "The Department of Corrections and Rehabilitation",
+    "description": "This department, formerly the Department of Public Safety, was renamed in 2022 when the Department of Law Enforcement was created. It oversees Hawaiʻi's state correctional facilities, health services, the parole board, and the Victim Compensation Program."
+  },
+  "TAX": {
+    "name": "The Department of Taxation",
+    "description": "This department administers Hawaiʻi's taxation system, from enforcing tax laws to collecting taxes and other payments. The department supports the Council on Revenues, which advises the executive and legislative branches on revenue projections, and the Tax Review Commission, which periodically advises on state tax policy."
+  },
+  "TRN": {
+    "name": "The Department of Transportation",
+    "description": "This department plans, develops and maintains transportation systems including highways, airports and harbors. The Aloha Tower Development Corporation is housed within TRN. The department's capital improvement project budget is larger than its operating budget, and accounts for 60 percent of all executive CIP appropriations. The University of Hawaiʻi System (UOH) The UOH is a statewide university system that includes the University of Hawaiʻi (UH) at Mānoa, UH Hilo, UH West Oʻahu, and the statewide community college system. Other UOH programs include the John A. Burns School of Medicine, the UH Cancer Center and the Waikīkī Aquarium. The university system is semi-autonomous and has its own Board of Regents. It also manages its own capital and facilities budgets. Not included in state budget totals or subject to the legislative process are the many competitive grants that the UOH brings into the state."
+  },
+  "CCH": {
+    "name": "City and County of Honolulu",
+    "description": "The City and County of Honolulu is the local government entity for the island of Oʻahu."
+  },
+  "COH": {
+    "name": "County of Hawaiʻi",
+    "description": "The County of Hawaiʻi is the local government entity for the island of Hawaiʻi."
+  },
+  "COK": {
+    "name": "County of Kauaʻi",
+    "description": "The County of Kauaʻi is the local government entity for the island of Kauaʻi."
+  },
+  "P": {
+    "name": "Legislature",
+    "description": "The Hawaiʻi State Legislature is the state legislature of the U.S. state of Hawaiʻi."
+  }
+}

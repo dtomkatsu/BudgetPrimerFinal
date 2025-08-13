@@ -59,6 +59,9 @@ class MeansOfFinanceChart(BudgetChart):
         # Group by fund type and sum amounts
         fund_summary = operating_data.groupby('fund_type')['amount'].sum().reset_index()
         
+        # One-time appropriations are now handled in the data processing pipeline
+        # and will be included in the operating_data automatically
+        
         # Map fund types to categories
         fund_summary['category'] = fund_summary['fund_type'].map(self.fund_labels)
         fund_summary['category'] = fund_summary['category'].fillna('Other Funds')

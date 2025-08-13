@@ -80,16 +80,18 @@ def process_budget_with_vetoes(
     allocations: List[BudgetAllocation],
     veto_mode: str = "none",
     veto_file: Optional[Path] = None,
+    one_time_appropriations_file: Optional[Path] = None,
     fiscal_year: Optional[int] = None,
     section: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Process budget data with optional veto application.
+    Process budget data with optional veto application and one-time appropriations.
     
     Args:
         allocations: List of budget allocations
         veto_mode: One of 'none', 'apply', or 'both'
         veto_file: Path to veto CSV file (required if veto_mode is 'apply' or 'both')
+        one_time_appropriations_file: Optional path to one-time appropriations CSV
         fiscal_year: Optional fiscal year to filter by
         section: Optional section to filter by
         
@@ -123,7 +125,9 @@ def process_budget_with_vetoes(
             
         post_veto_allocations = transform_to_post_veto(
             pre_veto_allocations.copy(),
-            veto_changes
+            veto_changes,
+            one_time_appropriations_file=one_time_appropriations_file,
+            fiscal_year=fiscal_year or 2026
         )
         
         # Process post-veto data

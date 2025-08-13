@@ -176,6 +176,16 @@ class DepartmentalBudgetAnalyzer:
         # Total operating budget
         total_operating = operating_by_fund.sum()
         
+        # One-time appropriations are now included in the data automatically
+        # Check if there are any one-time appropriations for this department
+        one_time_data = dept_data[dept_data['section'] == 'One-Time']
+        if not one_time_data.empty:
+            one_time_by_fund = one_time_data.groupby('fund_category_mapped')['amount'].sum()
+            # Add one-time appropriations to the operating budget by fund type
+            for fund_type, amount in one_time_by_fund.items():
+                operating_by_fund[fund_type] = operating_by_fund.get(fund_type, 0) + amount
+                total_operating += amount
+        
         # Overall total
         total_budget = total_operating + other_total
         
