@@ -173,21 +173,20 @@ class DepartmentalBudgetAnalyzer:
         other_data = dept_data[(dept_data['section'] != 'Operating') & (dept_data['section'] != 'Capital Improvement')]
         other_total = other_data['amount'].sum()
         
-        # Total operating budget
+        # Total operating budget (excluding one-time appropriations)
         total_operating = operating_by_fund.sum()
         
-        # One-time appropriations are now included in the data automatically
-        # Check if there are any one-time appropriations for this department
+        # Handle one-time appropriations separately
         one_time_data = dept_data[dept_data['section'] == 'One-Time']
+        one_time_by_fund = pd.Series(dtype=float)
+        one_time_total = 0
+        
         if not one_time_data.empty:
             one_time_by_fund = one_time_data.groupby('fund_category_mapped')['amount'].sum()
-            # Add one-time appropriations to the operating budget by fund type
-            for fund_type, amount in one_time_by_fund.items():
-                operating_by_fund[fund_type] = operating_by_fund.get(fund_type, 0) + amount
-                total_operating += amount
+            one_time_total = one_time_by_fund.sum()
         
-        # Overall total
-        total_budget = total_operating + other_total
+        # Overall total includes operating + one-time + other appropriations
+        total_budget = total_operating + one_time_total + other_total
         
         summary = {
             'department_code': dept_code,
@@ -199,6 +198,13 @@ class DepartmentalBudgetAnalyzer:
                 'Federal Funds': operating_by_fund.get('Federal Funds', 0),
                 'Other Funds': operating_by_fund.get('Other Funds', 0),
                 'total': total_operating
+            },
+            'one_time_appropriations': {
+                'General Funds': one_time_by_fund.get('General Funds', 0),
+                'Special Funds': one_time_by_fund.get('Special Funds', 0),
+                'Federal Funds': one_time_by_fund.get('Federal Funds', 0),
+                'Other Funds': one_time_by_fund.get('Other Funds', 0),
+                'total': one_time_total
             },
             'other_appropriations': other_total,
             'cip_projects': cip_total,
@@ -446,109 +452,85 @@ class DepartmentalBudgetAnalyzer:
         # Otherwise, use the display name with a default message
         return f"{display_name} is a department of the State of Hawaii. {DEFAULT_DEPT_DESCRIPTION}"
     
-    def generate_html_report(self, summary: dict) -> str:
-        """
-        Generate HTML report for a department.
-        
-        Args:
-            summary: Department summary dictionary
-            
-        Returns:
-            HTML string
-        """
-        chart_base64 = self.create_department_chart(summary)
-        
-        # Get department description
-        dept_code = summary['department_code']
-        dept_description = self.get_department_description(dept_code)
-        
-        # Convert amounts to millions for display
-        op_budget = summary['operating_budget']
-        
-        html = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{summary['department_code']} FY26 Budget Report</title>
-    <style>
-        body {{
+    def _get_css_styles(self) -> str:
+        """Return the CSS styles for the HTML report."""
+        return """
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
             color: #333;
-        }}
+        }
         
-        .header {{
+        .header {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 8px;
-        }}
+        }
         
-        .header h1 {{
+        .header h1 {
             color: #2c3e50;
             margin: 0;
             font-size: 2.2em;
-        }}
+        }
         
-        .header h2 {{
+        .header h2 {
             color: #7f8c8d;
             margin: 10px 0 0 0;
             font-weight: normal;
-        }}
+        }
         
-        .budget-table {{
+        .budget-table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border-radius: 8px;
             overflow: hidden;
-        }}
+        }
         
-        .budget-table th {{
+        .budget-table th {
             background-color: #3498db;
             color: white;
             padding: 15px;
             text-align: left;
             font-weight: bold;
-        }}
+        }
         
-        .budget-table td {{
+        .budget-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #ecf0f1;
-        }}
+        }
         
-        .budget-table tr:nth-child(even) {{
+        .budget-table tr:nth-child(even) {
             background-color: #f8f9fa;
-        }}
+        }
         
-        .budget-table tr:hover {{
+        .budget-table tr:hover {
             background-color: #e8f4fd;
-        }}
+        }
         
-        .amount {{
+        .amount {
             text-align: right;
             font-weight: bold;
             color: #2c3e50;
-        }}
+        }
         
-        .total-row {{
+        .total-row {
             background-color: #3498db !important;
             color: white;
             font-weight: bold;
-        }}
+        }
         
-        .total-row td {{
+        .total-row td {
             border-bottom: none;
-        }}
+        }
         
-        .chart-container {{
+        .chart-container {
             text-align: center;
             margin: 20px auto;
             padding: 20px;
@@ -560,24 +542,24 @@ class DepartmentalBudgetAnalyzer:
             width: 95%;
             box-sizing: border-box;
             overflow: hidden;
-        }}
+        }
         
-        .chart-container h3 {{
+        .chart-container h3 {
             color: #2c3e50;
             margin: 0 0 15px 0;
             padding: 0;
             font-size: 1.5em;
             font-weight: 600;
-        }}
+        }
         
-        .chart-container .chart-wrapper {{
+        .chart-container .chart-wrapper {
             width: 100%;
             margin: 0 auto;
             overflow: visible;
             text-align: center;
-        }}
+        }
         
-        .chart-container img {{
+        .chart-container img {
             max-width: 100%;
             height: auto;
             max-height: 600px;
@@ -586,38 +568,38 @@ class DepartmentalBudgetAnalyzer:
             margin: 0 auto;
             display: block;
             object-fit: contain;
-        }}
+        }
         
-        @media (max-width: 1200px) {{
-            .chart-container {{
+        @media (max-width: 1200px) {
+            .chart-container {
                 padding: 15px;
                 width: 98%;
-            }}
+            }
             
-            .chart-container img {{
+            .chart-container img {
                 max-height: 500px;
-            }}
-        }}
+            }
+        }
         
-        @media (max-width: 768px) {{
-            .chart-container {{
+        @media (max-width: 768px) {
+            .chart-container {
                 padding: 10px;
                 margin: 10px auto;
-            }}
+            }
             
-            .chart-container img {{
+            .chart-container img {
                 max-height: 400px;
-            }}
-        }}
+            }
+        }
         
-        .summary-stats {{
+        .summary-stats {
             display: flex;
             justify-content: center;
             gap: 30px;
             margin: 30px 0;
-        }}
+        }
         
-        .budget-card {{
+        .budget-card {
             background-color: #fff;
             padding: 25px;
             border-radius: 10px;
@@ -625,27 +607,27 @@ class DepartmentalBudgetAnalyzer:
             text-align: center;
             flex: 0 1 300px;
             transition: transform 0.2s, box-shadow 0.2s;
-        }}
+        }
         
-        .budget-card:hover {{
+        .budget-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }}
+        }
         
-        .budget-amount {{
+        .budget-amount {
             font-size: 2.2em;
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 8px;
-        }}
+        }
         
-        .budget-label {{
+        .budget-label {
             color: #7f8c8d;
             font-size: 1.1em;
             font-weight: 500;
-        }}
+        }
         
-        .footer {{
+        .footer {
             margin-top: 40px;
             padding: 20px;
             background-color: #ecf0f1;
@@ -653,114 +635,206 @@ class DepartmentalBudgetAnalyzer:
             text-align: center;
             color: #7f8c8d;
             font-size: 0.9em;
-        }}
+        }
         
-        .dept-description {{
+        .dept-description {
             background-color: #f8f9fa;
             border-left: 4px solid #3498db;
             padding: 20px;
             margin: 20px 0;
             border-radius: 0 8px 8px 0;
-        }}
+        }
         
-        .dept-description h3 {{
+        .dept-description h3 {
             color: #2c3e50;
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 1.4em;
-        }}
+        }
         
-        .dept-description p {{
+        .dept-description p {
             margin: 0;
             line-height: 1.6;
             color: #4a5568;
-        }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>{summary['department_code']} FY26 Operating Budget</h1>
-        <h2>{summary['department_name']}</h2>
-    </div>
+        }
+        """
     
-    <div class="dept-description">
-        <h3>About {summary['department_name']}</h3>
-        <p>{dept_description}</p>
-    </div>
+    def _format_currency(self, amount: float) -> str:
+        """Format currency amounts for display."""
+        if amount >= 1_000_000_000:
+            return f"${amount / 1_000_000_000:,.1f}B"
+        else:
+            return f"${amount / 1_000_000:,.0f}M"
     
-    <div class="summary-stats">
+    def _format_currency_long(self, amount: float) -> str:
+        """Format currency amounts for display with long form."""
+        if amount >= 1_000_000_000:
+            return f"${amount / 1_000_000_000:,.1f} Billion"
+        else:
+            return f"${amount / 1_000_000:,.0f} Million"
+    
+    def _build_summary_cards(self, summary: dict) -> str:
+        """Build the summary cards section."""
+        operating_total = summary['operating_budget']['total']
+        one_time_total = summary['one_time_appropriations']['total']
+        cip_total = summary['cip_projects']
+        
+        # Build cards - always show operating and CIP, conditionally show one-time
+        cards_html = f"""
         <div class="budget-card">
-            <div class="budget-amount">
-                {'$' + f"{summary['operating_budget']['total'] / 1_000_000_000:,.1f}B" if summary['operating_budget']['total'] >= 1_000_000_000 
-                  else '$' + f"{summary['operating_budget']['total'] / 1_000_000:,.0f}M"}
-            </div>
-            <div class="budget-label">Total Operating</div>
-        </div>
+            <div class="budget-amount">{self._format_currency(operating_total)}</div>
+            <div class="budget-label">Operating Budget</div>
+        </div>"""
+        
+        # Add one-time appropriations card if there are any
+        if one_time_total > 0:
+            cards_html += f"""
         <div class="budget-card">
-            <div class="budget-amount">
-                {'$' + f"{summary['cip_projects'] / 1_000_000_000:,.1f}B" if summary['cip_projects'] >= 1_000_000_000 
-                  else '$' + f"{summary['cip_projects'] / 1_000_000:,.0f}M"}
-            </div>
+            <div class="budget-amount">{self._format_currency(one_time_total)}</div>
+            <div class="budget-label">One-Time Appropriations</div>
+        </div>"""
+        
+        cards_html += f"""
+        <div class="budget-card">
+            <div class="budget-amount">{self._format_currency(cip_total)}</div>
             <div class="budget-label">Capital Improvement Projects</div>
-        </div>
-    </div>
+        </div>"""
+        
+        return f"""
+    <div class="summary-stats">
+        {cards_html}
+    </div>"""
     
+    def _build_budget_table(self, summary: dict) -> str:
+        """Build the budget breakdown table."""
+        op_budget = summary['operating_budget']
+        one_time_budget = summary['one_time_appropriations']
+        dept_code = summary['department_code']
+        
+        # Build operating budget section
+        table_html = f"""
     <table class="budget-table">
         <thead>
             <tr>
-                <th>{summary['department_code']} FY26 Operating Budget:</th>
-                <th class="amount">
-                    {'$' + f"{summary['operating_budget']['total'] / 1_000_000_000:,.1f} Billion" if summary['operating_budget']['total'] >= 1_000_000_000 
-                      else '$' + f"{summary['operating_budget']['total'] / 1_000_000:,.0f} Million"}
-                </th>
+                <th>{dept_code} FY26 Operating Budget:</th>
+                <th class="amount">{self._format_currency_long(op_budget['total'])}</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>General Funds:</td>
-                <td class="amount">
-                    {'$' + f"{op_budget['General Funds'] / 1_000_000_000:,.1f}B" if op_budget['General Funds'] >= 1_000_000_000 
-                      else '$' + f"{op_budget['General Funds'] / 1_000_000:,.0f}M"}
-                </td>
+                <td class="amount">{self._format_currency(op_budget['General Funds'])}</td>
             </tr>
             <tr>
                 <td>Special Funds:</td>
-                <td class="amount">
-                    {'$' + f"{op_budget['Special Funds'] / 1_000_000_000:,.1f}B" if op_budget['Special Funds'] >= 1_000_000_000 
-                      else '$' + f"{op_budget['Special Funds'] / 1_000_000:,.0f}M"}
-                </td>
+                <td class="amount">{self._format_currency(op_budget['Special Funds'])}</td>
             </tr>
             <tr>
                 <td>Federal Funds:</td>
-                <td class="amount">
-                    {'$' + f"{op_budget['Federal Funds'] / 1_000_000_000:,.1f}B" if op_budget['Federal Funds'] >= 1_000_000_000 
-                      else '$' + f"{op_budget['Federal Funds'] / 1_000_000:,.0f}M"}
-                </td>
+                <td class="amount">{self._format_currency(op_budget['Federal Funds'])}</td>
             </tr>
             <tr>
                 <td>Other Funds:</td>
-                <td class="amount">
-                    {'$' + f"{op_budget['Other Funds'] / 1_000_000_000:,.1f}B" if op_budget['Other Funds'] >= 1_000_000_000 
-                      else '$' + f"{op_budget['Other Funds'] / 1_000_000:,.0f}M"}
-                </td>
+                <td class="amount">{self._format_currency(op_budget['Other Funds'])}</td>
+            </tr>"""
+        
+        # Add one-time appropriations section if there are any
+        if one_time_budget['total'] > 0:
+            table_html += f"""
+            <tr class="total-row">
+                <td>FY26 One-Time Appropriations:</td>
+                <td class="amount">{self._format_currency_long(one_time_budget['total'])}</td>
             </tr>
-
+            <tr>
+                <td>General Funds:</td>
+                <td class="amount">{self._format_currency(one_time_budget['General Funds'])}</td>
+            </tr>
+            <tr>
+                <td>Special Funds:</td>
+                <td class="amount">{self._format_currency(one_time_budget['Special Funds'])}</td>
+            </tr>
+            <tr>
+                <td>Federal Funds:</td>
+                <td class="amount">{self._format_currency(one_time_budget['Federal Funds'])}</td>
+            </tr>
+            <tr>
+                <td>Other Funds:</td>
+                <td class="amount">{self._format_currency(one_time_budget['Other Funds'])}</td>
+            </tr>"""
+        
+        # Add CIP section
+        table_html += f"""
             <tr class="total-row">
                 <td>FY26 Capital Improvement Projects:</td>
-                <td class="amount">
-                    {'$' + f"{summary['cip_projects'] / 1_000_000_000:,.1f} Billion" if summary['cip_projects'] >= 1_000_000_000 
-                      else '$' + f"{summary['cip_projects'] / 1_000_000:,.0f} Million"}
-                </td>
+                <td class="amount">{self._format_currency_long(summary['cip_projects'])}</td>
             </tr>
         </tbody>
-    </table>
+    </table>"""
+        
+        return table_html
     
+    def _build_chart_section(self, summary: dict, chart_base64: str) -> str:
+        """Build the chart section."""
+        dept_code = summary['department_code']
+        
+        return f"""
     <div class="chart-container">
-        <h3>Figure 15. {summary['department_code']} Operating Budget</h3>
+        <h3>Figure 15. {dept_code} Operating Budget</h3>
         <div class="chart-wrapper">
-            <img src="data:image/png;base64,{chart_base64}" alt="{summary['department_code']} Budget Chart">
+            <img src="data:image/png;base64,{chart_base64}" alt="{dept_code} Budget Chart">
         </div>
+    </div>"""
+    
+    def generate_html_report(self, summary: dict) -> str:
+        """
+        Generate HTML report for a department using template-based approach.
+        
+        Args:
+            summary: Department summary dictionary
+            
+        Returns:
+            HTML string
+        """
+        # Generate chart
+        chart_base64 = self.create_department_chart(summary)
+        
+        # Get department info
+        dept_code = summary['department_code']
+        dept_name = summary['department_name']
+        dept_description = self.get_department_description(dept_code)
+        
+        # Build template sections
+        css_styles = self._get_css_styles()
+        summary_cards = self._build_summary_cards(summary)
+        budget_table = self._build_budget_table(summary)
+        chart_section = self._build_chart_section(summary, chart_base64)
+        
+        # Assemble the complete HTML
+        html_content = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{dept_code} FY26 Budget Report</title>
+    <style>{css_styles}</style>
+</head>
+<body>
+    <div class="header">
+        <h1>{dept_code} FY26 Operating Budget</h1>
+        <h2>{dept_name}</h2>
     </div>
+    
+    <div class="dept-description">
+        <h3>About {dept_name}</h3>
+        <p>{dept_description}</p>
+    </div>
+    
+    {summary_cards}
+    
+    {budget_table}
+    
+    {chart_section}
     
     <div class="footer">
         <p>Generated from Hawaii State Budget FY 2026 Post-Veto Data</p>
@@ -769,7 +843,7 @@ class DepartmentalBudgetAnalyzer:
 </body>
 </html>
 """
-        return html
+        return html_content
     
     def generate_all_reports(self):
         """Generate HTML reports for all departments."""
@@ -821,11 +895,12 @@ class DepartmentalBudgetAnalyzer:
                 name = self.department_names.get(code, code)
                 total = dept_data['amount'].sum() / 1_000_000
                 
-                # Calculate operating vs capital breakdown
+                # Calculate operating vs capital vs one-time breakdown
                 operating = dept_data[dept_data['section'] == 'Operating']['amount'].sum() / 1_000_000
                 capital = dept_data[dept_data['section'] == 'Capital Improvement']['amount'].sum() / 1_000_000
+                one_time = dept_data[dept_data['section'] == 'One-Time']['amount'].sum() / 1_000_000
                 
-                dept_info.append((code, name, total, operating, capital))
+                dept_info.append((code, name, total, operating, capital, one_time))
         
         # Sort by operating budget (descending), then by total budget (descending)
         dept_info.sort(key=lambda x: (-x[3], -x[2]))  # x[3] is operating budget, x[2] is total budget
@@ -835,9 +910,10 @@ class DepartmentalBudgetAnalyzer:
         total_departments = len(dept_info)
         largest_dept = dept_info[0] if dept_info else ('', '', 0)
         
-        # Calculate operating vs capital budget totals
+        # Calculate operating vs capital vs one-time budget totals
         operating_total = self.df[self.df['section'] == 'Operating']['amount'].sum() / 1_000_000
         capital_total = self.df[self.df['section'] == 'Capital Improvement']['amount'].sum() / 1_000_000
+        one_time_total = self.df[self.df['section'] == 'One-Time']['amount'].sum() / 1_000_000
         
         # Helper function to format budget amounts
         def format_budget(amount_millions):
@@ -852,8 +928,9 @@ class DepartmentalBudgetAnalyzer:
                 "code": code,
                 "name": name,
                 "operating": operating,
-                "capital": capital
-            } for code, name, total, operating, capital in dept_info
+                "capital": capital,
+                "one_time": one_time
+            } for code, name, total, operating, capital, one_time in dept_info
         ]
         chart_data_json = json.dumps(chart_data)
         print(f"DEBUG: chart_data_json = {chart_data_json}")
@@ -1362,6 +1439,11 @@ class DepartmentalBudgetAnalyzer:
                 <div class="label">All Departments Combined</div>
             </div>
             <div class="summary-card">
+                <h3>One-Time Appropriations</h3>
+                <div class="value">{format_budget(one_time_total)}</div>
+                <div class="label">Special Allocations</div>
+            </div>
+            <div class="summary-card">
                 <h3>Capital Budget</h3>
                 <div class="value">{format_budget(capital_total)}</div>
                 <div class="label">Capital Improvement Projects</div>
@@ -1394,7 +1476,7 @@ class DepartmentalBudgetAnalyzer:
     <div class="departments-grid" id="departmentsGrid">
 """
         
-        for code, name, total, operating, capital in dept_info:
+        for code, name, total, operating, capital, one_time in dept_info:
             # Format the budget amounts
             def format_amount(amount):
                 if amount >= 1000:
@@ -1405,6 +1487,7 @@ class DepartmentalBudgetAnalyzer:
             total_display = format_amount(total)
             operating_display = format_amount(operating)
             capital_display = format_amount(capital)
+            one_time_display = format_amount(one_time)
             
             html += f"""
         <a href="{code.lower()}_budget_report.html" class="dept-card" data-operating="{operating}" data-capital="{capital}">
