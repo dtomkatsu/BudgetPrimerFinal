@@ -660,18 +660,42 @@ class DepartmentalBudgetAnalyzer:
         """
     
     def _format_currency(self, amount: float) -> str:
-        """Format currency amounts for display."""
+        """Format currency amounts for display with up to 2 decimal places."""
         if amount >= 1_000_000_000:
-            return f"${amount / 1_000_000_000:,.1f}B"
+            value = amount / 1_000_000_000
+            if value == int(value):
+                return f"${value:,.0f}B"
+            elif value * 10 == int(value * 10):
+                return f"${value:,.1f}B"
+            else:
+                return f"${value:,.2f}B"
         else:
-            return f"${amount / 1_000_000:,.0f}M"
+            value = amount / 1_000_000
+            if value == int(value):
+                return f"${value:,.0f}M"
+            elif value * 10 == int(value * 10):
+                return f"${value:,.1f}M"
+            else:
+                return f"${value:,.2f}M"
     
     def _format_currency_long(self, amount: float) -> str:
-        """Format currency amounts for display with long form."""
+        """Format currency amounts for display with long form and up to 2 decimal places."""
         if amount >= 1_000_000_000:
-            return f"${amount / 1_000_000_000:,.1f} Billion"
+            value = amount / 1_000_000_000
+            if value == int(value):
+                return f"${value:,.0f} Billion"
+            elif value * 10 == int(value * 10):
+                return f"${value:,.1f} Billion"
+            else:
+                return f"${value:,.2f} Billion"
         else:
-            return f"${amount / 1_000_000:,.0f} Million"
+            value = amount / 1_000_000
+            if value == int(value):
+                return f"${value:,.0f} Million"
+            elif value * 10 == int(value * 10):
+                return f"${value:,.1f} Million"
+            else:
+                return f"${value:,.2f} Million"
     
     def _build_summary_cards(self, summary: dict) -> str:
         """Build the summary cards section."""
@@ -915,12 +939,23 @@ class DepartmentalBudgetAnalyzer:
         capital_total = self.df[self.df['section'] == 'Capital Improvement']['amount'].sum() / 1_000_000
         one_time_total = self.df[self.df['section'] == 'One-Time']['amount'].sum() / 1_000_000
         
-        # Helper function to format budget amounts
+        # Helper function to format budget amounts with up to 2 decimal places
         def format_budget(amount_millions):
             if amount_millions >= 1000:
-                return f"${amount_millions/1000:,.1f}B"  # Show as billions with 1 decimal
+                value = amount_millions / 1000
+                if value == int(value):
+                    return f"${value:,.0f}B"
+                elif value * 10 == int(value * 10):
+                    return f"${value:,.1f}B"
+                else:
+                    return f"${value:,.2f}B"
             else:
-                return f"${amount_millions:,.0f}M"  # Show as millions with no decimals
+                if amount_millions == int(amount_millions):
+                    return f"${amount_millions:,.0f}M"
+                elif amount_millions * 10 == int(amount_millions * 10):
+                    return f"${amount_millions:,.1f}M"
+                else:
+                    return f"${amount_millions:,.2f}M"
         
         # Prepare chart data JSON for embedding in the JavaScript code
         chart_data = [
@@ -1477,32 +1512,56 @@ class DepartmentalBudgetAnalyzer:
 """
         
         for code, name, total, operating, capital, one_time in dept_info:
-            # Format the budget amounts
+            # Format the budget amounts with up to 2 decimal places
             def format_amount(amount):
                 if amount >= 1000:
-                    return f"${amount/1000:,.1f}B"  # Show as billions with 1 decimal and dollar sign
+                    value = amount / 1000
+                    if value == int(value):
+                        return f"${value:,.0f}B"
+                    elif value * 10 == int(value * 10):
+                        return f"${value:,.1f}B"
+                    else:
+                        return f"${value:,.2f}B"
                 else:
-                    return f"${amount:,.0f}M"  # Show as millions with no decimals and dollar sign
+                    if amount == int(amount):
+                        return f"${amount:,.0f}M"
+                    elif amount * 10 == int(amount * 10):
+                        return f"${amount:,.1f}M"
+                    else:
+                        return f"${amount:,.2f}M"
             
             total_display = format_amount(total)
             operating_display = format_amount(operating)
             capital_display = format_amount(capital)
             one_time_display = format_amount(one_time)
             
+            # Build breakdown items - always show operating and capital, conditionally show one-time
+            breakdown_items = f"""
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Operating:</span>
+                    <span class="breakdown-value">{operating_display}</span>
+                </div>"""
+            
+            if one_time > 0:
+                breakdown_items += f"""
+                <div class="breakdown-item">
+                    <span class="breakdown-label">One-Time:</span>
+                    <span class="breakdown-value">{one_time_display}</span>
+                </div>"""
+            
+            breakdown_items += f"""
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Capital:</span>
+                    <span class="breakdown-value">{capital_display}</span>
+                </div>"""
+            
             html += f"""
-        <a href="{code.lower()}_budget_report.html" class="dept-card" data-operating="{operating}" data-capital="{capital}">
+        <a href="{code.lower()}_budget_report.html" class="dept-card" data-operating="{operating}" data-capital="{capital}" data-onetime="{one_time}">
             <div class="dept-name">{name}</div>
             <div class="dept-code">{code}</div>
             <div class="dept-budget">{total_display} Total Budget</div>
             <div class="dept-breakdown">
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Operating:</span>
-                    <span class="breakdown-value">{operating_display}</span>
-                </div>
-                <div class="breakdown-item">
-                    <span class="breakdown-label">Capital:</span>
-                    <span class="breakdown-value">{capital_display}</span>
-                </div>
+                {breakdown_items}
             </div>
         </a>
 """
