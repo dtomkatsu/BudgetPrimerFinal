@@ -198,6 +198,9 @@ class FastBudgetParser(BaseBudgetParser):
                     current_program_name = program_name  # Store the name separately
                     current_dept = program_id[:3]  # First 3 letters are department code
                     current_section = None
+                    
+                    # Log program change for debugging
+                    self.logger.debug(f"Program changed to: {current_program} - {current_program_name}")
 
                     continue
                 
@@ -670,8 +673,8 @@ class FastBudgetParser(BaseBudgetParser):
                     if not amount_match:
                         # Try alternative format with fund type at the end after spaces
                         amount_match = re.search(r'([A-Z]+)?\s*([\d,]+)(?:\s+)([A-Z])\s*$', line.strip())
-                    if amount_line_match:
-                        amount_matches.append(amount_line_match.groups())
+                    if amount_match:
+                        amount_matches.append(amount_match.groups())
                 
                 # If we have matches and we're in a valid context
                 if amount_matches and current_dept and current_program and current_section:
@@ -692,11 +695,13 @@ class FastBudgetParser(BaseBudgetParser):
                             
                             # Add FY2026 entry
                             if fy26_num > 0:
+                                # Log the allocation for debugging
+                                self.logger.debug(f"Adding allocation: {current_program} - {fy26_amount}{fy26_fund} to {dept_code}")
                                 allocations.append(BudgetAllocation(
-                                    program_id=current_dept,
-                                    program_name=current_program,
-                                    department_code=current_dept,
-                                    department_name=current_dept,
+                                    program_id=current_program,  # Use current_program instead of current_dept
+                                    program_name=current_program_name,  # Use current_program_name
+                                    department_code=dept_code,  # Use the dept_code from the amount line
+                                    department_name=dept_code,
                                     section=BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section else BudgetSection.OPERATING,
                                     fund_type=FundType.from_string(fund_type),
                                     fiscal_year=2026,
@@ -707,10 +712,10 @@ class FastBudgetParser(BaseBudgetParser):
                             # Add FY2027 entry
                             if fy27_num > 0:
                                 allocations.append(BudgetAllocation(
-                                    program_id=current_dept,
-                                    program_name=current_program,
-                                    department_code=current_dept,
-                                    department_name=current_dept,
+                                    program_id=current_program,  # Use current_program instead of current_dept
+                                    program_name=current_program_name,  # Use current_program_name
+                                    department_code=dept_code,  # Use the dept_code from the amount line
+                                    department_name=dept_code,
                                     section=BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section else BudgetSection.OPERATING,
                                     fund_type=FundType.from_string(fy27_fund or fund_type),
                                     fiscal_year=2027,
