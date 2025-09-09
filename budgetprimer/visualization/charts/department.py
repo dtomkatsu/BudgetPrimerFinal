@@ -113,8 +113,7 @@ class DepartmentChart(BudgetChart):
         special_dept_names = [
             'Judiciary',
             'Legislature', 
-            'OHA',
-            'Department of Human Resources Development'  # We'll handle HR specially
+            'OHA'
         ]
         
         # Departments to exclude from the chart
