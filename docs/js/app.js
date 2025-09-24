@@ -65,16 +65,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Page Components
 async function homePage() {
-    // Use the real departments data - show all departments like the departments page
-    const departmentCards = departmentsData.map(dept => `
-        <a href="#/department/${dept.id}" class="department-card">
-            <h3>${dept.name}</h3>
-            <div class="card-content">
-                <p><strong>Budget:</strong> ${dept.budget}</p>
-                <span class="view-details">View Details →</span>
-            </div>
-        </a>
-    `).join('');
+    // Format currency function
+    const formatAmount = (amount) => {
+        if (!amount) return '$0';
+        if (amount >= 1000000000) {
+            return `$${(amount / 1000000000).toFixed(1)}B`;
+        }
+        if (amount >= 1000000) {
+            return `$${(amount / 1000000).toFixed(1)}M`;
+        }
+        return `$${amount.toLocaleString()}`;
+    };
+
+    // Generate department cards with budget breakdown
+    const departmentCards = departmentsData.map(dept => {
+        const operating = dept.operating_budget || 0;
+        const capital = dept.capital_budget || 0;
+        const oneTime = dept.one_time_appropriations || 0;
+        const total = operating + capital + oneTime;
+
+        return `
+            <a href="#/department/${dept.id}" class="department-card">
+                <h3>${dept.name}</h3>
+                <div class="card-content">
+                    <div class="budget-total">
+                        <span>Total Budget</span>
+                        <strong>${formatAmount(total)}</strong>
+                    </div>
+                    <div class="budget-breakdown">
+                        <div class="budget-row">
+                            <span>Operating</span>
+                            <span>${formatAmount(operating)}</span>
+                        </div>
+                        <div class="budget-row">
+                            <span>Capital</span>
+                            <span>${formatAmount(capital)}</span>
+                        </div>
+                        ${oneTime > 0 ? `
+                        <div class="budget-row">
+                            <span>One-Time</span>
+                            <span>${formatAmount(oneTime)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </a>
+        `;
+    }).join('');
     
     return `
         <section class="home-page">
