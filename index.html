@@ -3,12 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Hawaii State Budget FY 2026 - Interactive Budget Explorer">
     <title>Hawaii State Budget FY 2026</title>
     <link rel="stylesheet" href="css/styles.css">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-</head>
+    <!-- Fallback for SPA routing -->
+    <script>
+        // Single Page Apps for GitHub Pages
+        (function() {
+            var l = window.location;
+            if (l.search) {
+                var q = {};
+                l.search.slice(1).split('&').forEach(function(v) {
+                    var a = v.split('=');
+                    q[a[0]] = a.slice(1).join('=').replace(/~/g, ' ');
+                });
+                if (q.p !== undefined) {
+                    window.history.replaceState(null, null, l.pathname.slice(0, -1) + (q.p || '') + (q.q ? ('?' + q.q) : '') + l.hash);
+                }
+            }
+        }());
+    </script>
 <body>
     <div class="app-container">
         <header class="app-header">
