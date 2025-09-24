@@ -1,0 +1,183 @@
+<!-- Squarespace Code Block Version - BUDGET AND FINANCE Budget Report -->
+<div class="budget-report-container">
+    <style>
+        .budget-report-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .budget-report-container .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .budget-report-container .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 2.2em;
+        }
+        
+        .budget-report-container .header h2 {
+            color: #7f8c8d;
+            margin: 10px 0 0 0;
+            font-weight: normal;
+        }
+        
+        .budget-report-container .budget-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .budget-report-container .budget-table th {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .budget-report-container .budget-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .budget-report-container .budget-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .budget-report-container .budget-table tr:hover {
+            background-color: #e8f4fd;
+        }
+        
+        .budget-report-container .amount {
+            text-align: right;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .budget-report-container .total-row {
+            background-color: #3498db !important;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .budget-report-container .total-row td {
+            border-bottom: none;
+        }
+        
+        .budget-report-container .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .budget-report-container .budget-card {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            flex: 0 1 300px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-width: 200px;
+        }
+        
+        .budget-report-container .budget-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .budget-report-container .budget-amount {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .budget-report-container .budget-label {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+        
+        .budget-report-container .dept-description {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .budget-report-container .dept-description h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+        
+        .budget-report-container .dept-description p {
+            margin: 0;
+            line-height: 1.6;
+            color: #4a5568;
+        }
+        
+        .budget-report-container .note-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .budget-report-container .summary-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .budget-report-container .budget-card {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+    
+    <div class="header">
+        <h1>BUF FY26 Operating Budget</h1>
+        <h2>BUDGET AND FINANCE</h2>
+    </div>
+    
+    <div class="dept-description">
+        <h3>About BUDGET AND FINANCE</h3>
+        <p>This department coordinates statewide budget forecasting and management, and oversees the state's investments and financing. Agencies in BUF are the Employees' Retirement System (ERS), the Employer-Union Health Care Trust Fund (EUTF), and the Office of the Public Defender. The BUF budget also includes costs related to debt service and all payroll taxes and fringe benefits for state and county employees. This bill sets aside emergency state funding to cover new labor contracts and pay increases for public employees in Hawaii for the year 2024–2025. The amounts include: * $79,197,312 for general contract costs for most state workers. * An additional $14,000,000 for the Department of Education, University of Hawaii, and other departments. * $11,540,875 for employees at Hawaii Health Systems. * $960,600 and $5,140,600 for other specific bargaining units, plus other smaller funds from special, federal, and trust sources. In simple terms, this bill provides over $100 million, mostly from the general fund, to pay for raises and other costs agreed upon in new contracts for state employees and teachers.</p>
+    </div>
+    
+    <div class="summary-stats">
+        <div class="budget-card">
+            <div class="budget-amount">$4.32B</div>
+            <div class="budget-label">Operating Budget</div>
+        </div>
+        <div class="budget-card">
+            <div class="budget-amount">$0M</div>
+            <div class="budget-label">Capital Improvement Projects</div>
+        </div>
+    </div>
+    
+    <div class="note-section">
+        <p><strong>Note:</strong> Charts and detailed visualizations are available in the full PDF report.</p>
+        <p style="font-size: 0.9em; color: #7f8c8d;">Generated from Hawaii State Budget FY 2026 Post-Veto Data</p>
+    </div>
+</div>
