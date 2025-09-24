@@ -174,7 +174,7 @@ class SPAGenerator:
         total_onetime = onetime_data['amount'].sum()
         
         # Calculate capital budget
-        capital_data = dept_data[dept_data['section'] == 'Capital']
+        capital_data = dept_data[dept_data['section'] == 'Capital Improvement']
         total_capital = capital_data['amount'].sum()
         
         return {

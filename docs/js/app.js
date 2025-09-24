@@ -84,6 +84,11 @@ async function homePage() {
         const oneTime = dept.one_time_appropriations || 0;
         const total = operating + capital + oneTime;
 
+        // Debug logging for departments with one-time appropriations
+        if (oneTime > 0) {
+            console.log(`Department ${dept.name}: Operating=${operating}, Capital=${capital}, OneTime=${oneTime}`);
+        }
+
         return `
             <a href="#/department/${dept.id}" class="department-card">
                 <h3>${dept.name}</h3>
@@ -97,10 +102,12 @@ async function homePage() {
                             <span>Operating</span>
                             <span>${formatAmount(operating)}</span>
                         </div>
+                        ${capital > 0 ? `
                         <div class="budget-row">
                             <span>Capital</span>
                             <span>${formatAmount(capital)}</span>
                         </div>
+                        ` : ''}
                         ${oneTime > 0 ? `
                         <div class="budget-row">
                             <span>One-Time</span>

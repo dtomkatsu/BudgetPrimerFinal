@@ -2,18 +2,18 @@
   {
     "id": "ags",
     "name": "Department of AGS",
-    "budget": "$261M",
+    "budget": "$476M",
     "operating_budget": 260634034.0,
-    "capital_budget": 0.0,
+    "capital_budget": 215524000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/ags.html"
   },
   {
     "id": "agr",
     "name": "Department of Agriculture",
-    "budget": "$76M",
+    "budget": "$81M",
     "operating_budget": 75708926.0,
-    "capital_budget": 0.0,
+    "capital_budget": 5001000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/agr.html"
   },
@@ -29,11 +29,38 @@
   {
     "id": "bed",
     "name": "Department of Business, Economic Development and Tourism",
-    "budget": "$293M",
+    "budget": "$659M",
     "operating_budget": 292608072.0,
-    "capital_budget": 0.0,
+    "capital_budget": 366101000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/bed.html"
+  },
+  {
+    "id": "cch",
+    "name": "Department of CCH",
+    "budget": "$10M",
+    "operating_budget": 0.0,
+    "capital_budget": 10000000.0,
+    "one_time_appropriations": 0.0,
+    "path": "/pages/cch.html"
+  },
+  {
+    "id": "coh",
+    "name": "Department of COH",
+    "budget": "$7.0M",
+    "operating_budget": 0.0,
+    "capital_budget": 7000000.0,
+    "one_time_appropriations": 0.0,
+    "path": "/pages/coh.html"
+  },
+  {
+    "id": "cok",
+    "name": "Department of COK",
+    "budget": "$26M",
+    "operating_budget": 0.0,
+    "capital_budget": 26000000.0,
+    "one_time_appropriations": 0.0,
+    "path": "/pages/cok.html"
   },
   {
     "id": "cca",
@@ -47,18 +74,18 @@
   {
     "id": "def",
     "name": "Department of Defense",
-    "budget": "$113M",
+    "budget": "$219M",
     "operating_budget": 113204466.0,
-    "capital_budget": 0.0,
+    "capital_budget": 106121000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/def.html"
   },
   {
     "id": "edn",
     "name": "Department of Education",
-    "budget": "$3.1B",
+    "budget": "$3.4B",
     "operating_budget": 3070627838.0,
-    "capital_budget": 0.0,
+    "capital_budget": 378300000.0,
     "one_time_appropriations": 565000.0,
     "path": "/pages/edn.html"
   },
@@ -67,25 +94,25 @@
     "name": "Department of HMS",
     "budget": "$4.8B",
     "operating_budget": 4770041975.0,
-    "capital_budget": 0.0,
+    "capital_budget": 34400000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/hms.html"
   },
   {
     "id": "hhl",
     "name": "Department of Hawaiian Home Lands",
-    "budget": "$165M",
+    "budget": "$185M",
     "operating_budget": 165159472.0,
-    "capital_budget": 0.0,
+    "capital_budget": 20000000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/hhl.html"
   },
   {
     "id": "hth",
     "name": "Department of Health",
-    "budget": "$2.2B",
+    "budget": "$2.3B",
     "operating_budget": 2224523494.0,
-    "capital_budget": 0.0,
+    "capital_budget": 112198000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/hth.html"
   },
@@ -101,36 +128,36 @@
   {
     "id": "law",
     "name": "Department of LAW",
-    "budget": "$98M",
+    "budget": "$101M",
     "operating_budget": 98176615.0,
-    "capital_budget": 0.0,
+    "capital_budget": 3000000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/law.html"
   },
   {
     "id": "lbr",
     "name": "Department of Labor and Industrial Relations",
-    "budget": "$514M",
+    "budget": "$534M",
     "operating_budget": 463806077.0,
-    "capital_budget": 0.0,
+    "capital_budget": 20000000.0,
     "one_time_appropriations": 50000000.0,
     "path": "/pages/lbr.html"
   },
   {
     "id": "lnr",
     "name": "Department of Land and Natural Resources",
-    "budget": "$325M",
+    "budget": "$401M",
     "operating_budget": 324957895.0,
-    "capital_budget": 0.0,
+    "capital_budget": 75655000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/lnr.html"
   },
   {
     "id": "psd",
     "name": "Department of Public Safety",
-    "budget": "$320M",
+    "budget": "$330M",
     "operating_budget": 320439082.0,
-    "capital_budget": 0.0,
+    "capital_budget": 10000000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/psd.html"
   },
@@ -146,9 +173,9 @@
   {
     "id": "trn",
     "name": "Department of Transportation",
-    "budget": "$1.6B",
+    "budget": "$3.4B",
     "operating_budget": 1646163480.0,
-    "capital_budget": 0.0,
+    "capital_budget": 1781045000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/trn.html"
   },
@@ -191,9 +218,9 @@
   {
     "id": "uoh",
     "name": "University of Hawaii",
-    "budget": "$1.4B",
+    "budget": "$1.6B",
     "operating_budget": 1363165984.0,
-    "capital_budget": 0.0,
+    "capital_budget": 209206000.0,
     "one_time_appropriations": 0.0,
     "path": "/pages/uoh.html"
   }
