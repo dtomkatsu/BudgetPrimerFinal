@@ -1,0 +1,134 @@
+[
+  {
+    "id": "ags",
+    "name": "Department of AGS",
+    "budget": "$261M",
+    "path": "/pages/ags.html"
+  },
+  {
+    "id": "agr",
+    "name": "Department of Agriculture",
+    "budget": "$76M",
+    "path": "/pages/agr.html"
+  },
+  {
+    "id": "buf",
+    "name": "Department of Budget and Finance",
+    "budget": "$4.3B",
+    "path": "/pages/buf.html"
+  },
+  {
+    "id": "bed",
+    "name": "Department of Business, Economic Development and Tourism",
+    "budget": "$293M",
+    "path": "/pages/bed.html"
+  },
+  {
+    "id": "cca",
+    "name": "Department of Commerce and Consumer Affairs",
+    "budget": "$119M",
+    "path": "/pages/cca.html"
+  },
+  {
+    "id": "def",
+    "name": "Department of Defense",
+    "budget": "$113M",
+    "path": "/pages/def.html"
+  },
+  {
+    "id": "edn",
+    "name": "Department of Education",
+    "budget": "$3.1B",
+    "path": "/pages/edn.html"
+  },
+  {
+    "id": "hms",
+    "name": "Department of HMS",
+    "budget": "$4.8B",
+    "path": "/pages/hms.html"
+  },
+  {
+    "id": "hhl",
+    "name": "Department of Hawaiian Home Lands",
+    "budget": "$165M",
+    "path": "/pages/hhl.html"
+  },
+  {
+    "id": "hth",
+    "name": "Department of Health",
+    "budget": "$2.2B",
+    "path": "/pages/hth.html"
+  },
+  {
+    "id": "hrd",
+    "name": "Department of Human Resources Development",
+    "budget": "$37M",
+    "path": "/pages/hrd.html"
+  },
+  {
+    "id": "law",
+    "name": "Department of LAW",
+    "budget": "$98M",
+    "path": "/pages/law.html"
+  },
+  {
+    "id": "lbr",
+    "name": "Department of Labor and Industrial Relations",
+    "budget": "$514M",
+    "path": "/pages/lbr.html"
+  },
+  {
+    "id": "lnr",
+    "name": "Department of Land and Natural Resources",
+    "budget": "$325M",
+    "path": "/pages/lnr.html"
+  },
+  {
+    "id": "psd",
+    "name": "Department of Public Safety",
+    "budget": "$320M",
+    "path": "/pages/psd.html"
+  },
+  {
+    "id": "tax",
+    "name": "Department of Taxation",
+    "budget": "$43M",
+    "path": "/pages/tax.html"
+  },
+  {
+    "id": "trn",
+    "name": "Department of Transportation",
+    "budget": "$1.6B",
+    "path": "/pages/trn.html"
+  },
+  {
+    "id": "atg",
+    "name": "Department of the Attorney General",
+    "budget": "$535M",
+    "path": "/pages/atg.html"
+  },
+  {
+    "id": "p",
+    "name": "Legislature",
+    "budget": "$164K",
+    "path": "/pages/p.html"
+  },
+  {
+    "id": "gov",
+    "name": "Office of the Governor",
+    "budget": "$4.6M",
+    "path": "/pages/gov.html"
+  },
+  {
+    "id": "ltg",
+    "name": "Office of the Lieutenant Governor",
+    "budget": "$2.6M",
+    "path": "/pages/ltg.html"
+  },
+  {
+    "id": "uoh",
+    "name": "University of Hawaii",
+    "budget": "$1.4B",
+    "path": "/pages/uoh.html"
+  }
+]
