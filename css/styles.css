@@ -12,6 +12,12 @@
     display: none;
 }
 
+/* Hide budget amounts and labels in summary stats */
+.summary-stats .budget-amount,
+.summary-stats .budget-label {
+    display: none;
+}
+
 * {
     margin: 0;
     padding: 0;
