@@ -13,6 +13,15 @@ async function loadDepartments() {
     }
 }
 
+// Handle budget fallback visibility
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide the fallback if JavaScript is running
+    var fallback = document.querySelector('.budget-fallback');
+    if (fallback) {
+        fallback.style.display = 'none';
+    }
+});
+
 // Main application logic
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -26,11 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             path: '/',
             component: homePage,
             init: initHomePage
-        },
-        {
-            path: '/departments',
-            component: departmentsPage,
-            init: initDepartmentsPage
         },
         {
             path: '/department/:id',
@@ -123,29 +127,6 @@ async function homePage() {
     return `
         <section class="home-page">
             <h2>Hawaii State Budget FY 2026</h2>
-            <p>Browse all ${departmentsData.length} departments in the Hawaii State Budget.</p>
-            <div class="department-grid">
-                ${departmentCards}
-            </div>
-        </section>
-    `;
-}
-
-async function departmentsPage() {
-    // Use the real departments data
-    const departmentCards = departmentsData.map(dept => `
-        <a href="#/department/${dept.id}" class="department-card">
-            <h3>${dept.name}</h3>
-            <div class="card-content">
-                <p><strong>Budget:</strong> ${dept.budget}</p>
-                <span class="view-details">View Details →</span>
-            </div>
-        </a>
-    `).join('');
-    
-    return `
-        <section class="departments-page">
-            <h2>All Departments</h2>
             <p>Browse all ${departmentsData.length} departments in the Hawaii State Budget.</p>
             <div class="department-grid">
                 ${departmentCards}
@@ -259,10 +240,6 @@ async function notFoundPage() {
 // Initialize functions (called after page loads)
 async function initHomePage() {
     // Any initialization code for home page
-}
-
-async function initDepartmentsPage() {
-    // Any initialization code for departments page
 }
 
 async function initDepartmentDetailPage() {
