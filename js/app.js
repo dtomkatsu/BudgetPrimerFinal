@@ -65,54 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Page Components
 async function homePage() {
-    // Calculate summary statistics
-    const totalDepts = departmentsData.length;
-    const validBudgets = departmentsData.filter(d => d.budget !== '$0' && d.budget !== '$0M');
-    
-    // Find largest department
-    let largestDept = { budget: '$0', name: 'N/A' };
-    let totalBudgetValue = 0;
-    
-    validBudgets.forEach(dept => {
-        const budgetStr = dept.budget.replace(/[$,]/g, '');
-        let value = 0;
-        
-        if (budgetStr.includes('B')) {
-            value = parseFloat(budgetStr) * 1000000000;
-        } else if (budgetStr.includes('M')) {
-            value = parseFloat(budgetStr) * 1000000;
-        } else if (budgetStr.includes('K')) {
-            value = parseFloat(budgetStr) * 1000;
-        }
-        
-        totalBudgetValue += value;
-        
-        const largestValue = parseFloat(largestDept.budget.replace(/[$,BMK]/g, '')) * 
-            (largestDept.budget.includes('B') ? 1000000000 : 
-             largestDept.budget.includes('M') ? 1000000 : 
-             largestDept.budget.includes('K') ? 1000 : 1);
-        
-        if (value > largestValue) {
-            largestDept = dept;
-        }
-    });
-    
-    const totalBudgetFormatted = totalBudgetValue > 1000000000 ? 
-        `$${(totalBudgetValue / 1000000000).toFixed(1)}B` : 
-        `$${(totalBudgetValue / 1000000).toFixed(0)}M`;
-    
-    // Get top departments for display
-    const topDepartments = validBudgets
-        .sort((a, b) => {
-            const aVal = parseFloat(a.budget.replace(/[$,BMK]/g, '')) * 
-                (a.budget.includes('B') ? 1000 : a.budget.includes('M') ? 1 : 0.001);
-            const bVal = parseFloat(b.budget.replace(/[$,BMK]/g, '')) * 
-                (b.budget.includes('B') ? 1000 : b.budget.includes('M') ? 1 : 0.001);
-            return bVal - aVal;
-        })
-        .slice(0, 6);
-    
-    const departmentCards = topDepartments.map(dept => `
+    // Use the real departments data - show all departments like the departments page
+    const departmentCards = departmentsData.map(dept => `
         <a href="#/department/${dept.id}" class="department-card">
             <h3>${dept.name}</h3>
             <div class="card-content">
@@ -124,30 +78,8 @@ async function homePage() {
     
     return `
         <section class="home-page">
-            <h2>Welcome to the Hawaii State Budget Explorer</h2>
-            <p>Explore the FY 2026 budget allocations across all state departments.</p>
-            
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <div class="amount">${totalBudgetFormatted}</div>
-                    <div class="label">Total Budget</div>
-                </div>
-                <div class="summary-card">
-                    <div class="amount">${totalDepts}</div>
-                    <div class="label">Departments</div>
-                </div>
-                <div class="summary-card">
-                    <div class="amount">${largestDept.budget}</div>
-                    <div class="label">Largest Department</div>
-                </div>
-            </div>
-            
-            <div class="cta-buttons">
-                <a href="#/departments" class="button primary">Browse All Departments</a>
-                <a href="#/about" class="button secondary">About This Project</a>
-            </div>
-            
-            <h3>Top Departments by Budget</h3>
+            <h2>Hawaii State Budget FY 2026</h2>
+            <p>Browse all ${departmentsData.length} departments in the Hawaii State Budget.</p>
             <div class="department-grid">
                 ${departmentCards}
             </div>
