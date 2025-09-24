@@ -200,6 +200,9 @@ class SPAGenerator:
                     "id": dept_code.lower(),
                     "name": summary['department_name'],
                     "budget": self._format_currency(summary['total_budget']),
+                    "operating_budget": summary['operating_budget'],
+                    "capital_budget": summary['capital_budget'],
+                    "one_time_appropriations": summary['one_time_appropriations'],
                     "path": f"/pages/{dept_code.lower()}.html"
                 })
         
