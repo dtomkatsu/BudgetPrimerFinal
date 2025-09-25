@@ -1,5 +1,6 @@
-// Global departments data
+// Global data
 let departmentsData = [];
+let summaryStats = null;
 
 // Load departments data
 window.loadDepartments = async function() {
@@ -31,6 +32,25 @@ window.loadDepartments = async function() {
     }
 };
 
+// Load summary statistics
+window.loadSummaryStats = async function() {
+    try {
+        console.log('Loading summary statistics...');
+        const response = await fetch('./js/summary_stats.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        summaryStats = await response.json();
+        console.log('Successfully loaded summary statistics:', summaryStats);
+        
+        return summaryStats;
+    } catch (error) {
+        console.error('Error loading summary statistics:', error);
+        return null;
+    }
+};
+
 // Sort departments by total budget (descending by default)
 function sortDepartments(direction = 'desc') {
     if (!departmentsData || departmentsData.length === 0) {
@@ -49,8 +69,8 @@ window.homePage = async function() {
     console.log('homePage called, departmentsData:', departmentsData ? departmentsData.length : 'null/undefined');
     
     // Show loading state if data isn't loaded yet
-    if (!departmentsData || departmentsData.length === 0) {
-        console.log('No departments data available, showing loading state');
+    if (!departmentsData || departmentsData.length === 0 || !summaryStats) {
+        console.log('No data available, showing loading state');
         return `
             <section class="home-page">
                 <div class="loading">
@@ -110,15 +130,44 @@ window.homePage = async function() {
         }).join('');
     };
 
+    // Use summary statistics from post-veto data
+    const totals = {
+        operating: summaryStats.operating_budget,
+        capital: summaryStats.capital_budget,
+        oneTime: summaryStats.one_time_appropriations
+    };
+    
+    const grandTotal = summaryStats.total_budget;
+
     // Initial render with default sorting (descending)
     const sortedDepartments = sortDepartments('desc');
     const departmentCards = generateDepartmentCards(sortedDepartments);
 
-    // Return the HTML template with the sorted cards
+    // Return the HTML template with summary cards and sorted cards
     const html = `
         <section class="home-page">
-            <h2>Hawaii State Budget FY 2026</h2>
-            <p>Browse all ${departmentsData.length} departments in the Hawaii State Budget.</p>
+            <h2>Hawaiʻi State Budget FY 2026</h2>
+            <p>Browse all ${departmentsData.length} departments in the Hawaiʻi State Budget.</p>
+            
+            <!-- Summary Cards -->
+            <div class="summary-cards-grid">
+                <div class="summary-card">
+                    <div class="amount">${formatAmount(grandTotal)}</div>
+                    <div class="label">Total Budget</div>
+                </div>
+                <div class="summary-card">
+                    <div class="amount">${formatAmount(totals.operating)}</div>
+                    <div class="label">Operating Budget</div>
+                </div>
+                <div class="summary-card">
+                    <div class="amount">${formatAmount(totals.capital)}</div>
+                    <div class="label">Capital Budget</div>
+                </div>
+                <div class="summary-card">
+                    <div class="amount">${formatAmount(totals.oneTime)}</div>
+                    <div class="label">One-Time Appropriations</div>
+                </div>
+            </div>
             <div class="sort-controls">
                 <span>Sort by Total Budget: </span>
                 <button id="sort-desc" class="sort-btn active" data-sort="desc">High to Low ↓</button>
