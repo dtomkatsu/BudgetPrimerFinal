@@ -30,10 +30,10 @@ jobs:
       - name: Prepare site files
         run: |
           mkdir -p _site
-          cp *.html _site/
-          cp -r css _site/
-          cp -r js _site/
-          cp -r pages _site/
+          cp docs/*.html _site/
+          cp -r docs/css _site/
+          cp -r docs/js _site/
+          cp -r docs/pages _site/
           cp .nojekyll _site/
       
       - name: Upload artifact
