@@ -1,71 +1,11 @@
-// Global departments data
-let departmentsData = [];
-
-// Load departments data
-async function loadDepartments() {
-    try {
-        const response = await fetch('./js/departments.json');
-        departmentsData = await response.json();
-        return departmentsData;
-    } catch (error) {
-        console.error('Error loading departments:', error);
-        return [];
-    }
+// Sort departments by total budget (descending by default)
+function sortDepartments(direction = 'desc') {
+    return [...departmentsData].sort((a, b) => {
+        const totalA = (a.operating_budget || 0) + (a.capital_budget || 0) + (a.one_time_appropriations || 0);
+        const totalB = (b.operating_budget || 0) + (b.capital_budget || 0) + (b.one_time_appropriations || 0);
+        return direction === 'asc' ? totalA - totalB : totalB - totalA;
+    });
 }
-
-// Handle budget fallback visibility
-document.addEventListener('DOMContentLoaded', function() {
-    // Hide the fallback if JavaScript is running
-    var fallback = document.querySelector('.budget-fallback');
-    if (fallback) {
-        fallback.style.display = 'none';
-    }
-});
-
-// Main application logic
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Load departments data first
-        departmentsData = await loadDepartments();
-        console.log('Loaded departments:', departmentsData);
-        
-        // Define routes
-        const routes = [
-        {
-            path: '/',
-            component: homePage,
-            init: initHomePage
-        },
-        {
-            path: '/department/:id',
-            component: departmentDetailPage,
-            init: initDepartmentDetailPage
-        },
-        {
-            path: '/about',
-            component: aboutPage
-        },
-        {
-            path: '*',
-            component: notFoundPage
-        }
-    ];
-
-        // Initialize router
-        const router = new Router(routes);
-        
-        // Handle initial route
-        router.handleRoute();
-    } catch (error) {
-        console.error('Error initializing app:', error);
-        document.getElementById('app').innerHTML = `
-            <div class="error-message">
-                <h2>Error Loading Application</h2>
-                <p>There was an error loading the application. Please refresh the page to try again.</p>
-                <p>Error details: ${error.message}</p>
-            </div>`;
-    }
-});
 
 // Page Components
 async function homePage() {
@@ -82,72 +22,90 @@ async function homePage() {
     };
 
     // Generate department cards with budget breakdown
-    const departmentCards = departmentsData.map(dept => {
-        const operating = dept.operating_budget || 0;
-        const capital = dept.capital_budget || 0;
-        const oneTime = dept.one_time_appropriations || 0;
-        const total = operating + capital + oneTime;
+    const generateDepartmentCards = (departments) => {
+        return departments.map(dept => {
+            const operating = dept.operating_budget || 0;
+            const capital = dept.capital_budget || 0;
+            const oneTime = dept.one_time_appropriations || 0;
+            const total = operating + capital + oneTime;
 
-        // Debug logging for departments with one-time appropriations
-        if (oneTime > 0) {
-            console.log(`Department ${dept.name}: Operating=${operating}, Capital=${capital}, OneTime=${oneTime}`);
-        }
+            return `
+                <a href="#/department/${dept.id}" class="department-card">
+                    <h3>${dept.name}</h3>
+                    <div class="card-content">
+                        <div class="budget-total">
+                            <span>Total Budget</span>
+                            <strong>${formatAmount(total)}</strong>
+                        </div>
+                        <div class="budget-breakdown">
+                            <div class="budget-row">
+                                <span>Operating</span>
+                                <span>${formatAmount(operating)}</span>
+                            </div>
+                            ${capital > 0 ? `
+                            <div class="budget-row">
+                                <span>Capital</span>
+                                <span>${formatAmount(capital)}</span>
+                            </div>` : ''}
+                            ${oneTime > 0 ? `
+                            <div class="budget-row">
+                                <span>One-Time</span>
+                                <span>${formatAmount(oneTime)}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    };
 
-        return `
-            <a href="#/department/${dept.id}" class="department-card">
-                <h3>${dept.name}</h3>
-                <div class="card-content">
-                    <div class="budget-total">
-                        <span>Total Budget</span>
-                        <strong>${formatAmount(total)}</strong>
-                    </div>
-                    <div class="budget-breakdown">
-                        <div class="budget-row">
-                            <span>Operating</span>
-                            <span>${formatAmount(operating)}</span>
-                        </div>
-                        ${capital > 0 ? `
-                        <div class="budget-row">
-                            <span>Capital</span>
-                            <span>${formatAmount(capital)}</span>
-                        </div>
-                        ` : ''}
-                        ${oneTime > 0 ? `
-                        <div class="budget-row">
-                            <span>One-Time</span>
-                            <span>${formatAmount(oneTime)}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            </a>
-        `;
-    }).join('');
-    
-    return `
+    // Initial render with default sorting (descending)
+    const sortedDepartments = sortDepartments('desc');
+    const departmentCards = generateDepartmentCards(sortedDepartments);
+
+    // Return the HTML template with the sorted cards
+    const html = `
         <section class="home-page">
             <h2>Hawaii State Budget FY 2026</h2>
             <p>Browse all ${departmentsData.length} departments in the Hawaii State Budget.</p>
+            <div class="sort-controls">
+                <span>Sort by Total Budget: </span>
+                <button id="sort-desc" class="sort-btn active" data-sort="desc">High to Low ↓</button>
+                <button id="sort-asc" class="sort-btn" data-sort="asc">Low to High ↑</button>
+            </div>
             <div class="department-grid">
                 ${departmentCards}
             </div>
         </section>
     `;
+
+    // Add event listeners after the DOM is updated
+    setTimeout(() => {
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        sortButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const sortDirection = this.dataset.sort;
+                const sortedDepartments = sortDepartments(sortDirection);
+                const departmentGrid = document.querySelector('.department-grid');
+                departmentGrid.innerHTML = generateDepartmentCards(sortedDepartments);
+                
+                // Update active state of buttons
+                sortButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    }, 0);
+
+    return html;
 }
 
-async function departmentDetailPage() {
-    const deptId = window.location.hash.split('/').pop();
-    
-    // Find the department in our data
+// Department detail page
+async function departmentDetailPage(params) {
+    const deptId = params.id;
     const dept = departmentsData.find(d => d.id === deptId);
+    
     if (!dept) {
-        return `
-            <section class="department-detail">
-                <a href="#/departments" class="back-button">← Back to Departments</a>
-                <h2>Department Not Found</h2>
-                <p>The requested department could not be found.</p>
-            </section>
-        `;
+        return notFoundPage();
     }
     
     // Load the department's full budget report HTML content
@@ -160,7 +118,7 @@ async function departmentDetailPage() {
         
         return `
             <section class="department-detail">
-                <a href="#/departments" class="back-button">← Back to Departments</a>
+                <a href="#/" class="back-button">← Back to Home</a>
                 <div class="department-content">
                     ${htmlContent}
                 </div>
@@ -179,7 +137,7 @@ async function departmentDetailPage() {
             
             return `
                 <section class="department-detail">
-                    <a href="#/departments" class="back-button">← Back to Departments</a>
+                    <a href="#/" class="back-button">← Back to Home</a>
                     <div class="department-content">
                         ${fallbackContent}
                     </div>
@@ -189,7 +147,7 @@ async function departmentDetailPage() {
             console.error('Error loading fallback department page:', fallbackError);
             return `
                 <section class="department-detail">
-                    <a href="#/departments" class="back-button">← Back to Departments</a>
+                    <a href="#/" class="back-button">← Back to Home</a>
                     <h2>${dept.name}</h2>
                     <p>Budget: ${dept.budget}</p>
                     <p>Detailed information for this department is currently unavailable.</p>

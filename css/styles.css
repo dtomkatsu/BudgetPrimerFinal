@@ -13,6 +13,7 @@
 }
 
 /* Hide budget amounts and labels in summary stats */
+.budget-report-container .summary-stats,
 .summary-stats .budget-amount,
 .summary-stats .budget-label {
     display: none;
@@ -99,89 +100,115 @@ body {
     animation: spin 1s linear infinite;
     margin: 0 auto 1rem;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Department Grid */
+/* Sort controls */
+.sort-controls {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sort-controls span {
+    margin-right: 10px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.sort-btn {
+    background: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #495057;
+}
+
+.sort-btn:hover {
+    background: #dee2e6;
+}
+
+.sort-btn.active {
+    background: #2c3e50;
+    color: white;
+    border-color: #2c3e50;
+}
+
+/* Department cards */
 .department-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
+    gap: 20px;
+    margin-top: 20px;
 }
 
 .department-card {
     background: white;
-    border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
     text-decoration: none;
-    color: inherit;
+    color: #333;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: block;
 }
 
 .department-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
 }
 
 .department-card h3 {
-    background: var(--primary-color);
-    color: white;
-    padding: 1rem;
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.card-content {
-    padding: 1rem;
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.2em;
 }
 
 .budget-total {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
     text-align: center;
-    padding: 0.75rem 0;
-    margin-bottom: 0.75rem;
-    border-bottom: 2px solid var(--primary-color);
 }
 
 .budget-total span {
     display: block;
-    font-size: 0.85rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 5px;
 }
 
 .budget-total strong {
-    display: block;
-    font-size: 1.5rem;
-    color: var(--primary-color);
-    font-weight: 700;
+    font-size: 1.5em;
+    color: #2c3e50;
 }
 
 .budget-breakdown {
-    padding: 0.5rem 0;
+    font-size: 0.9em;
 }
 
 .budget-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
 }
 
 .budget-row:last-child {
     border-bottom: none;
 }
-
 .budget-row span:first-child {
     color: #666;
 }
