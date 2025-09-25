@@ -1,0 +1,26 @@
+{
+  "operating_budget": 19880708077.0,
+  "capital_budget": 3379551000.0,
+  "one_time_appropriations": 450665000.0,
+  "total_budget": 23710924077.0,
+  "fund_breakdown": {
+    "County Funds": 26200000.0,
+    "Federal Funds": 4313164273.0,
+    "General Funds": 10984191869.0,
+    "General Obligation Bond Fund": 1428063000.0,
+    "Interdepartmental Transfers": 99787264.0,
+    "Other Federal Funds": 364315357.0,
+    "Other Funds": 331973357.0,
+    "Private Contributions": 935067.0,
+    "Revenue Bond Funds": 755024000.0,
+    "Revolving Funds": 591518464.0,
+    "Special Funds": 4386749113.0,
+    "Trust Funds": 429002313.0
+  },
+  "metadata": {
+    "generated_at": "2025-09-25T11:59:57.393610",
+    "source_file": "budget_allocations_fy2026_post_veto.csv",
+    "total_records": 691,
+    "fiscal_year": 2026
+  }
+}

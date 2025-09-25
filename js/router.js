@@ -16,12 +16,23 @@ class Router {
             </div>`;
         
         try {
-            // Load departments data
+            // Load departments data and summary statistics
+            const loadPromises = [];
+            
             if (window.loadDepartments) {
-                await window.loadDepartments();
+                loadPromises.push(window.loadDepartments());
             } else {
                 console.error('loadDepartments function not found');
             }
+            
+            if (window.loadSummaryStats) {
+                loadPromises.push(window.loadSummaryStats());
+            } else {
+                console.error('loadSummaryStats function not found');
+            }
+            
+            // Wait for both to complete
+            await Promise.all(loadPromises);
             
             // Set up event listeners
             window.addEventListener('popstate', () => this.handleRoute());
