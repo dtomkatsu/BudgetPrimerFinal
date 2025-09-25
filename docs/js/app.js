@@ -12,8 +12,15 @@ window.loadDepartments = async function() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        departmentsData = await response.json();
-        console.log('Successfully loaded departments data:', departmentsData.length, 'departments');
+        const data = await response.json();
+        // Filter out departments with "County" or "Judiciary" in their name
+        const originalCount = data.length;
+        departmentsData = data.filter(dept => 
+            !dept.name.includes('County') && 
+            !dept.name.includes('Judiciary')
+        );
+        const filteredCount = departmentsData.length;
+        console.log(`Loaded ${filteredCount} departments (filtered out ${originalCount - filteredCount} departments).`);
         
         return departmentsData;
     } catch (error) {
@@ -146,9 +153,6 @@ window.homePage = async function() {
     // Return the HTML template with summary cards and sorted cards
     const html = `
         <section class="home-page">
-            <h2>Hawaiʻi State Budget FY 2026</h2>
-            <p>Browse all ${departmentsData.length} departments in the Hawaiʻi State Budget.</p>
-            
             <!-- Summary Cards -->
             <div class="summary-cards-grid">
                 <div class="summary-card">

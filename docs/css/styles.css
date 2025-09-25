@@ -146,6 +146,11 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Make first summary card label bold */
+.summary-cards-grid .summary-card:first-child .label {
+    font-weight: 700;
+}
+
 /* Sort controls */
 .sort-controls {
     margin: 20px 0;
