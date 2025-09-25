@@ -1,7 +1,7 @@
 [
     {
         "id": "ags",
-        "name": "Department of AGS",
+        "name": "Department of Accounting and General Services",
         "budget": "$476M",
         "operating_budget": 260634034.0,
         "capital_budget": 215524000.0,
@@ -37,7 +37,7 @@
     },
     {
         "id": "cch",
-        "name": "Department of CCH",
+        "name": "City and County of Honolulu",
         "budget": "$10M",
         "operating_budget": 0.0,
         "capital_budget": 10000000.0,
@@ -46,7 +46,7 @@
     },
     {
         "id": "coh",
-        "name": "Department of COH",
+        "name": "County of Hawaiʻi",
         "budget": "$7.0M",
         "operating_budget": 0.0,
         "capital_budget": 7000000.0,
@@ -55,7 +55,7 @@
     },
     {
         "id": "cok",
-        "name": "Department of COK",
+        "name": "County of Kauaʻi",
         "budget": "$26M",
         "operating_budget": 0.0,
         "capital_budget": 26000000.0,
@@ -91,7 +91,7 @@
     },
     {
         "id": "hms",
-        "name": "Department of HMS",
+        "name": "Department of Human Services",
         "budget": "$4.8B",
         "operating_budget": 4770041975.0,
         "capital_budget": 34400000.0,
@@ -127,7 +127,7 @@
     },
     {
         "id": "law",
-        "name": "Department of LAW",
+        "name": "Department of Law Enforcement",
         "budget": "$101M",
         "operating_budget": 98176615.0,
         "capital_budget": 3000000.0,
@@ -190,7 +190,7 @@
     },
     {
         "id": "p",
-        "name": "Legislature",
+        "name": "Judiciary",
         "budget": "$164K",
         "operating_budget": 164450.0,
         "capital_budget": 0.0,
@@ -217,7 +217,7 @@
     },
     {
         "id": "uoh",
-        "name": "University of Hawaii",
+        "name": "University of Hawaiʻi",
         "budget": "$1.6B",
         "operating_budget": 1363165984.0,
         "capital_budget": 209206000.0,
