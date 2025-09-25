@@ -5,7 +5,9 @@ let departmentsData = [];
 window.loadDepartments = async function() {
     try {
         console.log('Loading departments data...');
-        const response = await fetch('js/departments.json');
+        // Use relative path that works for both local and GitHub Pages
+        const response = await fetch('./js/departments.json');
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
