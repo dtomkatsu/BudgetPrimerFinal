@@ -56,6 +56,7 @@ class Router {
         let route = this.routes.find(r => r.path === path);
         
         // If no exact match, check for parameterized routes
+        let params = {};
         if (!route) {
             route = this.routes.find(r => {
                 if (r.path.includes(':')) {
@@ -64,9 +65,17 @@ class Router {
                     
                     if (routeParts.length !== pathParts.length) return false;
                     
-                    return routeParts.every((part, index) => {
-                        return part.startsWith(':') || part === pathParts[index];
+                    const matches = routeParts.every((part, index) => {
+                        if (part.startsWith(':')) {
+                            // Extract parameter
+                            const paramName = part.slice(1);
+                            params[paramName] = pathParts[index];
+                            return true;
+                        }
+                        return part === pathParts[index];
                     });
+                    
+                    return matches;
                 }
                 return false;
             });
@@ -87,7 +96,7 @@ class Router {
                     </div>`;
                 
                 // Load and render the component
-                const html = await route.component();
+                const html = await route.component(params);
                 this.rootElement.innerHTML = html;
                 
                 // Initialize any component-specific logic

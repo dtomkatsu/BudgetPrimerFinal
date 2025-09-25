@@ -152,18 +152,31 @@ window.homePage = async function() {
 
 // Department detail page
 window.departmentDetailPage = async function(params) {
-    const deptId = params.id;
+    console.log('departmentDetailPage called with params:', params);
+    const deptId = params?.id;
+    console.log('Looking for department ID:', deptId);
+    
+    if (!deptId) {
+        console.error('No department ID provided in params');
+        return window.notFoundPage();
+    }
+    
     const dept = departmentsData.find(d => d.id === deptId);
+    console.log('Found department:', dept);
     
     if (!dept) {
-        return notFoundPage();
+        console.error('Department not found for ID:', deptId);
+        return window.notFoundPage();
     }
     
     // Load the department's full budget report HTML content
     try {
-        const response = await fetch(`./pages/${deptId}_budget_report.html`);
+        const budgetReportPath = `./pages/${deptId}_budget_report.html`;
+        console.log('Trying to fetch budget report from:', budgetReportPath);
+        const response = await fetch(budgetReportPath);
+        console.log('Budget report response status:', response.status);
         if (!response.ok) {
-            throw new Error('Department budget report not found');
+            throw new Error(`Department budget report not found (${response.status})`);
         }
         const htmlContent = await response.text();
         
@@ -180,9 +193,12 @@ window.departmentDetailPage = async function(params) {
         
         // Fallback to try the simple HTML file
         try {
-            const fallbackResponse = await fetch(`./pages/${deptId}.html`);
+            const fallbackPath = `./pages/${deptId}.html`;
+            console.log('Trying fallback path:', fallbackPath);
+            const fallbackResponse = await fetch(fallbackPath);
+            console.log('Fallback response status:', fallbackResponse.status);
             if (!fallbackResponse.ok) {
-                throw new Error('Department page not found');
+                throw new Error(`Department page not found (${fallbackResponse.status})`);
             }
             const fallbackContent = await fallbackResponse.text();
             
@@ -196,12 +212,15 @@ window.departmentDetailPage = async function(params) {
             `;
         } catch (fallbackError) {
             console.error('Error loading fallback department page:', fallbackError);
+            
+            // Final fallback - show basic department info
             return `
                 <section class="department-detail">
                     <a href="#/" class="back-button">← Back to Home</a>
                     <h2>${dept.name}</h2>
                     <p>Budget: ${dept.budget}</p>
                     <p>Detailed information for this department is currently unavailable.</p>
+                    <p>Error: ${fallbackError.message}</p>
                 </section>
             `;
         }
