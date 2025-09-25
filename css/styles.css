@@ -227,9 +227,9 @@ body {
 }
 
 .budget-table th {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 500;
+    background-color: var(--light-gray);
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .budget-table tr:nth-child(even) {
@@ -385,6 +385,4 @@ body {
     color: var(--primary-color) !important;
 }
 
-.budget-table thead tr {
-    background-color: var(--primary-color) !important;
-}
+/* Removed override - using light gray background for better readability */
