@@ -3,6 +3,7 @@ class Router {
     constructor(routes) {
         this.routes = routes || [];
         this.rootElement = document.getElementById('app');
+        // Don't auto-initialize, let the caller control when to init
         this.init();
     }
 

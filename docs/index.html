@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Hawaii State Budget FY 2026 - Interactive Budget Explorer">
     <title>Hawaii State Budget FY 2026</title>
@@ -9,9 +10,6 @@
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <!-- Load app and router scripts -->
-    <script src="js/app.js"></script>
-    <script src="js/router.js"></script>
     <!-- Fallback for SPA routing -->
     <script>
         // Single Page Apps for GitHub Pages
@@ -53,31 +51,40 @@
         </footer>
     </div>
 
+    <!-- Load app and router scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/router.js"></script>
+    
     <script>
-        // Initialize the router with our routes
-        const router = new Router([
-            {
-                path: '/',
-                component: homePage,
-                init: initHomePage
-            },
-            {
-                path: '/department/:id',
-                component: departmentDetailPage,
-                init: initDepartmentDetailPage
-            },
-            {
-                path: '/about',
-                component: aboutPage
-            },
-            {
-                path: '*',
-                component: notFoundPage
-            }
-        ]);
-        
-        // Expose router for debugging
-        window.router = router;
+        // Initialize the app when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing router...');
+            
+            // Initialize the router with our routes
+            const router = new Router([
+                {
+                    path: '/',
+                    component: homePage,
+                    init: initHomePage
+                },
+                {
+                    path: '/department/:id',
+                    component: departmentDetailPage,
+                    init: initDepartmentDetailPage
+                },
+                {
+                    path: '/about',
+                    component: aboutPage
+                },
+                {
+                    path: '*',
+                    component: notFoundPage
+                }
+            ]);
+            
+            // Expose router for debugging
+            window.router = router;
+        });
     </script>
 </body>
 </html>

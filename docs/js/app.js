@@ -10,12 +10,7 @@ window.loadDepartments = async function() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         departmentsData = await response.json();
-        console.log('Successfully loaded departments data');
-        
-        // Trigger a re-render of the current route
-        if (window.router) {
-            window.router.handleRoute();
-        }
+        console.log('Successfully loaded departments data:', departmentsData.length, 'departments');
         
         return departmentsData;
     } catch (error) {
@@ -49,8 +44,11 @@ function sortDepartments(direction = 'desc') {
 
 // Page Components
 window.homePage = async function() {
+    console.log('homePage called, departmentsData:', departmentsData ? departmentsData.length : 'null/undefined');
+    
     // Show loading state if data isn't loaded yet
     if (!departmentsData || departmentsData.length === 0) {
+        console.log('No departments data available, showing loading state');
         return `
             <section class="home-page">
                 <div class="loading">
