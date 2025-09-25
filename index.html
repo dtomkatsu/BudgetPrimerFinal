@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Hawaii State Budget FY 2026 - Interactive Budget Explorer">
     <title>Hawaii State Budget FY 2026</title>
@@ -10,6 +9,9 @@
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- Load app and router scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/router.js"></script>
     <!-- Fallback for SPA routing -->
     <script>
         // Single Page Apps for GitHub Pages
@@ -25,7 +27,7 @@
                     window.history.replaceState(null, null, l.pathname.slice(0, -1) + (q.p || '') + (q.q ? ('?' + q.q) : '') + l.hash);
                 }
             }
-        }());
+        })();
     </script>
 <body>
     <div class="app-container">
@@ -52,75 +54,30 @@
     </div>
 
     <script>
-        // Make loadDepartments globally available
-        let loadDepartments;
-        
-        // This function will be called after all scripts are loaded
-        function initApp() {
-            // Initialize the router with our routes
-            const router = new Router([
-                {
-                    path: '/',
-                    component: homePage,
-                    init: initHomePage
-                },
-                {
-                    path: '/department/:id',
-                    component: departmentDetailPage,
-                    init: initDepartmentDetailPage
-                },
-                {
-                    path: '/about',
-                    component: aboutPage
-                },
-                {
-                    path: '*',
-                    component: notFoundPage
-                }
-            ]);
-            
-            // Expose router for debugging
-            window.router = router;
-        }
-        
-        // Load scripts in order
-        function loadScripts() {
-            const scripts = [
-                'js/app.js',
-                'js/router.js'
-            ];
-            
-            function loadScript(index) {
-                if (index >= scripts.length) {
-                    // All scripts loaded, initialize the app
-                    initApp();
-                    return;
-                }
-                
-                const script = document.createElement('script');
-                script.src = scripts[index];
-                script.onload = () => loadScript(index + 1);
-                script.onerror = (error) => {
-                    console.error(`Error loading script: ${scripts[index]}`, error);
-                    document.getElementById('app').innerHTML = `
-                        <div class="error-message">
-                            <h2>Error Loading Application</h2>
-                            <p>There was an error loading the application. Please refresh the page to try again.</p>
-                        </div>`;
-                };
-                document.body.appendChild(script);
+        // Initialize the router with our routes
+        const router = new Router([
+            {
+                path: '/',
+                component: homePage,
+                init: initHomePage
+            },
+            {
+                path: '/department/:id',
+                component: departmentDetailPage,
+                init: initDepartmentDetailPage
+            },
+            {
+                path: '/about',
+                component: aboutPage
+            },
+            {
+                path: '*',
+                component: notFoundPage
             }
-            
-            // Start loading scripts
-            loadScript(0);
-        }
+        ]);
         
-        // Start loading scripts when the page is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadScripts);
-        } else {
-            loadScripts();
-        }
+        // Expose router for debugging
+        window.router = router;
     </script>
 </body>
 </html>

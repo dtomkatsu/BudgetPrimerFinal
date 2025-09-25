@@ -7,26 +7,24 @@ class Router {
     }
 
     async init() {
+        // Set initial loading state
+        this.rootElement.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading budget data...</p>
+            </div>`;
+        
         try {
-            // Show initial loading state
-            this.rootElement.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading budget data...</p>
-                </div>`;
-            
-            // Load departments data before initializing the router
+            // Load departments data
             if (window.loadDepartments) {
                 await window.loadDepartments();
+            } else {
+                console.error('loadDepartments function not found');
             }
             
-            // Handle initial load
-            window.addEventListener('DOMContentLoaded', () => this.handleRoute());
-            
-            // Handle back/forward navigation
+            // Set up event listeners
             window.addEventListener('popstate', () => this.handleRoute());
             
-            // Handle link clicks
             document.addEventListener('click', (e) => {
                 const link = e.target.closest('a');
                 if (link && link.getAttribute('href')?.startsWith('#')) {
@@ -38,11 +36,7 @@ class Router {
             });
             
             // Initial route handling
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => this.handleRoute());
-            } else {
-                this.handleRoute();
-            }
+            this.handleRoute();
         } catch (error) {
             console.error('Error initializing router:', error);
             this.rootElement.innerHTML = `

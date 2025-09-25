@@ -4,18 +4,35 @@ let departmentsData = [];
 // Load departments data
 window.loadDepartments = async function() {
     try {
+        console.log('Loading departments data...');
         const response = await fetch('js/departments.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         departmentsData = await response.json();
-        console.log('Loaded departments data:', departmentsData);
+        console.log('Successfully loaded departments data');
+        
+        // Trigger a re-render of the current route
+        if (window.router) {
+            window.router.handleRoute();
+        }
+        
         return departmentsData;
     } catch (error) {
         console.error('Error loading departments:', error);
+        // Show error state in the UI
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = `
+                <div class="error-message">
+                    <h2>Error Loading Data</h2>
+                    <p>There was an error loading the budget data. Please refresh the page to try again.</p>
+                    <p>${error.message}</p>
+                </div>`;
+        }
         return [];
     }
-}
+};
 
 // Sort departments by total budget (descending by default)
 function sortDepartments(direction = 'desc') {
@@ -32,9 +49,20 @@ function sortDepartments(direction = 'desc') {
 
 // Page Components
 window.homePage = async function() {
+    // Show loading state if data isn't loaded yet
+    if (!departmentsData || departmentsData.length === 0) {
+        return `
+            <section class="home-page">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading budget data...</p>
+                </div>
+            </section>`;
+    }
+
     // Format currency function
     const formatAmount = (amount) => {
-        if (!amount) return '$0';
+        if (amount === undefined || amount === null) return '$0';
         if (amount >= 1000000000) {
             return `$${(amount / 1000000000).toFixed(1)}B`;
         }
