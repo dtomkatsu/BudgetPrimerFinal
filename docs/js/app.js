@@ -284,22 +284,23 @@ window.aboutPage = async function() {
     return `
         <section class="about-page">
             <h2>About the Hawaii State Budget Explorer</h2>
-            <p>This interactive tool provides detailed insights into Hawaii's FY 2026 state budget allocations across all departments.</p>
+            <p>This dashboard lists Hawaii's FY 2026 state budget amounts across all departments. It does not include the budgets for the Judiciary, Legislature, or Office of Hawaiian Affairs (OHA).</p>
+            
+            <br>
             
             <h3>Features</h3>
             <ul>
                 <li>Browse budget allocations by department</li>
                 <li>View detailed breakdowns of operating, capital, and one-time appropriations</li>
-                <li>Interactive charts and visualizations</li>
-                <li>Mobile-responsive design</li>
             </ul>
             
+            <br>
+            
             <h3>Data Source</h3>
-            <p>All budget data is sourced from the official Hawaii State Budget documents for Fiscal Year 2026.</p>
+            <p>Data is sourced from various budget documents. See <a href="https://hiappleseed.org/publications/hawaii-budget-primer-2025-26" target="_blank" rel="noopener noreferrer">Hawaii Appleseed's Budget Primer 2025-26</a> for more information.</p>
             
             <div class="cta-buttons">
                 <a href="#/" class="button primary">← Back to Home</a>
-                <a href="#/departments" class="button secondary">Browse Departments</a>
             </div>
         </section>
     `;
