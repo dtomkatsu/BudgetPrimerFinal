@@ -1,5 +1,28 @@
+// Global departments data
+let departmentsData = [];
+
+// Load departments data
+window.loadDepartments = async function() {
+    try {
+        const response = await fetch('js/departments.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        departmentsData = await response.json();
+        console.log('Loaded departments data:', departmentsData);
+        return departmentsData;
+    } catch (error) {
+        console.error('Error loading departments:', error);
+        return [];
+    }
+}
+
 // Sort departments by total budget (descending by default)
 function sortDepartments(direction = 'desc') {
+    if (!departmentsData || departmentsData.length === 0) {
+        console.error('No departments data available for sorting');
+        return [];
+    }
     return [...departmentsData].sort((a, b) => {
         const totalA = (a.operating_budget || 0) + (a.capital_budget || 0) + (a.one_time_appropriations || 0);
         const totalB = (b.operating_budget || 0) + (b.capital_budget || 0) + (b.one_time_appropriations || 0);
@@ -8,7 +31,7 @@ function sortDepartments(direction = 'desc') {
 }
 
 // Page Components
-async function homePage() {
+window.homePage = async function() {
     // Format currency function
     const formatAmount = (amount) => {
         if (!amount) return '$0';
@@ -100,7 +123,7 @@ async function homePage() {
 }
 
 // Department detail page
-async function departmentDetailPage(params) {
+window.departmentDetailPage = async function(params) {
     const deptId = params.id;
     const dept = departmentsData.find(d => d.id === deptId);
     
@@ -157,7 +180,7 @@ async function departmentDetailPage(params) {
     }
 }
 
-async function aboutPage() {
+window.aboutPage = async function() {
     return `
         <section class="about-page">
             <h2>About the Hawaii State Budget Explorer</h2>
@@ -182,7 +205,7 @@ async function aboutPage() {
     `;
 }
 
-async function notFoundPage() {
+window.notFoundPage = async function() {
     return `
         <section class="not-found-page">
             <h2>Page Not Found</h2>
@@ -196,10 +219,10 @@ async function notFoundPage() {
 }
 
 // Initialize functions (called after page loads)
-async function initHomePage() {
+window.initHomePage = async function() {
     // Any initialization code for home page
 }
 
-async function initDepartmentDetailPage() {
+window.initDepartmentDetailPage = async function() {
     // Any initialization code for department detail page
 }

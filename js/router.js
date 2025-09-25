@@ -6,23 +6,52 @@ class Router {
         this.init();
     }
 
-    init() {
-        // Handle initial load
-        window.addEventListener('DOMContentLoaded', () => this.handleRoute());
-        
-        // Handle back/forward navigation
-        window.addEventListener('popstate', () => this.handleRoute());
-        
-        // Handle link clicks
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link && link.getAttribute('href')?.startsWith('#')) {
-                e.preventDefault();
-                const path = link.getAttribute('href');
-                window.history.pushState({}, '', path);
+    async init() {
+        try {
+            // Show initial loading state
+            this.rootElement.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading budget data...</p>
+                </div>`;
+            
+            // Load departments data before initializing the router
+            if (window.loadDepartments) {
+                await window.loadDepartments();
+            }
+            
+            // Handle initial load
+            window.addEventListener('DOMContentLoaded', () => this.handleRoute());
+            
+            // Handle back/forward navigation
+            window.addEventListener('popstate', () => this.handleRoute());
+            
+            // Handle link clicks
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.getAttribute('href')?.startsWith('#')) {
+                    e.preventDefault();
+                    const path = link.getAttribute('href');
+                    window.history.pushState({}, '', path);
+                    this.handleRoute();
+                }
+            });
+            
+            // Initial route handling
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.handleRoute());
+            } else {
                 this.handleRoute();
             }
-        });
+        } catch (error) {
+            console.error('Error initializing router:', error);
+            this.rootElement.innerHTML = `
+                <div class="error-message">
+                    <h2>Error Loading Application</h2>
+                    <p>There was an error loading the budget data. Please refresh the page to try again.</p>
+                    <p>${error.message}</p>
+                </div>`;
+        }
     }
 
     async handleRoute() {
