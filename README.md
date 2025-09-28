@@ -45,18 +45,16 @@ BudgetPrimerFinal/
 - **HB 300 Format Support**: Specialized parser for Hawaii's HB 300 budget format
 - **Veto Processing**: Tools to apply and analyze gubernatorial vetoes
 - **Duplicate Handling**: Flags duplicate entries without automatic removal
-- **Fast, modular parsing** of budget documents
 - **Comprehensive data models** for budget allocations
 - **Robust fund type extraction** with proper validation
 - **Precise transformation pipeline** from pre-veto to post-veto data
 - **High-quality visualizations** matching official styles with a modular, extensible chart system
 - **Detailed Budget Analysis**: Comprehensive breakdowns by section, fund type, and program
-- **Department Descriptions**: Informative descriptions for each department with automatic inclusion in reports
+- **Department Descriptions**: Informative descriptions for each department with manual updates for executive offices
 
 ## Prerequisites
 
 - Python 3.12.10
-
 ## Installation
 
 1. Clone the repository:
@@ -140,16 +138,41 @@ Example of adding a new program:
 
 ### Department Descriptions
 
+Department descriptions are managed through a combination of automated parsing and manual updates:
+
+### Standard Departments
+Most department descriptions are automatically parsed from text files and stored in `data/processed/department_descriptions.json`.
+
+### Executive Offices
+Executive offices (Governor, Lieutenant Governor) have their descriptions manually maintained in their respective HTML files:
+- `docs/gov.html` - Governor's office description
+- `docs/ltg.html` - Lieutenant Governor's office description
+
+These descriptions are maintained separately to ensure accuracy and proper formatting for the web interface.
+
+To update executive office descriptions:
+1. Open the respective HTML file
+2. Locate the `dept-description` div
+3. Update the description paragraph while maintaining the existing HTML structure
+4. Save the file
+
+### Adding New Departments
+For new departments not covered by the automated parser:
+1. Add the department to the `additional_departments` dictionary in `scripts/parse_department_descriptions.py`
+2. Run the parser to update the JSON file
+3. For executive offices, create a new HTML file following the existing pattern
+
 The system includes a comprehensive database of department descriptions that are automatically included in generated reports. These descriptions provide context about each department's role and responsibilities.
 
 #### Updating Descriptions
 
 1. Edit the source file: `data/raw/Department Descriptions.txt`
-2. Run the parser to update the JSON file:
+2. For executive offices (Governor, Lieutenant Governor), manually update the HTML files in the `docs/` directory as needed
+3. For other departments, run the parser to update the JSON file:
    ```bash
    python scripts/parse_department_descriptions.py
    ```
-3. The updated descriptions will be included in the next report generation
+4. The updated descriptions will be included in the next report generation
 
 Descriptions are stored in JSON format in `data/processed/department_descriptions.json` with the following structure:
 
