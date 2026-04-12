@@ -591,6 +591,7 @@ window.initDraftComparePage = async function () {
     let sortDir = 'asc';
     let checkedSections = null; // null = all
     let checkedFunds = null;    // null = all
+    let expandedDepts = new Set();
 
     const getD1Key = () => 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
@@ -722,23 +723,58 @@ window.initDraftComparePage = async function () {
             return arrow;
         };
 
-        const top200 = data.slice(0, 200);
-        let bodyHtml = top200.map(r => {
-            const delta = r.change || 0;
-            const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-            const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
-                : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
-            return `<tr>
-                <td><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                <td>${r.section || ''}</td>
-                <td>${r.fund_category || ''}</td>
-                <td class="amount-cell">${fmt(r[d1Key])}</td>
-                <td class="amount-cell">${fmt(r[d2Key])}</td>
-                <td class="amount-cell ${cls}">${fmt(delta)}</td>
-                <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
-                <td>${typeBadge}</td>
+        // Group by department
+        const deptMap = new Map();
+        for (const r of data) {
+            const key = r.department_code || 'OTHER';
+            if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, rows: [] });
+            deptMap.get(key).rows.push(r);
+        }
+        // Sort departments by total |change| descending
+        const depts = [...deptMap.values()].sort((a, b) => {
+            const aTotal = a.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
+            const bTotal = b.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
+            return bTotal - aTotal;
+        });
+
+        // Auto-expand departments when searching
+        const autoExpand = q.length > 0;
+
+        let bodyHtml = '';
+        for (const dept of depts) {
+            const deptD1 = dept.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const deptD2 = dept.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            const deptDelta = deptD2 - deptD1;
+            const deptCls = deptDelta > 0 ? 'positive' : deptDelta < 0 ? 'negative' : '';
+            const isOpen = autoExpand || expandedDepts.has(dept.code);
+            const arrow = isOpen ? '▼' : '▶';
+
+            bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
+                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${dept.rows.length})</span></td>
+                <td></td><td></td>
+                <td class="amount-cell">${fmt(deptD1)}</td>
+                <td class="amount-cell">${fmt(deptD2)}</td>
+                <td class="amount-cell ${deptCls}">${fmt(deptDelta)}</td>
+                <td></td><td></td>
             </tr>`;
-        }).join('');
+
+            for (const r of dept.rows) {
+                const delta = r.change || 0;
+                const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+                const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
+                    : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
+                bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
+                    <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
+                    <td>${r.section || ''}</td>
+                    <td>${r.fund_category || ''}</td>
+                    <td class="amount-cell">${fmt(r[d1Key])}</td>
+                    <td class="amount-cell">${fmt(r[d2Key])}</td>
+                    <td class="amount-cell ${cls}">${fmt(delta)}</td>
+                    <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
+                    <td>${typeBadge}</td>
+                </tr>`;
+            }
+        }
 
         document.getElementById('draft-results').innerHTML = `
             <table class="data-table" id="draft-table">
@@ -755,8 +791,7 @@ window.initDraftComparePage = async function () {
                     <th>Type</th>
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
-            </table>
-            ${data.length > 200 ? `<p class="muted">Showing 200 of ${data.length}</p>` : ''}`;
+            </table>`;
 
         // Re-attach header dropdown events after render
         attachHeaderDropdowns();
@@ -801,15 +836,32 @@ window.initDraftComparePage = async function () {
         document.querySelectorAll('.th-dropdown.open').forEach(el => el.classList.remove('open'));
     });
 
-    // --- Sortable column headers ---
+    // --- Sortable column headers + department expand/collapse ---
 
     document.getElementById('draft-results')?.addEventListener('click', (e) => {
+        // Sortable headers
         const th = e.target.closest('th.sortable');
-        if (!th) return;
-        const col = th.dataset.sort;
-        if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
-        else { sortCol = col; sortDir = col === 'program_name' ? 'asc' : 'desc'; }
-        render();
+        if (th) {
+            const col = th.dataset.sort;
+            if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+            else { sortCol = col; sortDir = col === 'program_name' ? 'asc' : 'desc'; }
+            render();
+            return;
+        }
+        // Department group row expand/collapse
+        const groupRow = e.target.closest('.dept-group-row');
+        if (groupRow) {
+            const dept = groupRow.dataset.dept;
+            if (expandedDepts.has(dept)) expandedDepts.delete(dept);
+            else expandedDepts.add(dept);
+            // Toggle detail rows and arrow without full re-render
+            const arrow = groupRow.querySelector('.dept-arrow');
+            const isOpen = expandedDepts.has(dept);
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(row => {
+                row.classList.toggle('hidden', !isOpen);
+            });
+        }
     });
 
     // --- FY toggle ---
@@ -817,7 +869,7 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
-        checkedSections = null; checkedFunds = null;
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set();
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
@@ -826,7 +878,7 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-27')?.addEventListener('click', () => {
         if (!draftComparisonDataFY27) return;
         activeData = draftComparisonDataFY27;
-        checkedSections = null; checkedFunds = null;
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set();
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();
