@@ -592,6 +592,8 @@ window.initDraftComparePage = async function () {
     let checkedSections = null; // null = all
     let checkedFunds = null;    // null = all
     let expandedDepts = new Set();
+    let expandedFundTypes = new Set();
+    let expandedPrograms = new Set();
 
     const getD1Key = () => 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
@@ -740,6 +742,39 @@ window.initDraftComparePage = async function () {
         // Auto-expand departments when searching
         const autoExpand = q.length > 0;
 
+        // Aggregate records by program_id within each department
+        const aggregatePrograms = (rows) => {
+            const pMap = new Map();
+            for (const r of rows) {
+                const pid = r.program_id || '';
+                if (!pMap.has(pid)) {
+                    pMap.set(pid, {
+                        program_id: pid, program_name: r.program_name || '',
+                        department_code: r.department_code, department_name: r.department_name,
+                        d1: 0, d2: 0, funds: new Set(), sections: new Set(),
+                        hasAdded: false, hasRemoved: false, rawRows: [],
+                    });
+                }
+                const p = pMap.get(pid);
+                p.d1 += r[d1Key] || 0;
+                p.d2 += r[d2Key] || 0;
+                if (r.fund_category) p.funds.add(r.fund_category);
+                if (r.section) p.sections.add(r.section);
+                if (r.change_type === 'added') p.hasAdded = true;
+                if (r.change_type === 'removed') p.hasRemoved = true;
+                p.rawRows.push(r);
+            }
+            return [...pMap.values()].map(p => {
+                p.change = p.d2 - p.d1;
+                p.pct_change = p.d1 !== 0 ? ((p.d2 - p.d1) / Math.abs(p.d1)) * 100 : (p.d2 !== 0 ? 100 : 0);
+                p.change_type = p.hasAdded && p.d1 === 0 ? 'added' : p.hasRemoved && p.d2 === 0 ? 'removed' : 'modified';
+                p.isMixed = p.sections.size > 1;
+                p.section = p.isMixed ? 'Mixed' : [...p.sections][0] || '';
+                p.fundLabel = p.funds.size === 1 ? [...p.funds][0] : `${p.funds.size} funds`;
+                return p;
+            });
+        };
+
         let bodyHtml = '';
         for (const dept of depts) {
             const deptD1 = dept.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
@@ -749,8 +784,9 @@ window.initDraftComparePage = async function () {
             const isOpen = autoExpand || expandedDepts.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
+            const programs = aggregatePrograms(dept.rows);
             bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
-                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${dept.rows.length})</span></td>
+                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell">${fmt(deptD1)}</td>
                 <td class="amount-cell">${fmt(deptD2)}</td>
@@ -758,20 +794,97 @@ window.initDraftComparePage = async function () {
                 <td></td><td></td>
             </tr>`;
 
-            for (const r of dept.rows) {
+            for (const p of programs) {
+                const cls = p.change > 0 ? 'positive' : p.change < 0 ? 'negative' : '';
+                const typeBadge = p.change_type === 'added' ? '<span class="badge badge-add">new</span>'
+                    : p.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
+                const progKey = `${dept.code}:${p.program_id}`;
+                const progOpen = autoExpand || expandedPrograms.has(progKey);
+
+                if (p.isMixed) {
+                    const progArrow = progOpen ? '▼' : '▶';
+                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}</td>
+                        <td>Mixed</td>
+                        <td></td>
+                        <td class="amount-cell">${fmt(p.d1)}</td>
+                        <td class="amount-cell">${fmt(p.d2)}</td>
+                        <td class="amount-cell ${cls}">${fmt(p.change)}</td>
+                        <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
+                        <td>${typeBadge}</td>
+                    </tr>`;
+                    for (const sec of [...p.sections].sort()) {
+                        const secRows = p.rawRows.filter(r => r.section === sec);
+                        const secD1 = secRows.reduce((s, r) => s + (r[d1Key] || 0), 0);
+                        const secD2 = secRows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+                        const secDelta = secD2 - secD1;
+                        const secCls = secDelta > 0 ? 'positive' : secDelta < 0 ? 'negative' : '';
+                        const secPct = secD1 !== 0 ? ((secD2 - secD1) / Math.abs(secD1)) * 100 : (secD2 !== 0 ? 100 : 0);
+                        bodyHtml += `<tr class="prog-section-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                            <td class="section-indent">${sec}</td>
+                            <td></td><td></td>
+                            <td class="amount-cell">${fmt(secD1)}</td>
+                            <td class="amount-cell">${fmt(secD2)}</td>
+                            <td class="amount-cell ${secCls}">${fmt(secDelta)}</td>
+                            <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
+                            <td></td>
+                        </tr>`;
+                    }
+                } else {
+                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
+                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}</td>
+                        <td>${p.section}</td>
+                        <td></td>
+                        <td class="amount-cell">${fmt(p.d1)}</td>
+                        <td class="amount-cell">${fmt(p.d2)}</td>
+                        <td class="amount-cell ${cls}">${fmt(p.change)}</td>
+                        <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
+                        <td>${typeBadge}</td>
+                    </tr>`;
+                }
+            }
+        }
+
+        // Fund detail table — grouped by fund type
+        const fundTypeMap = new Map();
+        for (const r of data) {
+            const ft = r.fund_type || '?';
+            if (!fundTypeMap.has(ft)) fundTypeMap.set(ft, { type: ft, category: r.fund_category || ft, rows: [] });
+            fundTypeMap.get(ft).rows.push(r);
+        }
+        const fundGroups = [...fundTypeMap.values()].sort((a, b) => {
+            const aTotal = a.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
+            const bTotal = b.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
+            return bTotal - aTotal;
+        });
+
+        const autoExpandFunds = q.length > 0;
+        let fundHtml = '';
+        for (const fg of fundGroups) {
+            const fgD1 = fg.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const fgD2 = fg.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            const fgDelta = fgD2 - fgD1;
+            const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
+            const isOpen = autoExpandFunds || expandedFundTypes.has(fg.type);
+            const arrow = isOpen ? '▼' : '▶';
+
+            fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
+                <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category} <span class="dept-count">(${fg.rows.length})</span></td>
+                <td class="amount-cell">${fmt(fgD1)}</td>
+                <td class="amount-cell">${fmt(fgD2)}</td>
+                <td class="amount-cell ${fgCls}">${fmt(fgDelta)}</td>
+                <td></td>
+            </tr>`;
+
+            for (const r of fg.rows) {
                 const delta = r.change || 0;
                 const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-                const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
-                    : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
-                bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
+                fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                    <td>${r.section || ''}</td>
-                    <td>${r.fund_category || ''}</td>
                     <td class="amount-cell">${fmt(r[d1Key])}</td>
                     <td class="amount-cell">${fmt(r[d2Key])}</td>
                     <td class="amount-cell ${cls}">${fmt(delta)}</td>
                     <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
-                    <td>${typeBadge}</td>
                 </tr>`;
             }
         }
@@ -791,6 +904,17 @@ window.initDraftComparePage = async function () {
                     <th>Type</th>
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
+            </table>
+            <h3 class="fund-detail-heading">Fund Detail</h3>
+            <table class="data-table" id="fund-detail-table">
+                <thead><tr>
+                    <th>Fund / Program</th>
+                    <th class="amount-cell">${meta.draft1}</th>
+                    <th class="amount-cell">${meta.draft2}</th>
+                    <th class="amount-cell">Change</th>
+                    <th class="amount-cell">%</th>
+                </tr></thead>
+                <tbody>${fundHtml}</tbody>
             </table>`;
 
         // Re-attach header dropdown events after render
@@ -849,16 +973,50 @@ window.initDraftComparePage = async function () {
             return;
         }
         // Department group row expand/collapse
-        const groupRow = e.target.closest('.dept-group-row');
+        const groupRow = e.target.closest('.dept-group-row:not(.prog-group-row)');
         if (groupRow) {
             const dept = groupRow.dataset.dept;
             if (expandedDepts.has(dept)) expandedDepts.delete(dept);
             else expandedDepts.add(dept);
-            // Toggle detail rows and arrow without full re-render
             const arrow = groupRow.querySelector('.dept-arrow');
             const isOpen = expandedDepts.has(dept);
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
             document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(row => {
+                row.classList.toggle('hidden', !isOpen);
+            });
+            if (!isOpen) {
+                document.querySelectorAll(`.prog-section-row[data-dept="${dept}"]`).forEach(row => row.classList.add('hidden'));
+            } else {
+                document.querySelectorAll(`.prog-section-row[data-dept="${dept}"]`).forEach(row => {
+                    row.classList.toggle('hidden', !expandedPrograms.has(row.dataset.prog));
+                });
+            }
+            return;
+        }
+        // Program group row expand/collapse (mixed section)
+        const progRow = e.target.closest('.prog-group-row');
+        if (progRow) {
+            const progKey = progRow.dataset.prog;
+            if (expandedPrograms.has(progKey)) expandedPrograms.delete(progKey);
+            else expandedPrograms.add(progKey);
+            const arrow = progRow.querySelector('.dept-arrow');
+            const isOpen = expandedPrograms.has(progKey);
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            document.querySelectorAll(`.prog-section-row[data-prog="${progKey}"]`).forEach(row => {
+                row.classList.toggle('hidden', !isOpen);
+            });
+            return;
+        }
+        // Fund group row expand/collapse
+        const fundRow = e.target.closest('.fund-group-row');
+        if (fundRow) {
+            const ft = fundRow.dataset.fundType;
+            if (expandedFundTypes.has(ft)) expandedFundTypes.delete(ft);
+            else expandedFundTypes.add(ft);
+            const arrow = fundRow.querySelector('.dept-arrow');
+            const isOpen = expandedFundTypes.has(ft);
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            document.querySelectorAll(`.fund-detail-row[data-fund-type="${ft}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
             });
         }
@@ -869,7 +1027,7 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set();
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set();
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
@@ -878,7 +1036,7 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-27')?.addEventListener('click', () => {
         if (!draftComparisonDataFY27) return;
         activeData = draftComparisonDataFY27;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set();
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set();
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();

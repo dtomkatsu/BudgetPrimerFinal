@@ -738,8 +738,41 @@ th.sortable:hover {
 .dept-detail-row.hidden {
     display: none;
 }
-.dept-detail-row .detail-indent {
+.dept-detail-row .detail-indent,
+.fund-detail-row .detail-indent {
     padding-left: 2rem;
+}
+.prog-group-row {
+    cursor: pointer;
+}
+.prog-section-row.hidden {
+    display: none;
+}
+.prog-section-row .section-indent {
+    padding-left: 3.5rem;
+    font-style: italic;
+    color: #555;
+}
+.fund-detail-heading {
+    margin: 2rem 0 0.75rem;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+.fund-group-row {
+    cursor: pointer;
+    background: #f8f9fa;
+    font-weight: 500;
+    border-bottom: 1px solid #e0e0e0;
+}
+.fund-group-row:hover {
+    background: #e9ecef;
+}
+.fund-group-row td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.fund-detail-row.hidden {
+    display: none;
 }
 
 /* ===== Responsive ===== */
