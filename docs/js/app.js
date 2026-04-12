@@ -543,15 +543,18 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             </section>`;
     }
 
-    // Default to FY2026 if available, else FY2027
     const initData = draftComparisonData || draftComparisonDataFY27;
     const meta = initData.metadata;
-    const summary = initData.summary;
-    const net = summary.net_change;
-    const netClass = net > 0 ? 'positive' : net < 0 ? 'negative' : '';
 
-    const sections = [...new Set(initData.comparisons.map(r => r.section))].filter(Boolean).sort();
-    const secOpts = sections.map(s => `<option value="${s}">${s}</option>`).join('');
+    // Build section checkbox options
+    const allSections = [...new Set(initData.comparisons.map(r => r.section))].filter(Boolean).sort();
+    const secChecks = allSections.map(s =>
+        `<label><input type="checkbox" value="${s}" checked> ${s}</label>`).join('');
+
+    // Build fund checkbox options
+    const allFunds = [...new Set(initData.comparisons.map(r => r.fund_category))].filter(Boolean).sort();
+    const fundChecks = allFunds.map(f =>
+        `<label><input type="checkbox" value="${f}" checked> ${f}</label>`).join('');
 
     const fyToggle = (draftComparisonData && draftComparisonDataFY27) ? `
         <div class="fy-toggle">
@@ -567,19 +570,9 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
             ${fyToggle}
 
-            <div class="summary-cards-grid" id="draft-cards">
-                <div class="summary-card"><div class="amount">${fmt(summary.total_draft1)}</div><div class="label">${meta.draft1} Total</div></div>
-                <div class="summary-card"><div class="amount">${fmt(summary.total_draft2)}</div><div class="label">${meta.draft2} Total</div></div>
-                <div class="summary-card"><div class="amount ${netClass}">${fmt(net)}</div><div class="label">Net Change</div></div>
-                <div class="summary-card"><div class="amount">${summary.items_modified}</div><div class="label">Items Changed</div></div>
-            </div>
-
-            <div class="draft-stats" id="draft-stats-bar">
-                <span class="positive">▲ ${summary.items_increased} increases</span> ·
-                <span class="negative">▼ ${summary.items_decreased} decreases</span> ·
-                <span>+ ${summary.items_added} added</span> ·
-                <span>− ${summary.items_removed} removed</span>
-            </div>
+            <div class="summary-cards-grid" id="draft-cards"></div>
+            <div class="totals-bar" id="draft-totals-bar"></div>
+            <div class="draft-stats" id="draft-stats-bar"></div>
 
             <div class="filter-bar">
                 <select id="draft-filter" class="filter-select">
@@ -590,10 +583,14 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <option value="added">Newly Added</option>
                     <option value="removed">Removed</option>
                 </select>
-                <select id="draft-section" class="filter-select">
-                    <option value="">All Sections</option>
-                    ${secOpts}
-                </select>
+                <div class="checkbox-dropdown" id="section-dropdown">
+                    <button class="checkbox-dropdown-btn" type="button">Section ▾</button>
+                    <div class="checkbox-dropdown-menu">${secChecks}</div>
+                </div>
+                <div class="checkbox-dropdown" id="fund-dropdown">
+                    <button class="checkbox-dropdown-btn" type="button">Fund ▾</button>
+                    <div class="checkbox-dropdown-menu">${fundChecks}</div>
+                </div>
                 <input type="text" id="draft-search" placeholder="Search programs..." class="search-input">
                 <button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button>
             </div>
@@ -607,25 +604,78 @@ window.initDraftComparePage = async function () {
                     (draftComparisonDataFY27 && draftComparisonDataFY27.comparisons);
     if (!hasData) return;
 
-    // Track active dataset
     let activeData = draftComparisonData || draftComparisonDataFY27;
+    let sortCol = 'change';
+    let sortDir = 'asc';
+
+    // --- Helpers ---
+
+    const getD1Key = () => 'amount_' + activeData.metadata.draft1.toLowerCase();
+    const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
+
+    const getCheckedValues = (dropdownId) => {
+        const boxes = document.querySelectorAll(`#${dropdownId} input[type="checkbox"]`);
+        return [...boxes].filter(cb => cb.checked).map(cb => cb.value);
+    };
+
+    const updateDropdownLabel = (dropdownId, label) => {
+        const el = document.querySelector(`#${dropdownId} .checkbox-dropdown-btn`);
+        if (!el) return;
+        const boxes = document.querySelectorAll(`#${dropdownId} input[type="checkbox"]`);
+        const total = boxes.length;
+        const checked = [...boxes].filter(cb => cb.checked).length;
+        el.textContent = checked === total ? `${label} ▾` : `${label} (${checked}/${total}) ▾`;
+    };
+
+    // --- Summary cards: Operating / Capital breakdown ---
 
     const updateSummaryCards = () => {
         const meta = activeData.metadata;
-        const summary = activeData.summary;
-        const net = summary.net_change;
-        const netClass = net > 0 ? 'positive' : net < 0 ? 'negative' : '';
+        const d1Key = getD1Key(), d2Key = getD2Key();
+        const recs = activeData.comparisons;
+
+        const sumBy = (section) => {
+            const sr = recs.filter(r => r.section === section);
+            const d1 = sr.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            return { d1, d2, delta: d2 - d1 };
+        };
+        const op = sumBy('Operating');
+        const cap = sumBy('Capital Improvement');
+        const totalD1 = op.d1 + cap.d1;
+        const totalD2 = op.d2 + cap.d2;
+        const totalNet = totalD2 - totalD1;
+
+        const changeCard = (delta, label) => {
+            const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+            const negCls = delta < 0 ? ' change-negative' : '';
+            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmt(delta)}</div><div class="label">${label}</div></div>`;
+        };
+
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
             cardsEl.innerHTML = `
-                <div class="summary-card"><div class="amount">${fmt(summary.total_draft1)}</div><div class="label">${meta.draft1} Total</div></div>
-                <div class="summary-card"><div class="amount">${fmt(summary.total_draft2)}</div><div class="label">${meta.draft2} Total</div></div>
-                <div class="summary-card"><div class="amount ${netClass}">${fmt(net)}</div><div class="label">Net Change</div></div>
-                <div class="summary-card"><div class="amount">${summary.items_modified}</div><div class="label">Items Changed</div></div>`;
+                <div class="card-section-label">Operating</div>
+                <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
+                ${changeCard(op.delta, 'Change')}
+                <div class="card-section-label">Capital Improvement</div>
+                <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>
+                ${changeCard(cap.delta, 'Change')}`;
         }
+
+        const totalsEl = document.getElementById('draft-totals-bar');
+        if (totalsEl) {
+            const netCls = totalNet > 0 ? 'positive' : totalNet < 0 ? 'negative' : '';
+            totalsEl.innerHTML = `<strong>${meta.draft1} Total:</strong> ${fmt(totalD1)}<span class="sep">|</span><strong>${meta.draft2} Total:</strong> ${fmt(totalD2)}<span class="sep">|</span><strong>Net Change:</strong> <span class="${netCls}">${fmt(totalNet)}</span>`;
+        }
+
+        const summary = activeData.summary;
         const statsEl = document.getElementById('draft-stats-bar');
         if (statsEl) {
             statsEl.innerHTML = `
+                <strong>${summary.items_modified}</strong> changed ·
                 <span class="positive">▲ ${summary.items_increased} increases</span> ·
                 <span class="negative">▼ ${summary.items_decreased} decreases</span> ·
                 <span>+ ${summary.items_added} added</span> ·
@@ -633,66 +683,192 @@ window.initDraftComparePage = async function () {
         }
     };
 
+    // --- Main render: filter, sort, group by department ---
+
     const render = () => {
         const meta = activeData.metadata;
-        const d1Key = 'amount_' + meta.draft1.toLowerCase();
-        const d2Key = 'amount_' + meta.draft2.toLowerCase();
+        const d1Key = getD1Key(), d2Key = getD2Key();
         const mode = document.getElementById('draft-filter')?.value || 'all';
-        const sec = document.getElementById('draft-section')?.value || '';
         const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
+        const checkedSections = getCheckedValues('section-dropdown');
+        const checkedFunds = getCheckedValues('fund-dropdown');
+        const allSections = document.querySelectorAll('#section-dropdown input[type="checkbox"]').length;
+        const allFunds = document.querySelectorAll('#fund-dropdown input[type="checkbox"]').length;
 
         let data = [...activeData.comparisons];
 
-        if (sec) data = data.filter(r => r.section === sec);
+        // Checkbox filters
+        if (checkedSections.length < allSections)
+            data = data.filter(r => checkedSections.includes(r.section));
+        if (checkedFunds.length < allFunds)
+            data = data.filter(r => checkedFunds.includes(r.fund_category));
+
+        // Search
         if (q) data = data.filter(r =>
             (r.program_name || '').toLowerCase().includes(q) ||
-            (r.program_id || '').toLowerCase().includes(q));
+            (r.program_id || '').toLowerCase().includes(q) ||
+            (r.department_name || '').toLowerCase().includes(q));
 
+        // Change type filter
         if (mode === 'modified') data = data.filter(r => r.change_type === 'modified' && r.change !== 0);
         else if (mode === 'increases') data = data.filter(r => (r.change || 0) > 0);
         else if (mode === 'decreases') data = data.filter(r => (r.change || 0) < 0);
         else if (mode === 'added') data = data.filter(r => r.change_type === 'added');
         else if (mode === 'removed') data = data.filter(r => r.change_type === 'removed');
 
-        data.sort((a, b) => (a.change || 0) - (b.change || 0));
+        // Sort
+        const resolveSort = (r) => {
+            if (sortCol === 'd1') return r[d1Key] || 0;
+            if (sortCol === 'd2') return r[d2Key] || 0;
+            if (sortCol === 'program_name') return (r.program_name || '').toLowerCase();
+            return r[sortCol] ?? 0;
+        };
+        data.sort((a, b) => {
+            const va = resolveSort(a), vb = resolveSort(b);
+            if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            return sortDir === 'asc' ? va - vb : vb - va;
+        });
 
+        // Summary line
         const totalDelta = data.reduce((s, r) => s + (r.change || 0), 0);
         document.getElementById('draft-summary').innerHTML =
             `<strong>${data.length}</strong> items — Net: <strong class="${totalDelta > 0 ? 'positive' : 'negative'}">${fmt(totalDelta)}</strong>`;
 
-        const top200 = data.slice(0, 200);
+        // Group by department
+        const deptMap = new Map();
+        for (const r of data) {
+            const key = r.department_code || 'OTHER';
+            if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, items: [] });
+            deptMap.get(key).items.push(r);
+        }
+        const depts = [...deptMap.values()];
+        // Sort departments: alphabetical when sorting by name, else by |change|
+        if (sortCol === 'program_name') {
+            depts.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+        } else {
+            depts.sort((a, b) => {
+                const absA = Math.abs(a.items.reduce((s, r) => s + (r.change || 0), 0));
+                const absB = Math.abs(b.items.reduce((s, r) => s + (r.change || 0), 0));
+                return absB - absA;
+            });
+        }
+
+        const sortArrow = (col) => {
+            const active = sortCol === col ? ' sort-active' : '';
+            const arrow = sortCol === col ? (sortDir === 'asc' ? '▲' : '▼') : '▸';
+            return `<span class="sort-arrow">${arrow}</span>`;
+        };
+
+        // Auto-expand when searching
+        const autoExpand = q.length > 0;
+
+        let bodyHtml = '';
+        for (const dept of depts) {
+            const dD1 = dept.items.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const dD2 = dept.items.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            const dDelta = dept.items.reduce((s, r) => s + (r.change || 0), 0);
+            const dCls = dDelta > 0 ? 'positive' : dDelta < 0 ? 'negative' : '';
+            const expandedCls = autoExpand ? ' expanded' : '';
+
+            bodyHtml += `<tr class="dept-group-row${expandedCls}" data-dept="${dept.code}">
+                <td><span class="toggle-arrow">▶</span> <strong>${dept.name}</strong><span class="dept-item-count">(${dept.items.length})</span></td>
+                <td></td><td></td>
+                <td class="amount-cell">${fmt(dD1)}</td>
+                <td class="amount-cell">${fmt(dD2)}</td>
+                <td class="amount-cell ${dCls}">${fmt(dDelta)}</td>
+                <td></td><td></td>
+            </tr>`;
+
+            const hiddenCls = autoExpand ? '' : ' hidden';
+            for (const r of dept.items) {
+                const delta = r.change || 0;
+                const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+                const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
+                    : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
+                bodyHtml += `<tr class="dept-detail-row${hiddenCls}" data-dept="${dept.code}">
+                    <td><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
+                    <td>${r.section || ''}</td>
+                    <td>${r.fund_category || ''}</td>
+                    <td class="amount-cell">${fmt(r[d1Key])}</td>
+                    <td class="amount-cell">${fmt(r[d2Key])}</td>
+                    <td class="amount-cell ${cls}">${fmt(delta)}</td>
+                    <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
+                    <td>${typeBadge}</td>
+                </tr>`;
+            }
+        }
+
         document.getElementById('draft-results').innerHTML = `
-            <table class="data-table">
+            <table class="data-table" id="draft-table">
                 <thead><tr>
-                    <th>Program</th><th>Section</th><th>Fund</th>
-                    <th>${meta.draft1}</th><th>${meta.draft2}</th>
-                    <th>Change</th><th>%</th><th>Type</th>
+                    <th class="sortable" data-sort="program_name">Program ${sortArrow('program_name')}</th>
+                    <th>Section</th><th>Fund</th>
+                    <th class="sortable amount-cell" data-sort="d1">${meta.draft1} ${sortArrow('d1')}</th>
+                    <th class="sortable amount-cell" data-sort="d2">${meta.draft2} ${sortArrow('d2')}</th>
+                    <th class="sortable amount-cell" data-sort="change">Change ${sortArrow('change')}</th>
+                    <th class="sortable amount-cell" data-sort="pct_change">% ${sortArrow('pct_change')}</th>
+                    <th>Type</th>
                 </tr></thead>
-                <tbody>${top200.map(r => {
-                    const delta = r.change || 0;
-                    const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-                    const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
-                        : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>'
-                        : '';
-                    return `<tr>
-                        <td><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                        <td>${r.section || ''}</td>
-                        <td>${r.fund_category || ''}</td>
-                        <td class="amount-cell">${fmt(r[d1Key])}</td>
-                        <td class="amount-cell">${fmt(r[d2Key])}</td>
-                        <td class="amount-cell ${cls}">${fmt(delta)}</td>
-                        <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
-                        <td>${typeBadge}</td>
-                    </tr>`;
-                }).join('')}</tbody>
-            </table>
-            ${data.length > 200 ? `<p class="muted">Showing 200 of ${data.length}</p>` : ''}`;
+                <tbody>${bodyHtml}</tbody>
+            </table>`;
 
         window._lastDraftResults = data;
         window._lastDraftMeta = meta;
     };
 
-    // FY toggle buttons
+    // --- Checkbox dropdown open/close ---
+
+    document.querySelectorAll('.checkbox-dropdown-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dd = btn.closest('.checkbox-dropdown');
+            // Close other dropdowns
+            document.querySelectorAll('.checkbox-dropdown.open').forEach(el => {
+                if (el !== dd) el.classList.remove('open');
+            });
+            dd.classList.toggle('open');
+        });
+    });
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.checkbox-dropdown.open').forEach(el => el.classList.remove('open'));
+    });
+    document.querySelectorAll('.checkbox-dropdown-menu').forEach(menu => {
+        menu.addEventListener('click', (e) => e.stopPropagation());
+    });
+
+    // Checkbox change → update label + re-render
+    document.querySelectorAll('#section-dropdown input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => { updateDropdownLabel('section-dropdown', 'Section'); render(); });
+    });
+    document.querySelectorAll('#fund-dropdown input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => { updateDropdownLabel('fund-dropdown', 'Fund'); render(); });
+    });
+
+    // --- Sortable column headers ---
+
+    document.getElementById('draft-results')?.addEventListener('click', (e) => {
+        const th = e.target.closest('th.sortable');
+        if (!th) return;
+        const col = th.dataset.sort;
+        if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+        else { sortCol = col; sortDir = col === 'program_name' ? 'asc' : 'desc'; }
+        render();
+    });
+
+    // --- Department row expand/collapse ---
+
+    document.getElementById('draft-results')?.addEventListener('click', (e) => {
+        const groupRow = e.target.closest('.dept-group-row');
+        if (!groupRow) return;
+        const dept = groupRow.dataset.dept;
+        const isExpanded = groupRow.classList.toggle('expanded');
+        document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(tr => {
+            tr.classList.toggle('hidden', !isExpanded);
+        });
+    });
+
+    // --- FY toggle ---
+
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
@@ -710,25 +886,26 @@ window.initDraftComparePage = async function () {
         render();
     });
 
-    ['draft-filter', 'draft-section'].forEach(id => {
-        document.getElementById(id)?.addEventListener('change', render);
-    });
+    // --- Other controls ---
+
+    document.getElementById('draft-filter')?.addEventListener('change', render);
     document.getElementById('draft-search')?.addEventListener('input', render);
 
     document.getElementById('export-drafts')?.addEventListener('click', () => {
         const meta = window._lastDraftMeta || activeData.metadata;
-        const d1Key = 'amount_' + meta.draft1.toLowerCase();
-        const d2Key = 'amount_' + meta.draft2.toLowerCase();
+        const d1Key = getD1Key(), d2Key = getD2Key();
         const rows = (window._lastDraftResults || activeData.comparisons).map(r => ({
             program_id: r.program_id, program_name: r.program_name,
-            department_code: r.department_code, section: r.section,
-            fund_type: r.fund_type, fund_category: r.fund_category,
+            department_code: r.department_code, department_name: r.department_name,
+            section: r.section, fund_type: r.fund_type, fund_category: r.fund_category,
             [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
             change: r.change, pct_change: r.pct_change, change_type: r.change_type,
         }));
         downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
     });
 
+    // --- Initial render ---
+    updateSummaryCards();
     render();
 };
 
