@@ -140,12 +140,10 @@ class Router {
     updateActiveLink(currentPath) {
         document.querySelectorAll('.nav-link').forEach(link => {
             const linkPath = link.getAttribute('href').replace('#', '');
-            if ((currentPath === '/' && linkPath === '') || 
-                (currentPath !== '/' && linkPath !== '' && currentPath.startsWith(linkPath))) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
+            const isActive = linkPath === '/'
+                ? currentPath === '/'
+                : linkPath !== '' && currentPath.startsWith(linkPath);
+            link.classList.toggle('active', isActive);
         });
     }
     
