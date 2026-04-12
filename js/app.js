@@ -622,13 +622,13 @@ window.initDraftComparePage = async function () {
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
             cardsEl.innerHTML = `
-                <div class="card-section-label has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</div>
+                <div class="card-section-label"><span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                 <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
                 <div class="card-arrow">→</div>
                 <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
                 <div class="card-arrow"></div>
                 ${changeCard(op.delta, 'Change')}
-                <div class="card-section-label has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</div>
+                <div class="card-section-label"><span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                 <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
                 <div class="card-arrow">→</div>
                 <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>

@@ -622,10 +622,17 @@ body {
 
 /* ===== Change Card Accent ===== */
 .summary-card.change-card {
-    background: #f0faf5;
+    background: #eaf5ee;
+    box-shadow: none;
+    border-top: 3px solid #2e7d32;
+}
+.summary-card.change-card:hover {
+    transform: none;
+    box-shadow: none;
 }
 .summary-card.change-card.change-negative {
-    background: #fef5f5;
+    background: #fdecea;
+    border-top-color: #c62828;
 }
 
 /* ===== Section Label Row ===== */
