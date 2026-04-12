@@ -569,7 +569,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             ${fyToggle}
 
             <div class="summary-cards-grid compact" id="draft-cards"></div>
-            <div class="totals-bar" id="draft-totals-bar"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
             <div class="search-summary" id="draft-summary"></div>
@@ -622,31 +621,52 @@ window.initDraftComparePage = async function () {
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
             cardsEl.innerHTML = `
-                <div class="card-section-label"><span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
-                <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="card-section-label card-section-total">Total</div>
+                <div class="summary-card"><div class="amount">${fmt(totalD1)}</div><div class="label">${meta.draft1}</div></div>
                 <div class="card-arrow">→</div>
-                <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
+                <div class="summary-card"><div class="amount">${fmt(totalD2)}</div><div class="label">${meta.draft2}</div></div>
                 <div class="card-arrow"></div>
-                ${changeCard(op.delta, 'Change')}
-                <div class="card-section-label"><span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
-                <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
-                <div class="card-arrow">→</div>
-                <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>
-                <div class="card-arrow"></div>
-                ${changeCard(cap.delta, 'Change')}`;
-        }
+                ${changeCard(totalNet, 'Net Change')}
+                <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
+                <div class="card-row-collapsible" id="cards-operating" style="display:none;">
+                    <div class="summary-cards-grid compact">
+                        <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
+                        <div class="card-arrow">→</div>
+                        <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
+                        <div class="card-arrow"></div>
+                        ${changeCard(op.delta, 'Change')}
+                    </div>
+                </div>
+                <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
+                <div class="card-row-collapsible" id="cards-capital" style="display:none;">
+                    <div class="summary-cards-grid compact">
+                        <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
+                        <div class="card-arrow">→</div>
+                        <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>
+                        <div class="card-arrow"></div>
+                        ${changeCard(cap.delta, 'Change')}
+                    </div>
+                </div>`;
 
-        const totalsEl = document.getElementById('draft-totals-bar');
-        if (totalsEl) {
-            const netCls = totalNet > 0 ? 'positive' : totalNet < 0 ? 'negative' : '';
-            totalsEl.innerHTML = `<span class="stat-tag stat-tag-neutral"><strong>${meta.draft1} Total:</strong> ${fmt(totalD1)}</span><span class="stat-tag stat-tag-neutral"><strong>${meta.draft2} Total:</strong> ${fmt(totalD2)}</span><span class="stat-tag ${netCls === 'positive' ? 'stat-tag-positive' : netCls === 'negative' ? 'stat-tag-negative' : 'stat-tag-neutral'}"><strong>Net Change:</strong> ${fmt(totalNet)}</span>`;
+            cardsEl.querySelectorAll('.card-section-toggle').forEach(label => {
+                label.addEventListener('click', () => {
+                    const target = document.getElementById(label.dataset.target);
+                    const arrow = label.querySelector('.toggle-arrow');
+                    if (target.style.display === 'none') {
+                        target.style.display = 'block';
+                        arrow.textContent = '▼';
+                    } else {
+                        target.style.display = 'none';
+                        arrow.textContent = '▶';
+                    }
+                });
+            });
         }
 
         const summary = activeData.summary;
         const statsEl = document.getElementById('draft-stats-bar');
         if (statsEl) {
             statsEl.innerHTML = `
-                <span class="stat-tag stat-tag-neutral"><strong>${summary.items_modified}</strong> changed</span>
                 <span class="stat-tag stat-tag-positive">▲ <strong>${summary.items_increased}</strong> increases</span>
                 <span class="stat-tag stat-tag-negative">▼ <strong>${summary.items_decreased}</strong> decreases</span>`;
         }
@@ -703,15 +723,16 @@ window.initDraftComparePage = async function () {
         const filterVal = document.getElementById('draft-filter')?.value || 'all';
         const searchVal = document.getElementById('draft-search')?.value || '';
         document.getElementById('draft-summary').innerHTML =
-            `<span class="stat-tag stat-tag-neutral"><strong>${data.length}</strong> items</span>`
-            + `<select id="draft-filter" class="filter-select filter-inline">
-                <option value="all"${filterVal==='all'?' selected':''}>All Changes</option>
-                <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
-                <option value="increases"${filterVal==='increases'?' selected':''}>Increases Only</option>
-                <option value="decreases"${filterVal==='decreases'?' selected':''}>Decreases Only</option>
-                <option value="added"${filterVal==='added'?' selected':''}>Newly Added</option>
-                <option value="removed"${filterVal==='removed'?' selected':''}>Removed</option>
-               </select>`
+            `<span class="stat-tag stat-tag-neutral items-filter-tag">
+                <strong>${data.length}</strong> items ▾
+                <select id="draft-filter" class="items-filter-select">
+                    <option value="all"${filterVal==='all'?' selected':''}>All Changes</option>
+                    <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
+                    <option value="increases"${filterVal==='increases'?' selected':''}>Increases Only</option>
+                    <option value="decreases"${filterVal==='decreases'?' selected':''}>Decreases Only</option>
+                    <option value="added"${filterVal==='added'?' selected':''}>Newly Added</option>
+                </select>
+             </span>`
             + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">`;
         // Re-attach filter/search listeners after re-render
         document.getElementById('draft-filter')?.addEventListener('change', render);
