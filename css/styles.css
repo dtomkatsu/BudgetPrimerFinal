@@ -710,6 +710,38 @@ th.sortable:hover {
     background: #e9ecef;
 }
 
+/* Department group rows */
+.dept-group-row {
+    cursor: pointer;
+    background: #f8f9fa;
+    font-weight: 500;
+    border-bottom: 1px solid #e0e0e0;
+}
+.dept-group-row:hover {
+    background: #e9ecef;
+}
+.dept-group-row td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.dept-arrow {
+    display: inline-block;
+    width: 1em;
+    font-size: 0.8em;
+    color: #666;
+}
+.dept-count {
+    font-weight: 400;
+    color: #888;
+    font-size: 0.85em;
+}
+.dept-detail-row.hidden {
+    display: none;
+}
+.dept-detail-row .detail-indent {
+    padding-left: 2rem;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .filter-bar {
