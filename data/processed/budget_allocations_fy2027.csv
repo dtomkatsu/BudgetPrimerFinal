@@ -1,0 +1,632 @@
+program_id,program_name,department_code,department_name,section,fund_type,fiscal_year,amount,positions,ceiling,allocation_type,category,subcategory,notes,fund_category,amount_millions,is_capital,pct_of_total,pct_of_dept,dept_rank,overall_rank,cost_per_position
+AGR101,FINANCIAL ASSISTANCE FOR AGRICULTURE,AGR,Department of Agriculture,Operating,A,2027,874338.0,9.0,,,Economic Development,,,General Funds,0.874338,False,0.0,1.22,17,475,97149.0
+AGR101,FINANCIAL ASSISTANCE FOR AGRICULTURE,AGR,Department of Agriculture,Operating,W,2027,5500000.0,9.0,,,Economic Development,,,Revolving Funds,5.5,False,0.03,7.68,3,270,611111.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,A,2027,21335989.0,143.0,,,Economic Development,,,General Funds,21.335989,False,0.1,29.78,1,133,149203.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,B,2027,4130800.0,143.0,,,Economic Development,,,Special Funds,4.1308,False,0.02,5.77,6,316,28887.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,T,2027,512962.0,143.0,,,Economic Development,,,Trust Funds,0.512962,False,0.0,0.72,19,504,3587.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,U,2027,212095.0,143.0,,,Economic Development,,,Interdepartmental Transfers,0.212095,False,0.0,0.3,24,541,1483.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,W,2027,50360.0,143.0,,,Economic Development,,,Revolving Funds,0.05036,False,0.0,0.07,31,572,352.0
+AGR122,PLANT PEST AND DISEASE CONTROL,AGR,Department of Agriculture,Operating,P,2027,365946.0,143.0,,,Economic Development,,,Other Federal Funds,0.365946,False,0.0,0.51,21,523,2559.0
+AGR131,RABIES QUARANTINE,AGR,Department of Agriculture,Operating,B,2027,4781110.0,32.32,,,Economic Development,,,Special Funds,4.78111,False,0.02,6.67,5,299,147930.0
+AGR132,ANIMAL DISEASE CONTROL,AGR,Department of Agriculture,Operating,A,2027,3352755.0,25.68,,,Economic Development,,,General Funds,3.352755,False,0.02,4.68,7,347,130559.0
+AGR132,ANIMAL DISEASE CONTROL,AGR,Department of Agriculture,Operating,B,2027,47802.0,25.68,,,Economic Development,,,Special Funds,0.047802,False,0.0,0.07,32,573,1861.0
+AGR132,ANIMAL DISEASE CONTROL,AGR,Department of Agriculture,Operating,P,2027,306941.0,25.68,,,Economic Development,,,Other Federal Funds,0.306941,False,0.0,0.43,22,527,11953.0
+AGR141,AGRICULTURAL RESOURCE MANAGEMENT,AGR,Department of Agriculture,Operating,A,2027,1798532.0,19.0,,,Economic Development,,,General Funds,1.798532,False,0.01,2.51,13,416,94660.0
+AGR141,AGRICULTURAL RESOURCE MANAGEMENT,AGR,Department of Agriculture,Operating,B,2027,2851320.0,13.5,,,Economic Development,,,Special Funds,2.85132,False,0.01,3.98,8,363,211209.0
+AGR141,AGRICULTURAL RESOURCE MANAGEMENT,AGR,Department of Agriculture,Operating,W,2027,1375787.0,13.5,,,Economic Development,,,Revolving Funds,1.375787,False,0.01,1.92,14,432,101910.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,A,2027,1826443.0,23.5,,,Economic Development,,,General Funds,1.826443,False,0.01,2.55,12,413,77721.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,B,2027,109046.0,23.5,,,Economic Development,,,Special Funds,0.109046,False,0.0,0.15,29,563,4640.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,N,2027,100000.0,23.5,,,Economic Development,,,Federal Funds,0.1,False,0.0,0.14,30,567,4255.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,T,2027,300000.0,23.5,,,Economic Development,,,Trust Funds,0.3,False,0.0,0.42,23,529,12766.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,W,2027,127848.0,23.5,,,Economic Development,,,Revolving Funds,0.127848,False,0.0,0.18,27,556,5440.0
+AGR151,QUALITY AND PRICE ASSURANCE,AGR,Department of Agriculture,Operating,P,2027,138624.0,23.5,,,Economic Development,,,Other Federal Funds,0.138624,False,0.0,0.19,26,554,5899.0
+AGR153,AQUACULTURE DEVELOPMENT,AGR,Department of Agriculture,Operating,A,2027,978519.0,7.0,,,Economic Development,,,General Funds,0.978519,False,0.0,1.37,16,466,139788.0
+AGR153,AQUACULTURE DEVELOPMENT,AGR,Department of Agriculture,Operating,B,2027,125000.0,7.0,,,Economic Development,,,Special Funds,0.125,False,0.0,0.17,28,558,17857.0
+AGR171,AGRICULTURAL DEVELOPMENT AND MARKETING,AGR,Department of Agriculture,Operating,A,2027,1067694.0,11.0,,,Economic Development,,,General Funds,1.067694,False,0.0,1.49,15,453,97063.0
+AGR171,AGRICULTURAL DEVELOPMENT AND MARKETING,AGR,Department of Agriculture,Operating,B,2027,15000.0,11.0,,,Economic Development,,,Special Funds,0.015,False,0.0,0.02,33,577,1364.0
+AGR171,AGRICULTURAL DEVELOPMENT AND MARKETING,AGR,Department of Agriculture,Operating,N,2027,2051568.0,0.75,,,Economic Development,,,Federal Funds,2.051568,False,0.01,2.86,11,402,2735424.0
+AGR171,AGRICULTURAL DEVELOPMENT AND MARKETING,AGR,Department of Agriculture,Operating,P,2027,5289219.0,1.25,,,Economic Development,,,Other Federal Funds,5.289219,False,0.02,7.38,4,275,4231375.0
+AGR192,GENERAL ADMINISTRATION FOR AGRICULTURE,AGR,Department of Agriculture,Operating,A,2027,5556126.0,32.0,,,Economic Development,,,General Funds,5.556126,False,0.03,7.75,2,268,173629.0
+AGR192,GENERAL ADMINISTRATION FOR AGRICULTURE,AGR,Department of Agriculture,Operating,P,2027,164450.0,32.0,,,Economic Development,,,Other Federal Funds,0.16445,False,0.0,0.23,25,551,5139.0
+AGR192,GENERAL ADMINISTRATION FOR AGRICULTURE,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,2200000.0,32.0,,,Economic Development,,,General Obligation Bond Fund,2.2,True,0.01,0.67,29,395,68750.0
+AGR812,MEASUREMENT STANDARDS,AGR,Department of Agriculture,Operating,A,2027,746480.0,10.0,,,Individual Rights,,,General Funds,0.74648,False,0.0,1.04,18,488,74648.0
+AGR846,PESTICIDES,AGR,Department of Agriculture,Operating,A,2027,2729255.0,37.0,,,Environment,,,General Funds,2.729255,False,0.01,3.81,9,369,73764.0
+AGR846,PESTICIDES,AGR,Department of Agriculture,Operating,W,2027,2364038.0,37.0,,,Environment,,,Revolving Funds,2.364038,False,0.01,3.3,10,384,63893.0
+AGR846,PESTICIDES,AGR,Department of Agriculture,Operating,P,2027,464629.0,2.0,,,Environment,,,Other Federal Funds,0.464629,False,0.0,0.65,20,510,232314.0
+AGS101,ACCOUNTING SYSTEM DEVELOPMENT AND MAINTENANCE,AGS,Department of Accounting & General Services,Operating,A,2027,8431323.0,22.0,,,Government Operations,,,General Funds,8.431323,False,0.04,2.56,10,218,383242.0
+AGS102,EXPENDITURE EXAMINATION,AGS,Department of Accounting & General Services,Operating,A,2027,1629046.0,18.0,,,Government Operations,,,General Funds,1.629046,False,0.01,0.49,33,422,90503.0
+AGS103,RECORDING AND REPORTING,AGS,Department of Accounting & General Services,Operating,A,2027,1387165.0,13.0,,,Government Operations,,,General Funds,1.387165,False,0.01,0.42,35,431,106705.0
+AGS104,INTERNAL POST AUDIT,AGS,Department of Accounting & General Services,Operating,A,2027,1025751.0,7.0,,,Government Operations,,,General Funds,1.025751,False,0.0,0.31,40,459,146536.0
+AGS105,ENFORCEMENT OF INFORMATION PRACTICES,AGS,Department of Accounting & General Services,Operating,A,2027,1258905.0,10.5,,,Individual Rights,,,General Funds,1.258905,False,0.01,0.38,36,438,119896.0
+AGS111,ARCHIVES - RECORDS MANAGEMENT,AGS,Department of Accounting & General Services,Operating,A,2027,6469149.0,19.0,,,Government Operations,,,General Funds,6.469149,False,0.03,1.96,15,256,340482.0
+AGS111,ARCHIVES - RECORDS MANAGEMENT,AGS,Department of Accounting & General Services,Operating,B,2027,521304.0,3.0,,,Government Operations,,,Special Funds,0.521304,False,0.0,0.16,43,502,173768.0
+AGS131,ENTERPRISE TECHNOLOGY SERVICES,AGS,Department of Accounting & General Services,Operating,A,2027,52238803.0,138.0,,,Government Operations,,,General Funds,52.238803,False,0.24,15.85,1,60,378542.0
+AGS131,ENTERPRISE TECHNOLOGY SERVICES,AGS,Department of Accounting & General Services,Operating,B,2027,2578244.0,12.0,,,Government Operations,,,Special Funds,2.578244,False,0.01,0.78,26,375,214854.0
+AGS131,ENTERPRISE TECHNOLOGY SERVICES,AGS,Department of Accounting & General Services,Operating,U,2027,6315295.0,33.0,,,Government Operations,,,Interdepartmental Transfers,6.315295,False,0.03,1.92,16,259,191373.0
+AGS131,ENTERPRISE TECHNOLOGY SERVICES,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,2000000.0,33.0,,,Government Operations,,,General Obligation Bond Fund,2.0,True,0.01,0.61,31,407,60606.0
+AGS203,STATE RISK MANAGEMENT AND INSURANCE ADMINISTRATION,AGS,Department of Accounting & General Services,Operating,A,2027,26987995.0,,,,Government Operations,,,General Funds,26.987995,False,0.12,8.19,2,107,
+AGS203,STATE RISK MANAGEMENT AND INSURANCE ADMINISTRATION,AGS,Department of Accounting & General Services,Operating,W,2027,25706793.0,5.0,,,Government Operations,,,Revolving Funds,25.706793,False,0.12,7.8,4,114,5141359.0
+AGS211,LAND SURVEY,AGS,Department of Accounting & General Services,Operating,A,2027,914121.0,10.0,,,Government Operations,,,General Funds,0.914121,False,0.0,0.28,42,472,91412.0
+AGS211,LAND SURVEY,AGS,Department of Accounting & General Services,Operating,U,2027,285000.0,10.0,,,Government Operations,,,Interdepartmental Transfers,0.285,False,0.0,0.09,44,531,28500.0
+AGS221,"PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",AGS,Department of Accounting & General Services,Operating,A,2027,8112911.0,91.0,,,Government Operations,,,General Funds,8.112911,False,0.04,2.46,11,220,89153.0
+AGS221,"PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",AGS,Department of Accounting & General Services,Operating,W,2027,4000000.0,91.0,,,Government Operations,,,Revolving Funds,4.0,False,0.02,1.21,20,322,43956.0
+AGS221,"PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",AGS,Department of Accounting & General Services,Capital Improvement,C,2027,4000.0,91.0,,,Government Operations,,,General Obligation Bond Fund,0.004,True,0.0,0.0,46,581,44.0
+AGS223,OFFICE LEASING,AGS,Department of Accounting & General Services,Operating,A,2027,7178040.0,8.0,,,Government Operations,,,General Funds,7.17804,False,0.03,2.18,12,233,897255.0
+AGS223,OFFICE LEASING,AGS,Department of Accounting & General Services,Operating,U,2027,5500000.0,8.0,,,Government Operations,,,Interdepartmental Transfers,5.5,False,0.03,1.67,18,270,687500.0
+AGS231,CENTRAL SERVICES - CUSTODIAL SERVICES,AGS,Department of Accounting & General Services,Operating,A,2027,25844638.0,126.0,,,Government Operations,,,General Funds,25.844638,False,0.12,7.84,3,112,205116.0
+AGS231,CENTRAL SERVICES - CUSTODIAL SERVICES,AGS,Department of Accounting & General Services,Operating,U,2027,1699084.0,126.0,,,Government Operations,,,Interdepartmental Transfers,1.699084,False,0.01,0.52,32,419,13485.0
+AGS232,CENTRAL SERVICES - GROUNDS MAINTENANCE,AGS,Department of Accounting & General Services,Operating,A,2027,2669822.0,32.0,,,Government Operations,,,General Funds,2.669822,False,0.01,0.81,24,370,83432.0
+AGS233,CENTRAL SERVICES - BUILDING REPAIRS AND ALTERATIONS,AGS,Department of Accounting & General Services,Operating,A,2027,3693069.0,33.0,,,Government Operations,,,General Funds,3.693069,False,0.02,1.12,21,335,111911.0
+AGS234,CENTRAL SERVICES - CEMETERY MANAGEMENT OFFICE,AGS,Department of Accounting & General Services,Operating,A,2027,1167000.0,2.0,,,Government Operations,,,General Funds,1.167,False,0.01,0.35,37,446,583500.0
+AGS240,STATE PROCUREMENT,AGS,Department of Accounting & General Services,Operating,A,2027,2205274.0,25.0,,,Government Operations,,,General Funds,2.205274,False,0.01,0.67,28,394,88211.0
+AGS244,SURPLUS PROPERTY MANAGEMENT,AGS,Department of Accounting & General Services,Operating,W,2027,2006803.0,5.0,,,Government Operations,,,Revolving Funds,2.006803,False,0.01,0.61,30,406,401361.0
+AGS251,AUTOMOTIVE MANAGEMENT - MOTOR POOL,AGS,Department of Accounting & General Services,Operating,W,2027,3539054.0,13.0,,,Government Operations,,,Revolving Funds,3.539054,False,0.02,1.07,22,339,272235.0
+AGS252,AUTOMOTIVE MANAGEMENT - PARKING CONTROL,AGS,Department of Accounting & General Services,Operating,W,2027,4561089.0,27.0,,,Government Operations,,,Revolving Funds,4.561089,False,0.02,1.38,19,306,168929.0
+AGS807,"SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",AGS,Department of Accounting & General Services,Operating,A,2027,6951567.0,81.0,,,Education,,,General Funds,6.951567,False,0.03,2.11,13,241,85822.0
+AGS807,"SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",AGS,Department of Accounting & General Services,Operating,U,2027,2346640.0,10.0,,,Education,,,Interdepartmental Transfers,2.34664,False,0.01,0.71,27,386,234664.0
+AGS871,CAMPAIGN SPENDING COMMISSION,AGS,Department of Accounting & General Services,Operating,A,2027,1027919.0,7.0,,,Government Operations,,,General Funds,1.027919,False,0.0,0.31,39,458,146846.0
+AGS871,CAMPAIGN SPENDING COMMISSION,AGS,Department of Accounting & General Services,Operating,T,2027,1043732.0,7.0,,,Government Operations,,,Trust Funds,1.043732,False,0.0,0.32,38,456,149105.0
+AGS879,OFFICE OF ELECTIONS,AGS,Department of Accounting & General Services,Operating,A,2027,2595761.0,16.5,,,Government Operations,,,General Funds,2.595761,False,0.01,0.79,25,373,157319.0
+AGS879,OFFICE OF ELECTIONS,AGS,Department of Accounting & General Services,Operating,N,2027,99694.0,0.5,,,Government Operations,,,Federal Funds,0.099694,False,0.0,0.03,45,568,199388.0
+AGS881,STATE FOUNDATION ON CULTURE AND THE ARTS,AGS,Department of Accounting & General Services,Operating,A,2027,14432957.0,17.75,,,Culture and Recreation,,,General Funds,14.432957,False,0.07,4.38,8,168,813124.0
+AGS881,STATE FOUNDATION ON CULTURE AND THE ARTS,AGS,Department of Accounting & General Services,Operating,B,2027,3335150.0,17.75,,,Culture and Recreation,,,Special Funds,3.33515,False,0.02,1.01,23,348,187896.0
+AGS881,STATE FOUNDATION ON CULTURE AND THE ARTS,AGS,Department of Accounting & General Services,Operating,N,2027,992771.0,17.75,,,Culture and Recreation,,,Federal Funds,0.992771,False,0.0,0.3,41,464,55931.0
+AGS891,ENHANCED 911 BOARD,AGS,Department of Accounting & General Services,Operating,B,2027,14035349.0,2.0,,,Government Operations,,,Special Funds,14.035349,False,0.06,4.26,9,172,7017674.0
+AGS901,GENERAL ADMINISTRATIVE SERVICES,AGS,Department of Accounting & General Services,Operating,A,2027,5904935.0,54.0,,,Government Operations,,,General Funds,5.904935,False,0.03,1.79,17,264,109351.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,A,2027,45402026.0,321.74,,,Government Operations,,,General Funds,45.402026,False,0.21,33.95,1,72,141114.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,B,2027,6542845.0,32.9,,,Government Operations,,,Special Funds,6.542845,False,0.03,4.89,5,251,198871.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,N,2027,11641670.0,32.9,,,Government Operations,,,Federal Funds,11.64167,False,0.05,8.71,4,185,353850.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,T,2027,4065177.0,1.0,,,Government Operations,,,Trust Funds,4.065177,False,0.02,3.04,9,317,4065177.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,U,2027,21765719.0,111.6,,,Government Operations,,,Interdepartmental Transfers,21.765719,False,0.1,16.28,2,131,195033.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,W,2027,3539882.0,5.6,,,Government Operations,,,Revolving Funds,3.539882,False,0.02,2.65,10,338,632122.0
+ATG100,LEGAL SERVICES,ATG,Department of the Attorney General,Operating,P,2027,5005104.0,21.44,,,Government Operations,,,Other Federal Funds,5.005104,False,0.02,3.74,7,286,233447.0
+ATG231,STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION,ATG,Department of the Attorney General,Operating,A,2027,2497809.0,23.5,,,Public Safety,,,General Funds,2.497809,False,0.01,1.87,11,380,106290.0
+ATG231,STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION,ATG,Department of the Attorney General,Operating,W,2027,4370515.0,24.5,,,Public Safety,,,Revolving Funds,4.370515,False,0.02,3.27,8,312,178388.0
+ATG231,STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION,ATG,Department of the Attorney General,Operating,P,2027,1204841.0,24.5,,,Public Safety,,,Other Federal Funds,1.204841,False,0.01,0.9,13,442,49177.0
+ATG500,CHILD SUPPORT ENFORCEMENT SERVICES,ATG,Department of the Attorney General,Operating,A,2027,5448469.0,69.7,,,Human Services,,,General Funds,5.448469,False,0.02,4.07,6,271,78170.0
+ATG500,CHILD SUPPORT ENFORCEMENT SERVICES,ATG,Department of the Attorney General,Operating,T,2027,2231224.0,69.7,,,Human Services,,,Trust Funds,2.231224,False,0.01,1.67,12,393,32012.0
+ATG500,CHILD SUPPORT ENFORCEMENT SERVICES,ATG,Department of the Attorney General,Operating,P,2027,20006088.0,135.3,,,Human Services,,,Other Federal Funds,20.006088,False,0.09,14.96,3,137,147865.0
+BED100,STRATEGIC MARKETING AND SUPPORT,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,3893040.0,10.0,,,Economic Development,,,General Funds,3.89304,False,0.02,0.88,18,324,389304.0
+BED100,STRATEGIC MARKETING AND SUPPORT,BED,"Department of Business, Economic Development & Tourism",Operating,W,2027,1823499.0,10.0,,,Economic Development,,,Revolving Funds,1.823499,False,0.01,0.41,31,414,182350.0
+BED100,STRATEGIC MARKETING AND SUPPORT,BED,"Department of Business, Economic Development & Tourism",Operating,P,2027,700000.0,10.0,,,Economic Development,,,Other Federal Funds,0.7,False,0.0,0.16,39,493,70000.0
+BED105,CREATIVE INDUSTRIES DIVISION,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,1921494.0,15.0,,,Economic Development,,,General Funds,1.921494,False,0.01,0.44,30,409,128100.0
+BED105,CREATIVE INDUSTRIES DIVISION,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,1080000.0,15.0,,,Economic Development,,,Special Funds,1.08,False,0.0,0.24,34,452,72000.0
+BED107,FOREIGN TRADE ZONE,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,2796043.0,16.0,,,Economic Development,,,Special Funds,2.796043,False,0.01,0.63,24,366,174753.0
+BED113,HAWAII TOURISM AUTHORITY - ADMINISTRATION AND GOVERNANCE,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,3696660.0,14.0,,,Economic Development,,,General Funds,3.69666,False,0.02,0.84,21,334,264047.0
+BED113,HAWAII TOURISM AUTHORITY - ADMINISTRATION AND GOVERNANCE,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,14000000.0,14.0,,,Economic Development,,,Special Funds,14.0,False,0.06,3.17,6,174,1000000.0
+BED114,HAWAII TOURISM AUTHORITY - BRANDING AND MARKETING,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,39249201.0,5.0,,,Economic Development,,,General Funds,39.249201,False,0.18,8.9,3,82,7849840.0
+BED115,HAWAII TOURISM AUTHORITY – SPORTS AND SIGNATURE EVENTS,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,7318075.0,1.0,,,Economic Development,,,General Funds,7.318075,False,0.03,1.66,10,232,7318075.0
+BED116,HAWAII TOURISM AUTHORITY – DESTINATION STEWARDSHIP AND COMMUNITY,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,7923883.0,7.0,,,Economic Development,,,General Funds,7.923883,False,0.04,1.8,9,224,1131983.0
+BED117,HAWAII TOURISM AUTHORITY – REGENERATIVE TOURISM DEVELOPMENT,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,3762181.0,3.0,,,Economic Development,,,General Funds,3.762181,False,0.02,0.85,20,331,1254060.0
+BED118,HAWAII TOURISM AUTHORITY – WORKFORCE DEVELOPMENT,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,1050000.0,,,,Economic Development,,,General Funds,1.05,False,0.0,0.24,35,454,
+BED120,HAWAII STATE ENERGY OFFICE,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,2571816.0,1.0,,,Economic Development,,,General Funds,2.571816,False,0.01,0.58,25,377,2571816.0
+BED120,HAWAII STATE ENERGY OFFICE,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,795000.0,1.0,,,Economic Development,,,Special Funds,0.795,False,0.0,0.18,38,483,795000.0
+BED120,HAWAII STATE ENERGY OFFICE,BED,"Department of Business, Economic Development & Tourism",Operating,T,2027,7146250.0,1.0,,,Economic Development,,,Trust Funds,7.14625,False,0.03,1.62,11,234,7146250.0
+BED130,ECONOMIC PLANNING AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,5744533.0,18.46,,,Government Operations,,,General Funds,5.744533,False,0.03,1.3,12,267,311188.0
+BED130,ECONOMIC PLANNING AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Operating,P,2027,864351.0,8.04,,,Government Operations,,,Other Federal Funds,0.864351,False,0.0,0.2,37,476,107506.0
+BED138,HAWAII GREEN INFRASTRUCTURE AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,86639653.0,,,,Economic Development,,,Special Funds,86.639653,False,0.4,19.64,2,42,
+BED138,HAWAII GREEN INFRASTRUCTURE AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Operating,P,2027,444261.0,,,,Economic Development,,,Other Federal Funds,0.444261,False,0.0,0.1,40,512,
+BED142,GENERAL SUPPORT FOR ECONOMIC DEVELOPMENT,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,3802952.0,26.0,,,Economic Development,,,General Funds,3.802952,False,0.02,0.86,19,329,146267.0
+BED143,HAWAII TECHNOLOGY DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,4701795.0,8.0,,,Economic Development,,,General Funds,4.701795,False,0.02,1.07,15,301,587724.0
+BED143,HAWAII TECHNOLOGY DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,1604258.0,8.0,,,Economic Development,,,Special Funds,1.604258,False,0.01,0.36,32,423,200532.0
+BED143,HAWAII TECHNOLOGY DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,W,2027,2017203.0,8.0,,,Economic Development,,,Revolving Funds,2.017203,False,0.01,0.46,28,405,252150.0
+BED143,HAWAII TECHNOLOGY DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,P,2027,994214.0,8.0,,,Economic Development,,,Other Federal Funds,0.994214,False,0.0,0.23,36,463,124277.0
+BED144,STATEWIDE PLANNING AND COORDINATION,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,4280161.0,30.0,,,Government Operations,,,General Funds,4.280161,False,0.02,0.97,16,313,142672.0
+BED144,STATEWIDE PLANNING AND COORDINATION,BED,"Department of Business, Economic Development & Tourism",Operating,N,2027,2041871.0,30.0,,,Government Operations,,,Federal Funds,2.041871,False,0.01,0.46,27,403,68062.0
+BED144,STATEWIDE PLANNING AND COORDINATION,BED,"Department of Business, Economic Development & Tourism",Operating,W,2027,2000000.0,30.0,,,Government Operations,,,Revolving Funds,2.0,False,0.01,0.45,29,407,66667.0
+BED146,NATURAL ENERGY LABORATORY OF HAWAII AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,7929310.0,,,,Economic Development,,,Special Funds,7.92931,False,0.04,1.8,8,223,
+BED150,HAWAII COMMUNITY DEVELOPMENT AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,1526750.0,13.0,,,Economic Development,,,General Funds,1.52675,False,0.01,0.35,33,426,117442.0
+BED150,HAWAII COMMUNITY DEVELOPMENT AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,2554972.0,11.0,,,Economic Development,,,Special Funds,2.554972,False,0.01,0.58,26,378,232270.0
+BED150,HAWAII COMMUNITY DEVELOPMENT AUTHORITY,BED,"Department of Business, Economic Development & Tourism",Capital Improvement,C,2027,29450000.0,11.0,,,Economic Development,,,General Obligation Bond Fund,29.45,True,0.13,6.68,4,97,2677273.0
+BED160,HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,N,2027,3100000.0,,,,Economic Development,,,Federal Funds,3.1,False,0.01,0.7,22,355,
+BED160,HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,W,2027,15889058.0,23.0,,,Economic Development,,,Revolving Funds,15.889058,False,0.07,3.6,5,161,690829.0
+BED160,HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Operating,P,2027,3000000.0,23.0,,,Economic Development,,,Other Federal Funds,3.0,False,0.01,0.68,23,357,130435.0
+BED160,HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION,BED,"Department of Business, Economic Development & Tourism",Capital Improvement,C,2027,140000000.0,23.0,,,Economic Development,,,General Obligation Bond Fund,140.0,True,0.64,31.73,1,31,6086957.0
+BED170,AGRIBUSINESS DEVELOPMENT AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Operating,A,2027,4823166.0,13.5,,,Economic Development,,,General Funds,4.823166,False,0.02,1.09,14,295,357272.0
+BED170,AGRIBUSINESS DEVELOPMENT AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Operating,U,2027,82126.0,0.5,,,Economic Development,,,Interdepartmental Transfers,0.082126,False,0.0,0.02,41,569,164252.0
+BED170,AGRIBUSINESS DEVELOPMENT AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Operating,W,2027,4048264.0,2.0,,,Economic Development,,,Revolving Funds,4.048264,False,0.02,0.92,17,319,2024132.0
+BED170,AGRIBUSINESS DEVELOPMENT AND RESEARCH,BED,"Department of Business, Economic Development & Tourism",Capital Improvement,C,2027,5150000.0,2.0,,,Economic Development,,,General Obligation Bond Fund,5.15,True,0.02,1.17,13,282,2575000.0
+BED180,SPECTATOR EVENTS & SHOWS -ALOHA STADIUM,BED,"Department of Business, Economic Development & Tourism",Operating,B,2027,8772356.0,18.0,,,Culture and Recreation,,,Special Funds,8.772356,False,0.04,1.99,7,217,487353.0
+BUF101,DEPARTMENTAL ADMINISTRATION AND BUDGET DIVISION,BUF,Department of Budget & Finance,Operating,A,2027,13504737.0,58.0,,,Government Operations,,,General Funds,13.504737,False,0.06,0.3,15,175,232840.0
+BUF101,DEPARTMENTAL ADMINISTRATION AND BUDGET DIVISION,BUF,Department of Budget & Finance,Operating,B,2027,427305000.0,58.0,,,Government Operations,,,Special Funds,427.305,False,1.95,9.63,6,13,7367328.0
+BUF103,VACATION PAYOUT - STATEWIDE,BUF,Department of Budget & Finance,Operating,A,2027,9700000.0,,,,Government Operations,,,General Funds,9.7,False,0.04,0.22,17,204,
+BUF115,FINANCIAL ADMINISTRATION,BUF,Department of Budget & Finance,Operating,A,2027,2867681.0,18.0,,,Government Operations,,,General Funds,2.867681,False,0.01,0.06,19,362,159316.0
+BUF115,FINANCIAL ADMINISTRATION,BUF,Department of Budget & Finance,Operating,T,2027,15957630.0,9.0,,,Government Operations,,,Trust Funds,15.95763,False,0.07,0.36,13,160,1773070.0
+BUF141,EMPLOYEES’ RETIREMENT SYSTEM,BUF,Department of Budget & Finance,Operating,X,2027,25727960.0,117.0,,,Government Operations,,,Other Funds,25.72796,False,0.12,0.58,12,113,219897.0
+BUF143,HAWAII EMPLOYER UNION TRUST FUND,BUF,Department of Budget & Finance,Operating,T,2027,11337016.0,63.0,,,Government Operations,,,Trust Funds,11.337016,False,0.05,0.26,16,188,179953.0
+BUF151,OFFICE OF THE PUBLIC DEFENDER,BUF,Department of Budget & Finance,Operating,A,2027,15137691.0,133.5,,,Individual Rights,,,General Funds,15.137691,False,0.07,0.34,14,165,113391.0
+BUF721,DEBT SERVICE PAYMENTS - STATE,BUF,Department of Budget & Finance,Operating,A,2027,605294407.0,,,,Government Operations,,,General Funds,605.294407,False,2.76,13.65,2,6,
+BUF725,DEBT SERVICE PAYMENTS - DOE,BUF,Department of Budget & Finance,Operating,A,2027,521973994.0,,,,Education,,,General Funds,521.973994,False,2.38,11.77,5,11,
+BUF728,DEBT SERVICE PAYMENTS - UH,BUF,Department of Budget & Finance,Operating,A,2027,193181876.0,,,,Education,,,General Funds,193.181876,False,0.88,4.36,8,25,
+BUF741,RETIREMENT BENEFITS - STATE,BUF,Department of Budget & Finance,Operating,A,2027,522870219.0,,,,Government Operations,,,General Funds,522.870219,False,2.38,11.79,4,10,
+BUF741,RETIREMENT BENEFITS - STATE,BUF,Department of Budget & Finance,Operating,U,2027,4000000.0,,,,Government Operations,,,Interdepartmental Transfers,4.0,False,0.02,0.09,18,322,
+BUF745,RETIREMENT BENEFITS - DOE,BUF,Department of Budget & Finance,Operating,A,2027,572505610.0,,,,Education,,,General Funds,572.50561,False,2.61,12.91,3,8,
+BUF748,RETIREMENT BENEFITS - UH,BUF,Department of Budget & Finance,Operating,A,2027,224317511.0,,,,Education,,,General Funds,224.317511,False,1.02,5.06,7,22,
+BUF761,HEALTH PREMIUM PAYMENTS - STATE,BUF,Department of Budget & Finance,Operating,A,2027,161379104.0,,,,Government Operations,,,General Funds,161.379104,False,0.74,3.64,10,30,
+BUF762,HEALTH PREMIUM PAYMENT FOR ANNUAL REQUIRED CONTRIBUTION (ARC).,BUF,Department of Budget & Finance,Operating,A,2027,846891000.0,,,,Government Operations,,,General Funds,846.891,False,3.86,19.09,1,4,
+BUF765,HEALTH PREMIUM PAYMENTS - DOE,BUF,Department of Budget & Finance,Operating,A,2027,191510985.0,,,,Education,,,General Funds,191.510985,False,0.87,4.32,9,27,
+BUF768,HEALTH PREMIUM PAYMENTS - UH,BUF,Department of Budget & Finance,Operating,A,2027,70035107.0,,,,Education,,,General Funds,70.035107,False,0.32,1.58,11,47,
+CCA102,CABLE TELEVISION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,2507752.0,6.0,,,Individual Rights,,,Special Funds,2.507752,False,0.01,2.36,11,379,417959.0
+CCA103,"CONSUMER ADVOCATE FOR COMMUNICATION, UTILITIES, AND TRANSPORTATION SERVICES",CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,4944320.0,25.0,,,Individual Rights,,,Special Funds,4.94432,False,0.02,4.66,8,290,197773.0
+CCA104,FINANCIAL SERVICES REGULATION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,6417109.0,43.0,,,Individual Rights,,,Special Funds,6.417109,False,0.03,6.05,7,257,149235.0
+CCA104,FINANCIAL SERVICES REGULATION,CCA,Department of Commerce & Consumer Affairs,Operating,T,2027,301000.0,43.0,,,Individual Rights,,,Trust Funds,0.301,False,0.0,0.28,12,528,7000.0
+CCA105,PROFESSIONAL AND VOCATIONAL LICENSING,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,9909730.0,72.0,,,Individual Rights,,,Special Funds,9.90973,False,0.05,9.34,5,203,137635.0
+CCA105,PROFESSIONAL AND VOCATIONAL LICENSING,CCA,Department of Commerce & Consumer Affairs,Operating,T,2027,2880256.0,8.0,,,Individual Rights,,,Trust Funds,2.880256,False,0.01,2.71,10,361,360032.0
+CCA106,INSURANCE REGULATORY SERVICES,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,22746784.0,95.0,,,Individual Rights,,,Special Funds,22.746784,False,0.1,21.44,1,127,239440.0
+CCA106,INSURANCE REGULATORY SERVICES,CCA,Department of Commerce & Consumer Affairs,Operating,T,2027,201000.0,95.0,,,Individual Rights,,,Trust Funds,0.201,False,0.0,0.19,14,543,2116.0
+CCA107,POST-SECONDARY EDUCATION AUTHORIZATION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,249052.0,1.0,,,Individual Rights,,,Special Funds,0.249052,False,0.0,0.23,13,539,249052.0
+CCA110,OFFICE OF CONSUMER PROTECTION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,3833679.0,20.0,,,Individual Rights,,,Special Funds,3.833679,False,0.02,3.61,9,327,191684.0
+CCA110,OFFICE OF CONSUMER PROTECTION,CCA,Department of Commerce & Consumer Affairs,Operating,T,2027,100681.0,20.0,,,Individual Rights,,,Trust Funds,0.100681,False,0.0,0.09,15,566,5034.0
+CCA111,BUSINESS REGISTRATION AND SECURITIES REGULATION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,10432895.0,77.0,,,Individual Rights,,,Special Funds,10.432895,False,0.05,9.83,4,197,135492.0
+CCA112,REGULATED INDUSTRIES COMPLAINTS OFFICE,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,8930940.0,66.0,,,Individual Rights,,,Special Funds,8.93094,False,0.04,8.42,6,213,135317.0
+CCA191,GENERAL SUPPORT,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,12858290.0,54.0,,,Individual Rights,,,Special Funds,12.85829,False,0.06,12.12,3,180,238116.0
+CCA901,PUBLIC UTILITIES COMMISSION,CCA,Department of Commerce & Consumer Affairs,Operating,B,2027,19777291.0,69.0,,,Individual Rights,,,Special Funds,19.777291,False,0.09,18.64,2,139,286627.0
+DEF110,AMELIORATION OF PHYSICAL DISASTERS,DEF,Department of Defense,Operating,A,2027,10256912.0,100.25,,,Public Safety,,,General Funds,10.256912,False,0.05,9.06,4,199,102313.0
+DEF110,AMELIORATION OF PHYSICAL DISASTERS,DEF,Department of Defense,Operating,P,2027,1430238.0,21.75,,,Public Safety,,,Other Federal Funds,1.430238,False,0.01,1.26,10,429,65758.0
+DEF112,SERVICES TO VETERANS,DEF,Department of Defense,Operating,A,2027,2066978.0,28.0,,,Human Services,,,General Funds,2.066978,False,0.01,1.83,9,401,73821.0
+DEF114,HAWAII NATIONAL GUARD YOUTH CHALLENGE ACADEMY,DEF,Department of Defense,Operating,A,2027,3885050.0,,,,Education,,,General Funds,3.88505,False,0.02,3.43,8,325,
+DEF114,HAWAII NATIONAL GUARD YOUTH CHALLENGE ACADEMY,DEF,Department of Defense,Operating,P,2027,6482477.0,,,,Education,,,Other Federal Funds,6.482477,False,0.03,5.73,6,255,
+DEF116,HAWAII ARMY AND AIR NATIONAL GUARD,DEF,Department of Defense,Operating,A,2027,7081247.0,19.75,,,Public Safety,,,General Funds,7.081247,False,0.03,6.26,5,237,358544.0
+DEF116,HAWAII ARMY AND AIR NATIONAL GUARD,DEF,Department of Defense,Operating,P,2027,40210106.0,99.25,,,Public Safety,,,Other Federal Funds,40.210106,False,0.18,35.53,1,80,405140.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,DEF,Department of Defense,Operating,A,2027,14097375.0,26.0,,,Public Safety,,,General Funds,14.097375,False,0.06,12.46,3,171,542207.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,DEF,Department of Defense,Operating,B,2027,500000.0,26.0,,,Public Safety,,,Special Funds,0.5,False,0.0,0.44,11,507,19231.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,DEF,Department of Defense,Operating,W,2027,500000.0,26.0,,,Public Safety,,,Revolving Funds,0.5,False,0.0,0.44,11,507,19231.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,DEF,Department of Defense,Operating,N,2027,4156958.0,26.0,,,Public Safety,,,Federal Funds,4.156958,False,0.02,3.67,7,315,159883.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,DEF,Department of Defense,Operating,P,2027,22497034.0,26.0,,,Public Safety,,,Other Federal Funds,22.497034,False,0.1,19.88,2,128,865271.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,6500000.0,26.0,,,Public Safety,,,General Obligation Bond Fund,6.5,True,0.03,1.97,14,253,250000.0
+DEF118,HAWAII EMERGENCY MANAGEMENT AGENCY,AGS,Department of Accounting & General Services,Capital Improvement,P,2027,1500000.0,26.0,,,Public Safety,,Investment Capital,Other Federal Funds,1.5,True,0.01,0.46,34,427,57692.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,A,2027,1319319292.0,12397.75,,,Education,,,General Funds,1319.319292,False,6.02,41.37,1,2,106416.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,B,2027,5251693.0,12397.75,,,Education,,,Special Funds,5.251693,False,0.02,0.16,23,277,424.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,N,2027,167203642.0,12397.75,,,Education,,,Federal Funds,167.203642,False,0.76,5.24,4,28,13487.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,T,2027,13390000.0,12397.75,,,Education,,,Trust Funds,13.39,False,0.06,0.42,16,176,1080.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,U,2027,7495605.0,12397.75,,,Education,,,Interdepartmental Transfers,7.495605,False,0.03,0.24,20,229,605.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,W,2027,3239301.0,9.0,,,Education,,,Revolving Funds,3.239301,False,0.01,0.1,28,351,359922.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Operating,P,2027,21414657.0,1.0,,,Education,,,Other Federal Funds,21.414657,False,0.1,0.67,15,132,21414657.0
+EDN100,SCHOOL-BASED BUDGETING,EDN,Department of Education,Capital Improvement,C,2027,46500000.0,1.0,,,Education,,,General Obligation Bond Fund,46.5,True,0.21,1.46,11,70,46500000.0
+EDN150,SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES,EDN,Department of Education,Operating,A,2027,525281027.0,5368.5,,,Education,,,General Funds,525.281027,False,2.4,16.47,2,9,97845.0
+EDN150,SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES,EDN,Department of Education,Operating,B,2027,250000.0,5368.5,,,Education,,,Special Funds,0.25,False,0.0,0.01,39,538,47.0
+EDN150,SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES,EDN,Department of Education,Operating,N,2027,61584267.0,2.0,,,Education,,,Federal Funds,61.584267,False,0.28,1.93,8,52,30792134.0
+EDN150,SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES,EDN,Department of Education,Operating,W,2027,11000000.0,14.0,,,Education,,,Revolving Funds,11.0,False,0.05,0.34,19,190,785714.0
+EDN150,SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES,EDN,Department of Education,Operating,P,2027,5950000.0,14.0,,,Education,,,Other Federal Funds,5.95,False,0.03,0.19,22,263,425000.0
+EDN200,INSTRUCTIONAL SUPPORT,EDN,Department of Education,Operating,A,2027,93374921.0,457.0,,,Education,,,General Funds,93.374921,False,0.43,2.93,6,41,204321.0
+EDN200,INSTRUCTIONAL SUPPORT,EDN,Department of Education,Operating,N,2027,500000.0,457.0,,,Education,,,Federal Funds,0.5,False,0.0,0.02,35,507,1094.0
+EDN200,INSTRUCTIONAL SUPPORT,EDN,Department of Education,Operating,P,2027,273794.0,457.0,,,Education,,,Other Federal Funds,0.273794,False,0.0,0.01,38,533,599.0
+EDN300,STATE ADMINISTRATION,EDN,Department of Education,Operating,A,2027,47007968.0,424.0,,,Education,,,General Funds,47.007968,False,0.21,1.47,10,69,110868.0
+EDN300,STATE ADMINISTRATION,EDN,Department of Education,Operating,N,2027,112140.0,424.0,,,Education,,,Federal Funds,0.11214,False,0.0,0.0,42,561,264.0
+EDN300,STATE ADMINISTRATION,EDN,Department of Education,Operating,P,2027,3807440.0,424.0,,,Education,,,Other Federal Funds,3.80744,False,0.02,0.12,26,328,8980.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,A,2027,423937360.0,849.5,,,Education,,,General Funds,423.93736,False,1.93,13.29,3,15,499043.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,B,2027,44200920.0,11.0,,,Education,,,Special Funds,44.20092,False,0.2,1.39,12,75,4018265.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,N,2027,74600000.0,718.5,,,Education,,,Federal Funds,74.6,False,0.34,2.34,7,46,103827.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,R,2027,150000.0,718.5,,,Education,,,Private Contributions,0.15,False,0.0,0.0,40,553,209.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,W,2027,11597927.0,4.0,,,Education,,,Revolving Funds,11.597927,False,0.05,0.36,18,187,2899482.0
+EDN400,SCHOOL SUPPORT,EDN,Department of Education,Operating,P,2027,1000000.0,4.0,,,Education,,,Other Federal Funds,1.0,False,0.0,0.03,34,461,250000.0
+EDN407,PUBLIC LIBRARIES,EDN,Department of Education,Operating,A,2027,47632130.0,567.5,,,Education,,,General Funds,47.63213,False,0.22,1.49,9,68,83933.0
+EDN407,PUBLIC LIBRARIES,EDN,Department of Education,Operating,B,2027,4000000.0,567.5,,,Education,,,Special Funds,4.0,False,0.02,0.13,25,322,7048.0
+EDN407,PUBLIC LIBRARIES,EDN,Department of Education,Operating,N,2027,2000000.0,567.5,,,Education,,,Federal Funds,2.0,False,0.01,0.06,30,407,3524.0
+EDN407,PUBLIC LIBRARIES,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,25000000.0,567.5,,,Education,,,General Obligation Bond Fund,25.0,True,0.11,7.58,5,117,44053.0
+EDN450,SCHOOL FACILITIES AUTHORITY,EDN,Department of Education,Operating,A,2027,1738979.0,12.0,,,Education,,,General Funds,1.738979,False,0.01,0.05,32,417,144915.0
+EDN500,SCHOOL COMMUNITY SERVICES,EDN,Department of Education,Operating,A,2027,6325235.0,42.0,,,Education,,,General Funds,6.325235,False,0.03,0.2,21,258,150601.0
+EDN500,SCHOOL COMMUNITY SERVICES,EDN,Department of Education,Operating,B,2027,1633908.0,42.0,,,Education,,,Special Funds,1.633908,False,0.01,0.05,33,421,38903.0
+EDN500,SCHOOL COMMUNITY SERVICES,EDN,Department of Education,Operating,N,2027,3266757.0,42.0,,,Education,,,Federal Funds,3.266757,False,0.01,0.1,27,349,77780.0
+EDN500,SCHOOL COMMUNITY SERVICES,EDN,Department of Education,Operating,W,2027,23224665.0,42.0,,,Education,,,Revolving Funds,23.224665,False,0.11,0.73,14,125,552968.0
+EDN500,SCHOOL COMMUNITY SERVICES,EDN,Department of Education,Operating,P,2027,300000.0,42.0,,,Education,,,Other Federal Funds,0.3,False,0.0,0.01,37,529,7143.0
+EDN600,CHARTER SCHOOLS,EDN,Department of Education,Operating,A,2027,162578377.0,,,,Education,,,General Funds,162.578377,False,0.74,5.1,5,29,
+EDN600,CHARTER SCHOOLS,EDN,Department of Education,Operating,N,2027,5042000.0,,,,Education,,,Federal Funds,5.042,False,0.02,0.16,24,285,
+EDN612,CHARTER SCHOOLS COMMISSION AND ADMINISTRATION,EDN,Department of Education,Operating,A,2027,12564269.0,81.12,,,Education,,,General Funds,12.564269,False,0.06,0.39,17,182,154885.0
+EDN612,CHARTER SCHOOLS COMMISSION AND ADMINISTRATION,EDN,Department of Education,Operating,N,2027,1800000.0,6.88,,,Education,,,Federal Funds,1.8,False,0.01,0.06,31,415,261628.0
+EDN700,EARLY LEARNING,EDN,Department of Education,Operating,A,2027,24749084.0,331.0,,,Education,,,General Funds,24.749084,False,0.11,0.78,13,118,74771.0
+EDN700,EARLY LEARNING,EDN,Department of Education,Operating,B,2027,3000000.0,331.0,,,Education,,,Special Funds,3.0,False,0.01,0.09,29,357,9063.0
+EDN700,EARLY LEARNING,EDN,Department of Education,Operating,N,2027,125628.0,331.0,,,Education,,,Federal Funds,0.125628,False,0.0,0.0,41,557,380.0
+EDN700,EARLY LEARNING,EDN,Department of Education,Operating,P,2027,380000.0,331.0,,,Education,,,Other Federal Funds,0.38,False,0.0,0.01,36,522,1148.0
+GOV100,OFFICE OF THE GOVERNOR,GOV,Office of the Governor,Operating,A,2027,4551872.0,24.0,,,Government Operations,,,General Funds,4.551872,False,0.02,100.0,1,307,189661.0
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,A,2027,10000000.0,,,,Human Services,,,General Funds,10.0,False,0.05,14.67,3,200,
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,B,2027,4824709.0,,,,Human Services,,,Special Funds,4.824709,False,0.02,7.08,5,294,
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,N,2027,24126731.0,4.0,,,Human Services,,,Federal Funds,24.126731,False,0.11,35.39,1,121,6031683.0
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,T,2027,3740534.0,4.0,,,Human Services,,,Trust Funds,3.740534,False,0.02,5.49,6,332,935134.0
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,W,2027,7000000.0,4.0,,,Human Services,,,Revolving Funds,7.0,False,0.03,10.27,4,240,1750000.0
+HHL602,PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS,HHL,Department of Hawaiian Home Lands,Operating,P,2027,442800.0,4.0,,,Human Services,,,Other Federal Funds,0.4428,False,0.0,0.65,7,514,110700.0
+HHL625,ADMINISTRATION AND OPERATING SUPPORT,HHL,Department of Hawaiian Home Lands,Operating,A,2027,18032234.0,200.0,,,Human Services,,,General Funds,18.032234,False,0.08,26.45,2,145,90161.0
+HMS202,"AGED, BLIND AND DISABLED PAYMENTS",HMS,Department of Human Services,Operating,A,2027,4029480.0,,,,Human Services,,,General Funds,4.02948,False,0.02,0.08,43,321,
+HMS204,GENERAL ASSISTANCE PAYMENTS,HMS,Department of Human Services,Operating,A,2027,23889056.0,,,,Human Services,,,General Funds,23.889056,False,0.11,0.5,21,123,
+HMS204,GENERAL ASSISTANCE PAYMENTS,HMS,Department of Human Services,Operating,B,2027,3000000.0,,,,Human Services,,,Special Funds,3.0,False,0.01,0.06,46,357,
+HMS206,FEDERAL ASSISTANCE PAYMENTS,HMS,Department of Human Services,Operating,N,2027,8345024.0,,,,Human Services,,,Federal Funds,8.345024,False,0.04,0.17,35,219,
+HMS211,CASH SUPPORT FOR FAMILIES - SELF-SUFFICIENCY,HMS,Department of Human Services,Operating,A,2027,26715965.0,,,,Human Services,,,General Funds,26.715965,False,0.12,0.56,19,109,
+HMS211,CASH SUPPORT FOR FAMILIES - SELF-SUFFICIENCY,HMS,Department of Human Services,Operating,N,2027,44000000.0,,,,Human Services,,,Federal Funds,44.0,False,0.2,0.92,14,76,
+HMS220,RENTAL HOUSING SERVICES,HMS,Department of Human Services,Operating,A,2027,4694409.0,5.0,,,Human Services,,,General Funds,4.694409,False,0.02,0.1,42,302,938882.0
+HMS220,RENTAL HOUSING SERVICES,HMS,Department of Human Services,Operating,N,2027,112088200.0,191.0,,,Human Services,,,Federal Funds,112.0882,False,0.51,2.35,4,34,586849.0
+HMS220,RENTAL HOUSING SERVICES,HMS,Department of Human Services,Operating,W,2027,5187506.0,17.0,,,Human Services,,,Revolving Funds,5.187506,False,0.02,0.11,40,280,305147.0
+HMS222,RENTAL ASSISTANCE SERVICES,HMS,Department of Human Services,Operating,A,2027,1557121.0,1.0,,,Human Services,,,General Funds,1.557121,False,0.01,0.03,50,424,1557121.0
+HMS222,RENTAL ASSISTANCE SERVICES,HMS,Department of Human Services,Operating,N,2027,77039700.0,34.0,,,Human Services,,,Federal Funds,77.0397,False,0.35,1.61,7,44,2265874.0
+HMS224,HOMELESS SERVICES,HMS,Department of Human Services,Operating,A,2027,27931773.0,11.0,,,Human Services,,,General Funds,27.931773,False,0.13,0.58,17,103,2539252.0
+HMS224,HOMELESS SERVICES,HMS,Department of Human Services,Operating,N,2027,814000.0,11.0,,,Human Services,,,Federal Funds,0.814,False,0.0,0.02,56,480,74000.0
+HMS229,HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION,HMS,Department of Human Services,Operating,A,2027,502838.0,2.0,,,Human Services,,,General Funds,0.502838,False,0.0,0.01,58,506,251419.0
+HMS229,HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION,HMS,Department of Human Services,Operating,N,2027,27840930.0,2.0,,,Human Services,,,Federal Funds,27.84093,False,0.13,0.58,18,104,13920465.0
+HMS229,HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION,HMS,Department of Human Services,Operating,W,2027,17676361.0,119.0,,,Human Services,,,Revolving Funds,17.676361,False,0.08,0.37,26,150,148541.0
+HMS236,CASE MANAGEMENT FOR SELF-SUFFICIENCY,HMS,Department of Human Services,Operating,A,2027,19673479.0,287.43,,,Human Services,,,General Funds,19.673479,False,0.09,0.41,22,140,68446.0
+HMS236,CASE MANAGEMENT FOR SELF-SUFFICIENCY,HMS,Department of Human Services,Operating,N,2027,26393053.0,226.57,,,Human Services,,,Federal Funds,26.393053,False,0.12,0.55,20,110,116490.0
+HMS236,CASE MANAGEMENT FOR SELF-SUFFICIENCY,HMS,Department of Human Services,Operating,P,2027,30237.0,226.57,,,Human Services,,,Other Federal Funds,0.030237,False,0.0,0.0,63,575,133.0
+HMS237,EMPLOYMENT AND TRAINING,HMS,Department of Human Services,Operating,A,2027,469505.0,,,,Human Services,,,General Funds,0.469505,False,0.0,0.01,59,509,
+HMS237,EMPLOYMENT AND TRAINING,HMS,Department of Human Services,Operating,N,2027,2575945.0,,,,Human Services,,,Federal Funds,2.575945,False,0.01,0.05,48,376,
+HMS238,DISABILITY DETERMINATION,HMS,Department of Human Services,Operating,N,2027,8859927.0,50.0,,,Human Services,,,Federal Funds,8.859927,False,0.04,0.19,34,214,177199.0
+HMS301,CHILD PROTECTIVE SERVICES,HMS,Department of Human Services,Operating,A,2027,50570717.0,303.75,,,Human Services,,,General Funds,50.570717,False,0.23,1.06,10,62,166488.0
+HMS301,CHILD PROTECTIVE SERVICES,HMS,Department of Human Services,Operating,B,2027,6124053.0,1.0,,,Human Services,,,Special Funds,6.124053,False,0.03,0.13,39,261,6124053.0
+HMS301,CHILD PROTECTIVE SERVICES,HMS,Department of Human Services,Operating,N,2027,49452950.0,84.75,,,Human Services,,,Federal Funds,49.45295,False,0.23,1.04,11,63,583516.0
+HMS301,CHILD PROTECTIVE SERVICES,HMS,Department of Human Services,Operating,P,2027,400000.0,84.75,,,Human Services,,,Other Federal Funds,0.4,False,0.0,0.01,60,519,4720.0
+HMS302,GENERAL SUPPORT FOR CHILD CARE,HMS,Department of Human Services,Operating,A,2027,2840528.0,38.92,,,Human Services,,,General Funds,2.840528,False,0.01,0.06,47,364,72984.0
+HMS302,GENERAL SUPPORT FOR CHILD CARE,HMS,Department of Human Services,Operating,N,2027,14137770.0,38.08,,,Human Services,,,Federal Funds,14.13777,False,0.06,0.3,30,170,371265.0
+HMS303,CHILD PROTECTIVE SERVICES PAYMENTS,HMS,Department of Human Services,Operating,A,2027,48265586.0,,,,Human Services,,,General Funds,48.265586,False,0.22,1.01,13,67,
+HMS303,CHILD PROTECTIVE SERVICES PAYMENTS,HMS,Department of Human Services,Operating,N,2027,31542000.0,,,,Human Services,,,Federal Funds,31.542,False,0.14,0.66,15,94,
+HMS305,CASH SUPPORT FOR CHILD CARE,HMS,Department of Human Services,Operating,A,2027,57811811.0,,,,Human Services,,,General Funds,57.811811,False,0.26,1.21,9,55,
+HMS305,CASH SUPPORT FOR CHILD CARE,HMS,Department of Human Services,Operating,N,2027,69565754.0,,,,Human Services,,,Federal Funds,69.565754,False,0.32,1.46,8,48,
+HMS401,HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,A,2027,1031466906.0,,,,Human Services,,,General Funds,1031.466906,False,4.7,21.6,2,3,
+HMS401,HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,B,2027,230000000.0,,,,Human Services,,,Special Funds,230.0,False,1.05,4.82,3,21,
+HMS401,HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,N,2027,2291497122.0,,,,Human Services,,,Federal Funds,2291.497122,False,10.45,47.99,1,1,
+HMS401,HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,U,2027,6781921.0,,,,Human Services,,,Interdepartmental Transfers,6.781921,False,0.03,0.14,37,245,
+HMS401,HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,P,2027,15798564.0,,,,Human Services,,,Other Federal Funds,15.798564,False,0.07,0.33,28,163,
+HMS501,IN-COMMUNITY YOUTH PROGRAMS,HMS,Department of Human Services,Operating,A,2027,10800451.0,18.5,,,Human Services,,,General Funds,10.800451,False,0.05,0.23,32,193,583808.0
+HMS501,IN-COMMUNITY YOUTH PROGRAMS,HMS,Department of Human Services,Operating,N,2027,1534135.0,0.5,,,Human Services,,,Federal Funds,1.534135,False,0.01,0.03,51,425,3068270.0
+HMS503,HAWAII YOUTH CORRECTIONAL FACILITY (HYCF),HMS,Department of Human Services,Operating,A,2027,9992933.0,90.0,,,Human Services,,,General Funds,9.992933,False,0.05,0.21,33,201,111033.0
+HMS555,OFFICE OF WELLNESS AND RESILIENCE,HMS,Department of Human Services,Operating,A,2027,1346000.0,12.0,,,Human Services,,,General Funds,1.346,False,0.01,0.03,52,433,112167.0
+HMS601,ADULT PROTECTIVE AND COMMUNITY SERVICES,HMS,Department of Human Services,Operating,A,2027,6875326.0,69.48,,,Human Services,,,General Funds,6.875326,False,0.03,0.14,36,242,98954.0
+HMS601,ADULT PROTECTIVE AND COMMUNITY SERVICES,HMS,Department of Human Services,Operating,N,2027,838010.0,7.02,,,Human Services,,,Federal Funds,0.83801,False,0.0,0.02,55,478,119375.0
+HMS601,ADULT PROTECTIVE AND COMMUNITY SERVICES,HMS,Department of Human Services,Operating,R,2027,10000.0,7.02,,,Human Services,,,Private Contributions,0.01,False,0.0,0.0,64,579,1425.0
+HMS601,ADULT PROTECTIVE AND COMMUNITY SERVICES,HMS,Department of Human Services,Operating,U,2027,387560.0,7.02,,,Human Services,,,Interdepartmental Transfers,0.38756,False,0.0,0.01,61,521,55208.0
+HMS601,ADULT PROTECTIVE AND COMMUNITY SERVICES,HMS,Department of Human Services,Operating,P,2027,1321390.0,7.02,,,Human Services,,,Other Federal Funds,1.32139,False,0.01,0.03,53,436,188232.0
+HMS605,COMMUNITY-BASED RESIDENTIAL & MEDICAID FACILITY SUPPORT,HMS,Department of Human Services,Operating,A,2027,17810955.0,,,,Human Services,,,General Funds,17.810955,False,0.08,0.37,25,149,
+HMS777,OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS,HMS,Department of Human Services,Operating,A,2027,611040.0,8.0,,,Human Services,,,General Funds,0.61104,False,0.0,0.01,57,497,76380.0
+HMS777,OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS,HMS,Department of Human Services,Capital Improvement,C,2027,13000000.0,8.0,,,Human Services,,,General Obligation Bond Fund,13.0,True,0.06,0.27,31,178,1625000.0
+HMS802,VOCATIONAL REHABILITATION,HMS,Department of Human Services,Operating,A,2027,6138995.0,38.73,,,Employment,,,General Funds,6.138995,False,0.03,0.13,38,260,158507.0
+HMS802,VOCATIONAL REHABILITATION,HMS,Department of Human Services,Operating,N,2027,19176876.0,73.27,,,Employment,,,Federal Funds,19.176876,False,0.09,0.4,24,143,261729.0
+HMS802,VOCATIONAL REHABILITATION,HMS,Department of Human Services,Operating,W,2027,2000000.0,73.27,,,Employment,,,Revolving Funds,2.0,False,0.01,0.04,49,407,27296.0
+HMS888,COMMISSION ON THE STATUS OF WOMEN,HMS,Department of Human Services,Operating,A,2027,184462.0,1.0,,,Individual Rights,,,General Funds,0.184462,False,0.0,0.0,62,547,184462.0
+HMS901,GENERAL SUPPORT FOR SOCIAL SERVICES,HMS,Department of Human Services,Operating,A,2027,3487230.0,33.5,,,Human Services,,,General Funds,3.48723,False,0.02,0.07,44,342,104096.0
+HMS901,GENERAL SUPPORT FOR SOCIAL SERVICES,HMS,Department of Human Services,Operating,N,2027,3246986.0,9.5,,,Human Services,,,Federal Funds,3.246986,False,0.01,0.07,45,350,341788.0
+HMS902,GENERAL SUPPORT FOR HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,A,2027,16133771.0,137.0,,,Human Services,,,General Funds,16.133771,False,0.07,0.34,27,159,117765.0
+HMS902,GENERAL SUPPORT FOR HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,B,2027,30104367.0,0.87,,,Human Services,,,Special Funds,30.104367,False,0.14,0.63,16,96,34602721.0
+HMS902,GENERAL SUPPORT FOR HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,N,2027,96345000.0,145.63,,,Human Services,,,Federal Funds,96.345,False,0.44,2.02,5,38,661574.0
+HMS902,GENERAL SUPPORT FOR HEALTH CARE PAYMENTS,HMS,Department of Human Services,Operating,P,2027,1200000.0,145.63,,,Human Services,,,Other Federal Funds,1.2,False,0.01,0.03,54,443,8240.0
+HMS903,GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES,HMS,Department of Human Services,Operating,A,2027,48604950.0,51.3,,,Human Services,,,General Funds,48.60495,False,0.22,1.02,12,65,947465.0
+HMS903,GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES,HMS,Department of Human Services,Operating,N,2027,95418155.0,46.7,,,Human Services,,,Federal Funds,95.418155,False,0.44,2.0,6,39,2043215.0
+HMS903,GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES,HMS,Department of Human Services,Operating,P,2027,19560000.0,46.7,,,Human Services,,,Other Federal Funds,19.56,False,0.09,0.41,23,142,418844.0
+HMS904,GENERAL ADMINISTRATION - DHS,HMS,Department of Human Services,Operating,A,2027,14292045.0,151.59,,,Human Services,,,General Funds,14.292045,False,0.07,0.3,29,169,94281.0
+HMS904,GENERAL ADMINISTRATION - DHS,HMS,Department of Human Services,Operating,N,2027,4788768.0,31.41,,,Human Services,,,Federal Funds,4.788768,False,0.02,0.1,41,298,152460.0
+HRD102,"WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",HRD,Department of Human Resources Development,Operating,A,2027,27649629.0,89.0,,,Government Operations,,,General Funds,27.649629,False,0.13,76.21,1,105,310670.0
+HRD102,"WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",HRD,Department of Human Resources Development,Operating,B,2027,700000.0,89.0,,,Government Operations,,,Special Funds,0.7,False,0.0,1.93,4,493,7865.0
+HRD102,"WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",HRD,Department of Human Resources Development,Operating,U,2027,5178161.0,2.0,,,Government Operations,,,Interdepartmental Transfers,5.178161,False,0.02,14.27,2,281,2589080.0
+HRD191,SUPPORTING SERVICES – HUMAN RESOURCES DEVELOPMENT,HRD,Department of Human Resources Development,Operating,A,2027,2750816.0,12.0,,,Government Operations,,,General Funds,2.750816,False,0.01,7.58,3,367,229235.0
+HTH100,COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING,HTH,Department of Health,Operating,A,2027,33067876.0,236.87,,,Health,,,General Funds,33.067876,False,0.15,1.42,16,90,139603.0
+HTH100,COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING,HTH,Department of Health,Operating,N,2027,8827137.0,236.87,,,Health,,,Federal Funds,8.827137,False,0.04,0.38,33,215,37266.0
+HTH100,COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING,HTH,Department of Health,Operating,U,2027,637849.0,3.0,,,Health,,,Interdepartmental Transfers,0.637849,False,0.0,0.03,73,495,212616.0
+HTH100,COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING,HTH,Department of Health,Operating,P,2027,5311894.0,11.0,,,Health,,,Other Federal Funds,5.311894,False,0.02,0.23,42,274,482899.0
+HTH131,DISEASE OUTBREAK CONTROL,HTH,Department of Health,Operating,A,2027,2604086.0,26.6,,,Health,,,General Funds,2.604086,False,0.01,0.11,56,372,97898.0
+HTH131,DISEASE OUTBREAK CONTROL,HTH,Department of Health,Operating,N,2027,3705177.0,20.4,,,Health,,,Federal Funds,3.705177,False,0.02,0.16,51,333,181626.0
+HTH131,DISEASE OUTBREAK CONTROL,HTH,Department of Health,Operating,P,2027,9378970.0,1.0,,,Health,,,Other Federal Funds,9.37897,False,0.04,0.4,29,206,9378970.0
+HTH210,HAWAII HEALTH SYSTEMS CORPORATION – CORPORATE OFFICE,HTH,Department of Health,Operating,B,2027,17509280.0,54.5,,,Health,,,Special Funds,17.50928,False,0.08,0.75,21,152,321271.0
+HTH211,KAHUKU HOSPITAL,HTH,Department of Health,Operating,A,2027,2032500.0,,,,Health,,,General Funds,2.0325,False,0.01,0.09,64,404,
+HTH211,KAHUKU HOSPITAL,HTH,Department of Health,Capital Improvement,C,2027,5000000.0,,,,Health,,,General Obligation Bond Fund,5.0,True,0.02,0.21,45,287,
+HTH212,HAWAII HEALTH SYSTEMS CORPORATION –  REGIONS,HTH,Department of Health,Operating,A,2027,199816303.0,,,,Health,,,General Funds,199.816303,False,0.91,8.59,3,24,
+HTH212,HAWAII HEALTH SYSTEMS CORPORATION –  REGIONS,HTH,Department of Health,Operating,B,2027,582286185.0,2337.85,,,Health,,,Special Funds,582.286185,False,2.66,25.03,1,7,249069.0
+HTH212,HAWAII HEALTH SYSTEMS CORPORATION –  REGIONS,HTH,Department of Health,Capital Improvement,C,2027,53709000.0,2337.85,,,Health,,,General Obligation Bond Fund,53.709,True,0.24,2.31,11,58,22974.0
+HTH213,ALII COMMUNITY CARE,HTH,Department of Health,Operating,B,2027,3500000.0,,,,Health,,,Special Funds,3.5,False,0.02,0.15,52,341,
+HTH214,"MAUI HEALTH SYSTEM, A KFH LLC",HTH,Department of Health,Operating,A,2027,6000000.0,,,,Health,,,General Funds,6.0,False,0.03,0.26,40,262,
+HTH214,"MAUI HEALTH SYSTEM, A KFH LLC",HTH,Department of Health,Capital Improvement,C,2027,6000000.0,,,,Health,,,General Obligation Bond Fund,6.0,True,0.03,0.26,40,262,
+HTH215,HHSC - OAHU REGION,HTH,Department of Health,Operating,A,2027,14000000.0,,,,Health,,,General Funds,14.0,False,0.06,0.6,23,174,
+HTH215,HHSC - OAHU REGION,HTH,Department of Health,Operating,B,2027,48400000.0,439.0,,,Health,,,Special Funds,48.4,False,0.22,2.08,13,66,110251.0
+HTH215,HHSC - OAHU REGION,HTH,Department of Health,Capital Improvement,C,2027,5110000.0,439.0,,,Health,,,General Obligation Bond Fund,5.11,True,0.02,0.22,44,284,11640.0
+HTH420,ADULT MENTAL HEALTH - OUTPATIENT,HTH,Department of Health,Operating,A,2027,93667271.0,343.0,,,Health,,,General Funds,93.667271,False,0.43,4.03,6,40,273082.0
+HTH420,ADULT MENTAL HEALTH - OUTPATIENT,HTH,Department of Health,Operating,B,2027,11610000.0,343.0,,,Health,,,Special Funds,11.61,False,0.05,0.5,26,186,33848.0
+HTH420,ADULT MENTAL HEALTH - OUTPATIENT,HTH,Department of Health,Operating,N,2027,2333370.0,343.0,,,Health,,,Federal Funds,2.33337,False,0.01,0.1,59,388,6803.0
+HTH420,ADULT MENTAL HEALTH - OUTPATIENT,HTH,Department of Health,Operating,P,2027,137363.0,343.0,,,Health,,,Other Federal Funds,0.137363,False,0.0,0.01,88,555,400.0
+HTH430,ADULT MENTAL HEALTH - INPATIENT,HTH,Department of Health,Operating,A,2027,134673554.0,853.0,,,Health,,,General Funds,134.673554,False,0.61,5.79,4,32,157882.0
+HTH430,ADULT MENTAL HEALTH - INPATIENT,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,16750000.0,853.0,,,Health,,,General Obligation Bond Fund,16.75,True,0.08,5.08,6,156,19637.0
+HTH440,ALCOHOL AND DRUG ABUSE DIVISION,HTH,Department of Health,Operating,A,2027,20395713.0,29.0,,,Health,,,General Funds,20.395713,False,0.09,0.88,19,136,703300.0
+HTH440,ALCOHOL AND DRUG ABUSE DIVISION,HTH,Department of Health,Operating,B,2027,750000.0,29.0,,,Health,,,Special Funds,0.75,False,0.0,0.03,69,487,25862.0
+HTH440,ALCOHOL AND DRUG ABUSE DIVISION,HTH,Department of Health,Operating,N,2027,9038656.0,1.0,,,Health,,,Federal Funds,9.038656,False,0.04,0.39,32,210,9038656.0
+HTH440,ALCOHOL AND DRUG ABUSE DIVISION,HTH,Department of Health,Operating,P,2027,6722746.0,1.0,,,Health,,,Other Federal Funds,6.722746,False,0.03,0.29,39,248,6722746.0
+HTH460,CHILD AND ADOLESCENT MENTAL HEALTH,HTH,Department of Health,Operating,A,2027,63631355.0,159.5,,,Health,,,General Funds,63.631355,False,0.29,2.74,8,51,398943.0
+HTH460,CHILD AND ADOLESCENT MENTAL HEALTH,HTH,Department of Health,Operating,B,2027,15375579.0,29.0,,,Health,,,Special Funds,15.375579,False,0.07,0.66,22,164,530192.0
+HTH460,CHILD AND ADOLESCENT MENTAL HEALTH,HTH,Department of Health,Operating,N,2027,2339630.0,29.0,,,Health,,,Federal Funds,2.33963,False,0.01,0.1,58,387,80677.0
+HTH460,CHILD AND ADOLESCENT MENTAL HEALTH,HTH,Department of Health,Operating,U,2027,2281992.0,29.0,,,Health,,,Interdepartmental Transfers,2.281992,False,0.01,0.1,60,389,78689.0
+HTH495,BEHAVIORAL HEALTH ADMINISTRATION,HTH,Department of Health,Operating,A,2027,210907.0,2.0,,,Health,,,General Funds,0.210907,False,0.0,0.01,85,542,105454.0
+HTH501,DEVELOPMENTAL DISABILITIES,HTH,Department of Health,Operating,A,2027,131398120.0,211.0,,,Health,,,General Funds,131.39812,False,0.6,5.65,5,33,622740.0
+HTH501,DEVELOPMENTAL DISABILITIES,HTH,Department of Health,Operating,B,2027,7747738.0,5.0,,,Health,,,Special Funds,7.747738,False,0.04,0.33,35,225,1549548.0
+HTH520,DISABILITY AND COMMUNICATIONS ACCESS BOARD,HTH,Department of Health,Operating,A,2027,767346.0,7.0,,,Human Services,,,General Funds,0.767346,False,0.0,0.03,68,484,109621.0
+HTH520,DISABILITY AND COMMUNICATIONS ACCESS BOARD,HTH,Department of Health,Operating,B,2027,2186855.0,13.0,,,Human Services,,,Special Funds,2.186855,False,0.01,0.09,62,396,168220.0
+HTH520,DISABILITY AND COMMUNICATIONS ACCESS BOARD,HTH,Department of Health,Operating,U,2027,314641.0,2.0,,,Human Services,,,Interdepartmental Transfers,0.314641,False,0.0,0.01,80,525,157320.0
+HTH560,FAMILY HEALTH SERVICES,HTH,Department of Health,Operating,A,2027,45566966.0,114.0,,,Health,,,General Funds,45.566966,False,0.21,1.96,14,71,399710.0
+HTH560,FAMILY HEALTH SERVICES,HTH,Department of Health,Operating,B,2027,17965804.0,11.4,,,Health,,,Special Funds,17.965804,False,0.08,0.77,20,147,1575948.0
+HTH560,FAMILY HEALTH SERVICES,HTH,Department of Health,Operating,N,2027,38121215.0,99.8,,,Health,,,Federal Funds,38.121215,False,0.17,1.64,15,85,381976.0
+HTH560,FAMILY HEALTH SERVICES,HTH,Department of Health,Operating,U,2027,101558.0,99.8,,,Health,,,Interdepartmental Transfers,0.101558,False,0.0,0.0,90,565,1018.0
+HTH560,FAMILY HEALTH SERVICES,HTH,Department of Health,Operating,P,2027,12523019.0,15.3,,,Health,,,Other Federal Funds,12.523019,False,0.06,0.54,25,183,818498.0
+HTH590,CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION,HTH,Department of Health,Operating,A,2027,7041748.0,46.5,,,Health,,,General Funds,7.041748,False,0.03,0.3,37,239,151435.0
+HTH590,CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION,HTH,Department of Health,Operating,B,2027,48706356.0,46.5,,,Health,,,Special Funds,48.706356,False,0.22,2.09,12,64,1047449.0
+HTH590,CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION,HTH,Department of Health,Operating,U,2027,1192408.0,1.0,,,Health,,,Interdepartmental Transfers,1.192408,False,0.01,0.05,66,444,1192408.0
+HTH590,CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION,HTH,Department of Health,Operating,P,2027,6740166.0,9.5,,,Health,,,Other Federal Funds,6.740166,False,0.03,0.29,38,246,709491.0
+HTH595,HEALTH RESOURCES ADMINISTRATION,HTH,Department of Health,Operating,A,2027,244093.0,2.0,,,Health,,,General Funds,0.244093,False,0.0,0.01,84,540,122046.0
+HTH596,OFFICE OF MEDICAL CANNABIS CONTROL & REGULATION,HTH,Department of Health,Operating,A,2027,3109260.0,21.0,,,Health,,,General Funds,3.10926,False,0.01,0.13,53,354,148060.0
+HTH596,OFFICE OF MEDICAL CANNABIS CONTROL & REGULATION,HTH,Department of Health,Operating,B,2027,2425368.0,7.0,,,Health,,,Special Funds,2.425368,False,0.01,0.1,57,382,346481.0
+HTH610,ENVIRONMENTAL HEALTH SERVICES,HTH,Department of Health,Operating,A,2027,9292836.0,127.0,,,Health,,,General Funds,9.292836,False,0.04,0.4,30,207,73172.0
+HTH610,ENVIRONMENTAL HEALTH SERVICES,HTH,Department of Health,Operating,B,2027,4936115.0,34.0,,,Health,,,Special Funds,4.936115,False,0.02,0.21,46,291,145180.0
+HTH610,ENVIRONMENTAL HEALTH SERVICES,HTH,Department of Health,Operating,N,2027,158000.0,2.0,,,Health,,,Federal Funds,0.158,False,0.0,0.01,87,552,79000.0
+HTH610,ENVIRONMENTAL HEALTH SERVICES,HTH,Department of Health,Operating,U,2027,271269.0,3.0,,,Health,,,Interdepartmental Transfers,0.271269,False,0.0,0.01,82,535,90423.0
+HTH610,ENVIRONMENTAL HEALTH SERVICES,HTH,Department of Health,Operating,P,2027,396994.0,2.0,,,Health,,,Other Federal Funds,0.396994,False,0.0,0.02,79,520,198497.0
+HTH710,STATE LABORATORY SERVICES,HTH,Department of Health,Operating,A,2027,9262196.0,69.0,,,Health,,,General Funds,9.262196,False,0.04,0.4,31,208,134235.0
+HTH710,STATE LABORATORY SERVICES,HTH,Department of Health,Operating,B,2027,272901.0,0.75,,,Health,,,Special Funds,0.272901,False,0.0,0.01,81,534,363868.0
+HTH710,STATE LABORATORY SERVICES,HTH,Department of Health,Operating,N,2027,1029222.0,0.75,,,Health,,,Federal Funds,1.029222,False,0.0,0.04,67,457,1372296.0
+HTH710,STATE LABORATORY SERVICES,HTH,Department of Health,Operating,W,2027,23967.0,0.25,,,Health,,,Revolving Funds,0.023967,False,0.0,0.0,91,576,95868.0
+HTH710,STATE LABORATORY SERVICES,HTH,Department of Health,Operating,P,2027,429999.0,0.25,,,Health,,,Other Federal Funds,0.429999,False,0.0,0.02,77,517,1719996.0
+HTH720,HEALTH CARE ASSURANCE,HTH,Department of Health,Operating,A,2027,4030204.0,22.55,,,Health,,,General Funds,4.030204,False,0.02,0.17,49,320,178723.0
+HTH720,HEALTH CARE ASSURANCE,HTH,Department of Health,Operating,B,2027,2105000.0,2.85,,,Health,,,Special Funds,2.105,False,0.01,0.09,63,399,738596.0
+HTH720,HEALTH CARE ASSURANCE,HTH,Department of Health,Operating,P,2027,4841562.0,21.6,,,Health,,,Other Federal Funds,4.841562,False,0.02,0.21,47,293,224146.0
+HTH730,EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM,HTH,Department of Health,Operating,A,2027,59321974.0,10.0,,,Health,,,General Funds,59.321974,False,0.27,2.55,9,54,5932197.0
+HTH730,EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM,HTH,Department of Health,Operating,B,2027,22323419.0,10.0,,,Health,,,Special Funds,22.323419,False,0.1,0.96,18,129,2232342.0
+HTH730,EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM,HTH,Department of Health,Operating,P,2027,420000.0,10.0,,,Health,,,Other Federal Funds,0.42,False,0.0,0.02,78,518,42000.0
+HTH760,HEALTH STATUS MONITORING,HTH,Department of Health,Operating,A,2027,2258388.0,38.5,,,Health,,,General Funds,2.258388,False,0.01,0.1,61,390,58659.0
+HTH760,HEALTH STATUS MONITORING,HTH,Department of Health,Operating,B,2027,530318.0,38.5,,,Health,,,Special Funds,0.530318,False,0.0,0.02,75,500,13774.0
+HTH760,HEALTH STATUS MONITORING,HTH,Department of Health,Operating,P,2027,627294.0,5.0,,,Health,,,Other Federal Funds,0.627294,False,0.0,0.03,74,496,125459.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,A,2027,7379458.0,90.0,,,Environment,,,General Funds,7.379458,False,0.03,0.32,36,231,81994.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,B,2027,80891943.0,59.0,,,Environment,,,Special Funds,80.891943,False,0.37,3.48,7,43,1371050.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,N,2027,4064084.0,33.5,,,Environment,,,Federal Funds,4.064084,False,0.02,0.17,48,318,121316.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,U,2027,3013024.0,2.0,,,Environment,,,Interdepartmental Transfers,3.013024,False,0.01,0.13,54,356,1506512.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,W,2027,260514599.0,43.0,,,Environment,,,Revolving Funds,260.514599,False,1.19,11.2,2,20,6058479.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Operating,P,2027,7998178.0,7.25,,,Environment,,,Other Federal Funds,7.998178,False,0.04,0.34,34,222,1103197.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Capital Improvement,C,2027,10995000.0,7.25,,,Environment,,,General Obligation Bond Fund,10.995,True,0.05,0.47,27,191,1516552.0
+HTH840,ENVIRONMENTAL MANAGEMENT,HTH,Department of Health,Capital Improvement,N,2027,54964000.0,7.25,,,Environment,,Investment Capital,Federal Funds,54.964,True,0.25,2.36,10,57,7581241.0
+HTH849,ENVIRONMENTAL HEALTH ADMINISTRATION,HTH,Department of Health,Operating,A,2027,3878888.0,29.5,,,Environment,,,General Funds,3.878888,False,0.02,0.17,50,326,131488.0
+HTH849,ENVIRONMENTAL HEALTH ADMINISTRATION,HTH,Department of Health,Operating,N,2027,189937.0,2.15,,,Environment,,,Federal Funds,0.189937,False,0.0,0.01,86,546,88343.0
+HTH849,ENVIRONMENTAL HEALTH ADMINISTRATION,HTH,Department of Health,Operating,W,2027,2826328.0,11.0,,,Environment,,,Revolving Funds,2.826328,False,0.01,0.12,55,365,256939.0
+HTH849,ENVIRONMENTAL HEALTH ADMINISTRATION,HTH,Department of Health,Operating,P,2027,5751220.0,11.95,,,Environment,,,Other Federal Funds,5.75122,False,0.03,0.25,41,266,481274.0
+HTH904,EXECUTIVE OFFICE ON AGING,HTH,Department of Health,Operating,A,2027,13024068.0,17.6,,,Human Services,,,General Funds,13.024068,False,0.06,0.56,24,177,740004.0
+HTH904,EXECUTIVE OFFICE ON AGING,HTH,Department of Health,Operating,N,2027,10405377.0,7.4,,,Human Services,,,Federal Funds,10.405377,False,0.05,0.45,28,198,1406132.0
+HTH904,EXECUTIVE OFFICE ON AGING,HTH,Department of Health,Operating,P,2027,1223791.0,7.4,,,Human Services,,,Other Federal Funds,1.223791,False,0.01,0.05,65,439,165377.0
+HTH905,DEVELOPMENTAL DISABILITIES COUNCIL,HTH,Department of Health,Operating,A,2027,262940.0,2.5,,,Health,,,General Funds,0.26294,False,0.0,0.01,83,536,105176.0
+HTH905,DEVELOPMENTAL DISABILITIES COUNCIL,HTH,Department of Health,Operating,N,2027,527570.0,5.0,,,Health,,,Federal Funds,0.52757,False,0.0,0.02,76,501,105514.0
+HTH906,STATE HEALTH PLANNING AND DEVELOPMENT AGENCY,HTH,Department of Health,Operating,A,2027,726733.0,7.0,,,Health,,,General Funds,0.726733,False,0.0,0.03,70,491,103819.0
+HTH906,STATE HEALTH PLANNING AND DEVELOPMENT AGENCY,HTH,Department of Health,Operating,B,2027,114000.0,7.0,,,Health,,,Special Funds,0.114,False,0.0,0.0,89,560,16286.0
+HTH907,GENERAL ADMINISTRATION,HTH,Department of Health,Operating,A,2027,32038805.0,180.0,,,Health,,,General Funds,32.038805,False,0.15,1.38,17,92,177993.0
+HTH907,GENERAL ADMINISTRATION,HTH,Department of Health,Operating,N,2027,5275000.0,8.0,,,Health,,,Federal Funds,5.275,False,0.02,0.23,43,276,659375.0
+HTH907,GENERAL ADMINISTRATION,HTH,Department of Health,Operating,P,2027,684932.0,8.0,,,Health,,,Other Federal Funds,0.684932,False,0.0,0.03,72,494,85616.0
+HTH908,OFFICE OF LANGUAGE ACCESS,HTH,Department of Health,Operating,A,2027,714494.0,6.0,,,Health,,,General Funds,0.714494,False,0.0,0.03,71,492,119082.0
+LAW502,NARCOTICS ENFORCEMENT DIVISION,LAW,Department of Law Enforcement,Operating,A,2027,1713945.0,14.0,,,Public Safety,,,General Funds,1.713945,False,0.01,1.74,10,418,122425.0
+LAW502,NARCOTICS ENFORCEMENT DIVISION,LAW,Department of Law Enforcement,Operating,W,2027,1004853.0,8.0,,,Public Safety,,,Revolving Funds,1.004853,False,0.0,1.02,11,460,125607.0
+LAW502,NARCOTICS ENFORCEMENT DIVISION,LAW,Department of Law Enforcement,Operating,P,2027,800000.0,8.0,,,Public Safety,,,Other Federal Funds,0.8,False,0.0,0.81,12,482,100000.0
+LAW503,SHERIFF,LAW,Department of Law Enforcement,Operating,A,2027,28623526.0,318.0,,,Public Safety,,,General Funds,28.623526,False,0.13,29.14,1,100,90011.0
+LAW503,SHERIFF,LAW,Department of Law Enforcement,Operating,N,2027,600000.0,318.0,,,Public Safety,,,Federal Funds,0.6,False,0.0,0.61,14,498,1887.0
+LAW503,SHERIFF,LAW,Department of Law Enforcement,Operating,P,2027,600000.0,150.0,,,Public Safety,,,Other Federal Funds,0.6,False,0.0,0.61,14,498,4000.0
+LAW503,SHERIFF,LAW,Department of Law Enforcement,Operating,U,2027,19616116.0,150.0,,,Public Safety,,,Interdepartmental Transfers,19.616116,False,0.09,19.97,2,141,130774.0
+LAW504,CRIMINAL INVESTIGATION DIVISION,LAW,Department of Law Enforcement,Operating,A,2027,3462585.0,16.0,,,Public Safety,,,General Funds,3.462585,False,0.02,3.52,7,344,216412.0
+LAW504,CRIMINAL INVESTIGATION DIVISION,LAW,Department of Law Enforcement,Operating,U,2027,731972.0,2.0,,,Public Safety,,,Interdepartmental Transfers,0.731972,False,0.0,0.75,13,490,365986.0
+LAW505,LAW ENFORCEMENT TRAINING DIVISION,LAW,Department of Law Enforcement,Operating,A,2027,2668464.0,8.0,,,Public Safety,,,General Funds,2.668464,False,0.01,2.72,8,371,333558.0
+LAW900,GENERAL ADMINISTRATION,LAW,Department of Law Enforcement,Operating,A,2027,16957744.0,72.0,,,Public Safety,,,General Funds,16.957744,False,0.08,17.26,3,155,235524.0
+LAW900,GENERAL ADMINISTRATION,LAW,Department of Law Enforcement,Operating,U,2027,5000000.0,72.0,,,Public Safety,,,Interdepartmental Transfers,5.0,False,0.02,5.09,5,287,69444.0
+LAW901,OFFICE OF HOMELAND SECURITY,LAW,Department of Law Enforcement,Operating,A,2027,2362031.0,14.0,,,Public Safety,,,General Funds,2.362031,False,0.01,2.4,9,385,168716.0
+LAW901,OFFICE OF HOMELAND SECURITY,LAW,Department of Law Enforcement,Operating,N,2027,4551095.0,14.0,,,Public Safety,,,Federal Funds,4.551095,False,0.02,4.63,6,308,325078.0
+LAW901,OFFICE OF HOMELAND SECURITY,LAW,Department of Law Enforcement,Operating,P,2027,9550715.0,14.0,,,Public Safety,,,Other Federal Funds,9.550715,False,0.04,9.72,4,205,682194.0
+LBR111,WORKFORCE DEVELOPMENT,LBR,Department of Labor & Industrial Relations,Operating,A,2027,6822007.0,13.1,,,Employment,,,General Funds,6.822007,False,0.03,1.47,6,244,520764.0
+LBR111,WORKFORCE DEVELOPMENT,LBR,Department of Labor & Industrial Relations,Operating,B,2027,5364646.0,13.1,,,Employment,,,Special Funds,5.364646,False,0.02,1.16,10,273,409515.0
+LBR111,WORKFORCE DEVELOPMENT,LBR,Department of Labor & Industrial Relations,Operating,N,2027,6550000.0,57.2,,,Employment,,,Federal Funds,6.55,False,0.03,1.41,7,250,114510.0
+LBR111,WORKFORCE DEVELOPMENT,LBR,Department of Labor & Industrial Relations,Operating,U,2027,2891173.0,57.2,,,Employment,,,Interdepartmental Transfers,2.891173,False,0.01,0.62,13,359,50545.0
+LBR111,WORKFORCE DEVELOPMENT,LBR,Department of Labor & Industrial Relations,Operating,P,2027,300000.0,0.7,,,Employment,,,Other Federal Funds,0.3,False,0.0,0.06,27,529,428571.0
+LBR135,WORKFORCE DEVELOPMENT COUNCIL,LBR,Department of Labor & Industrial Relations,Operating,A,2027,455026.0,,,,Employment,,,General Funds,0.455026,False,0.0,0.1,24,511,
+LBR135,WORKFORCE DEVELOPMENT COUNCIL,LBR,Department of Labor & Industrial Relations,Operating,N,2027,10700000.0,7.0,,,Employment,,,Federal Funds,10.7,False,0.05,2.31,4,194,1528571.0
+LBR143,HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1393204.0,17.3,,,Employment,,,General Funds,1.393204,False,0.01,0.3,19,430,80532.0
+LBR143,HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,W,2027,2746105.0,19.0,,,Employment,,,Revolving Funds,2.746105,False,0.01,0.59,14,368,144532.0
+LBR143,HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,P,2027,2400000.0,19.7,,,Employment,,,Other Federal Funds,2.4,False,0.01,0.52,15,383,121827.0
+LBR152,WAGE STANDARDS PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1442931.0,20.0,,,Employment,,,General Funds,1.442931,False,0.01,0.31,18,428,72147.0
+LBR152,WAGE STANDARDS PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,B,2027,500000.0,20.0,,,Employment,,,Special Funds,0.5,False,0.0,0.11,23,507,25000.0
+LBR153,HAWAII CIVIL RIGHTS COMMISSION,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1843633.0,22.5,,,Employment,,,General Funds,1.843633,False,0.01,0.4,17,411,81939.0
+LBR153,HAWAII CIVIL RIGHTS COMMISSION,LBR,Department of Labor & Industrial Relations,Operating,P,2027,350000.0,0.5,,,Employment,,,Other Federal Funds,0.35,False,0.0,0.08,26,524,700000.0
+LBR161,HAWAII LABOR RELATIONS BOARD,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1138087.0,3.0,,,Employment,,,General Funds,1.138087,False,0.01,0.25,21,448,379362.0
+LBR171,UNEMPLOYMENT INSURANCE PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1098246.0,10.0,,,Employment,,,General Funds,1.098246,False,0.01,0.24,22,450,109825.0
+LBR171,UNEMPLOYMENT INSURANCE PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,B,2027,2173756.0,10.0,,,Employment,,,Special Funds,2.173756,False,0.01,0.47,16,397,217376.0
+LBR171,UNEMPLOYMENT INSURANCE PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,N,2027,18000000.0,187.5,,,Employment,,,Federal Funds,18.0,False,0.08,3.89,3,146,96000.0
+LBR171,UNEMPLOYMENT INSURANCE PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,T,2027,341400000.0,187.5,,,Employment,,,Trust Funds,341.4,False,1.56,73.7,1,17,1820800.0
+LBR183,DISABILITY COMPENSATION PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,A,2027,9039187.0,77.0,,,Employment,,,General Funds,9.039187,False,0.04,1.95,5,209,117392.0
+LBR183,DISABILITY COMPENSATION PROGRAM,LBR,Department of Labor & Industrial Relations,Operating,T,2027,24157551.0,11.0,,,Employment,,,Trust Funds,24.157551,False,0.11,5.22,2,120,2196141.0
+LBR812,LABOR AND INDUSTRIAL RELATIONS APPEALS BOARD,LBR,Department of Labor & Industrial Relations,Operating,A,2027,1209410.0,12.0,,,Employment,,,General Funds,1.20941,False,0.01,0.26,20,441,100784.0
+LBR901,RESEARCH AND STATISTICS,LBR,Department of Labor & Industrial Relations,Operating,A,2027,178081.0,2.0,,,Employment,,,General Funds,0.178081,False,0.0,0.04,29,549,89040.0
+LBR901,RESEARCH AND STATISTICS,LBR,Department of Labor & Industrial Relations,Operating,N,2027,440322.0,4.0,,,Employment,,,Federal Funds,0.440322,False,0.0,0.1,25,515,110080.0
+LBR902,GENERAL ADMINISTRATION,LBR,Department of Labor & Industrial Relations,Operating,A,2027,2912790.0,18.83,,,Employment,,,General Funds,2.91279,False,0.01,0.63,12,358,154689.0
+LBR902,GENERAL ADMINISTRATION,LBR,Department of Labor & Industrial Relations,Operating,B,2027,200000.0,18.83,,,Employment,,,Special Funds,0.2,False,0.0,0.04,28,544,10621.0
+LBR902,GENERAL ADMINISTRATION,LBR,Department of Labor & Industrial Relations,Operating,P,2027,6000000.0,32.17,,,Employment,,,Other Federal Funds,6.0,False,0.03,1.3,9,262,186509.0
+LBR903,OFFICE OF COMMUNITY SERVICES,LBR,Department of Labor & Industrial Relations,Operating,A,2027,4971563.0,13.0,,,Employment,,,General Funds,4.971563,False,0.02,1.07,11,289,382428.0
+LBR903,OFFICE OF COMMUNITY SERVICES,LBR,Department of Labor & Industrial Relations,Operating,B,2027,5000.0,13.0,,,Employment,,,Special Funds,0.005,False,0.0,0.0,30,580,385.0
+LBR903,OFFICE OF COMMUNITY SERVICES,LBR,Department of Labor & Industrial Relations,Operating,N,2027,6517000.0,13.0,,,Employment,,,Federal Funds,6.517,False,0.03,1.41,8,252,501308.0
+LNR101,PUBLIC LANDS MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,177872.0,,,,Government Operations,,,General Funds,0.177872,False,0.0,0.06,48,550,
+LNR101,PUBLIC LANDS MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,22983607.0,63.0,,,Government Operations,,,Special Funds,22.983607,False,0.1,7.7,4,126,364819.0
+LNR102,LEGACY LAND CONSERVATION PROGRAM,LNR,Department of Land & Natural Resources,Operating,B,2027,9034784.0,2.0,,,Government Operations,,,Special Funds,9.034784,False,0.04,3.03,10,211,4517392.0
+LNR111,CONVEYANCES AND RECORDINGS,LNR,Department of Land & Natural Resources,Operating,B,2027,7731946.0,56.0,,,Individual Rights,,,Special Funds,7.731946,False,0.04,2.59,12,226,138070.0
+LNR141,WATER AND LAND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,3403862.0,24.0,,,Economic Development,,,General Funds,3.403862,False,0.02,1.14,24,346,141828.0
+LNR141,WATER AND LAND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,907330.0,4.0,,,Economic Development,,,Special Funds,0.90733,False,0.0,0.3,39,474,226832.0
+LNR141,WATER AND LAND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,T,2027,199479.0,4.0,,,Economic Development,,,Trust Funds,0.199479,False,0.0,0.07,46,545,49870.0
+LNR172,FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,8808994.0,34.0,,,Economic Development,,,General Funds,8.808994,False,0.04,2.95,11,216,259088.0
+LNR172,FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,2455475.0,34.0,,,Economic Development,,,Special Funds,2.455475,False,0.01,0.82,27,381,72220.0
+LNR172,FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT,LNR,Department of Land & Natural Resources,Operating,P,2027,10530000.0,1.0,,,Economic Development,,,Other Federal Funds,10.53,False,0.05,3.53,9,196,10530000.0
+LNR401,ECOSYSTEM PROTECTION AND RESTORATION,LNR,Department of Land & Natural Resources,Operating,A,2027,5526913.0,64.0,,,Environment,,,General Funds,5.526913,False,0.03,1.85,15,269,86358.0
+LNR401,ECOSYSTEM PROTECTION AND RESTORATION,LNR,Department of Land & Natural Resources,Operating,B,2027,4239054.0,3.0,,,Environment,,,Special Funds,4.239054,False,0.02,1.42,21,314,1413018.0
+LNR401,ECOSYSTEM PROTECTION AND RESTORATION,LNR,Department of Land & Natural Resources,Operating,N,2027,4889500.0,1.0,,,Environment,,,Federal Funds,4.8895,False,0.02,1.64,17,292,4889500.0
+LNR401,ECOSYSTEM PROTECTION AND RESTORATION,LNR,Department of Land & Natural Resources,Operating,P,2027,283534.0,2.0,,,Environment,,,Other Federal Funds,0.283534,False,0.0,0.09,44,532,141767.0
+LNR402,NATIVE RESOURCES AND FIRE PROTECTION PROGRAM,LNR,Department of Land & Natural Resources,Operating,A,2027,23539031.0,73.5,,,Environment,,,General Funds,23.539031,False,0.11,7.88,3,124,320259.0
+LNR402,NATIVE RESOURCES AND FIRE PROTECTION PROGRAM,LNR,Department of Land & Natural Resources,Operating,N,2027,3679077.0,18.5,,,Environment,,,Federal Funds,3.679077,False,0.02,1.23,22,336,198869.0
+LNR402,NATIVE RESOURCES AND FIRE PROTECTION PROGRAM,LNR,Department of Land & Natural Resources,Operating,T,2027,106475.0,18.5,,,Environment,,,Trust Funds,0.106475,False,0.0,0.04,51,564,5755.0
+LNR402,NATIVE RESOURCES AND FIRE PROTECTION PROGRAM,LNR,Department of Land & Natural Resources,Operating,U,2027,1686056.0,18.5,,,Environment,,,Interdepartmental Transfers,1.686056,False,0.01,0.56,30,420,91138.0
+LNR402,NATIVE RESOURCES AND FIRE PROTECTION PROGRAM,LNR,Department of Land & Natural Resources,Operating,P,2027,2883534.0,2.5,,,Environment,,,Other Federal Funds,2.883534,False,0.01,0.97,26,360,1153414.0
+LNR404,WATER RESOURCES,LNR,Department of Land & Natural Resources,Operating,A,2027,4484758.0,28.0,,,Environment,,,General Funds,4.484758,False,0.02,1.5,20,310,160170.0
+LNR404,WATER RESOURCES,LNR,Department of Land & Natural Resources,Operating,B,2027,1283123.0,5.0,,,Environment,,,Special Funds,1.283123,False,0.01,0.43,32,437,256625.0
+LNR405,CONSERVATION AND RESOURCES ENFORCEMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,17545614.0,199.25,,,Environment,,,General Funds,17.545614,False,0.08,5.88,5,151,88058.0
+LNR405,CONSERVATION AND RESOURCES ENFORCEMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,921447.0,199.25,,,Environment,,,Special Funds,0.921447,False,0.0,0.31,36,469,4625.0
+LNR405,CONSERVATION AND RESOURCES ENFORCEMENT,LNR,Department of Land & Natural Resources,Operating,N,2027,958875.0,3.75,,,Environment,,,Federal Funds,0.958875,False,0.0,0.32,34,467,255700.0
+LNR405,CONSERVATION AND RESOURCES ENFORCEMENT,LNR,Department of Land & Natural Resources,Operating,W,2027,32671.0,3.75,,,Environment,,,Revolving Funds,0.032671,False,0.0,0.01,53,574,8712.0
+LNR405,CONSERVATION AND RESOURCES ENFORCEMENT,LNR,Department of Land & Natural Resources,Operating,P,2027,100000.0,3.75,,,Environment,,,Other Federal Funds,0.1,False,0.0,0.03,52,567,26667.0
+LNR407,NATURAL AREA RESERVES AND WATERSHED MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,11334704.0,69.5,,,Environment,,,General Funds,11.334704,False,0.05,3.8,8,189,163089.0
+LNR407,NATURAL AREA RESERVES AND WATERSHED MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,180000.0,69.5,,,Environment,,,Special Funds,0.18,False,0.0,0.06,47,548,2590.0
+LNR407,NATURAL AREA RESERVES AND WATERSHED MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,N,2027,440000.0,69.5,,,Environment,,,Federal Funds,0.44,False,0.0,0.15,42,516,6331.0
+LNR407,NATURAL AREA RESERVES AND WATERSHED MANAGEMENT,LNR,Department of Land & Natural Resources,Operating,P,2027,3000000.0,0.5,,,Environment,,,Other Federal Funds,3.0,False,0.01,1.0,25,357,6000000.0
+LNR801,OCEAN-BASED RECREATION,LNR,Department of Land & Natural Resources,Operating,A,2027,478396.0,7.0,,,Culture and Recreation,,,General Funds,0.478396,False,0.0,0.16,41,508,68342.0
+LNR801,OCEAN-BASED RECREATION,LNR,Department of Land & Natural Resources,Operating,B,2027,42965486.0,124.0,,,Culture and Recreation,,,Special Funds,42.965486,False,0.2,14.39,1,78,346496.0
+LNR801,OCEAN-BASED RECREATION,LNR,Department of Land & Natural Resources,Operating,N,2027,1500000.0,124.0,,,Culture and Recreation,,,Federal Funds,1.5,False,0.01,0.5,31,427,12097.0
+LNR802,HISTORIC PRESERVATION,LNR,Department of Land & Natural Resources,Operating,A,2027,4520402.0,45.0,,,Culture and Recreation,,,General Funds,4.520402,False,0.02,1.51,19,309,100453.0
+LNR802,HISTORIC PRESERVATION,LNR,Department of Land & Natural Resources,Operating,B,2027,923397.0,3.0,,,Culture and Recreation,,,Special Funds,0.923397,False,0.0,0.31,35,468,307799.0
+LNR802,HISTORIC PRESERVATION,LNR,Department of Land & Natural Resources,Operating,N,2027,751525.0,6.0,,,Culture and Recreation,,,Federal Funds,0.751525,False,0.0,0.25,40,486,125254.0
+LNR804,FOREST AND OUTDOOR RECREATION,LNR,Department of Land & Natural Resources,Operating,A,2027,4812230.0,37.5,,,Culture and Recreation,,,General Funds,4.81223,False,0.02,1.61,18,296,128326.0
+LNR804,FOREST AND OUTDOOR RECREATION,LNR,Department of Land & Natural Resources,Operating,B,2027,917145.0,3.0,,,Culture and Recreation,,,Special Funds,0.917145,False,0.0,0.31,37,471,305715.0
+LNR804,FOREST AND OUTDOOR RECREATION,LNR,Department of Land & Natural Resources,Operating,N,2027,5396897.0,19.0,,,Culture and Recreation,,,Federal Funds,5.396897,False,0.02,1.81,16,272,284047.0
+LNR804,FOREST AND OUTDOOR RECREATION,LNR,Department of Land & Natural Resources,Operating,W,2027,913329.0,3.0,,,Culture and Recreation,,,Revolving Funds,0.913329,False,0.0,0.31,38,473,304443.0
+LNR806,PARKS ADMINISTRATION AND OPERATION,LNR,Department of Land & Natural Resources,Operating,A,2027,12886065.0,155.0,,,Culture and Recreation,,,General Funds,12.886065,False,0.06,4.32,7,179,83136.0
+LNR806,PARKS ADMINISTRATION AND OPERATION,LNR,Department of Land & Natural Resources,Operating,B,2027,31094536.0,155.0,,,Culture and Recreation,,,Special Funds,31.094536,False,0.14,10.41,2,95,200610.0
+LNR806,PARKS ADMINISTRATION AND OPERATION,LNR,Department of Land & Natural Resources,Capital Improvement,C,2027,2150000.0,155.0,,,Culture and Recreation,,,General Obligation Bond Fund,2.15,True,0.01,0.72,28,398,13871.0
+LNR806,PARKS ADMINISTRATION AND OPERATION,LNR,Department of Land & Natural Resources,Capital Improvement,N,2027,250000.0,155.0,,,Culture and Recreation,,Investment Capital,Federal Funds,0.25,True,0.0,0.08,45,538,1613.0
+LNR810,PREVENTION OF NATURAL DISASTERS,LNR,Department of Land & Natural Resources,Operating,A,2027,110000.0,1.0,,,Public Safety,,,General Funds,0.11,False,0.0,0.04,50,562,110000.0
+LNR810,PREVENTION OF NATURAL DISASTERS,LNR,Department of Land & Natural Resources,Operating,B,2027,7660556.0,8.0,,,Public Safety,,,Special Funds,7.660556,False,0.03,2.57,13,227,957570.0
+LNR810,PREVENTION OF NATURAL DISASTERS,LNR,Department of Land & Natural Resources,Operating,P,2027,1160621.0,8.0,,,Public Safety,,,Other Federal Funds,1.160621,False,0.01,0.39,33,447,145078.0
+LNR906,LNR - NATURAL AND PHYSICAL ENVIRONMENT,LNR,Department of Land & Natural Resources,Operating,A,2027,7061839.0,55.0,,,Environment,,,General Funds,7.061839,False,0.03,2.36,14,238,128397.0
+LNR906,LNR - NATURAL AND PHYSICAL ENVIRONMENT,LNR,Department of Land & Natural Resources,Operating,B,2027,3475827.0,20.0,,,Environment,,,Special Funds,3.475827,False,0.02,1.16,23,343,173791.0
+LNR906,LNR - NATURAL AND PHYSICAL ENVIRONMENT,LNR,Department of Land & Natural Resources,Operating,P,2027,116466.0,20.0,,,Environment,,,Other Federal Funds,0.116466,False,0.0,0.04,49,559,5823.0
+LNR907,AHA MOKU ADVISORY COMMITTEE,LNR,Department of Land & Natural Resources,Operating,A,2027,286300.0,1.0,,,Environment,,,General Funds,0.2863,False,0.0,0.1,43,530,286300.0
+LNR908,KAHOOLAWE ISLAND RESERVE COMMISSION,LNR,Department of Land & Natural Resources,Operating,A,2027,1845510.0,2.0,,,Environment,,,General Funds,1.84551,False,0.01,0.62,29,410,922755.0
+LNR909,MAUNA KEA STEWARDSHIP & OVERSIGHT AUTHORITY,LNR,Department of Land & Natural Resources,Operating,A,2027,14000800.0,,,,Environment,,,General Funds,14.0008,False,0.06,4.69,6,173,
+LTG100,OFFICE OF THE LIEUTENANT GOVERNOR,LTG,Office of the Lieutenant Governor,Operating,A,2027,2251665.0,17.0,,,Government Operations,,,General Funds,2.251665,False,0.01,87.83,1,392,132451.0
+LTG100,OFFICE OF THE LIEUTENANT GOVERNOR,LTG,Office of the Lieutenant Governor,Operating,B,2027,312000.0,17.0,,,Government Operations,,,Special Funds,0.312,False,0.0,12.17,2,526,18353.0
+PSD402,HALAWA CORRECTIONAL FACILITY,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,39211885.0,410.0,,,Public Safety,,,General Funds,39.211885,False,0.18,12.26,3,83,95639.0
+PSD403,KULANI CORRECTIONAL FACILITY,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,7099249.0,83.0,,,Public Safety,,,General Funds,7.099249,False,0.03,2.22,12,236,85533.0
+PSD404,WAIAWA CORRECTIONAL FACILITY,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,9032631.0,112.0,,,Public Safety,,,General Funds,9.032631,False,0.04,2.83,11,212,80648.0
+PSD405,HAWAII COMMUNITY CORRECTIONAL CENTER,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,15855815.0,193.0,,,Public Safety,,,General Funds,15.855815,False,0.07,4.96,9,162,82154.0
+PSD406,MAUI COMMUNITY CORRECTIONAL CENTER,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,16652787.0,205.0,,,Public Safety,,,General Funds,16.652787,False,0.08,5.21,8,157,81233.0
+PSD407,OAHU COMMUNITY CORRECTIONAL CENTER,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,43160178.0,500.0,,,Public Safety,,,General Funds,43.160178,False,0.2,13.5,1,77,86320.0
+PSD408,KAUAI COMMUNITY CORRECTIONAL CENTER,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,6628031.0,74.0,,,Public Safety,,,General Funds,6.628031,False,0.03,2.07,13,249,89568.0
+PSD409,WOMEN'S COMMUNITY CORRECTIONAL CENTER,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,20991799.0,269.0,,,Public Safety,,,General Funds,20.991799,False,0.1,6.57,7,134,78036.0
+PSD410,INTAKE SERVICE CENTERS,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,5891809.0,73.0,,,Public Safety,,,General Funds,5.891809,False,0.03,1.84,14,265,80710.0
+PSD420,CORRECTIONS PROGRAM SERVICES,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,26143271.0,185.0,,,Public Safety,,,General Funds,26.143271,False,0.12,8.18,5,111,141315.0
+PSD420,CORRECTIONS PROGRAM SERVICES,PSD,Department of Corrections and Rehabilitation,Operating,N,2027,1045989.0,185.0,,,Public Safety,,,Federal Funds,1.045989,False,0.0,0.33,19,455,5654.0
+PSD421,HEALTH CARE,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,38877361.0,264.6,,,Public Safety,,,General Funds,38.877361,False,0.18,12.16,4,84,146929.0
+PSD422,HAWAII CORRECTIONAL INDUSTRIES,PSD,Department of Corrections and Rehabilitation,Operating,W,2027,10884725.0,2.0,,,Public Safety,,,Revolving Funds,10.884725,False,0.05,3.4,10,192,5442362.0
+PSD611,ADULT PAROLE DETERMINATIONS,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,569373.0,7.0,,,Public Safety,,,General Funds,0.569373,False,0.0,0.18,21,499,81339.0
+PSD612,ADULT PAROLE SUPERVISION AND COUNSELING,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,5211808.0,61.0,,,Public Safety,,,General Funds,5.211808,False,0.02,1.63,15,278,85439.0
+PSD613,CRIME VICTIM COMPENSATION COMMISSION,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,1125638.0,13.0,,,Public Safety,,,General Funds,1.125638,False,0.01,0.35,18,449,86588.0
+PSD613,CRIME VICTIM COMPENSATION COMMISSION,PSD,Department of Corrections and Rehabilitation,Operating,B,2027,1186017.0,13.0,,,Public Safety,,,Special Funds,1.186017,False,0.01,0.37,17,445,91232.0
+PSD613,CRIME VICTIM COMPENSATION COMMISSION,PSD,Department of Corrections and Rehabilitation,Operating,P,2027,859315.0,13.0,,,Public Safety,,,Other Federal Funds,0.859315,False,0.0,0.27,20,477,66101.0
+PSD808,NON-STATE FACILITIES,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,42589908.0,9.0,,,Public Safety,,,General Funds,42.589908,False,0.19,13.32,2,79,4732212.0
+PSD900,GENERAL ADMINISTRATION,PSD,Department of Corrections and Rehabilitation,Operating,A,2027,25287667.0,149.0,,,Public Safety,,,General Funds,25.287667,False,0.12,7.91,6,116,169716.0
+PSD900,GENERAL ADMINISTRATION,PSD,Department of Corrections and Rehabilitation,Operating,B,2027,1331967.0,4.0,,,Public Safety,,,Special Funds,1.331967,False,0.01,0.42,16,435,332992.0
+PSD900,GENERAL ADMINISTRATION,PSD,Department of Corrections and Rehabilitation,Operating,T,2027,75065.0,4.0,,,Public Safety,,,Trust Funds,0.075065,False,0.0,0.02,22,570,18766.0
+PSD900,GENERAL ADMINISTRATION,AGS,Department of Accounting & General Services,Capital Improvement,C,2027,15000000.0,4.0,,,Public Safety,,,General Obligation Bond Fund,15.0,True,0.07,4.55,7,166,3750000.0
+TAX100,COMPLIANCE,TAX,Department of Taxation,Operating,A,2027,10668773.0,149.0,,,Government Operations,,,General Funds,10.668773,False,0.05,23.89,2,195,71603.0
+TAX103,TAX COLLECTION SERVICES OFFICE,TAX,Department of Taxation,Operating,A,2027,3427288.0,43.0,,,Government Operations,,,General Funds,3.427288,False,0.02,7.67,5,345,79704.0
+TAX105,TAX SERVICES AND PROCESSING,TAX,Department of Taxation,Operating,A,2027,7116185.0,129.0,,,Government Operations,,,General Funds,7.116185,False,0.03,15.93,3,235,55164.0
+TAX107,SUPPORTING SERVICES - REVENUE COLLECTION,TAX,Department of Taxation,Operating,A,2027,19823837.0,87.0,,,Government Operations,,,General Funds,19.823837,False,0.09,44.38,1,138,227860.0
+TAX107,SUPPORTING SERVICES - REVENUE COLLECTION,TAX,Department of Taxation,Operating,B,2027,3629626.0,87.0,,,Government Operations,,,Special Funds,3.629626,False,0.02,8.13,4,337,41720.0
+TRN102,DANIEL K. INOUYE INTERNATIONAL AIRPORT,TRN,Department of Transportation,Operating,B,2027,285933581.0,661.0,,,Transportation,,,Special Funds,285.933581,False,1.3,8.83,4,19,432577.0
+TRN102,DANIEL K. INOUYE INTERNATIONAL AIRPORT,TRN,Department of Transportation,Capital Improvement,E,2027,26760000.0,661.0,,,Transportation,,,Revenue Bond Funds,26.76,True,0.12,0.83,21,108,40484.0
+TRN102,DANIEL K. INOUYE INTERNATIONAL AIRPORT,TRN,Department of Transportation,Capital Improvement,N,2027,1000.0,661.0,,,Transportation,,Investment Capital,Federal Funds,0.001,True,0.0,0.0,67,583,2.0
+TRN104,GENERAL AVIATION,TRN,Department of Transportation,Operating,B,2027,17928307.0,31.0,,,Transportation,,,Special Funds,17.928307,False,0.08,0.55,25,148,578332.0
+TRN111,HILO INTERNATIONAL AIRPORT,TRN,Department of Transportation,Operating,B,2027,28974929.0,85.0,,,Transportation,,,Special Funds,28.974929,False,0.13,0.89,19,98,340882.0
+TRN114,ELLISON ONIZUKA KONA INTERNATIONAL AIRPORT AT KEAHOLE,TRN,Department of Transportation,Operating,B,2027,34549166.0,110.0,,,Transportation,,,Special Funds,34.549166,False,0.16,1.07,15,87,314083.0
+TRN116,WAIMEA-KOHALA AIRPORT,TRN,Department of Transportation,Operating,B,2027,1339121.0,4.0,,,Transportation,,,Special Funds,1.339121,False,0.01,0.04,51,434,334780.0
+TRN118,UPOLU AIRPORT,TRN,Department of Transportation,Operating,B,2027,51100.0,,,,Transportation,,,Special Funds,0.0511,False,0.0,0.0,63,571,
+TRN131,KAHULUI AIRPORT,TRN,Department of Transportation,Operating,B,2027,52419747.0,183.0,,,Transportation,,,Special Funds,52.419747,False,0.24,1.62,11,59,286447.0
+TRN131,KAHULUI AIRPORT,TRN,Department of Transportation,Capital Improvement,E,2027,57500000.0,183.0,,,Transportation,,,Revenue Bond Funds,57.5,True,0.26,1.78,10,56,314208.0
+TRN133,HANA AIRPORT,TRN,Department of Transportation,Operating,B,2027,762525.0,3.0,,,Transportation,,,Special Funds,0.762525,False,0.0,0.02,55,485,254175.0
+TRN135,KAPALUA AIRPORT,TRN,Department of Transportation,Operating,B,2027,3135770.0,12.0,,,Transportation,,,Special Funds,3.13577,False,0.01,0.1,46,353,261314.0
+TRN141,MOLOKAI AIRPORT,TRN,Department of Transportation,Operating,B,2027,3998586.0,14.0,,,Transportation,,,Special Funds,3.998586,False,0.02,0.12,44,323,285613.0
+TRN143,KALAUPAPA AIRPORT,TRN,Department of Transportation,Operating,B,2027,520929.0,2.0,,,Transportation,,,Special Funds,0.520929,False,0.0,0.02,57,503,260464.0
+TRN151,LANAI AIRPORT,TRN,Department of Transportation,Operating,B,2027,4584732.0,14.0,,,Transportation,,,Special Funds,4.584732,False,0.02,0.14,42,304,327481.0
+TRN161,LIHUE AIRPORT,TRN,Department of Transportation,Operating,B,2027,33055875.0,115.0,,,Transportation,,,Special Funds,33.055875,False,0.15,1.02,18,91,287442.0
+TRN161,LIHUE AIRPORT,TRN,Department of Transportation,Capital Improvement,E,2027,5140000.0,115.0,,,Transportation,,,Revenue Bond Funds,5.14,True,0.02,0.16,37,283,44696.0
+TRN161,LIHUE AIRPORT,TRN,Department of Transportation,Capital Improvement,N,2027,4600000.0,115.0,,,Transportation,,Investment Capital,Federal Funds,4.6,True,0.02,0.14,41,303,40000.0
+TRN163,PORT ALLEN AIRPORT,TRN,Department of Transportation,Operating,B,2027,1841.0,,,,Transportation,,,Special Funds,0.001841,False,0.0,0.0,66,582,
+TRN195,AIRPORTS ADMINISTRATION,TRN,Department of Transportation,Operating,B,2027,467112227.0,135.0,,,Transportation,,,Special Funds,467.112227,False,2.13,14.43,2,12,3460091.0
+TRN195,AIRPORTS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,B,2027,7500000.0,135.0,,,Transportation,,,Special Funds,7.5,True,0.03,0.23,33,228,55556.0
+TRN195,AIRPORTS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,E,2027,751666000.0,135.0,,,Transportation,,Investment Capital,Revenue Bond Funds,751.666,True,3.43,23.22,1,5,5567896.0
+TRN195,AIRPORTS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,N,2027,60002000.0,135.0,,,Transportation,,Investment Capital,Federal Funds,60.002,True,0.27,1.85,9,53,444459.0
+TRN195,AIRPORTS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,X,2027,200000.0,135.0,,,Transportation,,Investment Capital,Other Funds,0.2,True,0.0,0.01,61,544,1481.0
+TRN301,HONOLULU HARBOR,TRN,Department of Transportation,Operating,B,2027,33212670.0,104.0,,,Transportation,,,Special Funds,33.21267,False,0.15,1.03,17,89,319353.0
+TRN301,HONOLULU HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,39992000.0,104.0,,,Transportation,,,Special Funds,39.992,True,0.18,1.24,13,81,384538.0
+TRN301,HONOLULU HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,104.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,38.0
+TRN301,HONOLULU HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,104.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,38.0
+TRN303,KALAELOA BARBERS POINT HARBOR,TRN,Department of Transportation,Operating,B,2027,2252332.0,6.0,,,Transportation,,,Special Funds,2.252332,False,0.01,0.07,48,391,375389.0
+TRN303,KALAELOA BARBERS POINT HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,34992000.0,6.0,,,Transportation,,,Special Funds,34.992,True,0.16,1.08,14,86,5832000.0
+TRN303,KALAELOA BARBERS POINT HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,6.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,667.0
+TRN303,KALAELOA BARBERS POINT HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,6.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,667.0
+TRN311,HILO HARBOR,TRN,Department of Transportation,Operating,B,2027,4728916.0,15.0,,,Transportation,,,Special Funds,4.728916,False,0.02,0.15,40,300,315261.0
+TRN311,HILO HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,44992000.0,15.0,,,Transportation,,,Special Funds,44.992,True,0.21,1.39,12,73,2999467.0
+TRN311,HILO HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,15.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,267.0
+TRN311,HILO HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,15.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,267.0
+TRN313,KAWAIHAE HARBOR,TRN,Department of Transportation,Operating,B,2027,2585027.0,2.0,,,Transportation,,,Special Funds,2.585027,False,0.01,0.08,47,374,1292514.0
+TRN331,KAHULUI HARBOR,TRN,Department of Transportation,Operating,B,2027,6725038.0,19.0,,,Transportation,,,Special Funds,6.725038,False,0.03,0.21,34,247,353949.0
+TRN331,KAHULUI HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,9992000.0,19.0,,,Transportation,,,Special Funds,9.992,True,0.05,0.31,32,202,525895.0
+TRN331,KAHULUI HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,19.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,211.0
+TRN331,KAHULUI HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,19.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,211.0
+TRN333,HANA HARBOR,TRN,Department of Transportation,Operating,B,2027,13519.0,,,,Transportation,,,Special Funds,0.013519,False,0.0,0.0,64,578,
+TRN341,KAUNAKAKAI HARBOR,TRN,Department of Transportation,Operating,B,2027,834216.0,1.0,,,Transportation,,,Special Funds,0.834216,False,0.0,0.03,53,479,834216.0
+TRN341,KAUNAKAKAI HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,4000.0,1.0,,,Transportation,,,Special Funds,0.004,True,0.0,0.0,65,581,4000.0
+TRN341,KAUNAKAKAI HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,1.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,4000.0
+TRN341,KAUNAKAKAI HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,1.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,4000.0
+TRN351,KAUMALAPAU HARBOR,TRN,Department of Transportation,Operating,B,2027,511891.0,1.0,,,Transportation,,,Special Funds,0.511891,False,0.0,0.02,58,505,511891.0
+TRN351,KAUMALAPAU HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,1992000.0,1.0,,,Transportation,,,Special Funds,1.992,True,0.01,0.06,49,408,1992000.0
+TRN351,KAUMALAPAU HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,1.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,4000.0
+TRN351,KAUMALAPAU HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,1.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,4000.0
+TRN361,NAWILIWILI HARBOR,TRN,Department of Transportation,Operating,B,2027,4570717.0,15.0,,,Transportation,,,Special Funds,4.570717,False,0.02,0.14,43,305,304714.0
+TRN361,NAWILIWILI HARBOR,TRN,Department of Transportation,Capital Improvement,B,2027,4992000.0,15.0,,,Transportation,,,Special Funds,4.992,True,0.02,0.15,38,288,332800.0
+TRN361,NAWILIWILI HARBOR,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,15.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,267.0
+TRN361,NAWILIWILI HARBOR,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,15.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,267.0
+TRN363,PORT ALLEN HARBOR,TRN,Department of Transportation,Operating,B,2027,255379.0,1.0,,,Transportation,,,Special Funds,0.255379,False,0.0,0.01,60,537,255379.0
+TRN395,HARBORS ADMINISTRATION,TRN,Department of Transportation,Operating,B,2027,103372371.0,72.0,,,Transportation,,,Special Funds,103.372371,False,0.47,3.19,7,36,1435727.0
+TRN395,HARBORS ADMINISTRATION,TRN,Department of Transportation,Operating,N,2027,25000000.0,72.0,,,Transportation,,,Federal Funds,25.0,False,0.11,0.77,23,117,347222.0
+TRN395,HARBORS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,B,2027,17492000.0,72.0,,,Transportation,,,Special Funds,17.492,True,0.08,0.54,26,153,242944.0
+TRN395,HARBORS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,N,2027,4000.0,72.0,,,Transportation,,Investment Capital,Federal Funds,0.004,True,0.0,0.0,65,581,56.0
+TRN395,HARBORS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,R,2027,4000.0,72.0,,,Transportation,,Investment Capital,Private Contributions,0.004,True,0.0,0.0,65,581,56.0
+TRN501,OAHU HIGHWAYS,TRN,Department of Transportation,Operating,B,2027,98253732.0,184.0,,,Transportation,,,Special Funds,98.253732,False,0.45,3.03,8,37,533988.0
+TRN501,OAHU HIGHWAYS,TRN,Department of Transportation,Capital Improvement,E,2027,800000.0,184.0,,,Transportation,,Investment Capital,Revenue Bond Funds,0.8,True,0.0,0.02,54,482,4348.0
+TRN501,OAHU HIGHWAYS,TRN,Department of Transportation,Capital Improvement,N,2027,3200000.0,184.0,,,Transportation,,Investment Capital,Federal Funds,3.2,True,0.01,0.1,45,352,17391.0
+TRN511,HAWAII HIGHWAYS,TRN,Department of Transportation,Operating,B,2027,25522385.0,117.5,,,Transportation,,,Special Funds,25.522385,False,0.12,0.79,22,115,217212.0
+TRN511,HAWAII HIGHWAYS,TRN,Department of Transportation,Capital Improvement,E,2027,4800000.0,117.5,,,Transportation,,,Revenue Bond Funds,4.8,True,0.02,0.15,39,297,40851.0
+TRN531,MAUI HIGHWAYS,TRN,Department of Transportation,Operating,B,2027,28041366.0,90.0,,,Transportation,,,Special Funds,28.041366,False,0.13,0.87,20,102,311571.0
+TRN531,MAUI HIGHWAYS,TRN,Department of Transportation,Capital Improvement,E,2027,100000.0,90.0,,,Transportation,,Investment Capital,Revenue Bond Funds,0.1,True,0.0,0.0,62,567,1111.0
+TRN531,MAUI HIGHWAYS,TRN,Department of Transportation,Capital Improvement,N,2027,400000.0,90.0,,,Transportation,,Investment Capital,Federal Funds,0.4,True,0.0,0.01,59,519,4444.0
+TRN561,KAUAI HIGHWAYS,TRN,Department of Transportation,Operating,B,2027,14943899.0,60.0,,,Transportation,,,Special Funds,14.943899,False,0.07,0.46,29,167,249065.0
+TRN561,KAUAI HIGHWAYS,TRN,Department of Transportation,Capital Improvement,E,2027,5200000.0,60.0,,,Transportation,,,Revenue Bond Funds,5.2,True,0.02,0.16,36,279,86667.0
+TRN561,KAUAI HIGHWAYS,TRN,Department of Transportation,Capital Improvement,N,2027,20800000.0,60.0,,,Transportation,,Investment Capital,Federal Funds,20.8,True,0.09,0.64,24,135,346667.0
+TRN595,HIGHWAYS ADMINISTRATION,TRN,Department of Transportation,Operating,B,2027,207904208.0,520.5,,,Transportation,,,Special Funds,207.904208,False,0.95,6.42,5,23,399432.0
+TRN595,HIGHWAYS ADMINISTRATION,TRN,Department of Transportation,Operating,N,2027,16213634.0,520.5,,,Transportation,,,Federal Funds,16.213634,False,0.07,0.5,28,158,31150.0
+TRN595,HIGHWAYS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,B,2027,17343000.0,520.5,,,Transportation,,,Special Funds,17.343,True,0.08,0.54,27,154,33320.0
+TRN595,HIGHWAYS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,E,2027,111324000.0,520.5,,,Transportation,,Investment Capital,Revenue Bond Funds,111.324,True,0.51,3.44,6,35,213879.0
+TRN595,HIGHWAYS ADMINISTRATION,TRN,Department of Transportation,Capital Improvement,N,2027,426975000.0,520.5,,,Transportation,,Investment Capital,Federal Funds,426.975,True,1.95,13.19,3,14,820317.0
+TRN597,HIGHWAYS SAFETY,TRN,Department of Transportation,Operating,B,2027,12319296.0,32.2,,,Transportation,,,Special Funds,12.319296,False,0.06,0.38,31,184,382587.0
+TRN597,HIGHWAYS SAFETY,TRN,Department of Transportation,Operating,N,2027,6495670.0,6.0,,,Transportation,,,Federal Funds,6.49567,False,0.03,0.2,35,254,1082612.0
+TRN597,HIGHWAYS SAFETY,TRN,Department of Transportation,Operating,P,2027,1214379.0,0.8,,,Transportation,,,Other Federal Funds,1.214379,False,0.01,0.04,52,440,1517974.0
+TRN695,ALOHA TOWER DEVELOPMENT CORPORATION,TRN,Department of Transportation,Operating,B,2027,1842580.0,1.0,,,Transportation,,,Special Funds,1.84258,False,0.01,0.06,50,412,1842580.0
+TRN995,GENERAL ADMINISTRATION,TRN,Department of Transportation,Operating,B,2027,34069484.0,110.0,,,Transportation,,,Special Funds,34.069484,False,0.16,1.05,16,88,309723.0
+TRN995,GENERAL ADMINISTRATION,TRN,Department of Transportation,Operating,N,2027,12784696.0,1.0,,,Transportation,,,Federal Funds,12.784696,False,0.06,0.39,30,181,12784696.0
+TRN995,GENERAL ADMINISTRATION,TRN,Department of Transportation,Operating,R,2027,743067.0,1.0,,,Transportation,,,Private Contributions,0.743067,False,0.0,0.02,56,489,743067.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Operating,A,2027,290618531.0,2969.64,,,Education,,,General Funds,290.618531,False,1.33,20.3,2,18,97863.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Operating,B,2027,361552962.0,368.25,,,Education,,,Special Funds,361.552962,False,1.65,25.26,1,16,981814.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Operating,N,2027,6873565.0,75.06,,,Education,,,Federal Funds,6.873565,False,0.03,0.48,20,243,91574.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Operating,W,2027,65569059.0,28.0,,,Education,,,Revolving Funds,65.569059,False,0.3,4.58,5,49,2341752.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Capital Improvement,C,2027,28500000.0,28.0,,,Education,,,General Obligation Bond Fund,28.5,True,0.13,1.99,11,101,1017857.0
+UOH100,"UNIVERSITY OF HAWAII, MANOA",UOH,University of Hawaii,Capital Improvement,E,2027,28500000.0,28.0,,,Education,,Investment Capital,Revenue Bond Funds,28.5,True,0.13,1.99,11,101,1017857.0
+UOH110,"UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",UOH,University of Hawaii,Operating,A,2027,27613321.0,209.03,,,Education,,,General Funds,27.613321,False,0.13,1.93,12,106,132102.0
+UOH110,"UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",UOH,University of Hawaii,Operating,B,2027,28917688.0,209.03,,,Education,,,Special Funds,28.917688,False,0.13,2.02,10,99,138342.0
+UOH110,"UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",UOH,University of Hawaii,Operating,W,2027,8010453.0,209.03,,,Education,,,Revolving Funds,8.010453,False,0.04,0.56,18,221,38322.0
+UOH115,"UNIVERSITY OF HAWAII, CANCER CENTER",UOH,University of Hawaii,Operating,A,2027,3797693.0,37.0,,,Education,,,General Funds,3.797693,False,0.02,0.27,22,330,102640.0
+UOH210,"UNIVERSITY OF HAWAII, HILO",UOH,University of Hawaii,Operating,A,2027,50727650.0,534.25,,,Education,,,General Funds,50.72765,False,0.23,3.54,7,61,94951.0
+UOH210,"UNIVERSITY OF HAWAII, HILO",UOH,University of Hawaii,Operating,B,2027,44435015.0,25.0,,,Education,,,Special Funds,44.435015,False,0.2,3.1,8,74,1777401.0
+UOH210,"UNIVERSITY OF HAWAII, HILO",UOH,University of Hawaii,Operating,N,2027,443962.0,25.0,,,Education,,,Federal Funds,0.443962,False,0.0,0.03,30,513,17758.0
+UOH210,"UNIVERSITY OF HAWAII, HILO",UOH,University of Hawaii,Operating,W,2027,7489592.0,2.0,,,Education,,,Revolving Funds,7.489592,False,0.03,0.52,19,230,3744796.0
+UOH220,SMALL BUSINESS DEVELOPMENT,UOH,University of Hawaii,Operating,A,2027,978941.0,,,,Education,,,General Funds,0.978941,False,0.0,0.07,27,465,
+UOH700,"UNIVERSITY OF HAWAII, WEST OAHU",UOH,University of Hawaii,Operating,A,2027,24015377.0,246.5,,,Education,,,General Funds,24.015377,False,0.11,1.68,14,122,97425.0
+UOH700,"UNIVERSITY OF HAWAII, WEST OAHU",UOH,University of Hawaii,Operating,B,2027,22028269.0,246.5,,,Education,,,Special Funds,22.028269,False,0.1,1.54,15,130,89364.0
+UOH700,"UNIVERSITY OF HAWAII, WEST OAHU",UOH,University of Hawaii,Operating,N,2027,802037.0,246.5,,,Education,,,Federal Funds,0.802037,False,0.0,0.06,29,481,3254.0
+UOH700,"UNIVERSITY OF HAWAII, WEST OAHU",UOH,University of Hawaii,Operating,W,2027,2097704.0,246.5,,,Education,,,Revolving Funds,2.097704,False,0.01,0.15,24,400,8510.0
+UOH800,"UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",UOH,University of Hawaii,Operating,A,2027,192200937.0,1825.5,,,Education,,,General Funds,192.200937,False,0.88,13.43,3,26,105287.0
+UOH800,"UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",UOH,University of Hawaii,Operating,B,2027,75650296.0,1825.5,,,Education,,,Special Funds,75.650296,False,0.35,5.28,4,45,41441.0
+UOH800,"UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",UOH,University of Hawaii,Operating,N,2027,4428296.0,0.5,,,Education,,,Federal Funds,4.428296,False,0.02,0.31,21,311,8856592.0
+UOH800,"UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",UOH,University of Hawaii,Operating,W,2027,31826332.0,34.0,,,Education,,,Revolving Funds,31.826332,False,0.15,2.22,9,93,936069.0
+UOH800,"UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",UOH,University of Hawaii,Capital Improvement,C,2027,10000000.0,34.0,,,Education,,,General Obligation Bond Fund,10.0,True,0.05,0.7,17,200,294118.0
+UOH881,AQUARIA,UOH,University of Hawaii,Operating,A,2027,919917.0,9.0,,,Culture and Recreation,,,General Funds,0.919917,False,0.0,0.06,28,470,102213.0
+UOH881,AQUARIA,UOH,University of Hawaii,Operating,B,2027,3517717.0,7.0,,,Culture and Recreation,,,Special Funds,3.517717,False,0.02,0.25,23,340,502531.0
+UOH881,AQUARIA,UOH,University of Hawaii,Operating,W,2027,996530.0,7.0,,,Culture and Recreation,,,Revolving Funds,0.99653,False,0.0,0.07,26,462,142361.0
+UOH900,"UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",UOH,University of Hawaii,Operating,A,2027,65093776.0,411.0,,,Education,,,General Funds,65.093776,False,0.3,4.55,6,50,158379.0
+UOH900,"UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",UOH,University of Hawaii,Operating,B,2027,24242602.0,14.0,,,Education,,,Special Funds,24.242602,False,0.11,1.69,13,119,1731614.0
+UOH900,"UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",UOH,University of Hawaii,Operating,N,2027,1094875.0,4.0,,,Education,,,Federal Funds,1.094875,False,0.0,0.08,25,451,273719.0
+UOH900,"UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",UOH,University of Hawaii,Operating,W,2027,18501700.0,15.0,,,Education,,,Revolving Funds,18.5017,False,0.08,1.29,16,144,1233447.0
+UOH900,"UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",UOH,University of Hawaii,Capital Improvement,C,2027,4000.0,15.0,,,Education,,,General Obligation Bond Fund,0.004,True,0.0,0.0,31,581,267.0

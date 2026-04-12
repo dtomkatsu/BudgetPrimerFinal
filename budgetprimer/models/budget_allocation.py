@@ -206,9 +206,9 @@ class BudgetAllocation:
             return FundType.UNKNOWN
             
         # Look for a single letter (A-Z) at the end of the string after numbers/commas
-        match = re.search(r'[\d,]+(?:\(?P<fund_type>[A-Z])\)?$|(?P<fund_type2>[A-Z])$', amount_str.strip())
+        match = re.search(r'[\d,]+([A-Z])$|([A-Z])$', amount_str.strip())
         if match:
-            fund_char = match.group('fund_type') or match.group('fund_type2')
+            fund_char = match.group(1) or match.group(2)
             if fund_char:
                 return FundType.from_string(fund_char)
                 

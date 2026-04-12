@@ -1,348 +1,404 @@
 #!/usr/bin/env python3
 """
-Budget Data Processing Script
+Budget Data Processing Script — Enhanced Edition
 
-This script processes and visualizes Hawaii State Budget data with optional
-veto processing. It can show the original budget, the budget with vetoes applied,
-or a comparison of both.
+Parses Hawaii State Budget HB 300, produces:
+  - Per-FY CSVs with derived metrics (both FY2026 and FY2027)
+  - FY26 vs FY27 comparison CSV
+  - Veto impact table (when veto file supplied)
+  - Enriched JSON for the web app (departments, programs, summary stats)
+  - Charts: MOF pie, department bars, CIP pie, FY comparison, fund-type stacked
+  - One-time appropriation summary CSV
 """
 import argparse
+import json
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
-# Add the project root to the path
+import matplotlib
+matplotlib.use('Agg')  # non-interactive backend
+
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
-from budgetprimer import (
-    parse_budget_file,
+from budgetprimer import parse_budget_file
+from budgetprimer.pipeline import (
+    add_derived_metrics,
+    build_fy_comparison,
     process_budget_data,
     process_budget_with_vetoes,
-    load_veto_changes,
-    transform_to_post_veto
 )
 from budgetprimer.visualization.charts import (
-    MeansOfFinanceChart,
+    CIPChart,
     DepartmentChart,
-    CIPChart
+    FYComparisonChart,
+    FundTypeStackedChart,
+    MeansOfFinanceChart,
 )
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('budget_processing.log')
-    ]
+    handlers=[logging.StreamHandler(), logging.FileHandler('budget_processing.log')],
 )
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-def create_comparison_chart(
-    pre_veto_df: pd.DataFrame,
-    post_veto_df: pd.DataFrame,
-    fiscal_year: int,
-    chart_type: str,
-    title_suffix: str = "",
-    **kwargs
-) -> Optional[plt.Figure]:
-    """Create a comparison chart showing pre and post-veto data."""
+def _save_chart(chart_cls, df, fy, charts_dir, filename, title=None, **kwargs):
+    """Instantiate a chart class, create & save."""
     try:
-        if chart_type == 'means_of_finance':
-            # Create side-by-side pie charts
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-            
-            # Create pre-veto chart
-            pre_veto_chart = MeansOfFinanceChart(
-                fiscal_year=fiscal_year,
-                title=f"Pre-Veto: {title_suffix}",
-                **kwargs
-            )
-            pre_data = pre_veto_chart.prepare_data(pre_veto_df)
-            pre_fig = pre_veto_chart.create_chart(pre_data)
-            
-            # Create post-veto chart
-            post_veto_chart = MeansOfFinanceChart(
-                fiscal_year=fiscal_year,
-                title=f"Post-Veto: {title_suffix}",
-                **kwargs
-            )
-            post_data = post_veto_chart.prepare_data(post_veto_df)
-            post_fig = post_veto_chart.create_chart(post_data)
-            
-            # Since we can't easily combine two separate figures, let's create a single comparison figure
-            # We'll recreate the charts on our comparison figure
-            
-            # Pre-veto pie chart
-            wedges1, texts1, autotexts1 = ax1.pie(
-                pre_data['amount_billions'],
-                labels=pre_data['category'],
-                colors=pre_data['color'],
-                autopct=lambda pct: f'${pct * pre_data["amount_billions"].sum() / 100:.1f}B\n({pct:.1f}%)',
-                startangle=90,
-                textprops={'fontsize': 8}
-            )
-            ax1.set_title(f"Pre-Veto: {title_suffix}", fontsize=12, fontweight='bold')
-            ax1.axis('equal')
-            
-            # Post-veto pie chart
-            wedges2, texts2, autotexts2 = ax2.pie(
-                post_data['amount_billions'],
-                labels=post_data['category'],
-                colors=post_data['color'],
-                autopct=lambda pct: f'${pct * post_data["amount_billions"].sum() / 100:.1f}B\n({pct:.1f}%)',
-                startangle=90,
-                textprops={'fontsize': 8}
-            )
-            ax2.set_title(f"Post-Veto: {title_suffix}", fontsize=12, fontweight='bold')
-            ax2.axis('equal')
-            
-            # Close the individual figures to avoid memory issues
-            plt.close(pre_fig)
-            plt.close(post_fig)
-            
-            plt.tight_layout()
-            return fig
-            
-        elif chart_type == 'department_budget':
-            # For department charts, we'll create individual charts and save them separately
-            # since they're more complex to combine
-            
-            # Create pre-veto chart (no kwargs to avoid limiting departments)
-            pre_veto_dept = DepartmentChart(
-                fiscal_year=fiscal_year,
-                title=f"Pre-Veto: All Department Budgets (FY{fiscal_year})"
-            )
-            pre_data = pre_veto_dept.prepare_data(pre_veto_df)
-            pre_fig = pre_veto_dept.create_chart(pre_data)
-            
-            # Create post-veto chart (no kwargs to avoid limiting departments)
-            post_veto_dept = DepartmentChart(
-                fiscal_year=fiscal_year,
-                title=f"Post-Veto: All Department Budgets (FY{fiscal_year})"
-            )
-            post_data = post_veto_dept.prepare_data(post_veto_df)
-            post_fig = post_veto_dept.create_chart(post_data)
-            
-            # For now, return the pre-veto chart and save post-veto separately
-            # This is a limitation we'll address in future iterations
-            plt.close(post_fig)  # Close to avoid memory issues
-            return pre_fig
-            
+        chart = chart_cls(fiscal_year=fy, title=title, **kwargs)
+        fig = chart.create(df, output_file=charts_dir / filename)
+        plt.close(fig)
+        logger.info(f"Saved {filename}")
     except Exception as e:
-        logger.error(f"Error creating comparison chart: {str(e)}", exc_info=True)
-        return None
+        logger.warning(f"Could not create {filename}: {e}")
+
+
+def _build_departments_json(
+    df_fy: pd.DataFrame,
+    programs_by_dept: Dict[str, List[Dict]],
+    dept_descriptions: Dict[str, str],
+) -> List[Dict[str, Any]]:
+    """Build enriched departments.json with per-department fund breakdown and program lists."""
+    dept_summary = df_fy.groupby('department_code').agg(
+        operating=('amount', lambda x: x[df_fy.loc[x.index, 'section'] == 'Operating'].sum()),
+        capital=('amount', lambda x: x[df_fy.loc[x.index, 'section'] == 'Capital Improvement'].sum()),
+        one_time=('amount', lambda x: x[df_fy.loc[x.index, 'section'] == 'One-Time'].sum()),
+        positions=('positions', lambda x: x.dropna().sum()),
+    ).reset_index()
+
+    # Fund breakdown per department
+    fund_by_dept = (
+        df_fy.groupby(['department_code', 'fund_category'])['amount']
+        .sum()
+        .reset_index()
+    )
+
+    departments = []
+    for _, row in dept_summary.iterrows():
+        code = row['department_code']
+        dept_name = df_fy.loc[df_fy['department_code'] == code, 'department_name'].iloc[0] if len(df_fy[df_fy['department_code'] == code]) > 0 else code
+        total = row['operating'] + row['capital'] + row['one_time']
+
+        fund_breakdown = {}
+        dept_funds = fund_by_dept[fund_by_dept['department_code'] == code]
+        for _, fr in dept_funds.iterrows():
+            fund_breakdown[fr['fund_category']] = float(fr['amount'])
+
+        departments.append({
+            'id': code.lower(),
+            'code': code,
+            'name': dept_name,
+            'description': dept_descriptions.get(code, ''),
+            'budget': f'${total/1e9:.1f}B' if total >= 1e9 else f'${total/1e6:.0f}M',
+            'operating_budget': float(row['operating']),
+            'capital_budget': float(row['capital']),
+            'one_time_appropriations': float(row['one_time']),
+            'total_budget': float(total),
+            'positions': float(row['positions']) if pd.notna(row['positions']) else None,
+            'fund_breakdown': fund_breakdown,
+            'programs': programs_by_dept.get(code, []),
+            'path': f'/pages/{code.lower()}.html',
+        })
+
+    departments.sort(key=lambda d: d['total_budget'], reverse=True)
+    return departments
+
+
+def _build_programs_by_dept(df_fy: pd.DataFrame) -> Dict[str, List[Dict]]:
+    """Build per-department program-level data for JSON output."""
+    programs: Dict[str, List[Dict]] = {}
+    grouped = df_fy.groupby(['department_code', 'program_id', 'program_name', 'section', 'fund_type', 'fund_category'])
+    for (dept, pid, pname, section, ft, fcat), group in grouped:
+        entry = {
+            'program_id': pid,
+            'program_name': pname,
+            'section': section,
+            'fund_type': ft,
+            'fund_category': fcat,
+            'amount': float(group['amount'].sum()),
+            'positions': float(group['positions'].sum()) if group['positions'].notna().any() else None,
+        }
+        programs.setdefault(dept, []).append(entry)
+
+    # Sort programs within each department by amount descending
+    for dept in programs:
+        programs[dept].sort(key=lambda p: p['amount'], reverse=True)
+    return programs
+
+
+def _build_summary_stats(df_fy: pd.DataFrame, fy: int, source: str) -> Dict[str, Any]:
+    """Build enriched summary_stats.json."""
+    total_budget = float(df_fy['amount'].sum())
+    operating = float(df_fy.loc[df_fy['section'] == 'Operating', 'amount'].sum())
+    capital = float(df_fy.loc[df_fy['section'] == 'Capital Improvement', 'amount'].sum())
+    one_time = float(df_fy.loc[df_fy['section'] == 'One-Time', 'amount'].sum())
+
+    fund_breakdown = df_fy.groupby('fund_category')['amount'].sum().to_dict()
+    fund_breakdown = {k: float(v) for k, v in sorted(fund_breakdown.items())}
+
+    dept_breakdown = df_fy.groupby('department_name')['amount'].sum().sort_values(ascending=False).to_dict()
+    dept_breakdown = {k: float(v) for k, v in dept_breakdown.items()}
+
+    total_positions = float(df_fy['positions'].dropna().sum()) if 'positions' in df_fy.columns else None
+
+    return {
+        'fiscal_year': fy,
+        'total_budget': total_budget,
+        'operating_budget': operating,
+        'capital_budget': capital,
+        'one_time_appropriations': one_time,
+        'total_positions': total_positions,
+        'fund_breakdown': fund_breakdown,
+        'department_totals': dept_breakdown,
+        'num_departments': int(df_fy['department_code'].nunique()),
+        'num_programs': int(df_fy['program_id'].nunique()),
+        'num_records': len(df_fy),
+        'metadata': {
+            'generated_at': datetime.now().isoformat(),
+            'source_file': source,
+            'total_records': len(df_fy),
+            'fiscal_year': fy,
+        },
+    }
+
+
+def _build_veto_impact(
+    pre_df: pd.DataFrame,
+    post_df: pd.DataFrame,
+    fy: int,
+) -> pd.DataFrame:
+    """Produce a veto-impact table showing pre/post amounts and deltas."""
+    id_cols = ['program_id', 'program_name', 'department_code', 'department_name',
+               'section', 'fund_type', 'fund_category']
+    existing = [c for c in id_cols if c in pre_df.columns and c in post_df.columns]
+
+    merged = pd.merge(
+        pre_df[existing + ['amount']],
+        post_df[existing + ['amount']],
+        on=existing,
+        how='outer',
+        suffixes=('_pre_veto', '_post_veto'),
+    )
+    merged['amount_pre_veto'] = merged['amount_pre_veto'].fillna(0)
+    merged['amount_post_veto'] = merged['amount_post_veto'].fillna(0)
+    merged['veto_delta'] = merged['amount_post_veto'] - merged['amount_pre_veto']
+    merged['veto_pct_change'] = (
+        merged['veto_delta'] / merged['amount_pre_veto'].replace(0, np.nan) * 100
+    ).round(2)
+
+    # Only keep rows where something changed
+    changed = merged[merged['veto_delta'].abs() > 0].copy()
+    changed = changed.sort_values('veto_delta', ascending=True)
+    return changed
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
-    """Main function to process and visualize budget data with optional veto processing."""
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='Process Hawaii State Budget data with optional veto processing')
-    parser.add_argument('input_file', help='Path to the budget file to process')
-    parser.add_argument('--output-dir', default='data/output', help='Output directory for results')
-    parser.add_argument('--fiscal-year', type=int, default=2026, help='Fiscal year to analyze')
-    parser.add_argument('--section', choices=['operating', 'capital', 'all'], default='all',
-                        help='Budget section to analyze')
-    parser.add_argument('--veto-mode', choices=['none', 'apply', 'both'], default='none',
-                        help='Veto processing mode')
-    parser.add_argument('--veto-file', type=Path,
-                        help='Path to veto changes CSV file')
+    parser = argparse.ArgumentParser(description='Process Hawaii State Budget data')
+    parser.add_argument('input_file', help='Path to the budget text file')
+    parser.add_argument('--output-dir', default='data/output', help='Output directory')
+    parser.add_argument('--fiscal-year', type=int, default=2026)
+    parser.add_argument('--section', choices=['operating', 'capital', 'all'], default='all')
+    parser.add_argument('--veto-mode', choices=['none', 'apply', 'both'], default='none')
+    parser.add_argument('--veto-file', type=Path)
     parser.add_argument('--one-time-appropriations', type=Path,
-                        default=Path('data/config/one_time_appropriations_fy2026.csv'),
-                        help='Path to one-time appropriations CSV file')
-    parser.add_argument('--top-n', type=int, default=15,
-                        help='Number of top items to show in charts')
+                        default=Path('data/config/one_time_appropriations_fy2026.csv'))
+    parser.add_argument('--top-n', type=int, default=15)
     args = parser.parse_args()
-    
-    # Create output directories
+
+    fy1 = args.fiscal_year
+    fy2 = fy1 + 1
+
     output_dir = Path(args.output_dir)
     processed_dir = Path('data/processed')
     charts_dir = output_dir / 'charts'
-    
-    # Create necessary directories
-    for d in [output_dir, charts_dir, processed_dir]:
+    json_dir = Path('docs/js')
+    for d in [output_dir, charts_dir, processed_dir, json_dir]:
         d.mkdir(parents=True, exist_ok=True)
-    
+
     try:
-        # Step 1: Parse the budget file
-        logger.info(f"Parsing budget file: {args.input_file}")
+        # ---------------------------------------------------------------
+        # 1. Parse
+        # ---------------------------------------------------------------
+        logger.info(f"Parsing {args.input_file}")
         allocations = parse_budget_file(args.input_file)
-        
         if not allocations:
-            logger.error("No budget allocations found in the input file")
+            logger.error("No allocations found")
             return 1
-        
-        logger.info(f"Successfully parsed {len(allocations)} budget allocations")
-        
-        # Step 2: Process the budget data with optional veto handling
-        logger.info("Processing budget data...")
-        
-        # Process budget data with optional veto processing and one-time appropriations
+        logger.info(f"Parsed {len(allocations)} allocations")
+
+        # ---------------------------------------------------------------
+        # 2. Process both fiscal years
+        # ---------------------------------------------------------------
         result = process_budget_with_vetoes(
             allocations=allocations,
             veto_mode=args.veto_mode,
             veto_file=args.veto_file,
             one_time_appropriations_file=args.one_time_appropriations,
-            fiscal_year=args.fiscal_year,
-            section=args.section
+            fiscal_year=None,  # don't filter — we want both FYs
+            section=args.section,
         )
-        
-        # Get the appropriate DataFrame based on veto mode
-        if args.veto_mode == 'apply':
-            df = result['post_veto_df']
-            logger.info("Showing post-veto budget data")
-        else:
-            df = result['pre_veto_df']
-            if args.veto_mode == 'both':
-                logger.info("Showing pre-veto budget data (use --veto-mode=apply for post-veto)")
-        
-        # Save processed data to CSV
-        output_csv = processed_dir / f'budget_allocations_fy{args.fiscal_year}.csv'
-        df.to_csv(output_csv, index=False)
-        logger.info(f"Saved processed data to {output_csv}")
-        
-        # Save a copy with veto status in filename
-        if args.veto_mode == 'apply':
-            output_csv_veto = processed_dir / f'budget_allocations_fy{args.fiscal_year}_post_veto.csv'
-            df.to_csv(output_csv_veto, index=False)
-            logger.info(f"Saved post-veto data to {output_csv_veto}")
-        
-        # Step 3: Create visualizations
-        logger.info("Creating visualizations...")
-        
-        # Common chart arguments
-        chart_kwargs = {
-            'n_projects': args.top_n  # Only used for CIP charts, not department charts
-        }
-        
-        # Create standard visualizations for the current view
-        if args.veto_mode in ['none', 'both']:
-            logger.info("Creating standard visualizations...")
-            
-            # 3.1 Means of Finance (pre-veto)
-            moa_chart = MeansOfFinanceChart(
-                fiscal_year=args.fiscal_year,
-                title=f"Means of Finance (FY{args.fiscal_year})",
-                **chart_kwargs
-            )
-            moa_data = moa_chart.prepare_data(result['pre_veto_df'])
-            moa_fig = moa_chart.create_chart(moa_data)
-            
-            # Save the chart
-            moa_path = charts_dir / f"means_of_finance_fy{args.fiscal_year}.png"
-            moa_fig.savefig(moa_path, bbox_inches='tight', dpi=300)
-            plt.close(moa_fig)
-            logger.info(f"Saved Means of Finance chart to {moa_path}")
-            
-            # If we're in 'both' mode, also create the post-veto charts
-            if args.veto_mode == 'both':
-                # Create post-veto means of finance chart
-                moa_post_veto_chart = MeansOfFinanceChart(
-                    fiscal_year=args.fiscal_year,
-                    title=f"Means of Finance (FY{args.fiscal_year}) - Post Veto",
-                    **chart_kwargs
-                )
-                moa_post_veto_data = moa_post_veto_chart.prepare_data(result['post_veto_df'])
-                moa_post_veto_fig = moa_post_veto_chart.create_chart(moa_post_veto_data)
-                
-                # Save the post-veto chart
-                moa_post_veto_path = charts_dir / f"means_of_finance_fy{args.fiscal_year}_post_veto.png"
-                moa_post_veto_fig.savefig(moa_post_veto_path, bbox_inches='tight', dpi=300)
-                plt.close(moa_post_veto_fig)
-                logger.info(f"Saved Post-Veto Means of Finance chart to {moa_post_veto_path}")
-                
-                # Create post-veto department chart (show all departments)
-                dept_post_veto_chart = DepartmentChart(
-                    fiscal_year=args.fiscal_year,
-                    title=f"All Department Budgets (FY{args.fiscal_year}) - Post Veto"
-                )
-                dept_post_veto_data = dept_post_veto_chart.prepare_data(result['post_veto_df'])
-                dept_post_veto_fig = dept_post_veto_chart.create_chart(dept_post_veto_data)
-                
-                # Save the post-veto department chart
-                dept_post_veto_path = charts_dir / f"department_budgets_fy{args.fiscal_year}_post_veto.png"
-                dept_post_veto_fig.savefig(dept_post_veto_path, bbox_inches='tight', dpi=300)
-                plt.close(dept_post_veto_fig)
-                logger.info(f"Saved Post-Veto Department Budgets chart to {dept_post_veto_path}")
-                
-                # Create post-veto CIP chart
-                cip_post_veto_chart = CIPChart(
-                    fiscal_year=args.fiscal_year,
-                    title=f"Distribution of Capital Improvement Project Funding, FY{str(args.fiscal_year)[-2:]} ($ Millions) - Post Veto"
-                )
-                cip_post_veto_data = cip_post_veto_chart.prepare_data(result['post_veto_df'])
-                cip_post_veto_fig = cip_post_veto_chart.create_chart(cip_post_veto_data)
-                
-                # Save the post-veto CIP chart
-                cip_post_veto_path = charts_dir / f"cip_funding_fy{args.fiscal_year}_post_veto.png"
-                cip_post_veto_fig.savefig(cip_post_veto_path, bbox_inches='tight', dpi=300)
-                plt.close(cip_post_veto_fig)
-                logger.info(f"Saved Post-Veto CIP Funding chart to {cip_post_veto_path}")
-        
-        if args.veto_mode == 'both':
-            # Create comparison visualizations
-            logger.info("Creating comparison visualizations (pre-veto vs post-veto)")
-            
-            # Means of Finance comparison
-            moa_chart = MeansOfFinanceChart(
-                fiscal_year=args.fiscal_year,
-                title=f"Hawaii State Budget - Means of Finance (FY{args.fiscal_year} - Pre-Veto vs Post-Veto)"
-            )
-            moa_output = charts_dir / f'means_of_finance_fy{args.fiscal_year}_comparison.png'
-            moa_fig = moa_chart.create(result['post_veto_df'], output_file=moa_output)
-            logger.info(f"Saved Means of Finance comparison to {moa_output}")
-            
-            # 3.2 Department budget comparison (all departments)
-            dept_chart = DepartmentChart(
-                fiscal_year=args.fiscal_year,
-                title=f"Hawaii State Budget - Department Budgets (FY{args.fiscal_year} - Pre-Veto vs Post-Veto)"
-            )
-            dept_output = charts_dir / f'all_departments_fy{args.fiscal_year}_comparison.png'
-            dept_fig = dept_chart.create(result['post_veto_df'], output_file=dept_output)
-            logger.info(f"Saved Department Budget comparison to {dept_output}")
-            
-        else:
-            # Create standard visualizations (single view)
-            veto_suffix = "_post_veto" if args.veto_mode == 'apply' else ""
-            
-            # 3.1 Means of Finance pie chart
-            moa_chart = MeansOfFinanceChart(
-                fiscal_year=args.fiscal_year,
-                title=f"Hawaii State Budget - Means of Finance (FY{args.fiscal_year}{' - Post-Veto' if args.veto_mode == 'apply' else ''})"
-            )
-            moa_output = charts_dir / f'means_of_finance_fy{args.fiscal_year}{veto_suffix}.png'
-            moa_fig = moa_chart.create(df, output_file=moa_output)
-            logger.info(f"Saved Means of Finance chart to {moa_output}")
-            
-            # 3.2 Department budget chart
-            dept_chart = DepartmentChart(
-                fiscal_year=args.fiscal_year,
-                title=f"Hawaii State Budget - Department Budgets (FY{args.fiscal_year}{veto_suffix})"
-            )
-            dept_output = charts_dir / f'top_departments_fy{args.fiscal_year}{veto_suffix}.png'
-            dept_fig = dept_chart.create(df, output_file=dept_output)
-            logger.info(f"Saved Department Budget chart to {dept_output}")
-            
-            # 3.3 CIP funding chart (if there are capital projects)
-            if 'Capital Improvement' in df['section'].unique():
-                cip_chart = CIPChart(
-                    fiscal_year=args.fiscal_year,
-                    title=f"Hawaii State Budget - Capital Improvement Projects (FY{args.fiscal_year}{veto_suffix})"
-                )
-                cip_output = charts_dir / f'top_cip_projects_fy{args.fiscal_year}{veto_suffix}.png'
-                cip_fig = cip_chart.create(df, output_file=cip_output)
-                logger.info(f"Saved CIP chart to {cip_output}")
-        
+
+        # Process each FY separately for CSV output
+        all_allocs = result.get('post_veto_allocations', allocations)
+        df_fy1 = process_budget_data(all_allocs, fiscal_year=fy1, section=args.section)
+        df_fy2 = process_budget_data(all_allocs, fiscal_year=fy2, section=args.section)
+        df_both = process_budget_data(all_allocs, fiscal_year=None, section=args.section)
+
+        # Add derived metrics
+        df_fy1 = add_derived_metrics(df_fy1)
+        df_fy2 = add_derived_metrics(df_fy2)
+
+        # ---------------------------------------------------------------
+        # 3. Save CSVs
+        # ---------------------------------------------------------------
+        suffix = '_post_veto' if args.veto_mode in ('apply', 'both') else ''
+
+        csv1 = processed_dir / f'budget_allocations_fy{fy1}{suffix}.csv'
+        csv2 = processed_dir / f'budget_allocations_fy{fy2}{suffix}.csv'
+        df_fy1.to_csv(csv1, index=False)
+        df_fy2.to_csv(csv2, index=False)
+        logger.info(f"Saved {csv1} ({len(df_fy1)} rows) and {csv2} ({len(df_fy2)} rows)")
+
+        # FY comparison
+        fy_comp = build_fy_comparison(all_allocs, fy1=fy1, fy2=fy2, section=args.section)
+        fy_comp_csv = processed_dir / f'budget_fy{fy1}_vs_fy{fy2}{suffix}.csv'
+        fy_comp.to_csv(fy_comp_csv, index=False)
+        logger.info(f"Saved FY comparison: {fy_comp_csv} ({len(fy_comp)} rows)")
+
+        # ---------------------------------------------------------------
+        # 4. Veto impact table
+        # ---------------------------------------------------------------
+        if args.veto_mode in ('apply', 'both') and 'post_veto_df' in result:
+            pre_df = result.get('pre_veto_df', df_fy1)
+            post_df = result['post_veto_df']
+            # Filter to fy1 for comparison
+            pre_fy1 = pre_df[pre_df['fiscal_year'] == fy1] if 'fiscal_year' in pre_df.columns else pre_df
+            post_fy1 = post_df[post_df['fiscal_year'] == fy1] if 'fiscal_year' in post_df.columns else post_df
+
+            veto_impact = _build_veto_impact(pre_fy1, post_fy1, fy1)
+            veto_csv = processed_dir / f'veto_impact_fy{fy1}.csv'
+            veto_impact.to_csv(veto_csv, index=False)
+            logger.info(f"Saved veto impact: {veto_csv} ({len(veto_impact)} changed items)")
+
+        # ---------------------------------------------------------------
+        # 5. Enriched JSON for web app
+        # ---------------------------------------------------------------
+        # Load department descriptions
+        desc_path = processed_dir / 'department_descriptions.json'
+        dept_descriptions = {}
+        if desc_path.exists():
+            with open(desc_path) as f:
+                raw_descs = json.load(f)
+                if isinstance(raw_descs, dict):
+                    for code, info in raw_descs.items():
+                        if isinstance(info, dict):
+                            dept_descriptions[code] = info.get('description', '')
+                        else:
+                            dept_descriptions[code] = str(info)
+                elif isinstance(raw_descs, list):
+                    for entry in raw_descs:
+                        code = entry.get('department_code', '')
+                        dept_descriptions[code] = entry.get('description', '')
+
+        # Programs by department
+        programs_by_dept = _build_programs_by_dept(df_fy1)
+
+        # Departments JSON
+        departments = _build_departments_json(df_fy1, programs_by_dept, dept_descriptions)
+        with open(json_dir / 'departments.json', 'w') as f:
+            json.dump(departments, f, indent=2)
+        logger.info(f"Saved enriched departments.json ({len(departments)} departments)")
+
+        # Summary stats JSON
+        stats = _build_summary_stats(df_fy1, fy1, str(csv1.name))
+        with open(json_dir / 'summary_stats.json', 'w') as f:
+            json.dump(stats, f, indent=2)
+        logger.info("Saved enriched summary_stats.json")
+
+        # Programs JSON (all programs, for search/filter)
+        all_programs = []
+        for dept_programs in programs_by_dept.values():
+            all_programs.extend(dept_programs)
+        with open(json_dir / 'programs.json', 'w') as f:
+            json.dump(all_programs, f, indent=2)
+        logger.info(f"Saved programs.json ({len(all_programs)} program entries)")
+
+        # FY comparison JSON (for frontend charts)
+        fy_comp_json = fy_comp.copy()
+        # Replace NaN with None for JSON serialization
+        fy_comp_json = fy_comp_json.where(fy_comp_json.notna(), None)
+        records = fy_comp_json.to_dict(orient='records')
+        # Ensure no NaN/inf values leak through
+        for rec in records:
+            for k, v in rec.items():
+                if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
+                    rec[k] = None
+        with open(json_dir / 'fy_comparison.json', 'w') as f:
+            json.dump(records, f, indent=2, default=str)
+        logger.info(f"Saved fy_comparison.json ({len(fy_comp_json)} rows)")
+
+        # ---------------------------------------------------------------
+        # 6. Charts
+        # ---------------------------------------------------------------
+        logger.info("Creating charts...")
+
+        # Standard charts for FY1
+        _save_chart(MeansOfFinanceChart, df_both, fy1, charts_dir,
+                     f'means_of_finance_fy{fy1}{suffix}.png',
+                     title=f'Means of Finance (FY{fy1})')
+        _save_chart(DepartmentChart, df_both, fy1, charts_dir,
+                     f'department_budgets_fy{fy1}{suffix}.png',
+                     title=f'Department Budgets (FY{fy1})')
+        _save_chart(CIPChart, df_both, fy1, charts_dir,
+                     f'cip_funding_fy{fy1}{suffix}.png',
+                     title=f'Capital Improvement Funding (FY{fy1})')
+
+        # New: FY comparison chart
+        try:
+            fy_chart = FYComparisonChart(fy1=fy1, fy2=fy2,
+                                          title=f'Department Budgets: FY{fy1} vs FY{fy2}')
+            fig = fy_chart.create(df_both, output_file=charts_dir / f'fy{fy1}_vs_fy{fy2}_comparison.png')
+            plt.close(fig)
+            logger.info(f"Saved FY comparison chart")
+        except Exception as e:
+            logger.warning(f"Could not create FY comparison chart: {e}")
+
+        # New: Fund-type stacked chart
+        _save_chart(FundTypeStackedChart, df_both, fy1, charts_dir,
+                     f'fund_type_composition_fy{fy1}{suffix}.png',
+                     title=f'Fund-Type Composition by Department (FY{fy1})')
+
+        # If veto mode is both, also make post-veto versions
+        if args.veto_mode == 'both' and 'post_veto_df' in result:
+            post_df = result['post_veto_df']
+            _save_chart(MeansOfFinanceChart, post_df, fy1, charts_dir,
+                         f'means_of_finance_fy{fy1}_post_veto.png',
+                         title=f'Means of Finance (FY{fy1}) - Post Veto')
+            _save_chart(DepartmentChart, post_df, fy1, charts_dir,
+                         f'department_budgets_fy{fy1}_post_veto.png',
+                         title=f'Department Budgets (FY{fy1}) - Post Veto')
+
         logger.info("Processing completed successfully!")
         return 0
-        
+
     except Exception as e:
-        logger.error(f"Error processing budget data: {str(e)}", exc_info=True)
+        logger.error(f"Error: {str(e)}", exc_info=True)
         return 1
 
 

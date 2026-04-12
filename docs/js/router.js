@@ -16,19 +16,23 @@ class Router {
             </div>`;
         
         try {
-            // Load departments data and summary statistics
+            // Load all data sources in parallel
             const loadPromises = [];
-            
+
             if (window.loadDepartments) {
                 loadPromises.push(window.loadDepartments());
-            } else {
-                console.error('loadDepartments function not found');
             }
-            
             if (window.loadSummaryStats) {
                 loadPromises.push(window.loadSummaryStats());
-            } else {
-                console.error('loadSummaryStats function not found');
+            }
+            if (window.loadPrograms) {
+                loadPromises.push(window.loadPrograms());
+            }
+            if (window.loadFYComparison) {
+                loadPromises.push(window.loadFYComparison());
+            }
+            if (window.loadDraftComparison) {
+                loadPromises.push(window.loadDraftComparison());
             }
             
             // Wait for both to complete

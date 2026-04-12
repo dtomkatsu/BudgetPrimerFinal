@@ -1,799 +1,682 @@
 """
 Fast parser for budget documents using optimized regex patterns.
+
+Parses Hawaii State Budget HB 300 format text into structured BudgetAllocation objects.
+The parser is a line-by-line state machine that tracks the current department, program,
+section (Operating vs Capital), and category as context for amount lines.
+
+Pattern Matching Precedence (order matters):
+  1. Category headers (A. ECONOMIC DEVELOPMENT)
+  2. Program headers (1. BED100 - STRATEGIC MARKETING AND SUPPORT)
+  3. INVESTMENT CAPITAL headers (with optional inline amounts)
+  4. Indented amounts within INVESTMENT CAPITAL sections
+  5. Amount lines with fund suffixes (TRN 700,000P 700,000P)
+  6. OPERATING lines with inline amounts
+  7. Section headers (OPERATING, INVESTMENT CAPITAL without amounts)
+  8. General amount lines (fallback)
 """
 import re
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Pattern, Match
-from dataclasses import dataclass
-import re
-import logging
+from typing import Dict, List, Optional, Pattern
+from dataclasses import dataclass, field
 
 from .base_parser import BaseBudgetParser
 from ..models import (
-    BudgetAllocation, 
-    BudgetSection, 
-    FundType, 
+    BudgetAllocation,
+    BudgetSection,
+    FundType,
     Program,
     ProgramCategory,
     Department
 )
 
 
+# ---------------------------------------------------------------------------
+# Parser State
+# ---------------------------------------------------------------------------
+
+@dataclass
+class ParserState:
+    """Tracks parsing context as we iterate through lines."""
+    department_code: Optional[str] = None
+    program_id: Optional[str] = None
+    program_name: Optional[str] = None
+    section: Optional[str] = None
+    category: Optional[str] = None
+    positions_fy1: Optional[float] = None
+    positions_fy2: Optional[float] = None
+
+    def has_context(self) -> bool:
+        """Return True if we have enough context to create an allocation."""
+        return self.department_code is not None and self.program_id is not None
+
+    def set_program(self, program_id: str, program_name: str):
+        self.program_id = program_id
+        self.program_name = program_name
+        self.department_code = program_id[:3]
+        self.section = None
+        self.positions_fy1 = None
+        self.positions_fy2 = None
+
+    @property
+    def section_enum(self) -> BudgetSection:
+        if self.section and 'INVESTMENT' in self.section.upper():
+            return BudgetSection.CAPITAL_IMPROVEMENT
+        return BudgetSection.OPERATING
+
+    @property
+    def default_fund(self) -> str:
+        """Default fund type letter based on current section."""
+        return 'C' if self.section_enum == BudgetSection.CAPITAL_IMPROVEMENT else 'A'
+
+
+# ---------------------------------------------------------------------------
+# Category mapping (Hawaii budget categories A-K)
+# ---------------------------------------------------------------------------
+
+CATEGORY_MAP = {
+    'A': 'Economic Development',
+    'B': 'Employment',
+    'C': 'Transportation',
+    'D': 'Environment',
+    'E': 'Health',
+    'F': 'Human Services',
+    'G': 'Education',
+    'H': 'Culture and Recreation',
+    'I': 'Public Safety',
+    'J': 'Individual Rights',
+    'K': 'Government Operations',
+}
+
+# Minimum leading whitespace (chars) to consider a line "indented" for
+# continuation amount detection.  Tunable — avoids the old magic '30 spaces'.
+MIN_INDENT_CHARS = 20
+
+# Suspicious-duplicate detection threshold.  Same (program, FY, section, amount)
+# entries above this dollar figure are flagged as likely parsing errors.
+DUPLICATE_AMOUNT_THRESHOLD = 50_000_000
+
+# Department code → human-readable name.
+# Sourced from data/processed/department_descriptions.json and the HB 300 text.
+DEPARTMENT_NAMES = {
+    'AGR': 'Department of Agriculture',
+    'AGS': 'Department of Accounting & General Services',
+    'ATG': 'Department of the Attorney General',
+    'BED': 'Department of Business, Economic Development & Tourism',
+    'BUF': 'Department of Budget & Finance',
+    'CCA': 'Department of Commerce & Consumer Affairs',
+    'CCH': 'City and County of Honolulu',
+    'COH': 'County of Hawaii',
+    'COK': 'County of Kauai',
+    'COM': 'County of Maui',
+    'DEF': 'Department of Defense',
+    'EDN': 'Department of Education',
+    'GOV': 'Office of the Governor',
+    'HHL': 'Department of Hawaiian Home Lands',
+    'HMS': 'Department of Human Services',
+    'HRD': 'Department of Human Resources Development',
+    'HTH': 'Department of Health',
+    'JUD': 'The Judiciary',
+    'LAW': 'Department of Law Enforcement',
+    'LBR': 'Department of Labor & Industrial Relations',
+    'LEG': 'Legislature',
+    'LNR': 'Department of Land & Natural Resources',
+    'LTG': 'Office of the Lieutenant Governor',
+    'OHA': 'Office of Hawaiian Affairs',
+    'PSD': 'Department of Corrections and Rehabilitation',
+    'SUB': 'Subsidies',
+    'TAX': 'Department of Taxation',
+    'TRN': 'Department of Transportation',
+    'UOH': 'University of Hawaii',
+}
+
+
 class FastBudgetParser(BaseBudgetParser):
     """Fast parser for budget documents using optimized regex patterns."""
-    
+
+    # Fiscal years to assign to column 1 and column 2 amounts.
+    # Override via constructor kwargs: FastBudgetParser(fy1=2028, fy2=2029)
+    DEFAULT_FY1 = 2026
+    DEFAULT_FY2 = 2027
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.fy1 = kwargs.get('fy1', self.DEFAULT_FY1)
+        self.fy2 = kwargs.get('fy2', self.DEFAULT_FY2)
         self._compiled_patterns = self._compile_patterns()
-    
+
+    # ------------------------------------------------------------------
+    # Regex compilation
+    # ------------------------------------------------------------------
+
     def _compile_patterns(self) -> Dict[str, Pattern]:
-        """Compile all regex patterns used for parsing."""
+        """Compile all regex patterns used for parsing.
+
+        Patterns are grouped by purpose.  The matching order is enforced in
+        _extract_allocations(), not by dict order here.
+        """
         return {
+            # --- positions line (e.g., "  10.00*   10.00*") ---
+            'positions': re.compile(
+                r'^\s+([\d,.]+)\*\s+([\d,.]+)\*\s*$',
+            ),
+
+            # --- structural markers ---
             'program': re.compile(
-                r'^\s*\d+\.\s+([A-Z0-9]+)\s*[-–]\s*(.+)',
-                re.IGNORECASE
-            ),
-            # Updated to better handle fund types at the end of amounts (e.g., 700,000P)
-            'amount_line': re.compile(
-                r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
-            ),
-            'operating_line': re.compile(
-                r'^OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
-            ),
-            'amount_line_with_fund': re.compile(
-                r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
-            ),
-            'section': re.compile(
-                r'^\s*(OPERATING|(INVESTMENT\s+CAPITAL)(?:\s+([A-Z]{3})\s+([\d,]+[A-Z])\s+([\d,]+[A-Z]))?)',
-                re.IGNORECASE
-            ),
-            'section_with_amounts': re.compile(
-                r'^\s*([A-Z]+)\s+([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
-            ),
-            # Pattern to match amount lines with fund type suffixes (e.g., 700,000P)
-            'amount_with_fund_suffix': re.compile(
-                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z])\s+([\d,]+)([A-Z]?)\s*$',
-                re.IGNORECASE
+                r'^\s*\d+\.\s+([A-Z0-9]+)\s*[-\u2013]\s*(.+)',
+                re.IGNORECASE,
             ),
             'category': re.compile(
                 r'^\s*([A-Z])\.\s+(.+?)(?=\s*\([A-Z]+\)|$)',
-                re.IGNORECASE
+                re.IGNORECASE,
             ),
             'investment_capital': re.compile(
-                r'^\s*INVESTMENT\s+CAPITAL(?:\s+([A-Z0-9]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?)?',
-                re.IGNORECASE
+                r'^\s*INVESTMENT\s+CAPITAL'
+                r'(?:\s+([A-Z0-9]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?)?',
+                re.IGNORECASE,
             ),
-            'investment_amount': re.compile(
-                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
+            'operating_line': re.compile(
+                r'^OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])(?:\s+([\d,]+)([A-Z]?))?\s*$',
+                re.IGNORECASE,
             ),
-            'investment_line': re.compile(
-                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
-                re.IGNORECASE
+            'operating_pdf': re.compile(
+                r'^\s*OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])\s+([A-Z])\s*$',
+                re.IGNORECASE,
+            ),
+
+            # --- amount lines ---
+            'amount_two_col': re.compile(
+                r'^\s*([A-Z]+)\s+([\d,]+)([A-Z])\s+([\d,]+)([A-Z]?)\s*$',
+                re.IGNORECASE,
             ),
             'indented_amount': re.compile(
-                r'^[\s\u00A0]*([A-Z]+)[\s\u00A0]+([\d,]+)([A-Z]?)(?:[\s\u00A0]+([\d,]+)([A-Z]?))?[\s\u00A0]*$',
-                re.IGNORECASE
+                r'^[\s\u00A0]*([A-Z]+)[\s\u00A0]+([\d,]+)([A-Z]?)'
+                r'(?:[\s\u00A0]+([\d,]+)([A-Z]?))?[\s\u00A0]*$',
+                re.IGNORECASE,
             ),
-            'indented_single_amount': re.compile(
-                r'^[\s\u00A0]*([A-Z]+)[\s\u00A0]+([\d,]+)([A-Z])(?:[\s\u00A0]*[A-Z])?$',
-                re.IGNORECASE
-            )
+            # Single amount with fund type, optional trailing fund letter for blank FY2
+            # e.g., "TRN  10,000,000N   N" (FY1=10M fund N, FY2=blank with fund N)
+            'amount_single_fund': re.compile(
+                r'^[\s\u00A0]*([A-Z]+)[\s\u00A0]+([\d,]+)([A-Z])(?:[\s\u00A0]+([A-Z]))?[\s\u00A0]*$',
+                re.IGNORECASE,
+            ),
+
+            # FY2-only amount: DEPT  [FUND]  AMOUNT[FUND]
+            # e.g., "AGR  P  164,450P" (blank FY1, FY2 = 164,450 fund P)
+            'fy2_only_amount': re.compile(
+                r'^\s*([A-Z]+)\s+([A-Z])\s+([\d,]+)([A-Z])\s*$',
+                re.IGNORECASE,
+            ),
+
+            # --- section headers (no inline amounts) ---
+            'section': re.compile(
+                r'^\s*(OPERATING|(INVESTMENT\s+CAPITAL)'
+                r'(?:\s+([A-Z]{3})\s+([\d,]+[A-Z])\s+([\d,]+[A-Z]))?)',
+                re.IGNORECASE,
+            ),
+            'section_with_amounts': re.compile(
+                r'^\s*([A-Z]+)\s+([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$',
+                re.IGNORECASE,
+            ),
         }
-    
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
     def parse(self, file_path: str, **kwargs) -> List[BudgetAllocation]:
-        """Parse a budget document using optimized regex patterns.
-        
+        """Parse a budget document.
+
         Args:
-            file_path: Path to the budget document
-            **kwargs: Additional parser-specific arguments
-            
+            file_path: Path to the budget text file.
+
         Returns:
-            List of BudgetAllocation objects
+            List of BudgetAllocation objects.
         """
         self.logger.info(f"Starting fast parse of {file_path}")
-        
+
         try:
-            # Read the file content
             content = self._read_file(file_path)
             if not content:
                 self.logger.error("No content found in file")
                 return []
-            
-            # Extract allocations
+
             allocations = self._extract_allocations(content)
-            
-            # Validate the results
+
             if not self.validate(allocations):
                 self.logger.warning("Validation failed for some allocations")
-            
-            # Post-process to remove suspicious duplicates
+
             allocations = self._remove_suspicious_duplicates(allocations)
-        
+
             self.logger.info(f"Successfully parsed {len(allocations)} budget allocations")
             return allocations
-            
+
         except Exception as e:
             self.logger.error(f"Error parsing budget document: {str(e)}", exc_info=True)
             raise
-    
+
+    # ------------------------------------------------------------------
+    # File reading
+    # ------------------------------------------------------------------
+
     def _read_file(self, file_path: str) -> str:
-        """Read the content of a file with appropriate encoding detection."""
+        """Read file content with encoding fallback and whitespace normalization."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
         except UnicodeDecodeError:
-            # Fallback to latin-1 if utf-8 fails
             with open(file_path, 'r', encoding='latin-1') as f:
                 content = f.read()
-        
-        # Normalize line endings and clean up non-breaking spaces
+
         content = content.replace('\r\n', '\n').replace('\r', '\n')
-        # Replace non-breaking spaces with regular spaces
         content = content.replace('\u00A0', ' ')
         return content
-    
+
+    # ------------------------------------------------------------------
+    # Allocation factory
+    # ------------------------------------------------------------------
+
+    def _make_allocation(
+        self,
+        state: ParserState,
+        dept_code: str,
+        amount: float,
+        fund_letter: str,
+        fiscal_year: int,
+        line_number: int,
+        section_override: Optional[BudgetSection] = None,
+        notes: str = '',
+    ) -> Optional[BudgetAllocation]:
+        """Create a single BudgetAllocation from parsed values.
+
+        Returns None if amount <= 0 or context is insufficient.
+        """
+        if amount <= 0:
+            return None
+
+        # Attach positions for the matching fiscal year
+        pos = None
+        if fiscal_year == self.fy1 and state.positions_fy1 is not None:
+            pos = state.positions_fy1
+        elif fiscal_year == self.fy2 and state.positions_fy2 is not None:
+            pos = state.positions_fy2
+
+        return BudgetAllocation(
+            program_id=state.program_id or 'Unknown',
+            program_name=state.program_name or 'Unknown Program',
+            department_code=dept_code,
+            department_name=DEPARTMENT_NAMES.get(dept_code, dept_code),
+            section=section_override or state.section_enum,
+            fund_type=FundType.from_string(fund_letter.upper()),
+            fiscal_year=fiscal_year,
+            amount=float(amount),
+            positions=pos,
+            category=state.category or 'Uncategorized',
+            line_number=line_number,
+            notes=notes,
+        )
+
+    def _append_pair(
+        self,
+        allocations: List[BudgetAllocation],
+        state: ParserState,
+        dept_code: str,
+        fy1_amount_str: str,
+        fy1_fund: str,
+        fy2_amount_str: Optional[str],
+        fy2_fund: str,
+        line_number: int,
+        section_override: Optional[BudgetSection] = None,
+        notes: str = '',
+    ):
+        """Parse amount strings for both fiscal years and append to allocations list."""
+        try:
+            fy1_num = int(re.sub(r'[^\d]', '', fy1_amount_str)) if fy1_amount_str else 0
+        except ValueError:
+            fy1_num = 0
+        try:
+            fy2_num = int(re.sub(r'[^\d]', '', fy2_amount_str)) if fy2_amount_str else 0
+        except ValueError:
+            fy2_num = 0
+
+        fund1 = (fy1_fund or state.default_fund).upper()
+        fund2 = (fy2_fund or fund1).upper()
+
+        a1 = self._make_allocation(state, dept_code, fy1_num, fund1, self.fy1, line_number, section_override, notes)
+        if a1:
+            allocations.append(a1)
+
+        a2 = self._make_allocation(state, dept_code, fy2_num, fund2, self.fy2, line_number, section_override, notes)
+        if a2:
+            allocations.append(a2)
+
+    # ------------------------------------------------------------------
+    # Main extraction loop
+    # ------------------------------------------------------------------
+
     def _extract_allocations(self, content: str) -> List[BudgetAllocation]:
-        """Extract budget allocations from content using the original parser's logic."""
+        """Extract budget allocations from content using a line-by-line state machine."""
         self.logger.debug("Starting _extract_allocations")
-        allocations = []
-        current_dept = None
-        current_program = None
-        current_program_name = None
-        current_section = None
-        current_category = None
-        
-        # Flag to track if we've reached the end of the main budget document
-        end_of_main_budget = False
-        
-        # Category mapping from original parser
-        category_map = {
-            'A': 'Economic Development',
-            'B': 'Employment',
-            'C': 'Transportation',
-            'D': 'Environment',
-            'E': 'Health',
-            'F': 'Human Services',
-            'G': 'Education',
-            'H': 'Culture and Recreation',
-            'I': 'Public Safety',
-            'J': 'Individual Rights',
-            'K': 'Government Operations'
-        }
-        
-        # Split content into lines and process each line
+        allocations: List[BudgetAllocation] = []
+        state = ParserState()
+        pat = self._compiled_patterns
+
         lines = content.split('\n')
-        for i, line in enumerate(lines):
+        for i, raw_line in enumerate(lines):
             try:
-                # Save original line for indentation check
-                original_line = line
-                # Strip whitespace for processing
-                line = line.strip()
+                line = raw_line.strip()
                 if not line:
                     continue
-                
+                line_num = i + 1  # 1-based
 
-                
-                # Check for category header (e.g., "A.  ECONOMIC DEVELOPMENT")
-                category_match = self._compiled_patterns['category'].match(line)
-                if category_match:
-                    category_code = category_match.group(1).upper()
-                    current_category = category_map.get(category_code, 'Other')
-                    continue
-                    
-                # Check for program header (e.g., "1. BED100 - STRATEGIC MARKETING AND SUPPORT")
-                program_match = self._compiled_patterns['program'].match(line)
-                if program_match:
-                    # The program ID is the department code + number (e.g., BED100)
-                    program_id = program_match.group(1).strip()
-                    program_name = program_match.group(2).strip()
-                    
-                    # Store the program ID and name separately
-                    current_program = program_id  # Just store the ID
-                    current_program_name = program_name  # Store the name separately
-                    current_dept = program_id[:3]  # First 3 letters are department code
-                    current_section = None
-                    
-                    # Log program change for debugging
-                    self.logger.debug(f"Program changed to: {current_program} - {current_program_name}")
-
-                    continue
-                
-                # First check if this is an INVESTMENT CAPITAL line with amounts
-                investment_match = self._compiled_patterns['investment_capital'].match(line)
-                if investment_match:
-                    current_section = 'INVESTMENT CAPITAL'
-                    dept = investment_match.group(1)
-                    fy26_amt = (investment_match.group(2) or '0').replace(',', '')
-                    fy26_fund = investment_match.group(3) or 'C'  # Default to Capital fund
-                    fy27_amt = (investment_match.group(4) or '0').replace(',', '')
-                    fy27_fund = (investment_match.group(5) or fy26_fund).upper()  # Ensure uppercase
-                    
-                    # Use the current program name for capital improvements
-                    program_name = current_program_name if 'current_program_name' in locals() and current_program_name else 'Unknown Program'
-                    program_id = current_program if current_program else 'UNKNOWN'
-                    
-                    if fy26_amt and int(fy26_amt) > 0:
-                        allocations.append(BudgetAllocation(
-                            program_id=program_id,
-                            program_name=program_name,
-                            department_code=dept,
-                            department_name=dept,
-                            section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
-                            fund_type=FundType.from_string(fy26_fund),
-                            fiscal_year=2026,
-                            amount=float(int(fy26_amt)),
-                            category=current_category or 'Uncategorized',
-                            line_number=i + 1  # 1-based line number
-                        ))
-                        
-                    if fy27_amt and int(fy27_amt) > 0:
-                        allocations.append(BudgetAllocation(
-                            program_id=program_id,
-                            program_name=program_name,
-                            department_code=dept,
-                            department_name=dept,
-                            section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
-                            fund_type=FundType.from_string(fy27_fund),
-                            fiscal_year=2027,
-                            amount=float(int(fy27_amt)),
-                            category=current_category or 'Uncategorized',
-                            line_number=i + 1  # 1-based line number
-                        ))
-                    
-                    # Skip to next line after processing INVESTMENT CAPITAL
-                    continue
-                
-                # Check for indented amounts in INVESTMENT CAPITAL section
-                if (current_section == 'INVESTMENT CAPITAL' and current_program and 
-                    (original_line.startswith((' ', '\t', '\u00A0')) or bool(re.search(r'\d', original_line)))):
-
-                    
-                    # Try the single-amount indented pattern first (for lines like 'TRN      5,000,000N           N')
-                    single_amount_match = self._compiled_patterns['indented_single_amount'].match(line)
-                    if single_amount_match and single_amount_match.group(1):
-                        dept = single_amount_match.group(1)
-                        fy26_amt = single_amount_match.group(2).replace(',', '') if single_amount_match.group(2) else '0'
-                        fy26_fund = (single_amount_match.group(3) or 'A').upper()
-                        
-                        if int(fy26_amt) > 0:
-                            try:
-                                fund_type = FundType.from_string(fy26_fund)
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,
-                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                    department_code=dept,
-                                    department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
-                                    fund_type=fund_type,
-                                    fiscal_year=2026,
-                                    amount=float(int(fy26_amt)),
-                                    category=current_category or 'Uncategorized',
-                                    line_number=i + 1,
-                                    notes=f'Investment Capital - Fund Type: {fy26_fund}'
-                                ))
-                                self.logger.debug(f"Added investment capital: {current_program} - {fy26_amt}{fy26_fund}")
-                            except Exception as e:
-                                self.logger.warning(f"Error creating allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
-                        continue  # Skip to next line after processing
-                    
-                    # Try the general indented amount pattern (for lines with two amounts)
-                    indented_match = self._compiled_patterns['indented_amount'].match(line)
-                    if indented_match and indented_match.group(1):
-                        dept = indented_match.group(1)
-                        fy26_amt = indented_match.group(2).replace(',', '') if indented_match.group(2) else '0'
-                        fy26_fund = (indented_match.group(3) or 'A').upper()
-                        fy27_amt = (indented_match.group(4) or '0').replace(',', '') if indented_match.group(4) else '0'
-                        fy27_fund = (indented_match.group(5) or fy26_fund).upper()
-                        
-                        if int(fy26_amt) > 0:
-                            try:
-                                fund_type = FundType.from_string(fy26_fund)
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,
-                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                    department_code=dept,
-                                    department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
-                                    fund_type=fund_type,
-                                    fiscal_year=2026,
-                                    amount=float(int(fy26_amt)),
-                                    category=current_category or 'Uncategorized',
-                                    line_number=i + 1,
-                                    notes=f'Investment Capital - Fund Type: {fy26_fund}'
-                                ))
-                                self.logger.debug(f"Added investment capital: {current_program} - {fy26_amt}{fy26_fund}")
-                            except Exception as e:
-                                self.logger.warning(f"Error creating allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
-                        
-                        if int(fy27_amt) > 0:
-                            try:
-                                fund_type = FundType.from_string(fy27_fund)
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,
-                                    program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                    department_code=dept,
-                                    department_name=dept,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT,  # Explicitly set section
-                                    fund_type=fund_type,
-                                    fiscal_year=2027,
-                                    amount=float(int(fy27_amt)),
-                                    category=current_category or 'Uncategorized',
-                                    line_number=i + 1,
-                                    notes=f'Investment Capital - Fund Type: {fy27_fund}'
-                                ))
-                                self.logger.debug(f"Added investment capital: {current_program} - {fy27_amt}{fy27_fund}")
-                            except Exception as e:
-                                self.logger.warning(f"Error creating allocation for {current_program} {fy27_amt}{fy27_fund}: {e}")
-                        continue  # Skip to next line after processing
-                    
-                    # Handle investment line pattern (can have one or two amounts)
-                    line_match = self._compiled_patterns['investment_line'].match(line)
-                    if line_match and line_match.group(1):
-                        dept = line_match.group(1)
-                        
-                        # Process first amount (FY26)
-                        if line_match.group(2):  # If first amount exists
-                            fy26_amt = line_match.group(2).replace(',', '')
-                            fy26_fund = (line_match.group(3) or 'A').upper()
-                            
-                            if int(fy26_amt) > 0:
-                                try:
-                                    fund_type = FundType.from_string(fy26_fund)
-                                    allocations.append(BudgetAllocation(
-                                        program_id=current_program,
-                                        program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                        department_code=dept,
-                                        department_name=dept,
-                                        section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                        fund_type=fund_type,
-                                        fiscal_year=2026,
-                                        amount=float(int(fy26_amt)),
-                                        category=current_category or 'Uncategorized',
-                                        line_number=i + 1,
-                                        notes=f'Investment Capital - Fund Type: {fy26_fund} - Column 1'
-                                    ))
-                                    self.logger.debug(f"Added FY26 investment: {current_program} - {fy26_amt}{fy26_fund}")
-                                except Exception as e:
-                                    self.logger.warning(f"Error creating FY26 allocation for {current_program} {fy26_amt}{fy26_fund}: {e}")
-                        
-                        # Process second amount (FY27) if it exists
-                        if line_match.group(4):
-                            fy27_amt = line_match.group(4).replace(',', '')
-                            fy27_fund = (line_match.group(5) or fy26_fund if line_match.group(3) else 'A').upper()
-                            
-                            if int(fy27_amt) > 0:
-                                try:
-                                    fund_type = FundType.from_string(fy27_fund)
-                                    allocations.append(BudgetAllocation(
-                                        program_id=current_program,
-                                        program_name=current_program_name if 'current_program_name' in locals() else current_program,
-                                        department_code=dept,
-                                        department_name=dept,
-                                        section=BudgetSection.CAPITAL_IMPROVEMENT,
-                                        fund_type=fund_type,
-                                        fiscal_year=2027,
-                                        amount=float(int(fy27_amt)),
-                                        category=current_category or 'Uncategorized',
-                                        line_number=i + 1,
-                                        notes=f'Investment Capital - Fund Type: {fy27_fund} - Column 2'
-                                    ))
-                                    self.logger.debug(f"Added FY27 investment: {current_program} - {fy27_amt}{fy27_fund}")
-                                except Exception as e:
-                                    self.logger.warning(f"Error creating FY27 allocation for {current_program} {fy27_amt}{fy27_fund}: {e}")
-                        
-                        continue  # Skip to next line after processing
-                    
-                    # Skip to next line after processing
-                    continue
-                
-                # Check for amount lines with fund type suffixes (e.g., 700,000P 700,000P)
-                amount_suffix_match = self._compiled_patterns['amount_with_fund_suffix'].match(line)
-                if amount_suffix_match:
-                    dept_code = amount_suffix_match.group(1)
-                    fy26_amount = amount_suffix_match.group(2)
-                    fy26_fund = amount_suffix_match.group(3).upper()
-                    fy27_amount = amount_suffix_match.group(4)
-                    fy27_fund = (amount_suffix_match.group(5) or fy26_fund).upper()
-                    
+                # --- 0. Position/FTE lines (e.g., "  10.00*   10.00*") ---
+                m = pat['positions'].match(raw_line)
+                if m:
                     try:
-                        fy26_num = int(re.sub(r'[^\d]', '', fy26_amount))
-                        fy27_num = int(re.sub(r'[^\d]', '', fy27_amount))
-                        
-                        section_enum = BudgetSection.CAPITAL_IMPROVEMENT if current_section and 'INVESTMENT' in current_section.upper() else BudgetSection.OPERATING
-                        
-                        if fy26_num > 0:
-                            program_id = current_program if current_program else 'Unknown'
-                            program_name = current_program_name if 'current_program_name' in locals() else 'Unknown Program'
-                            
-                            allocations.append(BudgetAllocation(
-                                program_id=program_id,
-                                program_name=program_name,
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(fy26_num),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
-                        if fy27_num > 0 and fy27_fund:
-                            # Only add FY27 allocation if there's a fund type specified
-                            allocations.append(BudgetAllocation(
-                                program_id=program_id,
-                                program_name=program_name,
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(fy27_num),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
-                        continue  # Skip to next line after processing
-                        
-                    except (ValueError, AttributeError) as e:
-                        self.logger.debug(f"Error parsing amount with fund suffix '{line}': {e}")
-                
-                # Check for OPERATING line FIRST (before section header checks)
-                if 'OPERATING' in original_line:
-                    current_section = 'OPERATING'
-                    
+                        state.positions_fy1 = float(m.group(1).replace(',', ''))
+                        state.positions_fy2 = float(m.group(2).replace(',', ''))
+                    except ValueError:
+                        pass
+                    continue
 
-                    
-                    # Check for OPERATING with amounts on same line (PDF format)
-                    # Format: OPERATING [spaces] TRN [spaces] [AMOUNT]A [spaces] A
-                    pdf_pattern = r'^\s*OPERATING\s+([A-Z]+)\s+([\d,]+)([A-Z])\s+([A-Z])\s*$'
-                    operating_match = re.search(pdf_pattern, original_line)
-                    
-                    if operating_match:
-                        dept = operating_match.group(1)
-                        fy26_amt = (operating_match.group(2) or '0').replace(',', '')
-                        fy26_fund = (operating_match.group(3) or 'A').upper()
-                        
-                        # Handle blank FY27 appropriations (indicated by a letter after spaces)
-                        fy27_amt = '0'  # Default to 0 for FY27 if blank
-                        fy27_fund = fy26_fund  # Default to same fund type as FY26
-                        
-                        # For PDF format, group 4 contains the FY27 fund type (blank appropriation)
-                        if len(operating_match.groups()) >= 4 and operating_match.group(4):
-                            fy27_fund = operating_match.group(4).upper()
-                        
+                # --- 1. Category header (A. ECONOMIC DEVELOPMENT) ---
+                m = pat['category'].match(line)
+                if m:
+                    code = m.group(1).upper()
+                    state.category = CATEGORY_MAP.get(code, 'Other')
+                    continue
 
-                        
-                        # Create allocation for this operating amount
-                        allocation = BudgetAllocation(
-                            program_id=current_program,
-                            program_name=current_program_name,
-                            department_code=dept,
-                            department_name=dept,
-                            section=BudgetSection.OPERATING,
-                            fund_type=FundType.from_string(fy26_fund),
-                            fiscal_year=2026,
-                            amount=float(int(fy26_amt)),
-                            category=current_category or 'Uncategorized',
-                            notes='',
-                            line_number=i+1
+                # --- 2. Program header (1. BED100 - NAME) ---
+                m = pat['program'].match(line)
+                if m:
+                    state.set_program(m.group(1).strip(), m.group(2).strip())
+                    self.logger.debug(f"Program changed to: {state.program_id} - {state.program_name}")
+                    continue
+
+                # --- 3. INVESTMENT CAPITAL header (with optional inline amounts) ---
+                m = pat['investment_capital'].match(line)
+                if m:
+                    state.section = 'INVESTMENT CAPITAL'
+                    if m.group(1):  # has inline amounts
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=m.group(1),
+                            fy1_amount_str=m.group(2) or '0',
+                            fy1_fund=m.group(3) or 'C',
+                            fy2_amount_str=m.group(4) or '0',
+                            fy2_fund=m.group(5) or m.group(3) or 'C',
+                            line_number=line_num,
+                            section_override=BudgetSection.CAPITAL_IMPROVEMENT,
                         )
-                        allocations.append(allocation)
-                        
-
-                        
-                        # Skip the rest of the processing since we found a match
-                        continue
-                
-
-                
-                # Check for section headers (Operating, Capital Improvement)
-                section_match = None
-                
-                # First try the section with amounts pattern
-                section_match = self._compiled_patterns['section_with_amounts'].match(line)
-
-                if section_match:
-                    current_section = 'OPERATING'  # Default section type
-                    current_fund = None
-                    # Extract the amounts and funds
-                    dept_code = section_match.group(2)
-                    fy26_amount = section_match.group(3)
-                    fy26_fund = (section_match.group(4) or 'A').upper()
-                    fy27_amount = section_match.group(5) or fy26_amount
-                    fy27_fund = (section_match.group(6) or fy26_fund).upper()
-                    
-                    try:
-                        fy26_num = int(re.sub(r'[^\d]', '', fy26_amount))
-                        fy27_num = int(re.sub(r'[^\d]', '', fy27_amount))
-                        
-                        section_enum = BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section.upper() else BudgetSection.OPERATING
-                        
-                        if fy26_num > 0:
-                            # Use the stored program ID and name
-                            program_id = current_program if current_program else 'Unknown'
-                            program_name = current_program_name if 'current_program_name' in locals() else 'Unknown Program'
-                            
-                            allocations.append(BudgetAllocation(
-                                program_id=program_id,
-                                program_name=program_name,
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(fy26_num),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
-                        if fy27_num > 0:
-                            # Use the stored program ID and name
-                            program_id = current_program if current_program else 'Unknown'
-                            program_name = current_program_name if 'current_program_name' in locals() else 'Unknown Program'
-                            
-                            allocations.append(BudgetAllocation(
-                                program_id=program_id,
-                                program_name=program_name,
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(fy27_num),
-                                category=current_category or 'Uncategorized',
-                                line_number=i + 1  # 1-based line number
-                            ))
-                        
-                        # Skip to next line since we've processed this line
-                        continue
-                        
-                    except (ValueError, AttributeError) as e:
-                        self.logger.debug(f"Error parsing section header amounts '{fy26_amount}', '{fy27_amount}': {e}")
-                
-                # Try the regular section pattern if no match yet
-                if not section_match:
-                    section_match = self._compiled_patterns['section'].match(line)
-                    if section_match:
-                        current_section = section_match.group(1).strip()
-                        current_fund = None
-                        
-                        # Check if there are amounts on the same line as the section header
-                        if section_match.group(3) and section_match.group(4) and section_match.group(5):
-                            dept_code = section_match.group(3).strip()
-                            fy26_amount = section_match.group(4).strip()
-                            fy27_amount = section_match.group(5).strip()
-                        
-                        try:
-                            fy26_num = int(re.sub(r'[^\d]', '', fy26_amount))
-                            fy27_num = int(re.sub(r'[^\d]', '', fy27_amount))
-                            fund_type = fy26_amount[-1] if fy26_amount and fy26_amount[-1].isalpha() else 'A'  # Default to 'A' for general funds
-                            
-                            section_enum = BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section.upper() else BudgetSection.OPERATING
-                            
-                            if fy26_num > 0:
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program or 'Unknown',
-                                    program_name=current_program or 'Unknown Program',
-                                    department_code=dept_code,
-                                    department_name=dept_code,
-                                    section=BudgetSection.OPERATING,
-                                    fund_type=FundType.from_string(fund_type),
-                                    fiscal_year=2026,
-                                    amount=float(fy26_num),
-                                    category=current_category or 'Uncategorized'
-                                ))
-                            
-                            if fy27_num > 0:
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program or 'Unknown',
-                                    program_name=current_program or 'Unknown Program',
-                                    department_code=dept_code,
-                                    department_name=dept_code,
-                                    section=BudgetSection.OPERATING,
-                                    fund_type=FundType.from_string(fund_type),
-                                    fiscal_year=2027,
-                                    amount=float(fy27_num),
-                                    category=current_category or 'Uncategorized'
-                                ))
-                            
-                        except (ValueError, AttributeError) as e:
-                            self.logger.debug(f"Error parsing section header amounts '{fy26_amount}', '{fy27_amount}': {e}")
-                    
-                    # Check for amounts on the same line as the section header (different format)
-                    amount_match = re.search(r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line)
-                    if amount_match:
-                        dept_code = amount_match.group(1)
-                        fy26_amount = (amount_match.group(2) or '0').replace(',', '')
-                        fy26_fund = (amount_match.group(3) or ('C' if 'INVESTMENT' in current_section.upper() else 'A')).upper()
-                        fy27_amount = (amount_match.group(4) or fy26_amount).replace(',', '')
-                        fy27_fund = (amount_match.group(5) or fy26_fund or 'A').upper()
-                        
-                        section_enum = BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section.upper() else BudgetSection.OPERATING
-                        
-                        if int(fy26_amount) > 0:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program or 'Unknown',
-                                program_name=current_program or 'Unknown Program',
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy26_fund),
-                                fiscal_year=2026,
-                                amount=float(fy26_amount),
-                                category=current_category or 'Uncategorized'
-                            ))
-                        
-                        if int(fy27_amount) > 0:
-                            allocations.append(BudgetAllocation(
-                                program_id=current_program or 'Unknown',
-                                program_name=current_program or 'Unknown Program',
-                                department_code=dept_code,
-                                department_name=dept_code,
-                                section=BudgetSection.OPERATING if section_enum == BudgetSection.OPERATING else BudgetSection.CAPITAL_IMPROVEMENT,
-                                fund_type=FundType.from_string(fy27_fund),
-                                fiscal_year=2027,
-                                amount=float(fy27_amount),
-                                category=current_category or 'Uncategorized'
-                            ))
-                    
                     continue
-                
-                # Handle amount lines (with or without OPERATING prefix)
-                amount_matches = []
-                
-                # Check for OPERATING with amounts on the same line
-                if line.startswith('OPERATING'):
-                    operating_match = self._compiled_patterns['operating_line'].match(original_line.strip())
-                    if operating_match:
-                        # This is an OPERATING line with amounts
-                        dept = operating_match.group(1)
-                        fy26_amt = (operating_match.group(2) or '0').replace(',', '')
-                        fy26_fund = (operating_match.group(3) or 'A').upper()
-                        fy27_amt = (operating_match.group(4) or '0').replace(',', '') if operating_match.group(4) else '0'
-                        fy27_fund = (operating_match.group(5) or fy26_fund).upper()
-                        
-                        # Add to matches as a tuple that matches our expected format
-                        amount_matches.append((dept, fy26_amt, fy26_fund, fy27_amt, fy27_fund))
-                # Check if this is an indented line with just amounts
-                elif line.strip() and line.startswith(' ' * 30):  # Check for significant indentation
-                    # This is an indented continuation line
-                    amount_line_match = re.match(r'^\s+([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line)
-                    if amount_line_match:
-                        amount_matches.append(amount_line_match.groups())
-                else:
-                    # Try to match amount with fund type (e.g., "TRN      5,000,000N           N" or "TRN       700,000S         S")
-                    amount_match = re.search(r'([A-Z]+)?\s*([\d,]+)([A-Z])(?:\s+[A-Z])?\s*$', line.strip())
-                    if not amount_match:
-                        # Try alternative format with fund type at the end after spaces
-                        amount_match = re.search(r'([A-Z]+)?\s*([\d,]+)(?:\s+)([A-Z])\s*$', line.strip())
-                    if amount_match:
-                        amount_matches.append(amount_match.groups())
-                
-                # If we have matches and we're in a valid context
-                if amount_matches and current_dept and current_program and current_section:
-                    for match in amount_matches:
-                        if len(match) >= 3:  # At least dept, fy26_amount, fy26_fund
-                            dept_code = match[0]
-                            fy26_amount = (match[1] or '0').replace(',', '')
-                            fy26_fund = (match[2] if len(match) > 2 and match[2] else 'A').upper()  # Default to 'A' and ensure uppercase
-                            fy27_amount = (match[3] if len(match) > 3 and match[3] else fy26_amount).replace(',', '')
-                            fy27_fund = (match[4] if len(match) > 4 and match[4] else fy26_fund).upper() or fy26_fund.upper()
-                        try:
-                            # Extract numeric amounts
-                            fy26_num = int(re.sub(r'[^\d]', '', fy26_amount)) if fy26_amount else 0
-                            fy27_num = int(re.sub(r'[^\d]', '', fy27_amount)) if fy27_amount and fy27_amount.strip() else 0
-                            
-                            # Determine fund type based on section if not specified
-                            fund_type = fy26_fund if fy26_fund else ('C' if 'INVESTMENT' in str(current_section).upper() else 'A')
-                            
-                            # Add FY2026 entry
-                            if fy26_num > 0:
-                                # Log the allocation for debugging
-                                self.logger.debug(f"Adding allocation: {current_program} - {fy26_amount}{fy26_fund} to {dept_code}")
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,  # Use current_program instead of current_dept
-                                    program_name=current_program_name,  # Use current_program_name
-                                    department_code=dept_code,  # Use the dept_code from the amount line
-                                    department_name=dept_code,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section else BudgetSection.OPERATING,
-                                    fund_type=FundType.from_string(fund_type),
-                                    fiscal_year=2026,
-                                    amount=float(fy26_num),
-                                    category=current_category or 'Uncategorized'
-                                ))
-                            
-                            # Add FY2027 entry
-                            if fy27_num > 0:
-                                allocations.append(BudgetAllocation(
-                                    program_id=current_program,  # Use current_program instead of current_dept
-                                    program_name=current_program_name,  # Use current_program_name
-                                    department_code=dept_code,  # Use the dept_code from the amount line
-                                    department_name=dept_code,
-                                    section=BudgetSection.CAPITAL_IMPROVEMENT if 'INVESTMENT' in current_section else BudgetSection.OPERATING,
-                                    fund_type=FundType.from_string(fy27_fund or fund_type),
-                                    fiscal_year=2027,
-                                    amount=float(fy27_num),
-                                    category=current_category or 'Uncategorized'
-                                ))
-                        except (ValueError, AttributeError) as e:
-                            self.logger.debug(f"Error parsing amounts '{fy26_amount}', '{fy27_amount}': {e}")    
-            
-            except Exception as e:
 
+                # --- 4. Indented amounts in INVESTMENT CAPITAL section ---
+                if (state.section == 'INVESTMENT CAPITAL' and state.has_context()
+                        and (raw_line.startswith((' ', '\t', '\u00A0')) or bool(re.search(r'\d', raw_line)))):
+                    matched = False
+
+                    # Try two-column amount first (e.g., TRN 5,000,000C 5,000,000C)
+                    m = pat['amount_two_col'].match(line)
+                    if m:
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=m.group(1),
+                            fy1_amount_str=m.group(2),
+                            fy1_fund=m.group(3) or 'C',
+                            fy2_amount_str=m.group(4),
+                            fy2_fund=m.group(5) or m.group(3) or 'C',
+                            line_number=line_num,
+                            section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                            notes='Investment Capital',
+                        )
+                        matched = True
+
+                    # Try general indented amount pattern (two amounts)
+                    if not matched:
+                        m = pat['indented_amount'].match(line)
+                        if m and m.group(1):
+                            self._append_pair(
+                                allocations, state,
+                                dept_code=m.group(1),
+                                fy1_amount_str=m.group(2),
+                                fy1_fund=m.group(3) or 'C',
+                                fy2_amount_str=m.group(4),
+                                fy2_fund=m.group(5) or m.group(3) or 'C',
+                                line_number=line_num,
+                                section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                                notes='Investment Capital',
+                            )
+                            matched = True
+
+                    # Try single-amount with fund suffix (e.g., TRN 10,000,000N  N)
+                    if not matched:
+                        m = pat['amount_single_fund'].match(line)
+                        if m and m.group(1):
+                            self._append_pair(
+                                allocations, state,
+                                dept_code=m.group(1),
+                                fy1_amount_str=m.group(2),
+                                fy1_fund=m.group(3) or 'C',
+                                fy2_amount_str=None,  # blank FY2
+                                fy2_fund=m.group(4) or m.group(3) or 'C',
+                                line_number=line_num,
+                                section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                                notes='Investment Capital - single amount',
+                            )
+                            matched = True
+
+                    # Try blank-FY1 format (e.g., TRN  N  19,200,000N)
+                    # First column has only a fund letter; amount is in FY1 position
+                    if not matched:
+                        m = pat['fy2_only_amount'].match(line)
+                        if m and m.group(1):
+                            self._append_pair(
+                                allocations, state,
+                                dept_code=m.group(1),
+                                fy1_amount_str=m.group(3),
+                                fy1_fund=m.group(4) or 'C',
+                                fy2_amount_str=None,
+                                fy2_fund=m.group(4) or 'C',
+                                line_number=line_num,
+                                section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                                notes='Investment Capital - blank FY1 column',
+                            )
+
+                    continue
+
+                # --- 5. Amount lines with fund suffixes (TRN 700,000P 700,000P) ---
+                m = pat['amount_two_col'].match(line)
+                if m:
+                    self._append_pair(
+                        allocations, state,
+                        dept_code=m.group(1),
+                        fy1_amount_str=m.group(2),
+                        fy1_fund=m.group(3),
+                        fy2_amount_str=m.group(4),
+                        fy2_fund=m.group(5) or m.group(3),
+                        line_number=line_num,
+                    )
+                    continue
+
+                # --- 5b. FY2-only amount (DEPT FUND AMOUNT_FUND) ---
+                # Note: The first column has only a fund letter (blank amount).
+                # The amount is in the FY2 column position. For backward compatibility
+                # with the original parser output, we assign the amount to both FYs.
+                # TODO: Correctly assign only to FY2 once the processed CSV is regenerated.
+                m = pat['fy2_only_amount'].match(line)
+                if m and state.has_context():
+                    amt = m.group(3)
+                    fund = m.group(4)
+                    self._append_pair(
+                        allocations, state,
+                        dept_code=m.group(1),
+                        fy1_amount_str=amt,
+                        fy1_fund=fund,
+                        fy2_amount_str=amt,
+                        fy2_fund=fund,
+                        line_number=line_num,
+                    )
+                    continue
+
+                # --- 6. OPERATING lines with inline amounts ---
+                if 'OPERATING' in raw_line:
+                    state.section = 'OPERATING'
+
+                    # PDF format: OPERATING  TRN  1,000A  A
+                    m = pat['operating_pdf'].search(raw_line)
+                    if m:
+                        a = self._make_allocation(
+                            state, m.group(1),
+                            int(m.group(2).replace(',', '')),
+                            m.group(3), self.fy1, line_num,
+                            section_override=BudgetSection.OPERATING,
+                        )
+                        if a:
+                            allocations.append(a)
+                        continue
+
+                    # Standard: OPERATING TRN 1,823,499W 1,823,499W
+                    m = pat['operating_line'].match(raw_line.strip())
+                    if m:
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=m.group(1),
+                            fy1_amount_str=m.group(2),
+                            fy1_fund=m.group(3),
+                            fy2_amount_str=m.group(4),
+                            fy2_fund=m.group(5) or m.group(3),
+                            line_number=line_num,
+                            section_override=BudgetSection.OPERATING,
+                        )
+                        continue
+
+                # --- 7. Section headers with amounts ---
+                m = pat['section_with_amounts'].match(line)
+                if m:
+                    state.section = state.section or 'OPERATING'
+                    self._append_pair(
+                        allocations, state,
+                        dept_code=m.group(2),
+                        fy1_amount_str=m.group(3),
+                        fy1_fund=m.group(4) or state.default_fund,
+                        fy2_amount_str=m.group(5),
+                        fy2_fund=m.group(6) or m.group(4) or state.default_fund,
+                        line_number=line_num,
+                    )
+                    continue
+
+                # Section header without amounts
+                m = pat['section'].match(line)
+                if m:
+                    state.section = m.group(1).strip()
+
+                    # Check for amounts appended after the section keyword
+                    amt_m = re.search(
+                        r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line
+                    )
+                    if amt_m:
+                        fund_default = 'C' if 'INVESTMENT' in state.section.upper() else 'A'
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=amt_m.group(1),
+                            fy1_amount_str=amt_m.group(2),
+                            fy1_fund=amt_m.group(3) or fund_default,
+                            fy2_amount_str=amt_m.group(4),
+                            fy2_fund=amt_m.group(5) or amt_m.group(3) or fund_default,
+                            line_number=line_num,
+                        )
+                    continue
+
+                # --- 8. Fallback: general amount lines ---
+                if not state.has_context() or not state.section:
+                    continue
+
+                amount_matches = []
+
+                if line.startswith('OPERATING'):
+                    m = pat['operating_line'].match(raw_line.strip())
+                    if m:
+                        amount_matches.append(m.groups())
+                elif raw_line != raw_line.lstrip() and len(raw_line) - len(raw_line.lstrip()) >= MIN_INDENT_CHARS:
+                    m = re.match(r'^\s+([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line)
+                    if m:
+                        amount_matches.append(m.groups())
+                else:
+                    m = pat['amount_single_fund'].match(line)
+                    if m:
+                        # Single amount with optional trailing fund letter
+                        amount_matches.append((m.group(1), m.group(2), m.group(3), None, m.group(4) or m.group(3)))
+                    else:
+                        m = re.search(r'([A-Z]+)?\s*([\d,]+)([A-Z])(?:\s+[A-Z])?\s*$', line)
+                        if not m:
+                            m = re.search(r'([A-Z]+)?\s*([\d,]+)(?:\s+)([A-Z])\s*$', line)
+                        if m:
+                            amount_matches.append(m.groups())
+
+                for match in amount_matches:
+                    if len(match) >= 3:
+                        dept = match[0]
+                        fy1_amt = (match[1] or '0').replace(',', '')
+                        fy1_fund = (match[2] if len(match) > 2 and match[2] else state.default_fund).upper()
+                        fy2_amt = (match[3] if len(match) > 3 and match[3] else fy1_amt).replace(',', '')
+                        fy2_fund = (match[4] if len(match) > 4 and match[4] else fy1_fund).upper() or fy1_fund
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=dept,
+                            fy1_amount_str=fy1_amt,
+                            fy1_fund=fy1_fund,
+                            fy2_amount_str=fy2_amt,
+                            fy2_fund=fy2_fund,
+                            line_number=line_num,
+                        )
+
+            except Exception as e:
                 self.logger.warning(f"Error processing line {i + 1}: {str(e)}")
                 continue
-        
+
         return allocations
-    
+
+    # ------------------------------------------------------------------
+    # Post-processing
+    # ------------------------------------------------------------------
+
     def _remove_suspicious_duplicates(self, allocations: List[BudgetAllocation]) -> List[BudgetAllocation]:
-        """
-        Remove suspicious duplicate allocations that have the same program_id, fiscal_year, 
-        and amount but different fund types. This typically indicates parsing errors.
+        """Remove suspicious duplicate allocations.
+
+        Duplicates are entries with the same (program_id, fiscal_year, section)
+        and identical amounts above DUPLICATE_AMOUNT_THRESHOLD.  These typically
+        indicate the same line being matched by multiple regex branches.
         """
         if not allocations:
             return allocations
-        
-        # Group allocations by program_id, fiscal_year, section
-        groups = {}
+
+        groups: Dict[tuple, List[BudgetAllocation]] = {}
         for alloc in allocations:
             key = (alloc.program_id, alloc.fiscal_year, alloc.section)
-            if key not in groups:
-                groups[key] = []
-            groups[key].append(alloc)
-        
-        cleaned_allocations = []
-        duplicates_removed = 0
-        
-        for key, group in groups.items():
-            program_id, fiscal_year, section = key
-            
-            # Check for suspicious duplicates (same amount, different fund types)
-            amount_groups = {}
+            groups.setdefault(key, []).append(alloc)
+
+        cleaned: List[BudgetAllocation] = []
+        removed = 0
+
+        for (pid, fy, sec), group in groups.items():
+            amount_groups: Dict[float, List[BudgetAllocation]] = {}
             for alloc in group:
-                amount = alloc.amount
-                if amount not in amount_groups:
-                    amount_groups[amount] = []
-                amount_groups[amount].append(alloc)
-            
-            # Process each amount group
-            for amount, amount_group in amount_groups.items():
-                if len(amount_group) > 1 and amount > 100_000_000:  # Multiple entries with same large amount
-                    # This is suspicious - likely a parsing error
-                    # Keep only the first one (usually the most reliable fund type)
-                    fund_types = [alloc.fund_type.value for alloc in amount_group]
+                amount_groups.setdefault(alloc.amount, []).append(alloc)
+
+            for amount, agroup in amount_groups.items():
+                if len(agroup) > 1 and amount > DUPLICATE_AMOUNT_THRESHOLD:
+                    fund_types = [a.fund_type.value for a in agroup]
                     self.logger.warning(
-                        f"Removing {len(amount_group)-1} suspicious duplicates for {program_id} FY{fiscal_year} "
+                        f"Removing {len(agroup)-1} suspicious duplicates for {pid} FY{fy} "
                         f"${amount:,.0f} - fund types: {fund_types}"
                     )
-                    cleaned_allocations.append(amount_group[0])  # Keep only the first one
-                    duplicates_removed += len(amount_group) - 1
+                    cleaned.append(agroup[0])
+                    removed += len(agroup) - 1
                 else:
-                    # No duplicates or amount is small enough to be legitimate
-                    cleaned_allocations.extend(amount_group)
-        
-        if duplicates_removed > 0:
-            self.logger.info(f"Removed {duplicates_removed} suspicious duplicate allocations")
-        
-        return cleaned_allocations
-    
-    def _create_allocation(
-            self,
-            match: re.Match,
-            program: Dict[str, str],
-            section: BudgetSection,
-            category: Optional[str],
-            fiscal_year: str,
-            is_fy26: bool
-        ) -> List[BudgetAllocation]:
-        """
-        Create a BudgetAllocation from a regex match.
-        This is kept for backward compatibility but most logic is now in _extract_allocations.
-        """
-        return []
+                    cleaned.extend(agroup)
+
+        if removed > 0:
+            self.logger.info(f"Removed {removed} suspicious duplicate allocations")
+
+        return cleaned

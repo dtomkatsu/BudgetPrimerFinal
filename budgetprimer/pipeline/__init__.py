@@ -15,7 +15,9 @@ from .transformer import (
 from .processor import (
     process_budget_data,
     aggregate_by_category,
-    calculate_summary_statistics
+    calculate_summary_statistics,
+    add_derived_metrics,
+    build_fy_comparison,
 )
 from .veto_processor import (
     load_veto_changes,
@@ -27,6 +29,8 @@ __all__ = [
     'process_budget_data',
     'aggregate_by_category',
     'calculate_summary_statistics',
+    'add_derived_metrics',
+    'build_fy_comparison',
     
     # Veto processing
     'transform_to_post_veto',

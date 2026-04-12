@@ -21,47 +21,133 @@ def process_budget_data(
 ) -> pd.DataFrame:
     """
     Process budget allocations into a structured DataFrame.
-    
+
     Args:
         allocations: List of budget allocations
         fiscal_year: Optional fiscal year to filter by
         section: Optional budget section to filter by
-        
+
     Returns:
         Processed DataFrame
     """
     logger.info(f"Processing {len(allocations)} budget allocations")
-    
+
     # Convert to list of dicts
     data = [alloc.to_dict() for alloc in allocations]
-    
+
     if not data:
         logger.warning("No budget data to process")
         return pd.DataFrame()
-    
+
     # Create DataFrame
     df = pd.DataFrame(data)
-    
+
     # Filter by fiscal year if specified
     if fiscal_year is not None:
         df = df[df['fiscal_year'] == fiscal_year]
-    
+
     # Filter by section if specified
     if section is not None and section != 'all':
         df = df[df['section'] == section]
-    
+
     # Convert amount to numeric
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
-    
+
     # Add derived columns
     df['amount_millions'] = df['amount'] / 1_000_000
     df['is_capital'] = df['section'] == BudgetSection.CAPITAL_IMPROVEMENT.value
-    
+
     # Sort by program_id to make it easier to review related allocations
     df = df.sort_values(by='program_id')
-    
+
     logger.info(f"Processed {len(df)} budget records")
     return df
+
+
+def add_derived_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    """Add derived analytical columns to the budget DataFrame.
+
+    Adds:
+        pct_of_total       – percentage of the grand-total budget
+        pct_of_dept        – percentage within the program's department
+        dept_rank          – rank within department (1 = largest program)
+        overall_rank       – rank across all programs
+        cost_per_position  – amount / positions (None when positions unavailable)
+    """
+    if df.empty:
+        return df
+
+    df = df.copy()
+
+    # Percentage of grand total
+    grand_total = df['amount'].sum()
+    df['pct_of_total'] = (df['amount'] / grand_total * 100).round(2) if grand_total else 0
+
+    # Percentage within department
+    dept_totals = df.groupby('department_code')['amount'].transform('sum')
+    df['pct_of_dept'] = (df['amount'] / dept_totals.replace(0, np.nan) * 100).round(2)
+
+    # Rank within department (dense ranking, largest = 1)
+    df['dept_rank'] = df.groupby('department_code')['amount'].rank(method='dense', ascending=False).astype(int)
+
+    # Overall rank
+    df['overall_rank'] = df['amount'].rank(method='dense', ascending=False).astype(int)
+
+    # Cost per position
+    if 'positions' in df.columns:
+        pos = pd.to_numeric(df['positions'], errors='coerce')
+        df['cost_per_position'] = (df['amount'] / pos.replace(0, np.nan)).round(0)
+    else:
+        df['cost_per_position'] = np.nan
+
+    return df
+
+
+def build_fy_comparison(
+    allocations: List[BudgetAllocation],
+    fy1: int = 2026,
+    fy2: int = 2027,
+    section: Optional[str] = None,
+) -> pd.DataFrame:
+    """Create a wide-format FY1 vs FY2 comparison table.
+
+    Returns one row per (program_id, fund_type, section) with columns:
+        amount_fy1, amount_fy2, delta, pct_change, positions_fy1, positions_fy2
+    """
+    data = [alloc.to_dict() for alloc in allocations]
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data)
+    if section and section != 'all':
+        df = df[df['section'] == section]
+
+    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')
+
+    id_cols = ['program_id', 'program_name', 'department_code', 'department_name',
+               'fund_type', 'fund_category', 'section', 'category']
+    existing_id_cols = [c for c in id_cols if c in df.columns]
+
+    df1 = df[df['fiscal_year'] == fy1].copy()
+    df2 = df[df['fiscal_year'] == fy2].copy()
+
+    merged = pd.merge(
+        df1[existing_id_cols + ['amount', 'positions']],
+        df2[existing_id_cols + ['amount', 'positions']],
+        on=existing_id_cols,
+        how='outer',
+        suffixes=(f'_fy{fy1}', f'_fy{fy2}'),
+    )
+
+    merged[f'amount_fy{fy1}'] = merged[f'amount_fy{fy1}'].fillna(0)
+    merged[f'amount_fy{fy2}'] = merged[f'amount_fy{fy2}'].fillna(0)
+    merged['delta'] = merged[f'amount_fy{fy2}'] - merged[f'amount_fy{fy1}']
+    merged['pct_change'] = (
+        merged['delta'] / merged[f'amount_fy{fy1}'].replace(0, np.nan) * 100
+    ).round(2)
+
+    merged = merged.sort_values('delta', ascending=True)
+    return merged
 
 
 def aggregate_by_category(
