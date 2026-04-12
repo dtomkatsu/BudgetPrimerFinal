@@ -60,7 +60,13 @@ def compare_drafts(
     fy: int = 2026,
 ) -> dict:
     """Parse two drafts, compare allocations, return structured result."""
-    parser = FastBudgetParser(fy1=fy, fy2=fy + 1)
+    # HB1800 covers a two-year biennium. The parser's fy1/fy2 label the two
+    # bill columns — they must match the actual biennium years, not the target
+    # comparison year. Hawaii biennia start on even fiscal years (FY2026, FY2028…).
+    biennium_fy1 = fy if fy % 2 == 0 else fy - 1
+    biennium_fy2 = biennium_fy1 + 1
+    parser = FastBudgetParser(fy1=biennium_fy1, fy2=biennium_fy2)
+    logger.info(f'Parser biennium: FY{biennium_fy1}–FY{biennium_fy2}, extracting FY{fy}')
 
     logger.info(f'Parsing draft 1: {file1.name}')
     allocs1 = parser.parse(str(file1))
