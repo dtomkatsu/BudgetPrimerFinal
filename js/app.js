@@ -725,10 +725,11 @@ window.initDraftComparePage = async function () {
             return arrow;
         };
 
-        // Group by department
+        // Group by department (skip records where dept_code is a single fund-type letter)
         const deptMap = new Map();
         for (const r of data) {
             const key = r.department_code || 'OTHER';
+            if (key.length <= 2 && /^[A-Z]$/.test(key)) continue;
             if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, rows: [] });
             deptMap.get(key).rows.push(r);
         }
