@@ -142,6 +142,7 @@ window.homePage = async function () {
 
     const html = `
         <section class="home-page">
+            <div class="context-banner">Viewing HB300 enacted budget. <a href="#/">→ HB1800 Draft Comparison</a></div>
             <div class="summary-cards-grid">
                 <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">Total Budget</div></div>
                 <div class="summary-card"><div class="amount">${fmt(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
@@ -247,7 +248,7 @@ window.departmentDetailPage = async function (params) {
 
     return `
         <section class="department-detail">
-            <a href="#/" class="back-button">← Back to Home</a>
+            <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
             <div class="department-header">
                 <h2>${dept.name} (${dept.code})</h2>
                 ${dept.description ? `<p class="dept-desc">${dept.description}</p>` : ''}
@@ -388,7 +389,7 @@ window.comparePage = async function () {
 
     return `
         <section class="compare-page">
-            <a href="#/" class="back-button">← Home</a>
+            <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
             <h2>FY2026 vs FY2027 Comparison</h2>
             <div class="filter-bar">
                 <select id="compare-filter" class="filter-select">
@@ -476,19 +477,28 @@ window.initComparePage = async function () {
 window.aboutPage = async function () {
     return `
         <section class="about-page">
-            <h2>About the Hawaii State Budget Explorer</h2>
-            <p>This dashboard presents Hawaii's FY 2026–2027 state budget data parsed from HB 300.
-               It does not include budgets for the Judiciary, Legislature, or OHA.</p>
+            <h2>About the HB1800 Budget Tracker</h2>
+            <p>This dashboard tracks <strong>HB1800</strong>, Hawaii's supplemental appropriations bill for
+               the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Senate Draft (SD1)
+               to show how proposed spending changes as the bill moves through the legislature.</p>
+            <h3>What are HD1 and SD1?</h3>
+            <p><strong>HD1</strong> is the bill as amended by the House. <strong>SD1</strong> is the Senate's
+               version. Comparing them reveals which programs gained or lost funding during crossover.</p>
             <h3>Features</h3>
             <ul>
-                <li>Browse budget allocations by department with program-level drill-down</li>
-                <li>Search and filter across all programs by fund type, section, or keyword</li>
-                <li>Compare FY2026 vs FY2027 allocations with delta analysis</li>
-                <li>Export filtered data as CSV for offline analysis</li>
-                <li>View fund-type composition and position counts</li>
+                <li>HD1 vs SD1 draft comparison with Operating/Capital breakdown</li>
+                <li>Collapsible department grouping with fund-type detail tables</li>
+                <li>Multi-select filters for Section, Fund, and change type</li>
+                <li>Sortable columns and full-text search across programs</li>
+                <li>Export filtered data as CSV</li>
             </ul>
+            <h3>HB300 Enacted Budget</h3>
+            <p>The <a href="#/enacted">HB300 Budget</a> section provides the enacted executive budget
+               for reference, including department breakdowns and FY2026 vs FY2027 comparisons.
+               It does not include budgets for the Judiciary, Legislature, or OHA.</p>
             <h3>Data Source</h3>
-            <p>Data is sourced from <a href="https://hiappleseed.org/publications/hawaii-budget-primer-2025-26" target="_blank" rel="noopener">Hawaii Appleseed's Budget Primer 2025-26</a>.</p>
+            <p>Budget data parsed from official bill text. Additional context from
+               <a href="https://hiappleseed.org/publications/hawaii-budget-primer-2025-26" target="_blank" rel="noopener">Hawaii Appleseed's Budget Primer 2025-26</a>.</p>
             <a href="#/" class="button primary">← Back to Home</a>
         </section>`;
 };
@@ -531,7 +541,6 @@ window.draftComparePage = async function () {
     if (!hasData) {
         return `
             <section class="compare-page">
-                <a href="#/" class="back-button">← Home</a>
                 <h2>Draft Comparison</h2>
                 <div class="empty-state">
                     <p>No draft comparison data available yet.</p>
@@ -554,8 +563,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <a href="#/" class="back-button">← Home</a>
-            <h2>${meta.bill_number}: ${meta.draft1} → ${meta.draft2}</h2>
+            <h2>HD1 → SD1 Draft Comparison</h2>
             <p class="muted" style="margin-bottom:0.75rem;">Comparing HD1 to SD1 of HB1800. The "Introduced" version is a supplemental amendment without tabular budget data, so HD1 is the baseline.</p>
 
             ${fyToggle}
@@ -564,18 +572,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div class="totals-bar" id="draft-totals-bar"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
-            <div class="filter-bar">
-                <select id="draft-filter" class="filter-select">
-                    <option value="all">All Changes</option>
-                    <option value="modified">Modified Only</option>
-                    <option value="increases">Increases Only</option>
-                    <option value="decreases">Decreases Only</option>
-                    <option value="added">Newly Added</option>
-                    <option value="removed">Removed</option>
-                </select>
-                <input type="text" id="draft-search" placeholder="Search programs..." class="search-input">
-                <button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button>
-            </div>
             <div class="search-summary" id="draft-summary"></div>
             <div id="draft-results"></div>
         </section>`;
@@ -626,31 +622,33 @@ window.initDraftComparePage = async function () {
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
             cardsEl.innerHTML = `
-                <div class="card-section-label">Operating</div>
+                <div class="card-section-label has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</div>
                 <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="card-arrow">→</div>
                 <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
+                <div class="card-arrow"></div>
                 ${changeCard(op.delta, 'Change')}
-                <div class="card-section-label">Capital Improvement</div>
+                <div class="card-section-label has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</div>
                 <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="card-arrow">→</div>
                 <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>
+                <div class="card-arrow"></div>
                 ${changeCard(cap.delta, 'Change')}`;
         }
 
         const totalsEl = document.getElementById('draft-totals-bar');
         if (totalsEl) {
             const netCls = totalNet > 0 ? 'positive' : totalNet < 0 ? 'negative' : '';
-            totalsEl.innerHTML = `<strong>${meta.draft1} Total:</strong> ${fmt(totalD1)}<span class="sep">|</span><strong>${meta.draft2} Total:</strong> ${fmt(totalD2)}<span class="sep">|</span><strong>Net Change:</strong> <span class="${netCls}">${fmt(totalNet)}</span>`;
+            totalsEl.innerHTML = `<span class="stat-tag stat-tag-neutral"><strong>${meta.draft1} Total:</strong> ${fmt(totalD1)}</span><span class="stat-tag stat-tag-neutral"><strong>${meta.draft2} Total:</strong> ${fmt(totalD2)}</span><span class="stat-tag ${netCls === 'positive' ? 'stat-tag-positive' : netCls === 'negative' ? 'stat-tag-negative' : 'stat-tag-neutral'}"><strong>Net Change:</strong> ${fmt(totalNet)}</span>`;
         }
 
         const summary = activeData.summary;
         const statsEl = document.getElementById('draft-stats-bar');
         if (statsEl) {
             statsEl.innerHTML = `
-                <strong>${summary.items_modified}</strong> changed ·
-                <span class="positive">▲ ${summary.items_increased} increases</span> ·
-                <span class="negative">▼ ${summary.items_decreased} decreases</span> ·
-                <span>+ ${summary.items_added} added</span> ·
-                <span>− ${summary.items_removed} removed</span>`;
+                <span class="stat-tag stat-tag-neutral"><strong>${summary.items_modified}</strong> changed</span>
+                <span class="stat-tag stat-tag-positive">▲ <strong>${summary.items_increased}</strong> increases</span>
+                <span class="stat-tag stat-tag-negative">▼ <strong>${summary.items_decreased}</strong> decreases</span>`;
         }
     };
 
@@ -701,8 +699,23 @@ window.initDraftComparePage = async function () {
 
         // Summary line
         const totalDelta = data.reduce((s, r) => s + (r.change || 0), 0);
+        const netCls2 = totalDelta > 0 ? 'positive' : totalDelta < 0 ? 'negative' : '';
+        const filterVal = document.getElementById('draft-filter')?.value || 'all';
+        const searchVal = document.getElementById('draft-search')?.value || '';
         document.getElementById('draft-summary').innerHTML =
-            `<strong>${data.length}</strong> items — Net: <strong class="${totalDelta > 0 ? 'positive' : 'negative'}">${fmt(totalDelta)}</strong>`;
+            `<span class="stat-tag stat-tag-neutral"><strong>${data.length}</strong> items</span>`
+            + `<select id="draft-filter" class="filter-select filter-inline">
+                <option value="all"${filterVal==='all'?' selected':''}>All Changes</option>
+                <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
+                <option value="increases"${filterVal==='increases'?' selected':''}>Increases Only</option>
+                <option value="decreases"${filterVal==='decreases'?' selected':''}>Decreases Only</option>
+                <option value="added"${filterVal==='added'?' selected':''}>Newly Added</option>
+                <option value="removed"${filterVal==='removed'?' selected':''}>Removed</option>
+               </select>`
+            + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">`;
+        // Re-attach filter/search listeners after re-render
+        document.getElementById('draft-filter')?.addEventListener('change', render);
+        document.getElementById('draft-search')?.addEventListener('input', render);
 
         // Build Section header checkbox dropdown
         const allSecs = getAllSections();
@@ -732,11 +745,20 @@ window.initDraftComparePage = async function () {
             if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, rows: [] });
             deptMap.get(key).rows.push(r);
         }
-        // Sort departments by total |change| descending
-        const depts = [...deptMap.values()].sort((a, b) => {
-            const aTotal = a.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
-            const bTotal = b.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
-            return bTotal - aTotal;
+        // Pre-compute dept aggregates, then sort by active sortCol/sortDir
+        const depts = [...deptMap.values()].map(d => {
+            d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            d.delta = d.d2 - d.d1;
+            return d;
+        }).sort((a, b) => {
+            let va, vb;
+            if (sortCol === 'program_name') { va = a.code.toLowerCase(); vb = b.code.toLowerCase(); }
+            else if (sortCol === 'd1') { va = a.d1; vb = b.d1; }
+            else if (sortCol === 'd2') { va = a.d2; vb = b.d2; }
+            else { va = a.delta; vb = b.delta; } // change, pct_change, default
+            if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            return sortDir === 'asc' ? va - vb : vb - va;
         });
 
         // Auto-expand departments when searching
@@ -777,9 +799,9 @@ window.initDraftComparePage = async function () {
 
         let bodyHtml = '';
         for (const dept of depts) {
-            const deptD1 = dept.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
-            const deptD2 = dept.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            const deptDelta = deptD2 - deptD1;
+            const deptD1 = dept.d1;
+            const deptD2 = dept.d2;
+            const deptDelta = dept.delta;
             const deptCls = deptDelta > 0 ? 'positive' : deptDelta < 0 ? 'negative' : '';
             const isOpen = autoExpand || expandedDepts.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
@@ -791,7 +813,7 @@ window.initDraftComparePage = async function () {
                 <td class="amount-cell">${fmt(deptD1)}</td>
                 <td class="amount-cell">${fmt(deptD2)}</td>
                 <td class="amount-cell ${deptCls}">${fmt(deptDelta)}</td>
-                <td></td><td></td>
+                <td></td>
             </tr>`;
 
             for (const p of programs) {
@@ -811,7 +833,6 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell">${fmt(p.d2)}</td>
                         <td class="amount-cell ${cls}">${fmt(p.change)}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
-                        <td>${typeBadge}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         const secRows = p.rawRows.filter(r => r.section === sec);
@@ -827,7 +848,6 @@ window.initDraftComparePage = async function () {
                             <td class="amount-cell">${fmt(secD2)}</td>
                             <td class="amount-cell ${secCls}">${fmt(secDelta)}</td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
-                            <td></td>
                         </tr>`;
                     }
                 } else {
@@ -839,7 +859,6 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell">${fmt(p.d2)}</td>
                         <td class="amount-cell ${cls}">${fmt(p.change)}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
-                        <td>${typeBadge}</td>
                     </tr>`;
                 }
             }
@@ -901,10 +920,10 @@ window.initDraftComparePage = async function () {
                     <th class="sortable amount-cell" data-sort="d2">${meta.draft2}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
-                    <th>Type</th>
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
             </table>
+            <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>
             <h3 class="fund-detail-heading">Fund Detail</h3>
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
@@ -915,7 +934,8 @@ window.initDraftComparePage = async function () {
                     <th class="amount-cell">%</th>
                 </tr></thead>
                 <tbody>${fundHtml}</tbody>
-            </table>`;
+            </table>
+            <div class="table-export-row"><button class="action-link export-btn" id="export-fund-detail">⬇ Export CSV</button></div>`;
 
         // Re-attach header dropdown events after render
         attachHeaderDropdowns();
@@ -1045,20 +1065,31 @@ window.initDraftComparePage = async function () {
 
     // --- Other controls ---
 
-    document.getElementById('draft-filter')?.addEventListener('change', render);
-    document.getElementById('draft-search')?.addEventListener('input', render);
-
-    document.getElementById('export-drafts')?.addEventListener('click', () => {
+    document.getElementById('draft-results')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button.export-btn');
+        if (!btn) return;
         const meta = window._lastDraftMeta || activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
-        const rows = (window._lastDraftResults || activeData.comparisons).map(r => ({
-            program_id: r.program_id, program_name: r.program_name,
-            department_code: r.department_code, department_name: r.department_name,
-            section: r.section, fund_type: r.fund_type, fund_category: r.fund_category,
-            [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
-            change: r.change, pct_change: r.pct_change, change_type: r.change_type,
-        }));
-        downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
+        if (btn.id === 'export-drafts') {
+            const rows = (window._lastDraftResults || activeData.comparisons).map(r => ({
+                program_id: r.program_id, program_name: r.program_name,
+                department_code: r.department_code, department_name: r.department_name,
+                section: r.section, fund_type: r.fund_type, fund_category: r.fund_category,
+                [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
+                change: r.change, pct_change: r.pct_change, change_type: r.change_type,
+            }));
+            downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
+        } else if (btn.id === 'export-fund-detail') {
+            const rows = activeData.comparisons.map(r => ({
+                fund_type: r.fund_type, fund_category: r.fund_category,
+                program_id: r.program_id, program_name: r.program_name,
+                department_code: r.department_code, department_name: r.department_name,
+                section: r.section,
+                [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
+                change: r.change, pct_change: r.pct_change,
+            }));
+            downloadCSV(rows, `${meta.bill_number}_fund_detail_FY${meta.fiscal_year}.csv`);
+        }
     });
 
     // --- Initial render ---

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Hawaii State Budget FY 2026 - Interactive Budget Explorer">
-    <title>Hawaii State Budget FY 2026</title>
+    <meta name="description" content="HB1800 Supplemental Budget Tracker - Hawaii State Legislature">
+    <title>HB1800 Supplemental Budget Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -30,12 +30,10 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1>Hawaiʻi State Budget FY 2026</h1>
+            <h1>Hawaiʻi HB1800 Budget Tracker</h1>
             <nav class="main-nav">
-                <a href="#/" class="nav-link">Home</a>
+                <a href="#/" class="nav-link">HB1800 Tracker</a>
                 <a href="#/search" class="nav-link">Search</a>
-                <a href="#/compare" class="nav-link">FY Comparison</a>
-                <a href="#/drafts" class="nav-link">Draft Comparison</a>
                 <a href="#/about" class="nav-link">About</a>
             </nav>
         </header>
@@ -49,14 +47,14 @@
         </main>
 
         <footer class="app-footer">
-            <p>Data Source: State of Hawaii FY26 Budget</p>
-            <p>Last Updated: September 2025</p>
+            <p>Data Source: HB1800 Supplemental Appropriations (HD1, SD1)</p>
+            <p>Last Updated: April 2026</p>
         </footer>
     </div>
 
     <!-- Load app and router scripts -->
-    <script src="js/app.js"></script>
-    <script src="js/router.js"></script>
+    <script src="js/app.js?v=11"></script>
+    <script src="js/router.js?v=4"></script>
     
     <script>
         // Initialize the app when DOM is ready
@@ -67,8 +65,18 @@
             const router = new Router([
                 {
                     path: '/',
+                    component: draftComparePage,
+                    init: initDraftComparePage
+                },
+                {
+                    path: '/enacted',
                     component: homePage,
                     init: initHomePage
+                },
+                {
+                    path: '/drafts',
+                    component: draftComparePage,
+                    init: initDraftComparePage
                 },
                 {
                     path: '/department/:id',
@@ -84,11 +92,6 @@
                     path: '/compare',
                     component: comparePage,
                     init: initComparePage
-                },
-                {
-                    path: '/drafts',
-                    component: draftComparePage,
-                    init: initDraftComparePage
                 },
                 {
                     path: '/about',
