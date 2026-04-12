@@ -340,6 +340,10 @@ class FastBudgetParser(BaseBudgetParser):
         except ValueError:
             fy2_num = 0
 
+        # Validate dept_code: single letters are fund types, not departments
+        if not dept_code or (len(dept_code) <= 2 and dept_code.isalpha()):
+            dept_code = state.department_code or dept_code
+
         fund1 = (fy1_fund or state.default_fund).upper()
         fund2 = (fy2_fund or fund1).upper()
 
