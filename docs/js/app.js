@@ -546,16 +546,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     const initData = draftComparisonData || draftComparisonDataFY27;
     const meta = initData.metadata;
 
-    // Build section checkbox options
-    const allSections = [...new Set(initData.comparisons.map(r => r.section))].filter(Boolean).sort();
-    const secChecks = allSections.map(s =>
-        `<label><input type="checkbox" value="${s}" checked> ${s}</label>`).join('');
-
-    // Build fund checkbox options
-    const allFunds = [...new Set(initData.comparisons.map(r => r.fund_category))].filter(Boolean).sort();
-    const fundChecks = allFunds.map(f =>
-        `<label><input type="checkbox" value="${f}" checked> ${f}</label>`).join('');
-
     const fyToggle = (draftComparisonData && draftComparisonDataFY27) ? `
         <div class="fy-toggle">
             <button class="sort-btn active" id="fy-btn-26" data-fy="26">FY2026</button>
@@ -566,11 +556,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
         <section class="compare-page">
             <a href="#/" class="back-button">← Home</a>
             <h2>${meta.bill_number}: ${meta.draft1} → ${meta.draft2}</h2>
-            <p class="muted" style="margin-bottom:1rem;">Comparing the House Draft (HD1) to the Senate Draft (SD1) of HB1800. The "Introduced" version is a supplemental amendment bill without tabular budget data, so HD1 is used as the baseline.</p>
+            <p class="muted" style="margin-bottom:0.75rem;">Comparing HD1 to SD1 of HB1800. The "Introduced" version is a supplemental amendment without tabular budget data, so HD1 is the baseline.</p>
 
             ${fyToggle}
 
-            <div class="summary-cards-grid" id="draft-cards"></div>
+            <div class="summary-cards-grid compact" id="draft-cards"></div>
             <div class="totals-bar" id="draft-totals-bar"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
@@ -583,14 +573,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <option value="added">Newly Added</option>
                     <option value="removed">Removed</option>
                 </select>
-                <div class="checkbox-dropdown" id="section-dropdown">
-                    <button class="checkbox-dropdown-btn" type="button">Section ▾</button>
-                    <div class="checkbox-dropdown-menu">${secChecks}</div>
-                </div>
-                <div class="checkbox-dropdown" id="fund-dropdown">
-                    <button class="checkbox-dropdown-btn" type="button">Fund ▾</button>
-                    <div class="checkbox-dropdown-menu">${fundChecks}</div>
-                </div>
                 <input type="text" id="draft-search" placeholder="Search programs..." class="search-input">
                 <button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button>
             </div>
@@ -607,27 +589,13 @@ window.initDraftComparePage = async function () {
     let activeData = draftComparisonData || draftComparisonDataFY27;
     let sortCol = 'change';
     let sortDir = 'asc';
-
-    // --- Helpers ---
+    let checkedSections = null; // null = all
+    let checkedFunds = null;    // null = all
 
     const getD1Key = () => 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
 
-    const getCheckedValues = (dropdownId) => {
-        const boxes = document.querySelectorAll(`#${dropdownId} input[type="checkbox"]`);
-        return [...boxes].filter(cb => cb.checked).map(cb => cb.value);
-    };
-
-    const updateDropdownLabel = (dropdownId, label) => {
-        const el = document.querySelector(`#${dropdownId} .checkbox-dropdown-btn`);
-        if (!el) return;
-        const boxes = document.querySelectorAll(`#${dropdownId} input[type="checkbox"]`);
-        const total = boxes.length;
-        const checked = [...boxes].filter(cb => cb.checked).length;
-        el.textContent = checked === total ? `${label} ▾` : `${label} (${checked}/${total}) ▾`;
-    };
-
-    // --- Summary cards: Operating / Capital breakdown ---
+    // --- Summary cards ---
 
     const updateSummaryCards = () => {
         const meta = activeData.metadata;
@@ -683,25 +651,24 @@ window.initDraftComparePage = async function () {
         }
     };
 
-    // --- Main render: filter, sort, group by department ---
+    // --- Build checkbox options from data ---
+
+    const getAllSections = () => [...new Set(activeData.comparisons.map(r => r.section))].filter(Boolean).sort();
+    const getAllFunds = () => [...new Set(activeData.comparisons.map(r => r.fund_category))].filter(Boolean).sort();
+
+    // --- Main render: flat table with header dropdowns ---
 
     const render = () => {
         const meta = activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
         const mode = document.getElementById('draft-filter')?.value || 'all';
         const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
-        const checkedSections = getCheckedValues('section-dropdown');
-        const checkedFunds = getCheckedValues('fund-dropdown');
-        const allSections = document.querySelectorAll('#section-dropdown input[type="checkbox"]').length;
-        const allFunds = document.querySelectorAll('#fund-dropdown input[type="checkbox"]').length;
 
         let data = [...activeData.comparisons];
 
-        // Checkbox filters
-        if (checkedSections.length < allSections)
-            data = data.filter(r => checkedSections.includes(r.section));
-        if (checkedFunds.length < allFunds)
-            data = data.filter(r => checkedFunds.includes(r.fund_category));
+        // Checkbox filters (null = all selected)
+        if (checkedSections) data = data.filter(r => checkedSections.has(r.section));
+        if (checkedFunds) data = data.filter(r => checkedFunds.has(r.fund_category));
 
         // Search
         if (q) data = data.filter(r =>
@@ -734,114 +701,104 @@ window.initDraftComparePage = async function () {
         document.getElementById('draft-summary').innerHTML =
             `<strong>${data.length}</strong> items — Net: <strong class="${totalDelta > 0 ? 'positive' : 'negative'}">${fmt(totalDelta)}</strong>`;
 
-        // Group by department
-        const deptMap = new Map();
-        for (const r of data) {
-            const key = r.department_code || 'OTHER';
-            if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, items: [] });
-            deptMap.get(key).items.push(r);
-        }
-        const depts = [...deptMap.values()];
-        // Sort departments: alphabetical when sorting by name, else by |change|
-        if (sortCol === 'program_name') {
-            depts.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
-        } else {
-            depts.sort((a, b) => {
-                const absA = Math.abs(a.items.reduce((s, r) => s + (r.change || 0), 0));
-                const absB = Math.abs(b.items.reduce((s, r) => s + (r.change || 0), 0));
-                return absB - absA;
-            });
-        }
+        // Build Section header checkbox dropdown
+        const allSecs = getAllSections();
+        const secChecks = allSecs.map(s => {
+            const checked = !checkedSections || checkedSections.has(s) ? ' checked' : '';
+            return `<label><input type="checkbox" value="${s}"${checked}> ${s}</label>`;
+        }).join('');
+        const secLabel = !checkedSections ? 'Section ▾' : `Section (${checkedSections.size}/${allSecs.length}) ▾`;
+
+        // Build Fund header checkbox dropdown
+        const allFds = getAllFunds();
+        const fundChecks = allFds.map(f => {
+            const checked = !checkedFunds || checkedFunds.has(f) ? ' checked' : '';
+            return `<label><input type="checkbox" value="${f}"${checked}> ${f}</label>`;
+        }).join('');
+        const fundLabel = !checkedFunds ? 'Fund ▾' : `Fund (${checkedFunds.size}/${allFds.length}) ▾`;
 
         const sortArrow = (col) => {
-            const active = sortCol === col ? ' sort-active' : '';
-            const arrow = sortCol === col ? (sortDir === 'asc' ? '▲' : '▼') : '▸';
-            return `<span class="sort-arrow">${arrow}</span>`;
+            const arrow = sortCol === col ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+            return arrow;
         };
 
-        // Auto-expand when searching
-        const autoExpand = q.length > 0;
-
-        let bodyHtml = '';
-        for (const dept of depts) {
-            const dD1 = dept.items.reduce((s, r) => s + (r[d1Key] || 0), 0);
-            const dD2 = dept.items.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            const dDelta = dept.items.reduce((s, r) => s + (r.change || 0), 0);
-            const dCls = dDelta > 0 ? 'positive' : dDelta < 0 ? 'negative' : '';
-            const expandedCls = autoExpand ? ' expanded' : '';
-
-            bodyHtml += `<tr class="dept-group-row${expandedCls}" data-dept="${dept.code}">
-                <td><span class="toggle-arrow">▶</span> <strong>${dept.name}</strong><span class="dept-item-count">(${dept.items.length})</span></td>
-                <td></td><td></td>
-                <td class="amount-cell">${fmt(dD1)}</td>
-                <td class="amount-cell">${fmt(dD2)}</td>
-                <td class="amount-cell ${dCls}">${fmt(dDelta)}</td>
-                <td></td><td></td>
+        const top200 = data.slice(0, 200);
+        let bodyHtml = top200.map(r => {
+            const delta = r.change || 0;
+            const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+            const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
+                : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
+            return `<tr>
+                <td><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
+                <td>${r.section || ''}</td>
+                <td>${r.fund_category || ''}</td>
+                <td class="amount-cell">${fmt(r[d1Key])}</td>
+                <td class="amount-cell">${fmt(r[d2Key])}</td>
+                <td class="amount-cell ${cls}">${fmt(delta)}</td>
+                <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
+                <td>${typeBadge}</td>
             </tr>`;
-
-            const hiddenCls = autoExpand ? '' : ' hidden';
-            for (const r of dept.items) {
-                const delta = r.change || 0;
-                const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-                const typeBadge = r.change_type === 'added' ? '<span class="badge badge-add">new</span>'
-                    : r.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
-                bodyHtml += `<tr class="dept-detail-row${hiddenCls}" data-dept="${dept.code}">
-                    <td><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                    <td>${r.section || ''}</td>
-                    <td>${r.fund_category || ''}</td>
-                    <td class="amount-cell">${fmt(r[d1Key])}</td>
-                    <td class="amount-cell">${fmt(r[d2Key])}</td>
-                    <td class="amount-cell ${cls}">${fmt(delta)}</td>
-                    <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
-                    <td>${typeBadge}</td>
-                </tr>`;
-            }
-        }
+        }).join('');
 
         document.getElementById('draft-results').innerHTML = `
             <table class="data-table" id="draft-table">
                 <thead><tr>
-                    <th class="sortable" data-sort="program_name">Program ${sortArrow('program_name')}</th>
-                    <th>Section</th><th>Fund</th>
-                    <th class="sortable amount-cell" data-sort="d1">${meta.draft1} ${sortArrow('d1')}</th>
-                    <th class="sortable amount-cell" data-sort="d2">${meta.draft2} ${sortArrow('d2')}</th>
-                    <th class="sortable amount-cell" data-sort="change">Change ${sortArrow('change')}</th>
-                    <th class="sortable amount-cell" data-sort="pct_change">% ${sortArrow('pct_change')}</th>
+                    <th class="sortable" data-sort="program_name">Program${sortArrow('program_name')}</th>
+                    <th class="th-dropdown" id="th-section"><span class="th-dropdown-btn">${secLabel}</span>
+                        <div class="th-dropdown-menu">${secChecks}</div></th>
+                    <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
+                        <div class="th-dropdown-menu">${fundChecks}</div></th>
+                    <th class="sortable amount-cell" data-sort="d1">${meta.draft1}${sortArrow('d1')}</th>
+                    <th class="sortable amount-cell" data-sort="d2">${meta.draft2}${sortArrow('d2')}</th>
+                    <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
+                    <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
                     <th>Type</th>
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
-            </table>`;
+            </table>
+            ${data.length > 200 ? `<p class="muted">Showing 200 of ${data.length}</p>` : ''}`;
+
+        // Re-attach header dropdown events after render
+        attachHeaderDropdowns();
 
         window._lastDraftResults = data;
         window._lastDraftMeta = meta;
     };
 
-    // --- Checkbox dropdown open/close ---
+    // --- Header dropdown logic (inside table headers) ---
 
-    document.querySelectorAll('.checkbox-dropdown-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dd = btn.closest('.checkbox-dropdown');
-            // Close other dropdowns
-            document.querySelectorAll('.checkbox-dropdown.open').forEach(el => {
-                if (el !== dd) el.classList.remove('open');
+    const attachHeaderDropdowns = () => {
+        document.querySelectorAll('.th-dropdown-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const th = btn.closest('.th-dropdown');
+                document.querySelectorAll('.th-dropdown.open').forEach(el => {
+                    if (el !== th) el.classList.remove('open');
+                });
+                th.classList.toggle('open');
             });
-            dd.classList.toggle('open');
         });
-    });
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.checkbox-dropdown.open').forEach(el => el.classList.remove('open'));
-    });
-    document.querySelectorAll('.checkbox-dropdown-menu').forEach(menu => {
-        menu.addEventListener('click', (e) => e.stopPropagation());
-    });
+        document.querySelectorAll('.th-dropdown-menu').forEach(menu => {
+            menu.addEventListener('click', (e) => e.stopPropagation());
+            menu.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const th = cb.closest('.th-dropdown');
+                    const allBoxes = th.querySelectorAll('input[type="checkbox"]');
+                    const checked = [...allBoxes].filter(c => c.checked).map(c => c.value);
+                    if (th.id === 'th-section') {
+                        checkedSections = checked.length === allBoxes.length ? null : new Set(checked);
+                    } else if (th.id === 'th-fund') {
+                        checkedFunds = checked.length === allBoxes.length ? null : new Set(checked);
+                    }
+                    render();
+                });
+            });
+        });
+    };
 
-    // Checkbox change → update label + re-render
-    document.querySelectorAll('#section-dropdown input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', () => { updateDropdownLabel('section-dropdown', 'Section'); render(); });
-    });
-    document.querySelectorAll('#fund-dropdown input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', () => { updateDropdownLabel('fund-dropdown', 'Fund'); render(); });
+    // Close header dropdowns on outside click
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.th-dropdown.open').forEach(el => el.classList.remove('open'));
     });
 
     // --- Sortable column headers ---
@@ -855,23 +812,12 @@ window.initDraftComparePage = async function () {
         render();
     });
 
-    // --- Department row expand/collapse ---
-
-    document.getElementById('draft-results')?.addEventListener('click', (e) => {
-        const groupRow = e.target.closest('.dept-group-row');
-        if (!groupRow) return;
-        const dept = groupRow.dataset.dept;
-        const isExpanded = groupRow.classList.toggle('expanded');
-        document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(tr => {
-            tr.classList.toggle('hidden', !isExpanded);
-        });
-    });
-
     // --- FY toggle ---
 
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
+        checkedSections = null; checkedFunds = null;
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
@@ -880,6 +826,7 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-27')?.addEventListener('click', () => {
         if (!draftComparisonDataFY27) return;
         activeData = draftComparisonDataFY27;
+        checkedSections = null; checkedFunds = null;
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();
