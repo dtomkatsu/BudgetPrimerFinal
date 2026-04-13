@@ -478,7 +478,7 @@ window.aboutPage = async function () {
     return `
         <section class="about-page">
             <div class="about-hero">
-                <h2>About This Tracker</h2>
+                <h2>About the 2026 Budget Tracker</h2>
                 <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Senate Draft (SD1) to show how proposed spending changes as the bill moves through the legislature.</p>
             </div>
 
@@ -581,7 +581,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <h2>2026</h2>
+            <h2>HD1 → SD1 Draft Comparison</h2>
             <p class="muted" style="margin-bottom:0.75rem;">Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800. The "Introduced" version is a supplemental amendment without tabular budget data, so HD1 is the baseline.</p>
 
             ${fyToggle}
