@@ -881,6 +881,21 @@ th.sortable:hover {
     color: #4a3800;
 }
 
+/* Fund type info note (e.g. GO Bond explanation) */
+.fund-note {
+    font-size: 0.72rem;
+    font-weight: 500;
+    font-style: normal;
+    color: #1a5276;
+    background: #eaf4fb;
+    border: 1px solid #aed6f1;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 0.4rem;
+    cursor: help;
+    white-space: nowrap;
+}
+
 /* Context banner for cross-navigation */
 .context-banner {
     background: #f0f8f4;

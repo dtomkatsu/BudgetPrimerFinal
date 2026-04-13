@@ -990,8 +990,11 @@ window.initDraftComparePage = async function () {
             const isOpen = autoExpandFunds || expandedFundTypes.has(fg.type);
             const arrow = isOpen ? '▼' : '▶';
 
+            const fundNote = fg.type === 'C'
+                ? ` <span class="fund-note" title="General obligation bonds are loans the state repays over time. Changes here reflect shifts in which capital projects get bond financing — not cuts to the underlying programs.">ℹ bond-financed capital projects</span>`
+                : '';
             fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
-                <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category} <span class="dept-count">(${fg.rows.length})</span></td>
+                <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
                 <td class="amount-cell">${fmt(fgD1)}</td>
                 <td class="amount-cell">${fmt(fgD2)}</td>
                 <td class="amount-cell ${fgCls}">${fmt(fgDelta)}</td>
