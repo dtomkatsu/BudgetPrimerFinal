@@ -858,6 +858,29 @@ th.sortable:hover {
     color: var(--primary-dark, #1b5e20);
 }
 
+/* Reallocation warning note */
+.realloc-note {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    font-style: normal;
+    color: #7a5c00;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 0.4rem;
+    cursor: help;
+    white-space: nowrap;
+}
+.realloc-note .split-link {
+    color: #7a5c00;
+    text-decoration: underline dotted;
+}
+.realloc-note .split-link:hover {
+    color: #4a3800;
+}
+
 /* Context banner for cross-navigation */
 .context-banner {
     background: #f0f8f4;
