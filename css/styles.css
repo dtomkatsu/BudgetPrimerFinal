@@ -792,6 +792,17 @@ th.sortable:hover {
     margin: 2rem 0 0.75rem;
     font-size: 1.1rem;
     color: var(--text-color);
+    cursor: help;
+}
+.fund-detail-heading .has-tooltip:hover {
+    color: var(--primary-color, #2e7d32);
+}
+.fund-detail-heading .has-tooltip::after {
+    white-space: pre-line;
+    width: 340px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    padding: 10px 14px;
 }
 .fund-group-row {
     cursor: pointer;

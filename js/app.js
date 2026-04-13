@@ -514,7 +514,7 @@ window.aboutPage = async function () {
                 <h4>Final step</h4>
                 <p>After the Legislature passes the bill, it goes to the governor for approval. If the governor signs it, it becomes law; if the governor vetoes it, the Legislature may try to override or revise it under the state's constitutional process.</p>
 
-                <p class="about-summary"><strong>Departments ask, the governor proposes, lawmakers revise, and the governor signs or vetoes.</strong></p>
+                <p class="about-summary"><strong>Departments request → the governor proposes → lawmakers revise → the governor signs or vetoes</strong></p>
             </div>
 
             <a href="#/" class="button primary">← Back to Home</a>
@@ -582,9 +582,9 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     return `
         <section class="compare-page">
             <h2>HD1 → SD1 Draft Comparison</h2>
-            <p class="muted" style="margin-bottom:0.75rem;">Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800. The "Introduced" version is a supplemental amendment without tabular budget data, so HD1 is the baseline.</p>
-            <p class="muted">See also: <a href="#/enacted">HB300 Enacted Budget</a></p>
-
+            <p class="muted" style="margin-bottom:0.75rem;">Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800.</p>
+            <p class="muted">See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></p>
+            <br>
             ${fyToggle}
 
             <div class="summary-cards-grid compact" id="draft-cards"></div>
@@ -964,7 +964,7 @@ window.initDraftComparePage = async function () {
                 <tbody>${bodyHtml}</tbody>
             </table>
             <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>
-            <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="A: General funds for everyday state spending. B: Special funds for money set aside for specific purposes. C: General obligation bond funds for big public projects. E: Revenue bond funds repaid from project earnings. K/L/M/N: Federal aid funds for money from the U.S. government. S: County funds for money from counties. T: Trust funds for money held for a specific long-term purpose.">Fund Detail</span></h3>
+            <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="A — General funds for everyday state spending&#10;B — Special funds set aside for specific purposes&#10;C — General obligation bond funds for public projects&#10;E — Revenue bond funds repaid from project earnings&#10;K/L/M/N — Federal aid funds from the U.S. government&#10;S — County funds from county governments&#10;T — Trust funds held for specific long-term purposes">Fund Detail</span></h3>
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
                     <th>Fund / Program</th>
