@@ -917,14 +917,13 @@ th.sortable:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.45rem;
-    height: 1.45rem;
+    width: 1.5rem;
+    height: 1.5rem;
     background: var(--primary-color);
     color: #fff;
     border-radius: 50%;
-    font-size: 0.72rem;
-    font-weight: 700;
-    font-style: italic;
+    font-size: 0.95rem;
+    font-weight: 500;
     flex-shrink: 0;
     line-height: 1;
     user-select: none;
