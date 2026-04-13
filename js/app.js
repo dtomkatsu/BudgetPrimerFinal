@@ -891,7 +891,7 @@ window.initDraftComparePage = async function () {
                 const crossRefNote = splitDepts
                     ? ' <span class="split-note">also in ' +
                       [...splitDepts].filter(d => d !== dept.code)
-                        .map(d => `<a class="split-link" href="#/hb1800" data-scroll-dept="${d}">${d}</a>`)
+                        .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
                         .join(', ') + '</span>'
                     : '';
 
