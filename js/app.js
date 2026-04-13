@@ -590,12 +590,18 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div class="summary-cards-grid compact" id="draft-cards"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
-            <div class="reading-guide">
+            <div class="reading-guide" id="reading-guide-box">
                 <div class="reading-guide-icon">ℹ</div>
                 <div class="reading-guide-body">
-                    <strong>How to read these numbers</strong>
-                    <p>Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>. Capital projects often move from the Dept. of Accounting &amp; General Services (AGS) to the actual spending department. A program like Rental Housing (HMS220) can appear under both HMS and BED: one side shows a drop, the other shows a matching rise — it's the same money moving.</p>
-                    <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
+                    <div class="reading-guide-header">
+                        <strong>How to read these numbers</strong>
+                        <button class="reading-guide-toggle" id="reading-guide-toggle" aria-expanded="false">More</button>
+                    </div>
+                    <div class="reading-guide-content" id="reading-guide-content" style="display: none;">
+                        <p>Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
+                        <p><strong>Capital projects often move from the Dept. of Accounting &amp; General Services (AGS) to the actual spending department.</strong> A program like Rental Housing (HMS220) can appear under both HMS and BED: one side shows a drop, the other shows a matching rise — it's the same money moving.</p>
+                        <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
+                    </div>
                 </div>
             </div>
 
@@ -1193,6 +1199,19 @@ window.initDraftComparePage = async function () {
         updateSummaryCards();
         render();
     });
+
+    // --- Reading guide toggle ---
+
+    const readingGuideToggle = document.getElementById('reading-guide-toggle');
+    const readingGuideContent = document.getElementById('reading-guide-content');
+    if (readingGuideToggle && readingGuideContent) {
+        readingGuideToggle.addEventListener('click', () => {
+            const isExpanded = readingGuideContent.style.display !== 'none';
+            readingGuideContent.style.display = isExpanded ? 'none' : 'block';
+            readingGuideToggle.textContent = isExpanded ? 'More' : 'Less';
+            readingGuideToggle.setAttribute('aria-expanded', !isExpanded);
+        });
+    }
 
     // --- Other controls ---
 
