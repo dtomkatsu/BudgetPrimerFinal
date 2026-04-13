@@ -55,10 +55,12 @@ class ParserState:
         self.program_id = program_id
         self.program_name = program_name
         prefix = program_id[:3].upper()
-        # Only use prefix as dept code if it's a known department; otherwise
-        # fall back to SUB (Subsidies) since unrecognized entries are typically
-        # grant/subsidy line items that don't map to a state department code.
-        self.department_code = prefix if prefix in DEPARTMENT_NAMES else 'SUB'
+        # Only update dept code when the prefix is a known department code.
+        # For non-standard program IDs (e.g. "KALIHI-PALAMA..."), keep the
+        # existing department_code from the parent program header (e.g. LBR903).
+        # The correct dept code for grant items is on the "TOTAL FUNDING" line.
+        if prefix in DEPARTMENT_NAMES:
+            self.department_code = prefix
         self.section = None
         self.positions_fy1 = None
         self.positions_fy2 = None
@@ -210,6 +212,13 @@ class FastBudgetParser(BaseBudgetParser):
             # e.g., "AGR  P  164,450P" (blank FY1, FY2 = 164,450 fund P)
             'fy2_only_amount': re.compile(
                 r'^\s*([A-Z]+)\s+([A-Z])\s+([\d,]+)([A-Z])\s*$',
+                re.IGNORECASE,
+            ),
+
+            # --- TOTAL FUNDING lines (grant/subsidy capital items) ---
+            # e.g., "TOTAL FUNDING  LBR  350 C  C" or "TOTAL FUNDING  TRN  17,061 E  26,760 E"
+            'total_funding': re.compile(
+                r'^\s*TOTAL\s+FUNDING\s+([A-Z]{2,4})\s+([\d,]+)\s*([A-Z])\s+(?:([\d,]+)\s*)?([A-Z])\s*$',
                 re.IGNORECASE,
             ),
 
@@ -400,6 +409,26 @@ class FastBudgetParser(BaseBudgetParser):
                 if m:
                     state.set_program(m.group(1).strip(), m.group(2).strip())
                     self.logger.debug(f"Program changed to: {state.program_id} - {state.program_name}")
+                    continue
+
+                # --- 2b. TOTAL FUNDING line (grants/subsidies in capital section) ---
+                # These carry the real dept code and amounts for grant items
+                # e.g., "TOTAL FUNDING  LBR  350 C  C"
+                m = pat['total_funding'].match(line)
+                if m and state.has_context():
+                    dept = m.group(1).upper()
+                    state.department_code = dept
+                    self._append_pair(
+                        allocations, state,
+                        dept_code=dept,
+                        fy1_amount_str=m.group(2),
+                        fy1_fund=m.group(3) or 'C',
+                        fy2_amount_str=m.group(4) or '0',
+                        fy2_fund=m.group(5) or m.group(3) or 'C',
+                        line_number=line_num,
+                        section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                        notes='Total Funding (grant/subsidy)',
+                    )
                     continue
 
                 # --- 3. INVESTMENT CAPITAL header (with optional inline amounts) ---
