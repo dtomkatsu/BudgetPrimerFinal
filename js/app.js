@@ -492,13 +492,16 @@ window.aboutPage = async function () {
                 <li>Sortable columns and full-text search across programs</li>
                 <li>Export filtered data as CSV</li>
             </ul>
-            <h3>HB300 Enacted Budget</h3>
-            <p>The <a href="#/enacted">HB300 Budget</a> section provides the enacted executive budget
-               for reference, including department breakdowns and FY2026 vs FY2027 comparisons.
-               It does not include budgets for the Judiciary, Legislature, or OHA.</p>
-            <h3>Data Source</h3>
-            <p>Budget data parsed from official bill text. Additional context from
-               <a href="https://hiappleseed.org/publications/hawaii-budget-primer-2025-26" target="_blank" rel="noopener">Hawaii Appleseed's Budget Primer 2025-26</a>.</p>
+            <p>Hawaii's budget bill is a <strong>biennial</strong> process: the governor prepares a two-year executive budget, the Legislature reviews and amends it, and then it must pass both chambers and be signed into law. In odd-numbered years the governor submits the main budget for the next two fiscal years, and in even-numbered years a supplemental budget can adjust the current biennium. <a href="https://lrb.hawaii.gov/par/overview-of-the-legislative-process/the-budget-process/" target="_blank" rel="noopener">lrb.hawaii.gov</a></p>
+            <h3>How it starts</h3>
+            <p>The process begins inside the executive branch, where state departments submit spending requests and the Department of Budget and Finance helps shape recommendations before the governor finalizes the proposal. The governor is required to consider the Council on Revenues' forecasts when preparing the budget, because those forecasts help determine how much money the state expects to have. <a href="https://budget.hawaii.gov/budget/about-budget/general-budget-process-and-timetable/" target="_blank" rel="noopener">budget.hawaii.gov</a></p>
+            <h3>What the Legislature does</h3>
+            <p>Once the budget bill reaches the Legislature, it goes through committee hearings, amendments, and the normal lawmaking process. Like other bills, it must receive three readings in each house on separate days, and the House and Senate must agree on the final version before it can move forward. <a href="https://budget.hawaii.gov/budget/about-budget/" target="_blank" rel="noopener">budget.hawaii.gov</a></p>
+            <h3>Timing</h3>
+            <p>Hawaii's fiscal year runs from July 1 to June 30, and the governor must submit the main budget at least 30 days before the Legislature convenes in an odd-numbered year. The Legislature then works through hearings during session, and the final budget is usually completed near the end of the regular session in spring. <a href="https://budget.hawaii.gov/budget/about-budget/general-budget-process-and-timetable/" target="_blank" rel="noopener">budget.hawaii.gov</a></p>
+            <h3>Final step</h3>
+            <p>After the Legislature passes the bill, it goes to the governor for approval. If the governor signs it, it becomes law; if the governor vetoes it, the Legislature may try to override or revise it under the state's constitutional process. <a href="https://budget.hawaii.gov/budget/about-budget/" target="_blank" rel="noopener">budget.hawaii.gov</a></p>
+            <p>A simple way to think about it is: <strong>departments ask, the governor proposes, lawmakers revise, and the governor signs or vetoes</strong>. <a href="https://budget.hawaii.gov/budget/about-budget/general-budget-process-and-timetable/" target="_blank" rel="noopener">budget.hawaii.gov</a></p>
             <a href="#/" class="button primary">← Back to Home</a>
         </section>`;
 };
