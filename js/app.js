@@ -478,7 +478,7 @@ window.aboutPage = async function () {
     return `
         <section class="about-page">
             <div class="about-hero">
-                <h2>About the 2026 Budget Tracker</h2>
+                <h2>About This Tracker</h2>
                 <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Senate Draft (SD1) to show how proposed spending changes as the bill moves through the legislature.</p>
             </div>
 
