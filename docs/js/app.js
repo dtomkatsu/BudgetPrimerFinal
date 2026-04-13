@@ -810,18 +810,23 @@ window.initDraftComparePage = async function () {
             return sortDir === 'asc' ? va - vb : vb - va;
         });
 
-        // Build cross-reference map: program_id → set of dept codes it appears under
+        // Build cross-reference map: program_id → Map<deptCode, {d1, d2, delta}>
         const splitPrograms = new Map();
         for (const r of activeData.comparisons) {
             const pid = r.program_id;
             const dept = r.department_code;
             if (!pid || !dept) continue;
-            if (!splitPrograms.has(pid)) splitPrograms.set(pid, new Set());
-            splitPrograms.get(pid).add(dept);
+            if (!splitPrograms.has(pid)) splitPrograms.set(pid, new Map());
+            const deptMap = splitPrograms.get(pid);
+            if (!deptMap.has(dept)) deptMap.set(dept, { d1: 0, d2: 0 });
+            const entry = deptMap.get(dept);
+            entry.d1 += r[d1Key] || 0;
+            entry.d2 += r[d2Key] || 0;
         }
-        // Only keep programs that appear in 2+ departments
-        for (const [pid, depts] of splitPrograms) {
-            if (depts.size < 2) splitPrograms.delete(pid);
+        // Only keep programs that appear in 2+ departments; compute delta
+        for (const [pid, deptMap] of splitPrograms) {
+            if (deptMap.size < 2) { splitPrograms.delete(pid); continue; }
+            for (const vals of deptMap.values()) vals.delta = vals.d2 - vals.d1;
         }
 
         // Auto-expand departments when searching
@@ -887,13 +892,39 @@ window.initDraftComparePage = async function () {
                 const progOpen = autoExpand || expandedPrograms.has(progKey);
 
                 // Cross-reference note for programs split across departments
-                const splitDepts = splitPrograms.get(p.program_id);
-                const crossRefNote = splitDepts
-                    ? ' <span class="split-note">also in ' +
-                      [...splitDepts].filter(d => d !== dept.code)
+                const splitDeptMap = splitPrograms.get(p.program_id);
+                let crossRefNote = '';
+                if (splitDeptMap) {
+                    const otherDepts = [...splitDeptMap.keys()].filter(d => d !== dept.code);
+                    const otherLinks = otherDepts
                         .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
-                        .join(', ') + '</span>'
-                    : '';
+                        .join(', ');
+                    crossRefNote = ` <span class="split-note">also in ${otherLinks}</span>`;
+
+                    // Detect reallocation: significant negative here, offsetting positive elsewhere
+                    const thisDelta = splitDeptMap.get(dept.code)?.delta || 0;
+                    const THRESHOLD = 1000000; // $1M minimum to flag
+                    const offsetDepts = otherDepts.filter(d => {
+                        const od = splitDeptMap.get(d)?.delta || 0;
+                        return thisDelta < -THRESHOLD && od > THRESHOLD;
+                    });
+                    const sourceDepts = otherDepts.filter(d => {
+                        const od = splitDeptMap.get(d)?.delta || 0;
+                        return thisDelta > THRESHOLD && od < -THRESHOLD;
+                    });
+
+                    if (offsetDepts.length > 0) {
+                        const offsetLinks = offsetDepts
+                            .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
+                            .join(', ');
+                        crossRefNote += ` <span class="realloc-note" title="The apparent cut here may reflect funds moved to another department, not eliminated from the program.">⚠ funding may have shifted to ${offsetLinks} — not necessarily cut</span>`;
+                    } else if (sourceDepts.length > 0) {
+                        const sourceLinks = sourceDepts
+                            .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
+                            .join(', ');
+                        crossRefNote += ` <span class="realloc-note" title="The apparent increase here may reflect funds moved from another department, not new spending.">⚠ may include funds reallocated from ${sourceLinks}</span>`;
+                    }
+                }
 
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
