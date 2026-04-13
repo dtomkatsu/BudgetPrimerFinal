@@ -896,6 +896,40 @@ th.sortable:hover {
     white-space: nowrap;
 }
 
+/* Reading guide callout box */
+.reading-guide {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    background: #f0f4ff;
+    border: 1px solid #c0ccf0;
+    border-left: 4px solid #3f5bd4;
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    margin: 1rem 0 1.25rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+.reading-guide-icon {
+    font-size: 1.3rem;
+    color: #3f5bd4;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.reading-guide-body strong {
+    display: block;
+    font-size: 0.92rem;
+    margin-bottom: 0.35rem;
+    color: #1a2a6c;
+}
+.reading-guide-body p {
+    margin: 0 0 0.4rem;
+    color: #333;
+}
+.reading-guide-body p:last-child {
+    margin-bottom: 0;
+}
+
 /* Context banner for cross-navigation */
 .context-banner {
     background: #f0f8f4;
