@@ -612,7 +612,7 @@
   {
     "id": "buf",
     "code": "BUF",
-    "name": "Department of Budget & Finance",
+    "name": "Department of Budget and Finance",
     "description": "This department coordinates statewide budget forecasting and management, and oversees the state's investments and financing. Agencies in BUF are the Employees' Retirement System (ERS), the Employer-Union Health Care Trust Fund (EUTF), and the Office of the Public Defender. The BUF budget also includes costs related to debt service and all payroll taxes and fringe benefits for state and county employees. This bill sets aside emergency state funding to cover new labor contracts and pay increases for public employees in Hawaii for the year 2024\u20132025. The amounts include: * $79,197,312 for general contract costs for most state workers. * An additional $14,000,000 for the Department of Education, University of Hawaii, and other departments. * $11,540,875 for employees at Hawaii Health Systems. * $960,600 and $5,140,600 for other specific bargaining units, plus other smaller funds from special, federal, and trust sources. In simple terms, this bill provides over $100 million, mostly from the general fund, to pay for raises and other costs agreed upon in new contracts for state employees and teachers.",
     "budget": "$4.3B",
     "operating_budget": 4349371728.0,
@@ -3335,7 +3335,7 @@
   {
     "id": "bed",
     "code": "BED",
-    "name": "Department of Business, Economic Development & Tourism",
+    "name": "Department of Business, Economic Development, and Tourism",
     "description": "This department is responsible for a wide array of programs: low- and moderate-income housing development via the Hawai\u02bbi Community Development Authority (HCDA) and Hawai\u02bbi Housing Finance & Development Corporation (HHFDC); promoting the visitor industry through the Hawai\u02bbi Tourism Authority; overseeing the Foreign Trade Zone; and managing the Hawai\u02bbi Clean Energy Initiative. The department also researches and publishes Hawai\u02bbi census and population data, information about the state's economic performance, and the State Data Book.",
     "budget": "$659M",
     "operating_budget": 292608072.0,
@@ -3774,7 +3774,7 @@
   {
     "id": "lbr",
     "code": "LBR",
-    "name": "Department of Labor & Industrial Relations",
+    "name": "Department of Labor and Industrial Relations",
     "description": "This department enforces labor laws, and administers the state Unemployment Insurance, Workers' Compensation, and Temporary Disability Insurance programs. Compliance with the state's Prepaid Health Care Act is overseen by this department. LBR's Office of Community Services oversees grants and programs aimed at helping economically disadvantaged residents gain self-sufficiency.",
     "budget": "$484M",
     "operating_budget": 463806077.0,
@@ -4078,7 +4078,7 @@
   {
     "id": "ags",
     "code": "AGS",
-    "name": "Department of Accounting & General Services",
+    "name": "Department of Accounting and General Services",
     "description": "This department manages statewide functions, including accounting and expenditures, facility acquisition and maintenance, the state motor pool, statewide information technology systems, and risk management. In addition, AGS counts among its programs the Hawai\u02bbi State Foundation on Culture & the Arts, the Hawai\u02bbi State Archives, and the Hawai\u02bbi State Office of Elections.",
     "budget": "$477M",
     "operating_budget": 261234034.0,
@@ -4562,7 +4562,7 @@
   {
     "id": "lnr",
     "code": "LNR",
-    "name": "Department of Land & Natural Resources",
+    "name": "Department of Land and Natural Resources",
     "description": "This department is responsible for protecting Hawai\u02bbi's natural resources, preserving native species, and ensuring safe recreational sites. It oversees historic preservation, manages state parks, and administers land conveyances and recordings. The department is the steward for Kaho\u02bbolawe and Mauna Kea.",
     "budget": "$401M",
     "operating_budget": 324957895.0,
@@ -5798,7 +5798,7 @@
   {
     "id": "cca",
     "code": "CCA",
-    "name": "Department of Commerce & Consumer Affairs",
+    "name": "Department of Commerce and Consumer Affairs",
     "description": "This department upholds business standards and protects consumer interests. Its programs include the Public Utilities Commission (PUC), the insurance division, business registration and securities regulation, professional and vocational licensing, and the Office of Consumer Protection. CCA has the distinction of being the only executive department that receives no general funds to support its operations.",
     "budget": "$119M",
     "operating_budget": 119071633.0,
@@ -6119,7 +6119,7 @@
   {
     "id": "agr",
     "code": "AGR",
-    "name": "Department of Agriculture",
+    "name": "Department of Agriculture and Biosecurity",
     "description": "This department carries out programs to conserve, develop, and use lands and resources for agricultural use. It continues to help Hawai\u02bbi transition from plantation-era agricultural practices toward a diversified agriculture model, and supports the development of new programs such as aquaculture. The department is also responsible for plant and animal pest and disease control, including managing animal quarantine.",
     "budget": "$81M",
     "operating_budget": 75873376.0,

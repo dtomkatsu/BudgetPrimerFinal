@@ -83,15 +83,16 @@ class DepartmentalBudgetAnalyzer:
         
         # Department code to full name mapping
         self.department_names = {
-            'AGR': 'AGRICULTURE',
+            'AGR': 'AGRICULTURE AND BIOSECURITY',
             'AGS': 'ACCOUNTING AND GENERAL SERVICES',
             'ATG': 'ATTORNEY GENERAL',
-            'BED': 'BUSINESS, ECONOMIC DEVELOPMENT & TOURISM',
+            'BED': 'BUSINESS, ECONOMIC DEVELOPMENT, AND TOURISM',
             'BUF': 'BUDGET AND FINANCE',
             'CCA': 'COMMERCE AND CONSUMER AFFAIRS',
             'CCH': 'CITY AND COUNTY OF HONOLULU',
             'COH': 'COUNTY OF HAWAII',
             'COK': 'COUNTY OF KAUAI',
+            'COM': 'COUNTY OF MAUI',
             'DEF': 'DEFENSE',
             'EDN': 'EDUCATION',
             'GOV': 'GOVERNOR',
@@ -104,7 +105,8 @@ class DepartmentalBudgetAnalyzer:
             'LNR': 'LAND AND NATURAL RESOURCES',
             'LTG': 'LIEUTENANT GOVERNOR',
             'P': 'LEGISLATURE',
-            'PSD': 'PUBLIC SAFETY',
+            'PSD': 'CORRECTIONS AND REHABILITATION',
+            'SUB': 'SUBSIDIES',
             'TAX': 'TAXATION',
             'TRN': 'TRANSPORTATION',
             'UOH': 'UNIVERSITY OF HAWAII'
@@ -112,15 +114,16 @@ class DepartmentalBudgetAnalyzer:
         
         # Department code to display name mapping (for the descriptions)
         self.display_names = {
-            'AGR': 'Department of Agriculture',
-            'AGS': 'Department of Accounting & General Services',
+            'AGR': 'Department of Agriculture and Biosecurity',
+            'AGS': 'Department of Accounting and General Services',
             'ATG': 'Department of the Attorney General',
-            'BED': 'Department of Business, Economic Development & Tourism',
-            'BUF': 'Department of Budget & Finance',
-            'CCA': 'Department of Commerce & Consumer Affairs',
+            'BED': 'Department of Business, Economic Development, and Tourism',
+            'BUF': 'Department of Budget and Finance',
+            'CCA': 'Department of Commerce and Consumer Affairs',
             'CCH': 'City and County of Honolulu',
             'COH': 'County of Hawaii',
             'COK': 'County of Kauai',
+            'COM': 'County of Maui',
             'DEF': 'Department of Defense',
             'EDN': 'Department of Education',
             'GOV': 'Office of the Governor',
@@ -129,14 +132,15 @@ class DepartmentalBudgetAnalyzer:
             'HRD': 'Department of Human Resources Development',
             'HTH': 'Department of Health',
             'LAW': 'Department of Law Enforcement',
-            'LBR': 'Department of Labor & Industrial Relations',
-            'LNR': 'Department of Land & Natural Resources',
+            'LBR': 'Department of Labor and Industrial Relations',
+            'LNR': 'Department of Land and Natural Resources',
             'LTG': 'Office of the Lieutenant Governor',
             'P': 'State Legislature',
             'PSD': 'Department of Corrections and Rehabilitation',
+            'SUB': 'Subsidies',
             'TAX': 'Department of Taxation',
             'TRN': 'Department of Transportation',
-            'UOH': 'University of Hawaii System'
+            'UOH': 'University of Hawaii'
         }
     
     def get_department_summary(self, dept_code: str) -> dict:
