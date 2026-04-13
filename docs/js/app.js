@@ -963,7 +963,7 @@ window.initDraftComparePage = async function () {
                 <tbody>${bodyHtml}</tbody>
             </table>
             <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>
-            <h3 class="fund-detail-heading">Fund Detail</h3>
+            <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="A: General funds for everyday state spending. B: Special funds for money set aside for specific purposes. C: General obligation bond funds for big public projects. E: Revenue bond funds repaid from project earnings. K/L/M/N: Federal aid funds for money from the U.S. government. S: County funds for money from counties. T: Trust funds for money held for a specific long-term purpose.">Fund Detail</span></h3>
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
                     <th>Fund / Program</th>
