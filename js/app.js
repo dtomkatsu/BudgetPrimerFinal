@@ -810,6 +810,20 @@ window.initDraftComparePage = async function () {
             return sortDir === 'asc' ? va - vb : vb - va;
         });
 
+        // Build cross-reference map: program_id → set of dept codes it appears under
+        const splitPrograms = new Map();
+        for (const r of activeData.comparisons) {
+            const pid = r.program_id;
+            const dept = r.department_code;
+            if (!pid || !dept) continue;
+            if (!splitPrograms.has(pid)) splitPrograms.set(pid, new Set());
+            splitPrograms.get(pid).add(dept);
+        }
+        // Only keep programs that appear in 2+ departments
+        for (const [pid, depts] of splitPrograms) {
+            if (depts.size < 2) splitPrograms.delete(pid);
+        }
+
         // Auto-expand departments when searching
         const autoExpand = q.length > 0;
 
@@ -872,10 +886,19 @@ window.initDraftComparePage = async function () {
                 const progKey = `${dept.code}:${p.program_id}`;
                 const progOpen = autoExpand || expandedPrograms.has(progKey);
 
+                // Cross-reference note for programs split across departments
+                const splitDepts = splitPrograms.get(p.program_id);
+                const crossRefNote = splitDepts
+                    ? ' <span class="split-note">also in ' +
+                      [...splitDepts].filter(d => d !== dept.code)
+                        .map(d => `<a class="split-link" href="#/hb1800" data-scroll-dept="${d}">${d}</a>`)
+                        .join(', ') + '</span>'
+                    : '';
+
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>Mixed</td>
                         <td></td>
                         <td class="amount-cell">${fmt(p.d1)}</td>
@@ -901,7 +924,7 @@ window.initDraftComparePage = async function () {
                     }
                 } else {
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
-                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}</td>
+                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${p.section}</td>
                         <td></td>
                         <td class="amount-cell">${fmt(p.d1)}</td>
@@ -1032,6 +1055,22 @@ window.initDraftComparePage = async function () {
     // --- Sortable column headers + department expand/collapse ---
 
     document.getElementById('draft-results')?.addEventListener('click', (e) => {
+        // Cross-reference split-dept link: scroll to and expand that department
+        const splitLink = e.target.closest('.split-link');
+        if (splitLink) {
+            e.preventDefault();
+            const targetDept = splitLink.dataset.scrollDept;
+            if (targetDept) {
+                expandedDepts.add(targetDept);
+                render();
+                // Scroll to the target dept row after render
+                requestAnimationFrame(() => {
+                    const row = document.querySelector(`.dept-group-row[data-dept="${targetDept}"]`);
+                    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+            return;
+        }
         // Sortable headers
         const th = e.target.closest('th.sortable');
         if (th) {
