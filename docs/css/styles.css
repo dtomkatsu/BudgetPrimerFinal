@@ -841,6 +841,23 @@ th.sortable:hover {
     }
 }
 
+/* Split-department cross-reference note */
+.split-note {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #888;
+    margin-left: 0.5rem;
+    font-style: italic;
+}
+.split-link {
+    color: var(--primary-color, #2e7d32);
+    text-decoration: underline dotted;
+    font-style: normal;
+}
+.split-link:hover {
+    color: var(--primary-dark, #1b5e20);
+}
+
 /* Context banner for cross-navigation */
 .context-banner {
     background: #f0f8f4;
