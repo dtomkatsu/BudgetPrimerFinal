@@ -741,6 +741,9 @@ window.initDraftComparePage = async function () {
         const netCls2 = totalDelta > 0 ? 'positive' : totalDelta < 0 ? 'negative' : '';
         const filterVal = document.getElementById('draft-filter')?.value || 'all';
         const searchVal = document.getElementById('draft-search')?.value || '';
+        const searchWasFocused = document.activeElement?.id === 'draft-search';
+        const searchSelStart = document.getElementById('draft-search')?.selectionStart;
+        const searchSelEnd = document.getElementById('draft-search')?.selectionEnd;
         document.getElementById('draft-summary').innerHTML =
             `<span class="stat-tag stat-tag-neutral items-filter-tag">
                 <strong>${data.length}</strong> items ▾
@@ -756,6 +759,12 @@ window.initDraftComparePage = async function () {
         // Re-attach filter/search listeners after re-render
         document.getElementById('draft-filter')?.addEventListener('change', render);
         document.getElementById('draft-search')?.addEventListener('input', render);
+        // Restore focus and cursor position if search was active before re-render
+        if (searchWasFocused) {
+            const newSearch = document.getElementById('draft-search');
+            newSearch?.focus();
+            newSearch?.setSelectionRange(searchSelStart, searchSelEnd);
+        }
 
         // Build Section header checkbox dropdown
         const allSecs = getAllSections();
