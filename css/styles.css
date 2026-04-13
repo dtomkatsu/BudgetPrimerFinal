@@ -929,3 +929,68 @@ th.sortable:hover {
     border-radius: 12px;
     width: 160px;
 }
+
+/* ===== About Page ===== */
+.about-page {
+    max-width: 700px;
+}
+.about-hero {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--primary-color, #2e7d32);
+}
+.about-hero h2 {
+    margin-bottom: 0.5rem;
+}
+.about-lead {
+    font-size: 1.05rem;
+    color: #444;
+    line-height: 1.7;
+}
+.about-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e8e8e8;
+}
+.about-section:last-of-type {
+    border-bottom: none;
+}
+.about-section h3 {
+    font-size: 1.1rem;
+    color: var(--primary-dark, #1b5e20);
+    margin-bottom: 0.6rem;
+    margin-top: 0;
+}
+.about-section-process h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #333;
+    margin: 1.2rem 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-size: 0.78rem;
+}
+.about-section p {
+    color: #555;
+    line-height: 1.7;
+    margin: 0 0 0.5rem;
+}
+.about-summary {
+    margin-top: 1.2rem !important;
+    padding: 0.75rem 1rem;
+    background: #f0faf5;
+    border-left: 3px solid var(--primary-color, #2e7d32);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+    color: #2e4a30 !important;
+}
+.about-page ul {
+    color: #555;
+    line-height: 1.9;
+    padding-left: 1.25rem;
+    margin: 0;
+}
+.about-page .button {
+    margin-top: 1rem;
+    display: inline-block;
+}
