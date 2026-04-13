@@ -583,6 +583,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
         <section class="compare-page">
             <h2>HD1 → SD1 Draft Comparison</h2>
             <p class="muted" style="margin-bottom:0.75rem;">Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800. The "Introduced" version is a supplemental amendment without tabular budget data, so HD1 is the baseline.</p>
+            <p class="muted">See also: <a href="#/enacted">HB300 Enacted Budget</a></p>
 
             ${fyToggle}
 
