@@ -654,15 +654,23 @@ body {
     font-weight: 700;
     font-size: 0.8rem;
     color: var(--primary-dark, #2c3e50);
-    margin-bottom: -0.15rem;
+    margin-bottom: 0.1rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid #ddd;
 }
 .card-section-label.card-section-toggle {
     cursor: pointer;
     user-select: none;
+    padding-left: 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #aaa;
+    margin-top: 0.4rem;
 }
 .card-section-label.card-section-toggle:hover {
     color: var(--primary-color, #2e7d32);
 }
+
 .toggle-arrow {
     display: inline-block;
     font-size: 0.6rem;
@@ -672,6 +680,7 @@ body {
 .card-row-collapsible {
     grid-column: 1 / -1;
     margin: 0 0 0.25rem;
+    padding-left: 0.85rem;
 }
 .card-row-collapsible .summary-cards-grid.compact {
     margin: 0.25rem 0 0;
