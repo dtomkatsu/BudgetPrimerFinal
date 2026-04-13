@@ -54,7 +54,11 @@ class ParserState:
     def set_program(self, program_id: str, program_name: str):
         self.program_id = program_id
         self.program_name = program_name
-        self.department_code = program_id[:3]
+        prefix = program_id[:3].upper()
+        # Only use prefix as dept code if it's a known department; otherwise
+        # fall back to SUB (Subsidies) since unrecognized entries are typically
+        # grant/subsidy line items that don't map to a state department code.
+        self.department_code = prefix if prefix in DEPARTMENT_NAMES else 'SUB'
         self.section = None
         self.positions_fy1 = None
         self.positions_fy2 = None
@@ -100,12 +104,12 @@ DUPLICATE_AMOUNT_THRESHOLD = 50_000_000
 # Department code → human-readable name.
 # Sourced from data/processed/department_descriptions.json and the HB 300 text.
 DEPARTMENT_NAMES = {
-    'AGR': 'Department of Agriculture',
-    'AGS': 'Department of Accounting & General Services',
+    'AGR': 'Department of Agriculture and Biosecurity',
+    'AGS': 'Department of Accounting and General Services',
     'ATG': 'Department of the Attorney General',
-    'BED': 'Department of Business, Economic Development & Tourism',
-    'BUF': 'Department of Budget & Finance',
-    'CCA': 'Department of Commerce & Consumer Affairs',
+    'BED': 'Department of Business, Economic Development, and Tourism',
+    'BUF': 'Department of Budget and Finance',
+    'CCA': 'Department of Commerce and Consumer Affairs',
     'CCH': 'City and County of Honolulu',
     'COH': 'County of Hawaii',
     'COK': 'County of Kauai',
@@ -119,9 +123,9 @@ DEPARTMENT_NAMES = {
     'HTH': 'Department of Health',
     'JUD': 'The Judiciary',
     'LAW': 'Department of Law Enforcement',
-    'LBR': 'Department of Labor & Industrial Relations',
+    'LBR': 'Department of Labor and Industrial Relations',
     'LEG': 'Legislature',
-    'LNR': 'Department of Land & Natural Resources',
+    'LNR': 'Department of Land and Natural Resources',
     'LTG': 'Office of the Lieutenant Governor',
     'OHA': 'Office of Hawaiian Affairs',
     'PSD': 'Department of Corrections and Rehabilitation',
