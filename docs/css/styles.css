@@ -567,6 +567,26 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+/* Subtle chip-style background for HD1 / SD1 / Change cells in draft & fund tables */
+#draft-table tbody td.amount-cell:nth-last-child(2),
+#draft-table tbody td.amount-cell:nth-last-child(3),
+#draft-table tbody td.amount-cell:nth-last-child(4),
+#fund-detail-table tbody td.amount-cell:nth-last-child(2),
+#fund-detail-table tbody td.amount-cell:nth-last-child(3),
+#fund-detail-table tbody td.amount-cell:nth-last-child(4) {
+    background: #f6f8fa;
+    font-weight: 500;
+}
+/* Tint the Change cell based on direction (nth-last-child(2) = Change column) */
+#draft-table tbody td.amount-cell.positive:nth-last-child(2),
+#fund-detail-table tbody td.amount-cell.positive:nth-last-child(2) {
+    background: #eaf7ee;
+}
+#draft-table tbody td.amount-cell.negative:nth-last-child(2),
+#fund-detail-table tbody td.amount-cell.negative:nth-last-child(2) {
+    background: #fbecee;
+}
+
 .positive { color: #28a745; }
 .negative { color: #dc3545; }
 .muted { color: #999; font-size: 0.85em; margin-top: 10px; }
