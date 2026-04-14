@@ -4,19 +4,19 @@
     "draft2": "SD1",
     "bill_number": "HB1800",
     "fiscal_year": 2026,
-    "generated_at": "2026-04-14T11:54:30.285242",
+    "generated_at": "2026-04-14T12:21:13.768175",
     "net_change": 32411969.0
   },
   "summary": {
     "total_draft1": 23340552182.0,
     "total_draft2": 23372964151.0,
     "net_change": 32411969.0,
-    "total_items": 762,
-    "items_modified": 79,
-    "items_increased": 47,
-    "items_decreased": 32,
-    "items_added": 19,
-    "items_removed": 18
+    "total_items": 756,
+    "items_modified": 67,
+    "items_increased": 41,
+    "items_decreased": 26,
+    "items_added": 13,
+    "items_removed": 12
   },
   "comparisons": [
     {
@@ -50,21 +50,6 @@
       "department_name": "Department of Accounting and General Services"
     },
     {
-      "program_id": "TRN102",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 17061000.0,
-      "amount_sd1": null,
-      "change": -17061000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
       "program_id": "PSD900",
       "department_code": "AGS",
       "fund_type": "C",
@@ -93,36 +78,6 @@
       "change_type": "modified",
       "program_name": "OFFICE OF HOMELAND SECURITY",
       "department_name": "Department of Law Enforcement"
-    },
-    {
-      "program_id": "TRN161",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 9225000.0,
-      "amount_sd1": null,
-      "change": -9225000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "LIHUE AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
-      "program_id": "TRN561",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 4000000.0,
-      "amount_sd1": null,
-      "change": -4000000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "KAUAI HIGHWAYS",
-      "department_name": "Department of Transportation"
     },
     {
       "program_id": "HMS503",
@@ -168,21 +123,6 @@
       "change_type": "removed",
       "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
       "department_name": "Department of Accounting and General Services"
-    },
-    {
-      "program_id": "TRN561",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 1000000.0,
-      "amount_sd1": null,
-      "change": -1000000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "KAUAI HIGHWAYS",
-      "department_name": "Department of Transportation"
     },
     {
       "program_id": "LAW901",
@@ -468,36 +408,6 @@
       "change_type": "modified",
       "program_name": "COUNTY OF KAUAI",
       "department_name": "Department of Law Enforcement"
-    },
-    {
-      "program_id": "TRN102",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 1000.0,
-      "amount_sd1": null,
-      "change": -1000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
-      "program_id": "TRN161",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 1000.0,
-      "amount_sd1": null,
-      "change": -1000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "LIHUE AIRPORT",
-      "department_name": "Department of Transportation"
     },
     {
       "program_id": "AGR101",
@@ -8870,6 +8780,36 @@
       "department_name": "Department of Transportation"
     },
     {
+      "program_id": "TRN102",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 17061000.0,
+      "amount_sd1": 17061000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN102",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000.0,
+      "amount_sd1": 1000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
       "program_id": "TRN104",
       "department_code": "TRN",
       "fund_type": "B",
@@ -9163,6 +9103,36 @@
       "category": "Transportation",
       "amount_hd1": 32974694.0,
       "amount_sd1": 32974694.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "LIHUE AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN161",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 9225000.0,
+      "amount_sd1": 9225000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "LIHUE AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN161",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000.0,
+      "amount_sd1": 1000.0,
       "change": 0.0,
       "pct_change": 0.0,
       "change_type": "modified",
@@ -9980,6 +9950,36 @@
       "department_name": "Department of Transportation"
     },
     {
+      "program_id": "TRN561",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000000.0,
+      "amount_sd1": 1000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "KAUAI HIGHWAYS",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN561",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 4000000.0,
+      "amount_sd1": 4000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "KAUAI HIGHWAYS",
+      "department_name": "Department of Transportation"
+    },
+    {
       "program_id": "TRN595",
       "department_code": "TRN",
       "fund_type": "A",
@@ -10775,36 +10775,6 @@
       "department_name": "Department of Land and Natural Resources"
     },
     {
-      "program_id": "TRN102",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 1000.0,
-      "change": 1000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
-      "program_id": "TRN161",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 1000.0,
-      "change": 1000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "LIHUE AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
       "program_id": "SUB501",
       "department_code": "AGS",
       "fund_type": "C",
@@ -11270,21 +11240,6 @@
       "department_name": "Department of Transportation"
     },
     {
-      "program_id": "TRN561",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 1000000.0,
-      "change": 1000000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "KAUAI HIGHWAYS",
-      "department_name": "Department of Transportation"
-    },
-    {
       "program_id": "AGR192",
       "department_code": "AGR",
       "fund_type": "C",
@@ -11330,36 +11285,6 @@
       "department_name": "Department of Human Services"
     },
     {
-      "program_id": "TRN561",
-      "department_code": "TRN",
-      "fund_type": "N",
-      "fund_category": "Federal Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 4000000.0,
-      "change": 4000000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "KAUAI HIGHWAYS",
-      "department_name": "Department of Transportation"
-    },
-    {
-      "program_id": "TRN161",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 9225000.0,
-      "change": 9225000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "LIHUE AIRPORT",
-      "department_name": "Department of Transportation"
-    },
-    {
       "program_id": "PSD900",
       "department_code": "PSD",
       "fund_type": "C",
@@ -11373,21 +11298,6 @@
       "change_type": "modified",
       "program_name": "GENERAL ADMINISTRATION",
       "department_name": "Department of Corrections and Rehabilitation"
-    },
-    {
-      "program_id": "TRN102",
-      "department_code": "TRN",
-      "fund_type": "E",
-      "fund_category": "Revenue Bond Funds",
-      "section": "Operating",
-      "category": "Transportation",
-      "amount_hd1": null,
-      "amount_sd1": 17061000.0,
-      "change": 17061000.0,
-      "pct_change": null,
-      "change_type": "added",
-      "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
-      "department_name": "Department of Transportation"
     },
     {
       "program_id": "SUB501",
