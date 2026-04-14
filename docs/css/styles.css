@@ -606,6 +606,21 @@ body {
     cursor: help;
     text-decoration: underline dotted #9b7fbf;
 }
+/* JS-rendered fund tooltip (appended to body to escape table overflow clipping) */
+.fund-tooltip {
+    display: none;
+    position: absolute;
+    background: #2e3e2e;
+    color: #fff;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: pre;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    pointer-events: none;
+    z-index: 9999;
+}
 .fund-chip {
     display: inline-block;
     padding: 2px 8px;
