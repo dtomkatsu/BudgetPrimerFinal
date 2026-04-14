@@ -965,7 +965,7 @@ th.sortable:hover {
     to   { opacity: 1; transform: translateY(0); }
 }
 .reading-guide-summary {
-    margin: 1rem 0 0;
+    margin: 0.75rem 0 0;
     color: #444;
     font-size: 0.875rem;
 }
