@@ -142,7 +142,7 @@ window.homePage = async function () {
 
     const html = `
         <section class="home-page">
-            <div class="context-banner">Viewing HB300 enacted budget. <a href="#/">→ HB1800 Draft Comparison</a></div>
+            <div class="context-banner"><strong>Historical reference:</strong> This is the FY2025–26 enacted budget (HB300), passed by the Legislature last year. For the current FY2026–27 supplemental budget draft comparison, see <a href="#/">HB1800 →</a></div>
             <div class="summary-cards-grid">
                 <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">Total Budget</div></div>
                 <div class="summary-card"><div class="amount">${fmt(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
