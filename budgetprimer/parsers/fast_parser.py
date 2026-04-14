@@ -397,6 +397,17 @@ class FastBudgetParser(BaseBudgetParser):
         lines = content.split('\n')
         for i, raw_line in enumerate(lines):
             try:
+                # Strip trailing closing-quote that appears on the last amount line
+                # of a quoted bill section (e.g. 'COK 13,000,000S  S"').
+                # Guard: only strip when the line, after removing the quote, starts with a
+                # 2-4 letter department code followed by whitespace (e.g. "COK ", "SUB ").
+                # This prevents stripping quotes from CIP item numbers like "K-8  10,500,000 A\""
+                # that appear in lapsing-appropriations quoted statutory sections and are NOT
+                # appropriations for this bill.
+                if raw_line.endswith('"') and len(raw_line) >= 2 and raw_line[-2].isalpha():
+                    _candidate = raw_line[:-1]
+                    if re.match(r'^[A-Z]{2,4}\s', _candidate.strip(), re.IGNORECASE):
+                        raw_line = _candidate
                 line = raw_line.strip()
                 if not line:
                     continue

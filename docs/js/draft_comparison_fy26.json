@@ -4,19 +4,19 @@
     "draft2": "SD1",
     "bill_number": "HB1800",
     "fiscal_year": 2026,
-    "generated_at": "2026-04-14T11:26:29.995377",
-    "net_change": 19411969.0
+    "generated_at": "2026-04-14T11:54:30.285242",
+    "net_change": 32411969.0
   },
   "summary": {
     "total_draft1": 23340552182.0,
-    "total_draft2": 23359964151.0,
-    "net_change": 19411969.0,
+    "total_draft2": 23372964151.0,
+    "net_change": 32411969.0,
     "total_items": 762,
-    "items_modified": 80,
+    "items_modified": 79,
     "items_increased": 47,
-    "items_decreased": 33,
+    "items_decreased": 32,
     "items_added": 19,
-    "items_removed": 19
+    "items_removed": 18
   },
   "comparisons": [
     {
@@ -78,21 +78,6 @@
       "change_type": "modified",
       "program_name": "GENERAL ADMINISTRATION",
       "department_name": "Department of Accounting and General Services"
-    },
-    {
-      "program_id": "SUB501",
-      "department_code": "COK",
-      "fund_type": "S",
-      "fund_category": "County Funds",
-      "section": "Capital Improvement",
-      "category": "Government Operations",
-      "amount_hd1": 13000000.0,
-      "amount_sd1": null,
-      "change": -13000000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "COUNTY OF KAUAI",
-      "department_name": "County of Kauai"
     },
     {
       "program_id": "LAW901",
@@ -8643,6 +8628,21 @@
       "change_type": "modified",
       "program_name": "COUNTY OF KAUAI",
       "department_name": "County of Hawaii"
+    },
+    {
+      "program_id": "SUB501",
+      "department_code": "COK",
+      "fund_type": "S",
+      "fund_category": "County Funds",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 13000000.0,
+      "amount_sd1": 13000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "COUNTY OF KAUAI",
+      "department_name": "County of Kauai"
     },
     {
       "program_id": "SUB501",
