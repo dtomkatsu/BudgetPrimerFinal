@@ -504,16 +504,16 @@ class FastBudgetParser(BaseBudgetParser):
                             matched = True
 
                     # Try blank-FY1 format (e.g., TRN  N  19,200,000N)
-                    # First column has only a fund letter; amount is in FY1 position
+                    # First column has only a fund letter (no amount); amount is in FY2 position.
                     if not matched:
                         m = pat['fy2_only_amount'].match(line)
                         if m and m.group(1):
                             self._append_pair(
                                 allocations, state,
                                 dept_code=m.group(1),
-                                fy1_amount_str=m.group(3),
+                                fy1_amount_str=None,
                                 fy1_fund=m.group(4) or 'C',
-                                fy2_amount_str=None,
+                                fy2_amount_str=m.group(3),
                                 fy2_fund=m.group(4) or 'C',
                                 line_number=line_num,
                                 section_override=BudgetSection.CAPITAL_IMPROVEMENT,
@@ -537,10 +537,8 @@ class FastBudgetParser(BaseBudgetParser):
                     continue
 
                 # --- 5b. FY2-only amount (DEPT FUND AMOUNT_FUND) ---
-                # Note: The first column has only a fund letter (blank amount).
-                # The amount is in the FY2 column position. For backward compatibility
-                # with the original parser output, we assign the amount to both FYs.
-                # TODO: Correctly assign only to FY2 once the processed CSV is regenerated.
+                # The first column has only a fund letter (blank FY1 amount).
+                # The amount belongs only to FY2; FY1 gets zero/None.
                 m = pat['fy2_only_amount'].match(line)
                 if m and state.has_context():
                     amt = m.group(3)
@@ -548,7 +546,7 @@ class FastBudgetParser(BaseBudgetParser):
                     self._append_pair(
                         allocations, state,
                         dept_code=m.group(1),
-                        fy1_amount_str=amt,
+                        fy1_amount_str=None,
                         fy1_fund=fund,
                         fy2_amount_str=amt,
                         fy2_fund=fund,
