@@ -82,12 +82,23 @@ def compare_drafts(
     logger.info(f'FY{fy}: {len(df1)} records in {label1}, {len(df2)} in {label2}')
 
     # Aggregate by unique key before comparing to avoid cross-join on duplicates
-    id_cols = ['program_id', 'program_name', 'department_code', 'department_name',
-               'fund_type', 'fund_category', 'section', 'category']
+    # Match keys: exclude program_name and department_name since these can differ
+    # between drafts for the same program (e.g. HD1 vs SD1 may use slightly different
+    # wording). Using program_id + department_code + fund_type + section + category
+    # is sufficient to uniquely identify each line item.
+    id_cols = ['program_id', 'department_code', 'fund_type', 'fund_category', 'section', 'category']
     existing = [c for c in id_cols if c in df1.columns and c in df2.columns]
 
-    df1_agg = df1.groupby(existing, dropna=False).agg({'amount': 'sum'}).reset_index()
-    df2_agg = df2.groupby(existing, dropna=False).agg({'amount': 'sum'}).reset_index()
+    # For display: carry program_name and department_name from whichever draft has it
+    name_cols = ['program_name', 'department_name']
+    name_existing = [c for c in name_cols if c in df1.columns]
+
+    df1_agg = df1.groupby(existing, dropna=False).agg(
+        {'amount': 'sum', **{c: 'first' for c in name_existing if c in df1.columns}}
+    ).reset_index()
+    df2_agg = df2.groupby(existing, dropna=False).agg(
+        {'amount': 'sum', **{c: 'first' for c in name_existing if c in df2.columns}}
+    ).reset_index()
 
     comparison = compare_budgets(
         df_before=df1_agg,
@@ -101,6 +112,19 @@ def compare_drafts(
         'amount_before': f'amount_{label1.lower()}',
         'amount_after': f'amount_{label2.lower()}',
     })
+
+    # Coalesce suffixed name columns back to single columns
+    # (program_name_before / program_name_after → program_name, preferring SD1)
+    for base in ['program_name', 'department_name']:
+        col_before = f'{base}_before'
+        col_after  = f'{base}_after'
+        if col_before in comparison.columns or col_after in comparison.columns:
+            comparison[base] = comparison.get(col_after, comparison.get(col_before))
+            if comparison[base].isna().any() and col_before in comparison.columns:
+                comparison[base] = comparison[base].fillna(comparison[col_before])
+            for col in [col_before, col_after]:
+                if col in comparison.columns:
+                    comparison = comparison.drop(columns=[col])
 
     # Replace NaN/inf for JSON
     comparison = comparison.where(comparison.notna(), None)
