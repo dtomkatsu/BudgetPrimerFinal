@@ -112,6 +112,17 @@ def htm_to_text(html: str) -> str:
         text,
     )
 
+    # Rejoin split "INVESTMENT CAPITAL" headers that Word wraps onto two lines:
+    #   "INVESTMENT\nCAPITAL  TRN  17,061,000E  26,760,000E"
+    #   → "INVESTMENT CAPITAL  TRN  17,061,000E  26,760,000E"
+    # The split prevents the investment_capital pattern from matching and causes
+    # the amounts to be misclassified as Operating instead of Capital.
+    text = re.sub(
+        r'\bINVESTMENT\s*\n(\s*CAPITAL\b)',
+        r'INVESTMENT CAPITAL',
+        text,
+    )
+
     # Collapse excessive blank lines (keep at most one)
     text = re.sub(r'\n{3,}', '\n\n', text)
 
