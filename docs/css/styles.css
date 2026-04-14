@@ -76,6 +76,23 @@ body {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
+.nav-link-hb300 {
+    color: #ffe082;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+}
+.nav-link-hb300:hover, .nav-link-hb300.active {
+    color: #ffe082;
+}
+.nav-sub {
+    font-size: 0.6rem;
+    opacity: 0.8;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
 /* Main Content */
 #app {
     flex: 1;
