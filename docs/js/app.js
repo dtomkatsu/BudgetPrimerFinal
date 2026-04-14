@@ -581,10 +581,12 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <h2>HD1 → SD1 Draft Comparison</h2>
-            <p class="muted" style="margin-bottom:0.75rem;">Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800.</p>
-            <p class="muted">See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></p>
-            <br>
+            <h2>HB1800: HD1 → SD1 Draft Comparison</h2>
+            <div class="draft-meta-bar">
+                <span>Comparing <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> to <a href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> of HB1800</span>
+                <span class="draft-meta-divider">·</span>
+                <span>See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></span>
+            </div>
             ${fyToggle}
 
             <div class="summary-cards-grid compact" id="draft-cards"></div>
