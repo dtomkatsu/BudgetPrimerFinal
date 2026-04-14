@@ -880,6 +880,18 @@ th.sortable:hover {
 .realloc-note .split-link:hover {
     color: #4a3800;
 }
+/* Pure reallocation (no net change) — blue/neutral */
+.realloc-note.realloc-pure {
+    color: #1a5276;
+    background: #eaf4fb;
+    border-color: #aed6f1;
+}
+.realloc-note.realloc-pure .split-link {
+    color: #1a5276;
+}
+.realloc-note.realloc-pure .split-link:hover {
+    color: #0d2c47;
+}
 
 /* Fund type info note (e.g. GO Bond explanation) */
 .fund-note {
