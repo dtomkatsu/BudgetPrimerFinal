@@ -215,6 +215,16 @@ class FastBudgetParser(BaseBudgetParser):
                 re.IGNORECASE,
             ),
 
+            # Bare amendment line: ONLY a number + fund letter, no dept code.
+            # HB1800 supplemental format has 3 columns:
+            #   Col1 (main line): FY1 appropriation
+            #   Col2 (main line): HB300 baseline reference
+            #   Col3 (bare next line): THIS bill's actual FY2 amendment
+            # e.g., "                        683,779A" overrides the preceding FY2.
+            'bare_amendment': re.compile(
+                r'^\s{4,}([\d,]+)([A-Z])\s*$',
+            ),
+
             # --- TOTAL FUNDING lines (grant/subsidy capital items) ---
             # e.g., "TOTAL FUNDING  LBR  350 C  C" or "TOTAL FUNDING  TRN  17,061 E  26,760 E"
             'total_funding': re.compile(
@@ -395,6 +405,31 @@ class FastBudgetParser(BaseBudgetParser):
                         state.positions_fy2 = float(m.group(2).replace(',', ''))
                     except ValueError:
                         pass
+                    continue
+
+                # --- 0b. Bare amendment line (HB1800 supplemental 3-column format) ---
+                # Pattern: indented line with ONLY "number + fund letter", no dept code.
+                # In HB1800, the 3-column format is:
+                #   Main line: OPERATING DEPT  FY1_amt(fund)  reference_FY2_amt(fund)
+                #   Next line: (indented)       actual_FY2_amendment(fund)
+                # We override the FY2 of the most recently added matching allocation.
+                m = pat['bare_amendment'].match(raw_line)
+                if m and state.has_context():
+                    bare_amt = int(m.group(1).replace(',', ''))
+                    bare_fund = m.group(2).upper()
+                    # Walk backwards through allocations to find the most recent
+                    # FY2 entry for this program + fund that can be overridden.
+                    for a in reversed(allocations):
+                        if (a.program_id == state.program_id
+                                and a.fiscal_year == self.fy2
+                                and a.fund_type is not None
+                                and a.fund_type.value == bare_fund):
+                            a.amount = bare_amt
+                            self.logger.debug(
+                                f'L{line_num}: bare amendment overrides FY2 '
+                                f'{a.program_id} fund={bare_fund} → {bare_amt}'
+                            )
+                            break
                     continue
 
                 # --- 1. Category header (A. ECONOMIC DEVELOPMENT) ---
