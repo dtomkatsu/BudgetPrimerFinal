@@ -893,9 +893,9 @@ window.initDraftComparePage = async function () {
             bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
-                <td class="amount-cell">${fmt(deptD1)}</td>
-                <td class="amount-cell">${fmt(deptD2)}</td>
-                <td class="amount-cell ${deptCls}">${fmt(deptDelta)}</td>
+                <td class="amount-cell"><span class="figure-chip">${fmt(deptD1)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmt(deptD2)}</span></td>
+                <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmt(deptDelta)}</span></td>
                 <td></td>
             </tr>`;
 
@@ -973,11 +973,11 @@ window.initDraftComparePage = async function () {
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
-                        <td>Mixed</td>
+                        <td><span class="section-chip">Mixed</span></td>
                         <td></td>
-                        <td class="amount-cell">${fmt(p.d1)}</td>
-                        <td class="amount-cell">${fmt(p.d2)}</td>
-                        <td class="amount-cell ${cls}">${fmt(p.change)}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
@@ -988,22 +988,22 @@ window.initDraftComparePage = async function () {
                         const secCls = secDelta > 0 ? 'positive' : secDelta < 0 ? 'negative' : '';
                         const secPct = secD1 !== 0 ? ((secD2 - secD1) / Math.abs(secD1)) * 100 : (secD2 !== 0 ? 100 : 0);
                         bodyHtml += `<tr class="prog-section-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                            <td class="section-indent">${sec}</td>
+                            <td class="section-indent"><span class="section-chip">${sec}</span></td>
                             <td></td><td></td>
-                            <td class="amount-cell">${fmt(secD1)}</td>
-                            <td class="amount-cell">${fmt(secD2)}</td>
-                            <td class="amount-cell ${secCls}">${fmt(secDelta)}</td>
+                            <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
+                            <td class="amount-cell"><span class="figure-chip">${fmt(secD2)}</span></td>
+                            <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
                         </tr>`;
                     }
                 } else {
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
                         <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
-                        <td>${p.section}</td>
+                        <td><span class="section-chip">${p.section}</span></td>
                         <td></td>
-                        <td class="amount-cell">${fmt(p.d1)}</td>
-                        <td class="amount-cell">${fmt(p.d2)}</td>
-                        <td class="amount-cell ${cls}">${fmt(p.change)}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                 }
@@ -1038,9 +1038,9 @@ window.initDraftComparePage = async function () {
                 : '';
             fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
-                <td class="amount-cell">${fmt(fgD1)}</td>
-                <td class="amount-cell">${fmt(fgD2)}</td>
-                <td class="amount-cell ${fgCls}">${fmt(fgDelta)}</td>
+                <td class="amount-cell"><span class="figure-chip">${fmt(fgD1)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmt(fgD2)}</span></td>
+                <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmt(fgDelta)}</span></td>
                 <td></td>
             </tr>`;
 
@@ -1049,9 +1049,9 @@ window.initDraftComparePage = async function () {
                 const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                    <td class="amount-cell">${fmt(r[d1Key])}</td>
-                    <td class="amount-cell">${fmt(r[d2Key])}</td>
-                    <td class="amount-cell ${cls}">${fmt(delta)}</td>
+                    <td class="amount-cell"><span class="figure-chip">${fmt(r[d1Key])}</span></td>
+                    <td class="amount-cell"><span class="figure-chip">${fmt(r[d2Key])}</span></td>
+                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(delta)}</span></td>
                     <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
                 </tr>`;
             }
