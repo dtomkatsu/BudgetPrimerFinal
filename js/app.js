@@ -897,7 +897,7 @@ window.initDraftComparePage = async function () {
                 p.section = p.isMixed ? 'Mixed' : [...p.sections][0] || '';
                 p.fundLabel = p.funds.size === 1 ? [...p.funds][0] : `${p.funds.size} funds`;
                 p.fundShort = p.funds.size === 1 ? shortFund([...p.funds][0]) : `${p.funds.size} funds`;
-                p.fundTitle = p.funds.size > 1 ? [...p.funds].join('\n') : '';
+                p.fundTitle = p.funds.size > 1 ? [...p.funds].join(' · ') : '';
                 return p;
             });
         };
@@ -996,7 +996,7 @@ window.initDraftComparePage = async function () {
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td><span class="section-chip">Mixed</span></td>
-                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` title="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
+                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
@@ -1011,11 +1011,11 @@ window.initDraftComparePage = async function () {
                         const secPct = secD1 !== 0 ? ((secD2 - secD1) / Math.abs(secD1)) * 100 : (secD2 !== 0 ? 100 : 0);
                         const secFunds = new Set(secRows.map(r => r.fund_category).filter(Boolean));
                         const secFundLabel = secFunds.size === 1 ? shortFund([...secFunds][0]) : (secFunds.size > 1 ? `${secFunds.size} funds` : '');
-                        const secFundTitle = secFunds.size > 1 ? [...secFunds].join('\n') : '';
+                        const secFundTitle = secFunds.size > 1 ? [...secFunds].join(' · ') : '';
                         bodyHtml += `<tr class="prog-section-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
                             <td class="section-indent"><span class="section-chip">${sec}</span></td>
                             <td></td>
-                            <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` title="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
+                            <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD2)}</span></td>
                             <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
@@ -1026,7 +1026,7 @@ window.initDraftComparePage = async function () {
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
                         <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td><span class="section-chip">${p.section}</span></td>
-                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` title="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
+                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
@@ -1266,6 +1266,32 @@ window.initDraftComparePage = async function () {
             readingGuideToggle.setAttribute('aria-expanded', !isExpanded);
         });
     }
+
+    // --- Fund chip tooltip (JS-rendered, appended to body to escape table clipping) ---
+    (() => {
+        let tip = null;
+        document.getElementById('draft-results').addEventListener('mouseover', (e) => {
+            const chip = e.target.closest('.fund-chip-multi');
+            if (!chip || !chip.dataset.funds) return;
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.className = 'fund-tooltip';
+                document.body.appendChild(tip);
+            }
+            tip.textContent = chip.dataset.funds.split(' · ').join('\n');
+            const r = chip.getBoundingClientRect();
+            tip.style.display = 'block';
+            const tw = tip.offsetWidth;
+            let left = r.left + r.width / 2 - tw / 2 + window.scrollX;
+            left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+            tip.style.left = left + 'px';
+            tip.style.top = (r.bottom + window.scrollY + 6) + 'px';
+        });
+        document.getElementById('draft-results').addEventListener('mouseout', (e) => {
+            const chip = e.target.closest('.fund-chip-multi');
+            if (chip && tip) tip.style.display = 'none';
+        });
+    })();
 
     // --- Other controls ---
 
