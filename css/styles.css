@@ -76,6 +76,12 @@ body {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
+.nav-link-stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+}
 .nav-link-hb300 {
     color: #ffe082;
     display: flex;
@@ -91,6 +97,33 @@ body {
     opacity: 0.8;
     font-weight: 400;
     letter-spacing: 0.01em;
+}
+
+/* Draft comparison meta bar */
+.draft-meta-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: #555;
+    margin-bottom: 1.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.draft-meta-bar a {
+    color: #2c6e49;
+    text-decoration: none;
+    border-bottom: 1px solid #a8d5b9;
+}
+.draft-meta-bar a:hover {
+    color: #1a4a31;
+    border-bottom-color: #2c6e49;
+}
+.draft-meta-divider {
+    color: #bbb;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 /* Main Content */
