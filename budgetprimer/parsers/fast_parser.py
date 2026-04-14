@@ -230,6 +230,15 @@ class FastBudgetParser(BaseBudgetParser):
                 r'^\s{4,}([\d,]+)([A-Z])\s*$',
             ),
 
+            # Two-column bare amendment: overrides BOTH FY1 and FY2.
+            # Some supplemental bills put two override values on the same line:
+            #   "                        1,186,819A     1,186,819A"
+            # The first amount overrides the preceding FY1; the second overrides FY2.
+            # Both columns must share the same fund letter.
+            'bare_amendment_two_col': re.compile(
+                r'^\s{4,}([\d,]+)([A-Z])\s+([\d,]+)([A-Z])\s*$',
+            ),
+
             # --- TOTAL FUNDING lines (grant/subsidy capital items) ---
             # e.g., "TOTAL FUNDING  LBR  350 C  C" or "TOTAL FUNDING  TRN  17,061 E  26,760 E"
             'total_funding': re.compile(
@@ -429,6 +438,36 @@ class FastBudgetParser(BaseBudgetParser):
                 #   Main line: OPERATING DEPT  FY1_amt(fund)  reference_FY2_amt(fund)
                 #   Next line: (indented)       actual_FY2_amendment(fund)
                 # We override the FY2 of the most recently added matching allocation.
+                # Check two-column form first (more specific), then single-column.
+                m2 = pat['bare_amendment_two_col'].match(raw_line)
+                if m2 and state.has_context() and m2.group(2).upper() == m2.group(4).upper():
+                    bare_fy1 = int(m2.group(1).replace(',', ''))
+                    bare_fy2 = int(m2.group(3).replace(',', ''))
+                    bare_fund = m2.group(2).upper()
+                    for a in reversed(allocations):
+                        if (a.program_id == state.program_id
+                                and a.fiscal_year == self.fy2
+                                and a.fund_type is not None
+                                and a.fund_type.value == bare_fund):
+                            a.amount = bare_fy2
+                            self.logger.debug(
+                                f'L{line_num}: two-col bare amendment FY2 '
+                                f'{a.program_id} fund={bare_fund} → {bare_fy2}'
+                            )
+                            break
+                    for a in reversed(allocations):
+                        if (a.program_id == state.program_id
+                                and a.fiscal_year == self.fy1
+                                and a.fund_type is not None
+                                and a.fund_type.value == bare_fund):
+                            a.amount = bare_fy1
+                            self.logger.debug(
+                                f'L{line_num}: two-col bare amendment FY1 '
+                                f'{a.program_id} fund={bare_fund} → {bare_fy1}'
+                            )
+                            break
+                    continue
+
                 m = pat['bare_amendment'].match(raw_line)
                 if m and state.has_context():
                     bare_amt = int(m.group(1).replace(',', ''))

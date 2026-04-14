@@ -5,11 +5,15 @@ Download Hawaii legislative bill text from data.capitol.hawaii.gov.
 Fetches HTM versions of bill drafts, converts to clean plain text suitable
 for parsing by FastBudgetParser, and saves to data/raw/drafts/.
 
+Also supports converting locally-saved RTF files (e.g. from the Legislature
+website) which avoid the word-wrap line-splitting issues in the HTM export.
+
 Usage:
     python scripts/download_bill.py HB1800                 # download Introduced
     python scripts/download_bill.py HB1800 --draft HD1     # download HD1
     python scripts/download_bill.py HB1800 --all           # download all known drafts
     python scripts/download_bill.py --list                 # show downloaded drafts
+    python scripts/download_bill.py HB1800 --draft HD1 --from-rtf "HB 1800 HD1.rtf"
 """
 import argparse
 import json
@@ -123,6 +127,18 @@ def htm_to_text(html: str) -> str:
         text,
     )
 
+    # Rejoin "OPERATING DEPT\namount" / "DEPT\namount" split lines where Word
+    # wrapped the dollar amounts onto the next line.
+    #   "OPERATING  BED       \n3,802,604A    3,802,952A"
+    #   → "OPERATING  BED  3,802,604A    3,802,952A"
+    # Guard: only rejoin when the next line starts with a comma-formatted dollar
+    # amount (e.g. "3,802,604A"), not prose like "1970S." or TMK numbers.
+    text = re.sub(
+        r'\b([A-Z]{2,4}) *\n(\s*\d+(?:,\d+)+[A-Z])',
+        r'\1  \2',
+        text,
+    )
+
     # Collapse excessive blank lines (keep at most one)
     text = re.sub(r'\n{3,}', '\n\n', text)
 
@@ -134,6 +150,113 @@ def htm_to_text(html: str) -> str:
     text = text.strip() + '\n'
 
     return text
+
+
+# ---------------------------------------------------------------------------
+# RTF → plain text conversion
+# ---------------------------------------------------------------------------
+
+def rtf_to_text(rtf: str) -> str:
+    """Convert a macOS/Word RTF bill export to clean plain text.
+
+    RTF files from the Legislature avoid the word-wrap line-splitting issues
+    that appear in the Word-exported HTM.  Each budget allocation row is a
+    single RTF paragraph (ending with \\ + newline), so OPERATING/DEPT/amounts
+    are always on the same line without needing rejoin hacks.
+
+    The RTF uses literal [ ] brackets around struck-through enacted values
+    (same convention as the HTM bracket markup), so the same post-processing
+    pipeline applies after stripping the RTF control words.
+    """
+    # ── 1. Remove header groups that contain no bill text ──────────────────
+    for pat in (
+        r'\{\\fonttbl[^}]*\}',
+        r'\{\\colortbl[^}]*\}',
+        r'\{\\\*\\expandedcolortbl[^}]*\}',
+    ):
+        rtf = re.sub(pat, '', rtf)
+
+    # ── 2. Paragraph breaks: \ at end of content line → newline ───────────
+    # In these RTF exports each visible document line ends with "\" then \n.
+    rtf = re.sub(r'\\\n', '\n', rtf)
+
+    # ── 3. Decode \'xx hex entity references ──────────────────────────────
+    def _decode(m: re.Match) -> str:
+        code = int(m.group(1), 16)
+        if code == 0xa0:          return ' '   # non-breaking space
+        if code in (0x96, 0x97): return '-'   # en / em dash
+        if code in (0x91, 0x92): return "'"   # curly single quotes
+        if code in (0x93, 0x94): return '"'   # curly double quotes
+        return chr(code) if 0x20 <= code < 0x7f else ' '
+
+    rtf = re.sub(r"\\'([0-9a-fA-F]{2})", _decode, rtf)
+
+    # ── 4. Strip all RTF control words (\keyword or \keyword-N) ───────────
+    rtf = re.sub(r'\\[a-zA-Z]+[-\d]*[ ]?', '', rtf)
+
+    # Remove { } group delimiters (table headers, etc.)
+    rtf = re.sub(r'[{}]', '', rtf)
+
+    # ── 5. Shared post-processing (same as htm_to_text) ───────────────────
+    text = rtf.replace('\r\n', '\n').replace('\r', '\n')
+
+    # Strip bracket markup used for struck-through enacted column: [ 3,893,040A]
+    text = re.sub(r'\[([^\]]*)\]', r' \1', text)
+
+    # Rejoin split program headers: "1.   BED100\n- STRATEGIC MARKETING..."
+    text = re.sub(
+        r'(\d+\.\s+[A-Z][A-Z0-9]+)\s*\n+\s*(-\s)',
+        r'\1 \2',
+        text,
+    )
+
+    # Collapse excessive blank lines (keep at most one)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    # Remove page header lines
+    text = re.sub(r'^.*H\.B\. NO\.\s+\d+.*$', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^.*S\.B\. NO\.\s+\d+.*$', '', text, flags=re.MULTILINE)
+
+    # Strip trailing closing-quote on last amount line of quoted sections
+    # (same guard as htm_to_text: only strip when line starts with dept code)
+    lines_out = []
+    for raw_line in text.splitlines():
+        if raw_line.endswith('"') and len(raw_line) >= 2 and raw_line[-2].isalpha():
+            _candidate = raw_line[:-1]
+            if re.match(r'^[A-Z]{2,4}\s', _candidate.strip(), re.IGNORECASE):
+                raw_line = _candidate
+        lines_out.append(raw_line)
+    text = '\n'.join(lines_out)
+
+    return text.strip() + '\n'
+
+
+def convert_rtf(bill: str, draft: str, rtf_path: Path) -> Path:
+    """Convert a locally-saved RTF file to plain text and save it.
+
+    Returns the path to the saved .txt file.
+    """
+    DRAFTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    label = draft if draft.lower() != 'introduced' and draft else 'introduced'
+    out_name = f'{bill.upper()}_{label}.txt'
+    out_path = DRAFTS_DIR / out_name
+
+    print(f'Converting RTF: {rtf_path} ...')
+    raw = rtf_path.read_bytes()
+    try:
+        rtf = raw.decode('mac_roman')
+    except UnicodeDecodeError:
+        rtf = raw.decode('utf-8', errors='replace')
+
+    text = rtf_to_text(rtf)
+    out_path.write_text(text, encoding='utf-8')
+    line_count = text.count('\n')
+    print(f'  → Saved {out_path.name} ({line_count} lines, {len(text):,} bytes)')
+
+    _update_metadata(bill, label, f'file://{rtf_path.resolve()}', out_name,
+                     line_count, session=2026)
+    return out_path
 
 
 # ---------------------------------------------------------------------------
@@ -241,6 +364,9 @@ def main():
                         help='Legislative session year')
     parser.add_argument('--list', action='store_true',
                         help='List downloaded drafts')
+    parser.add_argument('--from-rtf', metavar='RTF_FILE',
+                        help='Convert a locally-saved RTF file instead of '
+                             'downloading (use with --draft to set the label)')
     args = parser.parse_args()
 
     if args.list:
@@ -249,6 +375,15 @@ def main():
 
     if not args.bill:
         parser.error('Bill number required (e.g., HB1800)')
+
+    # RTF conversion path
+    if args.from_rtf:
+        rtf_path = Path(args.from_rtf)
+        if not rtf_path.exists():
+            print(f'Error: RTF file not found: {rtf_path}')
+            return 1
+        convert_rtf(args.bill, args.draft, rtf_path)
+        return 0
 
     if args.all:
         drafts_to_get = KNOWN_DRAFTS
