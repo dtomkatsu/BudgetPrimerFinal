@@ -598,7 +598,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                 </div>
                 <div class="reading-guide-content" id="reading-guide-content" style="display: none;">
                     <p>Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
-                    <p><strong>Capital projects often move from the Dept. of Accounting &amp; General Services (AGS) to the actual spending department.</strong> For example, a program like Rental Housing (HMS220) can appear under both HMS and BED.</p>
+                    <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> Some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
                     <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
                 </div>
             </div>
