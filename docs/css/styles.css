@@ -601,6 +601,19 @@ body {
     color: #3a5260;
     letter-spacing: 0.01em;
 }
+/* Pill/chip around fund category names (General, Federal, GO Bond, etc.) */
+.fund-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f3eff6;
+    border: 1px solid #ddd1e3;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #4e3a60;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
 
 .positive { color: #28a745; }
 .negative { color: #dc3545; }
