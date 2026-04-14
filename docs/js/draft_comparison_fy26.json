@@ -4,16 +4,16 @@
     "draft2": "SD1",
     "bill_number": "HB1800",
     "fiscal_year": 2026,
-    "generated_at": "2026-04-14T09:58:09.893741",
+    "generated_at": "2026-04-14T11:23:09.494017",
     "net_change": 19411969.0
   },
   "summary": {
     "total_draft1": 23340552182.0,
     "total_draft2": 23359964151.0,
     "net_change": 19411969.0,
-    "total_items": 788,
-    "items_modified": 124,
-    "items_increased": 69,
+    "total_items": 784,
+    "items_modified": 123,
+    "items_increased": 68,
     "items_decreased": 55,
     "items_added": 41,
     "items_removed": 41
@@ -560,8 +560,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "HTH",
       "department_name": "Department of Health",
       "fund_type": "C",
@@ -575,8 +575,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "BED",
       "department_name": "Department of Business, Economic Development, and Tourism",
       "fund_type": "C",
@@ -590,8 +590,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -605,8 +605,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -620,8 +620,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "B",
@@ -635,8 +635,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "UOH",
       "department_name": "University of Hawaii",
       "fund_type": "C",
@@ -650,8 +650,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -665,8 +665,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -680,8 +680,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -695,8 +695,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -710,8 +710,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -725,8 +725,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "CCH",
       "department_name": "City and County of Honolulu",
       "fund_type": "C",
@@ -740,8 +740,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -755,8 +755,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -770,8 +770,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "BED",
       "department_name": "Department of Business, Economic Development, and Tourism",
       "fund_type": "C",
@@ -785,8 +785,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "DEF",
       "department_name": "Department of Defense",
       "fund_type": "C",
@@ -800,8 +800,8 @@
       "change_type": "removed"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LAW",
       "department_name": "Department of Law Enforcement",
       "fund_type": "C",
@@ -843,21 +843,6 @@
       "change": -1000.0,
       "pct_change": null,
       "change_type": "removed"
-    },
-    {
-      "program_id": "99",
-      "program_name": "YEAR LEASEHOLD PROGRAM, PHASE 2, OAHU",
-      "department_code": "BED",
-      "department_name": "Department of Business, Economic Development, and Tourism",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Economic Development",
-      "amount_hd1": 17000.0,
-      "amount_sd1": 17000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
     },
     {
       "program_id": "AGR101",
@@ -6575,246 +6560,6 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "AGS",
-      "department_name": "Department of Accounting and General Services",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Culture and Recreation",
-      "amount_hd1": 8500.0,
-      "amount_sd1": 8500.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "AGS",
-      "department_name": "Department of Accounting and General Services",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Health",
-      "amount_hd1": 31650.0,
-      "amount_sd1": 31650.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "BED",
-      "department_name": "Department of Business, Economic Development, and Tourism",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Operating",
-      "category": "Government Operations",
-      "amount_hd1": 7000.0,
-      "amount_sd1": 7000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "CCH",
-      "department_name": "City and County of Honolulu",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Government Operations",
-      "amount_hd1": 2000.0,
-      "amount_sd1": 2000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "COH",
-      "department_name": "County of Hawaii",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Government Operations",
-      "amount_hd1": 3500.0,
-      "amount_sd1": 3500.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "COH",
-      "department_name": "County of Hawaii",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Operating",
-      "category": "Government Operations",
-      "amount_hd1": 10500.0,
-      "amount_sd1": 10500.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "DEF",
-      "department_name": "Department of Defense",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Education",
-      "amount_hd1": 8000.0,
-      "amount_sd1": 8000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "DEF",
-      "department_name": "Department of Defense",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Human Services",
-      "amount_hd1": 35000.0,
-      "amount_sd1": 35000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "EDN",
-      "department_name": "Department of Education",
-      "fund_type": "B",
-      "fund_category": "Special Funds",
-      "section": "Operating",
-      "category": "Education",
-      "amount_hd1": 4894.0,
-      "amount_sd1": 4894.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "HHL",
-      "department_name": "Department of Hawaiian Home Lands",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Human Services",
-      "amount_hd1": 20000.0,
-      "amount_sd1": 20000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "HTH",
-      "department_name": "Department of Health",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Environment",
-      "amount_hd1": 10995.0,
-      "amount_sd1": 10995.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "LAW",
-      "department_name": "Department of Law Enforcement",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Public Safety",
-      "amount_hd1": 3000.0,
-      "amount_sd1": 3000.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "LBR",
-      "department_name": "Department of Labor and Industrial Relations",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Employment",
-      "amount_hd1": 9071.0,
-      "amount_sd1": 9071.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "LNR",
-      "department_name": "Department of Land and Natural Resources",
-      "fund_type": "B",
-      "fund_category": "Special Funds",
-      "section": "Capital Improvement",
-      "category": "Government Operations",
-      "amount_hd1": 3200.0,
-      "amount_sd1": 3200.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "TRN",
-      "department_name": "Department of Transportation",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Transportation",
-      "amount_hd1": 6445.0,
-      "amount_sd1": 6445.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
-      "department_code": "UOH",
-      "department_name": "University of Hawaii",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Culture and Recreation",
-      "amount_hd1": 1702.0,
-      "amount_sd1": 1702.0,
-      "change": 0.0,
-      "pct_change": 0.0,
-      "change_type": "modified"
-    },
-    {
       "program_id": "LAW502",
       "program_name": "NARCOTICS ENFORCEMENT DIVISION",
       "department_code": "LAW",
@@ -8827,14 +8572,224 @@
     {
       "program_id": "SUB501",
       "program_name": "COUNTY OF KAUAI",
-      "department_code": "COK",
-      "department_name": "County of Kauai",
+      "department_code": "AGS",
+      "department_name": "Department of Accounting and General Services",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": 8500.0,
+      "amount_sd1": 8500.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "AGS",
+      "department_name": "Department of Accounting and General Services",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": 31650.0,
+      "amount_sd1": 31650.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "BED",
+      "department_name": "Department of Business, Economic Development, and Tourism",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 7000.0,
+      "amount_sd1": 7000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "CCH",
+      "department_name": "City and County of Honolulu",
       "fund_type": "C",
       "fund_category": "General Obligation Bond Fund",
       "section": "Capital Improvement",
       "category": "Government Operations",
-      "amount_hd1": 13000000.0,
-      "amount_sd1": 13000000.0,
+      "amount_hd1": 2000.0,
+      "amount_sd1": 2000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "COH",
+      "department_name": "County of Hawaii",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 3500.0,
+      "amount_sd1": 3500.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "COH",
+      "department_name": "County of Hawaii",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 10500.0,
+      "amount_sd1": 10500.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "DEF",
+      "department_name": "Department of Defense",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 8000.0,
+      "amount_sd1": 8000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "DEF",
+      "department_name": "Department of Defense",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 35000.0,
+      "amount_sd1": 35000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "EDN",
+      "department_name": "Department of Education",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Operating",
+      "category": "Education",
+      "amount_hd1": 4894.0,
+      "amount_sd1": 4894.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "HHL",
+      "department_name": "Department of Hawaiian Home Lands",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 20000.0,
+      "amount_sd1": 20000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "HTH",
+      "department_name": "Department of Health",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 10995.0,
+      "amount_sd1": 10995.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "LAW",
+      "department_name": "Department of Law Enforcement",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Public Safety",
+      "amount_hd1": 3000.0,
+      "amount_sd1": 3000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "LNR",
+      "department_name": "Department of Land and Natural Resources",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 3200.0,
+      "amount_sd1": 3200.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "TRN",
+      "department_name": "Department of Transportation",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 6445.0,
+      "amount_sd1": 6445.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "UOH",
+      "department_name": "University of Hawaii",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": 1702.0,
+      "amount_sd1": 1702.0,
       "change": 0.0,
       "pct_change": 0.0,
       "change_type": "modified"
@@ -10805,8 +10760,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "TRN",
       "department_name": "Department of Transportation",
       "fund_type": "X",
@@ -10820,8 +10775,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -10865,8 +10820,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "EAST",
-      "program_name": "WEST CENTER, OAHU",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -10880,8 +10835,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "DEF",
       "department_name": "Department of Defense",
       "fund_type": "C",
@@ -10895,8 +10850,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "EDN",
       "department_name": "Department of Education",
       "fund_type": "X",
@@ -10910,38 +10865,38 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "COK",
       "department_name": "County of Kauai",
       "fund_type": "C",
       "fund_category": "General Obligation Bond Fund",
       "section": "Capital Improvement",
       "category": "Government Operations",
-      "amount_hd1": 13000.0,
-      "amount_sd1": 14500.0,
+      "amount_hd1": 13013000.0,
+      "amount_sd1": 13014500.0,
       "change": 1500.0,
-      "pct_change": 11.538461538461538,
+      "pct_change": 0.01152693460385768,
       "change_type": "modified"
     },
     {
-      "program_id": "IWILEI",
-      "program_name": "KAPALAMA COMMUNITY DEVELOPMENT,",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LBR",
       "department_name": "Department of Labor and Industrial Relations",
       "fund_type": "C",
       "fund_category": "General Obligation Bond Fund",
       "section": "Capital Improvement",
       "category": "Employment",
-      "amount_hd1": 10929.0,
-      "amount_sd1": 12754.0,
+      "amount_hd1": 20000.0,
+      "amount_sd1": 21825.0,
       "change": 1825.0,
-      "pct_change": 16.698691554579558,
+      "pct_change": 9.125,
       "change_type": "modified"
     },
     {
-      "program_id": "EAST",
-      "program_name": "WEST CENTER, OAHU",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGR",
       "department_name": "Department of Agriculture and Biosecurity",
       "fund_type": "C",
@@ -10955,8 +10910,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "EAST",
-      "program_name": "WEST CENTER, OAHU",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -10970,8 +10925,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "UOH",
       "department_name": "University of Hawaii",
       "fund_type": "C",
@@ -10985,8 +10940,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -11000,8 +10955,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "HMS",
       "department_name": "Department of Human Services",
       "fund_type": "C",
@@ -11015,8 +10970,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -11030,8 +10985,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -11045,8 +11000,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "BED",
       "department_name": "Department of Business, Economic Development, and Tourism",
       "fund_type": "C",
@@ -11060,8 +11015,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "UOH",
       "department_name": "University of Hawaii",
       "fund_type": "C",
@@ -11075,8 +11030,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "TRN",
       "department_name": "Department of Transportation",
       "fund_type": "B",
@@ -11090,8 +11045,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "C",
@@ -11105,8 +11060,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "HHL",
       "department_name": "Department of Hawaiian Home Lands",
       "fund_type": "C",
@@ -11120,8 +11075,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "HTH",
       "department_name": "Department of Health",
       "fund_type": "C",
@@ -11135,8 +11090,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "W",
@@ -11150,8 +11105,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -11165,8 +11120,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "LNR",
       "department_name": "Department of Land and Natural Resources",
       "fund_type": "B",
@@ -11180,8 +11135,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "AGS",
       "department_name": "Department of Accounting and General Services",
       "fund_type": "C",
@@ -11195,8 +11150,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "PSD",
       "department_name": "Department of Corrections and Rehabilitation",
       "fund_type": "C",
@@ -11210,23 +11165,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "EAST",
-      "program_name": "WEST CENTER, OAHU",
-      "department_code": "BED",
-      "department_name": "Department of Business, Economic Development, and Tourism",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Economic Development",
-      "amount_hd1": 152601.0,
-      "amount_sd1": 177952.0,
-      "change": 25351.0,
-      "pct_change": 16.61260411137542,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "HMS",
       "department_name": "Department of Human Services",
       "fund_type": "C",
@@ -11240,23 +11180,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "IWILEI",
-      "program_name": "KAPALAMA COMMUNITY DEVELOPMENT,",
-      "department_code": "BED",
-      "department_name": "Department of Business, Economic Development, and Tourism",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Economic Development",
-      "amount_hd1": 121000.0,
-      "amount_sd1": 221000.0,
-      "change": 100000.0,
-      "pct_change": 82.64462809917356,
-      "change_type": "modified"
-    },
-    {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "EDN",
       "department_name": "Department of Education",
       "fund_type": "C",
@@ -11270,8 +11195,23 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
+      "department_code": "BED",
+      "department_name": "Department of Business, Economic Development, and Tourism",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 290601.0,
+      "amount_sd1": 415952.0,
+      "change": 125351.0,
+      "pct_change": 43.13508900519957,
+      "change_type": "modified"
+    },
+    {
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "EDN",
       "department_name": "Department of Education",
       "fund_type": "W",
@@ -11285,8 +11225,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "UOH",
       "department_name": "University of Hawaii",
       "fund_type": "B",
@@ -11300,8 +11240,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "EDN",
       "department_name": "Department of Education",
       "fund_type": "C",
@@ -11315,8 +11255,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "TRN",
       "department_name": "Department of Transportation",
       "fund_type": "E",
@@ -11735,8 +11675,8 @@
       "change_type": "added"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "COK",
       "department_name": "County of Kauai",
       "fund_type": "C",
@@ -11750,8 +11690,8 @@
       "change_type": "modified"
     },
     {
-      "program_id": "KALIHI",
-      "program_name": "PALAMA HEALTH CENTER (HALE HOOLA",
+      "program_id": "SUB501",
+      "program_name": "COUNTY OF KAUAI",
       "department_code": "COK",
       "department_name": "County of Kauai",
       "fund_type": "A",

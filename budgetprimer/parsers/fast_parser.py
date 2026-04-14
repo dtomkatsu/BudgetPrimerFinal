@@ -169,8 +169,13 @@ class FastBudgetParser(BaseBudgetParser):
             ),
 
             # --- structural markers ---
+            # Program header: e.g. "1. BED100 - STRATEGIC MARKETING"
+            # The program ID must look like a real budget code: 2-4 letters + 2-4 digits
+            # (e.g. BED100, EDN100, LBR903). This prevents grant project names containing
+            # a hyphen (e.g. "32. KALIHI-PALAMA HEALTH CENTER") from being treated as
+            # program headers where "KALIHI" would be misread as a program ID.
             'program': re.compile(
-                r'^\s*\d+\.\s+([A-Z0-9]+)\s*[-\u2013]\s*(.+)',
+                r'^\s*\d+\.\s+([A-Z]{2,4}\d{2,4})\s*[-\u2013]\s*(.+)',
                 re.IGNORECASE,
             ),
             'category': re.compile(
