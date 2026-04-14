@@ -926,16 +926,44 @@ window.initDraftComparePage = async function () {
                         return thisDelta > THRESHOLD && od < -THRESHOLD;
                     });
 
+                    const fmtNet = (v) => {
+                        const sign = v < 0 ? '−' : '+';
+                        const abs = Math.abs(v);
+                        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+                        if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+                        return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+                    };
+
                     if (offsetDepts.length > 0) {
                         const offsetLinks = offsetDepts
                             .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
                             .join(', ');
-                        crossRefNote += ` <span class="realloc-note" title="The apparent cut here may reflect funds moved to another department, not eliminated from the program.">⚠ funding may have shifted to ${offsetLinks} — not necessarily cut</span>`;
+                        // Net change across all involved depts for this program
+                        const allInvolved = [dept.code, ...offsetDepts];
+                        const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
+                        const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
+                        if (isPure) {
+                            crossRefNote += ` <span class="realloc-note realloc-pure" title="The apparent cut here reflects funds moved to another department — the total program funding is unchanged.">↔ funding shifted to ${offsetLinks} — same total, different department</span>`;
+                        } else {
+                            const netLabel = fmtNet(totalNet);
+                            const netDesc = totalNet < 0 ? 'net cut' : 'net increase';
+                            crossRefNote += ` <span class="realloc-note" title="Part of this change reflects funds moved to another department, but there is also a real net change in total program funding.">⚠ partly shifted to ${offsetLinks} (${netLabel} ${netDesc})</span>`;
+                        }
                     } else if (sourceDepts.length > 0) {
                         const sourceLinks = sourceDepts
                             .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
                             .join(', ');
-                        crossRefNote += ` <span class="realloc-note" title="The apparent increase here may reflect funds moved from another department, not new spending.">⚠ may include funds reallocated from ${sourceLinks}</span>`;
+                        // Net change across all involved depts for this program
+                        const allInvolved = [dept.code, ...sourceDepts];
+                        const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
+                        const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
+                        if (isPure) {
+                            crossRefNote += ` <span class="realloc-note realloc-pure" title="Part of the apparent increase here reflects funds moved from another department — the total program funding is unchanged.">↔ includes funds shifted from ${sourceLinks} — same total, different department</span>`;
+                        } else {
+                            const netLabel = fmtNet(totalNet);
+                            const netDesc = totalNet > 0 ? 'net increase' : 'net cut';
+                            crossRefNote += ` <span class="realloc-note" title="Part of this change reflects funds moved from another department, but there is also a real net change in total program funding.">⚠ partly shifted from ${sourceLinks} (${netLabel} ${netDesc})</span>`;
+                        }
                     }
                 }
 
