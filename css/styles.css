@@ -567,24 +567,39 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Subtle chip-style background for HD1 / SD1 / Change cells in draft & fund tables */
-#draft-table tbody td.amount-cell:nth-last-child(2),
-#draft-table tbody td.amount-cell:nth-last-child(3),
-#draft-table tbody td.amount-cell:nth-last-child(4),
-#fund-detail-table tbody td.amount-cell:nth-last-child(2),
-#fund-detail-table tbody td.amount-cell:nth-last-child(3),
-#fund-detail-table tbody td.amount-cell:nth-last-child(4) {
-    background: #f6f8fa;
+/* Pill/chip around HD1 & SD1 numbers — subtle neutral container */
+.figure-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f4f6f8;
+    border: 1px solid #e3e7eb;
+    border-radius: 4px;
     font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    min-width: 3.5rem;
+    text-align: right;
 }
-/* Tint the Change cell based on direction (nth-last-child(2) = Change column) */
-#draft-table tbody td.amount-cell.positive:nth-last-child(2),
-#fund-detail-table tbody td.amount-cell.positive:nth-last-child(2) {
-    background: #eaf7ee;
+/* Tinted chip for the Change column based on direction */
+.amount-cell.positive .figure-chip {
+    background: #e8f5ec;
+    border-color: #c7e5d0;
 }
-#draft-table tbody td.amount-cell.negative:nth-last-child(2),
-#fund-detail-table tbody td.amount-cell.negative:nth-last-child(2) {
+.amount-cell.negative .figure-chip {
     background: #fbecee;
+    border-color: #f2c9ce;
+}
+
+/* Pill/chip around section labels (Operating, Capital Improvement, Mixed, etc.) */
+.section-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #eef3f6;
+    border: 1px solid #d5dfe6;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #3a5260;
+    letter-spacing: 0.01em;
 }
 
 .positive { color: #28a745; }
