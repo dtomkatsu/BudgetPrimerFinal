@@ -601,9 +601,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     return `
         <section class="compare-page">
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
-            <div class="draft-meta-bar">
-                <span>See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></span>
-            </div>
             <div class="compare-toggles-bar">
                 ${fyToggle}
                 <div class="fy-toggle compare-mode-toggle">
@@ -636,6 +633,10 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                 <h3>Capital Projects (Section 14)</h3>
                 <p class="section-desc">Specific projects funded by the capital appropriations above. Click a <span class="section-chip section-chip-link" style="pointer-events:none;">Capital Improvement →</span> chip on any program row to jump to that program's projects.</p>
                 <div id="projects-list"></div>
+            </div>
+
+            <div class="draft-meta-bar">
+                <span>See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></span>
             </div>
         </section>`;
 };
