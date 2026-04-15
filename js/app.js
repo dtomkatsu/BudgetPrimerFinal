@@ -607,8 +607,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div class="compare-toggles-bar">
                 ${fyToggle}
                 <div class="fy-toggle compare-mode-toggle">
-                    <button class="sort-btn active" id="mode-btn-hd1sd1" data-mode="hd1-sd1">HD1 vs SD1</button>
-                    <button class="sort-btn" id="mode-btn-hb300" data-mode="vs-hb300">vs HB300 (enacted)</button>
+                    <button class="sort-btn active" id="mode-btn-hb300" data-mode="vs-hb300">vs HB300 (enacted)</button>
+                    <button class="sort-btn" id="mode-btn-hd1sd1" data-mode="hd1-sd1">HD1 vs SD1</button>
                 </div>
             </div>
 
@@ -655,7 +655,7 @@ window.initDraftComparePage = async function () {
     let expandedDepts = new Set();
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
-    let compareMode = 'hd1-sd1'; // 'hd1-sd1' | 'vs-hb300'
+    let compareMode = 'vs-hb300'; // 'hd1-sd1' | 'vs-hb300'
 
     // Build HB300 lookup from fyComparisonData: key = program_id + '_' + fund_type
     const hb300Lookup = new Map();
@@ -710,12 +710,14 @@ window.initDraftComparePage = async function () {
 
         const sumBy = (section) => {
             const sr = recs.filter(r => r.section === section);
-            const d1 = sr.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const d1Joined = sr.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            // HB300 totals from fyComparisonData
+            // HB300 totals from fyComparisonData (full, not joined — avoids missing programs)
             const hb300 = (fyComparisonData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
+            // In vs-hb300 mode use the full HB300 total so the summary reflects the real enacted budget
+            const d1 = compareMode === 'vs-hb300' ? hb300 : d1Joined;
             return { d1, d2, delta: d2 - d1, hb300 };
         };
         const op = sumBy('Operating');
