@@ -10,6 +10,7 @@
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@3.1.0"></script>
     <!-- Fallback for SPA routing -->
     <script>
         // Single Page Apps for GitHub Pages
@@ -33,6 +34,7 @@
             <h1>Hawaiʻi's Budget Changes: 2026 Tracker</h1>
             <nav class="main-nav">
                 <a href="#/" class="nav-link nav-link-stacked">HB1800<span class="nav-sub">2026 budget bill</span></a>
+                <a href="#/tax-calculator" class="nav-link nav-link-calc">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
                 <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
                 <a href="#/about" class="nav-link">About</a>
             </nav>
@@ -53,7 +55,7 @@
     </div>
 
     <!-- Load app and router scripts -->
-    <script src="js/app.js?v=23"></script>
+    <script src="js/app.js?v=30"></script>
     <script src="js/router.js?v=5"></script>
     
     <script>
@@ -92,6 +94,11 @@
                     path: '/compare',
                     component: comparePage,
                     init: initComparePage
+                },
+                {
+                    path: '/tax-calculator',
+                    component: taxCalculatorPage,
+                    init: initTaxCalculatorPage
                 },
                 {
                     path: '/about',

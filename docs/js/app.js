@@ -1498,3 +1498,496 @@ window.initDraftComparePage = async function () {
 // Init hooks
 // ---------------------------------------------------------------------------
 window.initHomePage = async function () {};
+
+// ===========================================================================
+// Tax Calculator Page ("Where Do My Taxes Go?")
+// ===========================================================================
+
+// Hawaii income tax brackets (tax year 2025) — [bracket_top, marginal_rate]
+// Single / Married filing separately
+const HI_TAX_BRACKETS = {
+    single: [
+        [2400, 0.014], [4800, 0.032], [9600, 0.055], [14400, 0.064],
+        [19200, 0.068], [24000, 0.072], [36000, 0.076], [48000, 0.079],
+        [150000, 0.0825], [175000, 0.09], [200000, 0.10], [Infinity, 0.11],
+    ],
+    // Married filing jointly / qualifying widow(er): all thresholds doubled
+    mfj: [
+        [4800, 0.014], [9600, 0.032], [19200, 0.055], [28800, 0.064],
+        [38400, 0.068], [48000, 0.072], [72000, 0.076], [96000, 0.079],
+        [300000, 0.0825], [350000, 0.09], [400000, 0.10], [Infinity, 0.11],
+    ],
+    // Head of household: thresholds 1.5x single
+    hoh: [
+        [3600, 0.014], [7200, 0.032], [14400, 0.055], [21600, 0.064],
+        [28800, 0.068], [36000, 0.072], [54000, 0.076], [72000, 0.079],
+        [225000, 0.0825], [262500, 0.09], [300000, 0.10], [Infinity, 0.11],
+    ],
+};
+const HI_STANDARD_DEDUCTION = { single: 4400, mfj: 8800, hoh: 6424 };
+
+function computeHawaiiTax(grossIncome, filingStatus) {
+    const fs = HI_TAX_BRACKETS[filingStatus] ? filingStatus : 'single';
+    const taxable = Math.max(0, (grossIncome || 0) - HI_STANDARD_DEDUCTION[fs]);
+    const brackets = HI_TAX_BRACKETS[fs];
+    let tax = 0, prev = 0;
+    for (const [top, rate] of brackets) {
+        if (taxable <= top) { tax += (taxable - prev) * rate; break; }
+        tax += (top - prev) * rate;
+        prev = top;
+    }
+    return Math.round(tax);
+}
+
+// Aggregate already-loaded fyComparisonData by department (+ programs within each)
+function aggregateByDepartment(fy) {
+    const key = `amount_fy${fy}`;
+    const byDept = new Map();
+    for (const r of (fyComparisonData || [])) {
+        if (!r.department_code) continue;
+        const amt = r[key] || 0;
+        if (amt === 0) continue;
+        if (!byDept.has(r.department_code)) {
+            byDept.set(r.department_code, {
+                code: r.department_code,
+                name: r.department_name || r.department_code,
+                total: 0,
+                programs: new Map(),
+            });
+        }
+        const d = byDept.get(r.department_code);
+        d.total += amt;
+        const pid = r.program_id || 'UNKNOWN';
+        if (!d.programs.has(pid)) {
+            d.programs.set(pid, {
+                program_id: pid,
+                program_name: r.program_name || pid,
+                total: 0,
+            });
+        }
+        d.programs.get(pid).total += amt;
+    }
+    const depts = [...byDept.values()].map(d => ({
+        code: d.code,
+        name: d.name,
+        total: d.total,
+        programs: [...d.programs.values()].sort((a, b) => b.total - a.total),
+    })).sort((a, b) => b.total - a.total);
+    const grandTotal = depts.reduce((s, d) => s + d.total, 0);
+    return { depts, grandTotal };
+}
+
+window.taxCalculatorPage = async function () {
+    return `
+        <section class="tax-calc-page">
+            <h2>Where Do My Taxes Go?</h2>
+            <p class="page-desc">Enter what you paid in Hawaiʻi state taxes to see a proportional breakdown of where those dollars went across state government.</p>
+
+            <div class="tax-input-card">
+                <label for="tax-input" class="tax-input-label">Your Hawaiʻi state tax paid</label>
+                <div class="input-with-prefix">
+                    <span class="prefix">$</span>
+                    <input type="number" id="tax-input" placeholder="5000" min="0" step="100" inputmode="numeric" autocomplete="off">
+                </div>
+                <button class="action-link" id="tax-helper-toggle" type="button">📊 Help me estimate from my income</button>
+                <div id="tax-helper" class="tax-helper" style="display:none;">
+                    <div class="helper-row">
+                        <label>Gross annual income
+                            <div class="input-with-prefix small">
+                                <span class="prefix">$</span>
+                                <input type="number" id="tax-helper-income" placeholder="75000" min="0" step="1000">
+                            </div>
+                        </label>
+                        <label>Filing status
+                            <select id="tax-helper-filing">
+                                <option value="single">Single</option>
+                                <option value="mfj">Married filing jointly</option>
+                                <option value="hoh">Head of household</option>
+                            </select>
+                        </label>
+                        <button id="tax-helper-calc" class="sort-btn" type="button">Calculate</button>
+                    </div>
+                    <p class="helper-note">Estimate uses 2025 Hawaiʻi income tax brackets and standard deduction. Actual tax depends on itemized deductions, credits, and other factors.</p>
+                </div>
+            </div>
+
+            <div class="fy-toggle" id="calc-fy-toggle">
+                <button class="sort-btn active" data-fy="2026">FY2026</button>
+                <button class="sort-btn" data-fy="2027">FY2027</button>
+            </div>
+
+            <div class="summary-cards-grid tax-summary-grid" id="tax-summary"></div>
+
+            <p class="calc-note">Note: Hawaiʻi personal income tax primarily funds the general fund portion of the budget (about $10B of $23B). This calculator distributes your payment proportionally across the entire state budget for illustration.</p>
+
+            <div class="treemap-breadcrumb" id="treemap-breadcrumb">
+                <span class="crumb-root">All departments</span>
+            </div>
+            <div class="treemap-container"><canvas id="tax-treemap"></canvas></div>
+            <p class="treemap-hint">Click a department tile to see its programs.</p>
+
+            <div class="table-search-bar">
+                <h3>Breakdown by department</h3>
+                <div class="search-input-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="tax-program-search" placeholder="Search programs…" autocomplete="off">
+                    <button class="search-clear" id="tax-search-clear" style="display:none;" type="button" aria-label="Clear search">✕</button>
+                </div>
+            </div>
+            <div id="tax-search-status" class="search-status" style="display:none;"></div>
+            <table class="data-table" id="tax-detail-table">
+                <thead><tr>
+                    <th>Department</th>
+                    <th class="amount-cell">% of your taxes</th>
+                    <th class="amount-cell">Your share</th>
+                    <th class="amount-cell">Total budget</th>
+                </tr></thead>
+                <tbody id="tax-detail-body"></tbody>
+            </table>
+        </section>`;
+};
+
+window.initTaxCalculatorPage = async function () {
+    let activeFY = 2026;
+    let drillDept = null;     // null = top-level, otherwise dept code
+    let taxAmount = 0;
+    let chart = null;
+    let expandedDetailDept = null;  // for table drill-down (mirrors treemap)
+    let searchTerm = '';             // program search filter
+
+    // Format "your share" amounts as readable dollars (no abbreviation for personal scale)
+    const fmtYour = (amount) => {
+        if (amount == null || !isFinite(amount)) return '$0';
+        const abs = Math.abs(amount);
+        if (abs >= 1 || abs === 0) {
+            return '$' + amount.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+        }
+        // Sub-dollar amounts: show cents
+        return '$' + amount.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    };
+
+    const palette = [
+        '#4c78a8', '#f58518', '#54a24b', '#e45756', '#72b7b2',
+        '#eeca3b', '#b279a2', '#ff9da7', '#9d755d', '#bab0ac',
+        '#69b3a2', '#c77dff', '#80b918', '#f4a261', '#2a9d8f',
+        '#e76f51', '#457b9d', '#a8dadc', '#ffb4a2', '#b5838d',
+        '#606c38', '#bc6c25', '#6a4c93', '#8ecae6',
+    ];
+
+    const colorForIndex = (i) => palette[i % palette.length];
+
+    const recompute = () => {
+        const { depts, grandTotal } = aggregateByDepartment(activeFY);
+        const ratio = grandTotal > 0 ? (taxAmount / grandTotal) : 0;
+
+        renderSummaryCards(depts, grandTotal, ratio);
+        renderTreemap(depts, grandTotal, ratio);
+        renderDetailTable(depts, grandTotal, ratio);
+    };
+
+    const renderSummaryCards = (depts, grandTotal, ratio) => {
+        const el = document.getElementById('tax-summary');
+        if (!el) return;
+        const top3 = depts.slice(0, 3);
+        const top3Html = top3.map(d => {
+            const pct = grandTotal > 0 ? (d.total / grandTotal * 100) : 0;
+            if (taxAmount > 0) {
+                const yourDollars = d.total * ratio;
+                return `<div class="summary-card dept-summary-card">
+                    <div class="amount">${fmtYour(yourDollars)}</div>
+                    <div class="label">${d.code} — ${d.name.replace(/^Department of /, '')}</div>
+                    <div class="dept-pct-row">
+                        <div class="dept-bar-wrap"><div class="dept-bar" style="width:${pct.toFixed(2)}%"></div></div>
+                        <span class="dept-pct-label">${pct.toFixed(1)}% of your taxes</span>
+                    </div>
+                </div>`;
+            } else {
+                return `<div class="summary-card dept-summary-card">
+                    <div class="amount">${pct.toFixed(1)}%</div>
+                    <div class="label">${d.code} — ${d.name.replace(/^Department of /, '')}</div>
+                    <div class="dept-pct-row">
+                        <div class="dept-bar-wrap"><div class="dept-bar" style="width:${pct.toFixed(2)}%"></div></div>
+                        <span class="dept-pct-label">of state budget</span>
+                    </div>
+                </div>`;
+            }
+        }).join('');
+        const taxPaidCard = taxAmount > 0
+            ? `<div class="summary-card"><div class="amount">${fmtYour(taxAmount)}</div><div class="label">Your tax paid</div></div>`
+            : `<div class="summary-card empty-state"><div class="amount">—</div><div class="label">Your tax paid</div><div class="card-sub">Enter above ↑</div></div>`;
+        el.innerHTML = `
+            ${taxPaidCard}
+            <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">FY${activeFY} state budget</div></div>
+            ${top3Html}
+        `;
+    };
+
+    const renderTreemap = (depts, grandTotal, ratio) => {
+        const canvas = document.getElementById('tax-treemap');
+        if (!canvas || !window.Chart) return;
+
+        // Determine dataset: top-level depts or one dept's programs
+        let tree, keyName, labelFn, isDrill = false;
+        if (drillDept) {
+            const dept = depts.find(d => d.code === drillDept);
+            if (!dept) { drillDept = null; return renderTreemap(depts, grandTotal, ratio); }
+            isDrill = true;
+            tree = dept.programs.map((p, i) => ({
+                code: p.program_id,
+                name: p.program_name,
+                value: p.total,
+                yourShare: p.total * ratio,
+                color: colorForIndex(i),
+            }));
+        } else {
+            tree = depts.map((d, i) => ({
+                code: d.code,
+                name: d.name,
+                value: d.total,
+                yourShare: d.total * ratio,
+                color: colorForIndex(i),
+            }));
+        }
+
+        // Update breadcrumb
+        const crumb = document.getElementById('treemap-breadcrumb');
+        if (crumb) {
+            if (isDrill) {
+                const dept = depts.find(d => d.code === drillDept);
+                crumb.innerHTML = `<span class="crumb-root" data-crumb="root">All departments</span> <span class="crumb-sep">▶</span> <span class="crumb-current">${drillDept} — ${dept?.name || ''}</span>`;
+            } else {
+                crumb.innerHTML = `<span class="crumb-root-active">All departments</span>`;
+            }
+        }
+
+        if (chart) { chart.destroy(); chart = null; }
+
+        chart = new Chart(canvas.getContext('2d'), {
+            type: 'treemap',
+            data: {
+                datasets: [{
+                    tree: tree,
+                    key: 'value',
+                    borderWidth: 1,
+                    borderColor: '#fff',
+                    spacing: 1,
+                    backgroundColor: (ctx) => ctx?.raw?._data?.color || '#ccc',
+                    labels: {
+                        display: true,
+                        formatter: (ctx) => {
+                            const d = ctx?.raw?._data;
+                            if (!d) return '';
+                            const shareStr = taxAmount > 0 ? fmtYour(d.yourShare) : fmt(d.value);
+                            return [d.code, shareStr];
+                        },
+                        color: '#fff',
+                        font: { size: 11, weight: '600' },
+                        align: 'center',
+                        position: 'middle',
+                    },
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => {
+                                const d = items[0]?.raw?._data;
+                                return d ? `${d.code} — ${d.name}` : '';
+                            },
+                            label: (ctx) => {
+                                const d = ctx?.raw?._data;
+                                if (!d) return '';
+                                const pct = grandTotal > 0 ? (d.value / grandTotal * 100).toFixed(2) : '0';
+                                const lines = [
+                                    `Total budget: ${fmt(d.value)} (${pct}%)`,
+                                ];
+                                if (taxAmount > 0) lines.push(`Your share: ${fmtYour(d.yourShare)}`);
+                                return lines;
+                            },
+                        },
+                    },
+                },
+                onClick: (evt, elements) => {
+                    if (!elements.length) return;
+                    const idx = elements[0].index;
+                    const d = chart.data.datasets[0].tree[idx];
+                    if (!isDrill && d?.code) {
+                        drillDept = d.code;
+                        recompute();
+                    }
+                },
+            },
+        });
+    };
+
+    const renderDetailTable = (depts, grandTotal, ratio) => {
+        const body = document.getElementById('tax-detail-body');
+        const statusEl = document.getElementById('tax-search-status');
+        if (!body) return;
+
+        const q = searchTerm.trim().toLowerCase();
+        const isSearching = q.length > 0;
+
+        // Highlight matching text
+        const highlight = (text) => {
+            if (!isSearching) return text;
+            const idx = text.toLowerCase().indexOf(q);
+            if (idx === -1) return text;
+            return text.slice(0, idx) + `<mark class="search-highlight">${text.slice(idx, idx + q.length)}</mark>` + text.slice(idx + q.length);
+        };
+
+        let totalMatchCount = 0;
+        const rowsHtml = depts.map(d => {
+            const pct = grandTotal > 0 ? (d.total / grandTotal * 100) : 0;
+            const your = d.total * ratio;
+
+            if (isSearching) {
+                // Filter programs matching query
+                const matchedProgs = d.programs.filter(p =>
+                    p.program_id.toLowerCase().includes(q) ||
+                    p.program_name.toLowerCase().includes(q)
+                );
+                // Also match if the dept name/code matches
+                const deptMatches = d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q);
+                const progsToShow = deptMatches ? d.programs : matchedProgs;
+                if (progsToShow.length === 0) return '';
+                totalMatchCount += progsToShow.length;
+
+                let html = `<tr class="tax-dept-row search-dept-header" data-dept="${d.code}">
+                    <td><strong>${d.code}</strong> ${d.name}</td>
+                    <td class="amount-cell">${pct.toFixed(2)}%</td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtYour(your)}</span></td>
+                    <td class="amount-cell">${fmt(d.total)}</td>
+                </tr>`;
+                html += progsToShow.map(p => {
+                    const pPct = grandTotal > 0 ? (p.total / grandTotal * 100) : 0;
+                    const pYour = p.total * ratio;
+                    return `<tr class="tax-prog-row" data-parent="${d.code}">
+                        <td class="detail-indent">${highlight(`${p.program_id} ${p.program_name}`)}</td>
+                        <td class="amount-cell">${pPct.toFixed(3)}%</td>
+                        <td class="amount-cell">${fmtYour(pYour)}</td>
+                        <td class="amount-cell">${fmt(p.total)}</td>
+                    </tr>`;
+                }).join('');
+                return html;
+            } else {
+                // Normal expand/collapse mode
+                const isExpanded = expandedDetailDept === d.code;
+                const arrow = isExpanded ? '▼' : '▶';
+                let html = `<tr class="tax-dept-row" data-dept="${d.code}">
+                    <td><span class="dept-arrow">${arrow}</span> <strong>${d.code}</strong> ${d.name}</td>
+                    <td class="amount-cell">${pct.toFixed(2)}%</td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtYour(your)}</span></td>
+                    <td class="amount-cell">${fmt(d.total)}</td>
+                </tr>`;
+                if (isExpanded) {
+                    html += d.programs.map(p => {
+                        const pPct = grandTotal > 0 ? (p.total / grandTotal * 100) : 0;
+                        const pYour = p.total * ratio;
+                        return `<tr class="tax-prog-row" data-parent="${d.code}">
+                            <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}</td>
+                            <td class="amount-cell">${pPct.toFixed(3)}%</td>
+                            <td class="amount-cell">${fmtYour(pYour)}</td>
+                            <td class="amount-cell">${fmt(p.total)}</td>
+                        </tr>`;
+                    }).join('');
+                }
+                return html;
+            }
+        }).join('');
+
+        body.innerHTML = rowsHtml || `<tr><td colspan="4" class="empty-search">No programs found matching "<strong>${q}</strong>"</td></tr>`;
+
+        if (statusEl) {
+            if (isSearching) {
+                statusEl.style.display = '';
+                statusEl.textContent = totalMatchCount === 0
+                    ? `No results for "${q}"`
+                    : `${totalMatchCount} program${totalMatchCount !== 1 ? 's' : ''} matching "${q}"`;
+            } else {
+                statusEl.style.display = 'none';
+            }
+        }
+    };
+
+    // --- Wire up controls ---
+
+    const taxInput = document.getElementById('tax-input');
+    taxInput?.addEventListener('input', (e) => {
+        taxAmount = parseFloat(e.target.value) || 0;
+        recompute();
+    });
+
+    document.getElementById('tax-helper-toggle')?.addEventListener('click', () => {
+        const panel = document.getElementById('tax-helper');
+        if (!panel) return;
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.getElementById('tax-helper-calc')?.addEventListener('click', () => {
+        const income = parseFloat(document.getElementById('tax-helper-income')?.value) || 0;
+        const filing = document.getElementById('tax-helper-filing')?.value || 'single';
+        const tax = computeHawaiiTax(income, filing);
+        if (taxInput) {
+            taxInput.value = tax;
+            taxAmount = tax;
+            recompute();
+        }
+    });
+
+    // FY toggle
+    document.getElementById('calc-fy-toggle')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-fy]');
+        if (!btn) return;
+        const fy = parseInt(btn.dataset.fy, 10);
+        if (fy === activeFY) return;
+        activeFY = fy;
+        drillDept = null;
+        expandedDetailDept = null;
+        document.querySelectorAll('#calc-fy-toggle button').forEach(b =>
+            b.classList.toggle('active', parseInt(b.dataset.fy, 10) === activeFY));
+        recompute();
+    });
+
+    // Breadcrumb: click root to go back
+    document.getElementById('treemap-breadcrumb')?.addEventListener('click', (e) => {
+        if (e.target.closest('[data-crumb="root"]')) {
+            drillDept = null;
+            recompute();
+        }
+    });
+
+    // Program search
+    const searchInput = document.getElementById('tax-program-search');
+    const searchClear = document.getElementById('tax-search-clear');
+    searchInput?.addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        searchClear.style.display = searchTerm ? 'inline-flex' : 'none';
+        recompute();
+    });
+    searchClear?.addEventListener('click', () => {
+        searchTerm = '';
+        searchInput.value = '';
+        searchClear.style.display = 'none';
+        searchInput.focus();
+        recompute();
+    });
+
+    // Detail table expand/collapse per row (disabled while searching)
+    document.getElementById('tax-detail-body')?.addEventListener('click', (e) => {
+        if (searchTerm) return;  // search mode: rows are already expanded
+        const row = e.target.closest('.tax-dept-row');
+        if (!row) return;
+        const dept = row.dataset.dept;
+        expandedDetailDept = (expandedDetailDept === dept) ? null : dept;
+        recompute();
+    });
+
+    // Initial render
+    recompute();
+};
+
