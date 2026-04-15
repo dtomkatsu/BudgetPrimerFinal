@@ -838,6 +838,10 @@ a.section-chip-link:hover {
     margin: 1rem 0;
     max-width: 580px;
 }
+.summary-cards-grid.compact.triple {
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    max-width: 820px;
+}
 .summary-cards-grid.compact .summary-card {
     padding: 0.6rem 0.75rem;
     min-width: 0;
