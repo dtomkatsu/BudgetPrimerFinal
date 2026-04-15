@@ -627,9 +627,34 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
             <div class="compare-toggles-bar">
                 ${fyToggle}
-                <div class="fy-toggle compare-mode-toggle">
-                    <button class="sort-btn active" id="mode-btn-baseline" data-mode="vs-baseline">vs Gov's Request</button>
-                    <button class="sort-btn" id="mode-btn-hd1sd1" data-mode="hd1-sd1">HD1 vs SD1</button>
+                <div class="compare-timeline" id="compare-timeline">
+                    <div class="tl-node" id="tl-node-gov">
+                        <span class="tl-label">Gov's<br>Request</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-gov" checked>
+                    </div>
+                    <div class="tl-node" id="tl-node-hd1">
+                        <span class="tl-label">HD1</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
+                    </div>
+                    <div class="tl-node" id="tl-node-sd1">
+                        <span class="tl-label">SD1</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
+                    </div>
                 </div>
             </div>
 
@@ -680,7 +705,10 @@ window.initDraftComparePage = async function () {
     let expandedDepts = new Set();
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
-    let compareMode = 'vs-baseline'; // 'hd1-sd1' | 'vs-baseline'
+    // Timeline state: which nodes are active (all true = Gov's Request → HD1 → SD1)
+    let govActive = true;
+    let hd1Active = true;
+    let sd1Active = true;
 
     // Build baseline lookup from governorRequestData.
     // Key includes section so a program with the same fund_type in both
@@ -701,10 +729,13 @@ window.initDraftComparePage = async function () {
     if (draftComparisonData) injectBaseline(draftComparisonData);
     if (draftComparisonDataFY27) injectBaseline(draftComparisonDataFY27);
 
-    const getD1Key = () => compareMode === 'vs-baseline' ? 'amount_baseline' : 'amount_' + activeData.metadata.draft1.toLowerCase();
-    const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
-    const getD1Label = () => compareMode === 'vs-baseline' ? "Gov's Request" : activeData.metadata.draft1;
-    const getD2Label = () => activeData.metadata.draft2;
+    // Derived getters: leftmost active = d1, rightmost active = d2
+    const getD1Key = () => govActive ? 'amount_baseline' : 'amount_' + activeData.metadata.draft1.toLowerCase();
+    const getD2Key = () => sd1Active ? 'amount_' + activeData.metadata.draft2.toLowerCase() : 'amount_' + activeData.metadata.draft1.toLowerCase();
+    const getD1Label = () => govActive ? "Gov's Request" : activeData.metadata.draft1;
+    const getD2Label = () => sd1Active ? activeData.metadata.draft2 : activeData.metadata.draft1;
+    // HD1 is a visible middle column only when it is active AND is not itself an endpoint
+    const showHD1Col = () => hd1Active && govActive && sd1Active;
 
     // Shorten fund category names for display (e.g., "General Funds" → "General")
     const shortFund = (cat) => {
@@ -744,8 +775,8 @@ window.initDraftComparePage = async function () {
             const baseline = (governorRequestData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
-            // In vs-baseline mode use the full baseline total so the summary reflects the real Governor's request
-            const d1 = compareMode === 'vs-baseline' ? baseline : hd1;
+            // d1 is either Gov's Request (full baseline) or HD1 depending on which is the leftmost active node
+            const d1 = govActive ? baseline : hd1;
             return { d1, d2, delta: d2 - d1, baseline, hd1 };
         };
         const op = sumBy('Operating');
@@ -769,29 +800,24 @@ window.initDraftComparePage = async function () {
 
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
-            const triple = compareMode === 'vs-baseline';
+            const triple = showHD1Col(); // HD1 is a middle node when all three are active
             // Update outer grid class to triple when showing 3 cards
             cardsEl.className = `summary-cards-grid compact${triple ? ' triple' : ''}`;
 
-            // Helper to render card row with optional HD1 column in vs-baseline mode
+            // Build an ordered list of which nodes are visible, then render cards for them
             const cardRow = (baselineVal, hd1Val, sd1Val, delta, deltaLabel) => {
-                if (triple) {
-                    return `
-                        <div class="summary-card"><div class="amount">${fmtHtml(baselineVal)}</div><div class="label">Gov's Request</div></div>
-                        <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmtHtml(hd1Val)}</div><div class="label">HD1</div></div>
-                        <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmtHtml(sd1Val)}</div><div class="label">SD1</div></div>
-                        <div class="card-arrow"></div>
-                        ${changeCard(delta, deltaLabel)}`;
-                } else {
-                    return `
-                        <div class="summary-card"><div class="amount">${fmtHtml(hd1Val)}</div><div class="label">${d1Label}</div></div>
-                        <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmtHtml(sd1Val)}</div><div class="label">${d2Label}</div></div>
-                        <div class="card-arrow"></div>
-                        ${changeCard(delta, deltaLabel)}`;
-                }
+                const nodes = [];
+                if (govActive)  nodes.push({ val: baselineVal, label: "Gov's Request" });
+                if (hd1Active)  nodes.push({ val: hd1Val,      label: 'HD1' });
+                if (sd1Active)  nodes.push({ val: sd1Val,      label: d2Label });
+
+                let html = '';
+                nodes.forEach((n, i) => {
+                    html += `<div class="summary-card"><div class="amount">${fmtHtml(n.val)}</div><div class="label">${n.label}</div></div>`;
+                    if (i < nodes.length - 1) html += `<div class="card-arrow">→</div>`;
+                });
+                html += `<div class="card-arrow"></div>${changeCard(delta, deltaLabel)}`;
+                return html;
             };
             const innerGrid = `summary-cards-grid compact${triple ? ' triple' : ''}`;
 
@@ -1026,7 +1052,7 @@ window.initDraftComparePage = async function () {
                 <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmt(deptD1)}</span></td>
-                ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(dept.hd1)}</span></td>` : ''}
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(dept.hd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmt(deptD2)}</span></td>
                 <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmt(deptDelta)}</span></td>
                 <td></td>
@@ -1109,7 +1135,7 @@ window.initDraftComparePage = async function () {
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
-                        ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
@@ -1135,7 +1161,7 @@ window.initDraftComparePage = async function () {
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
-                            ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(secHD1)}</span></td>` : ''}
+                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(secHD1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD2)}</span></td>
                             <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
@@ -1152,7 +1178,7 @@ window.initDraftComparePage = async function () {
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
-                        ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
@@ -1191,7 +1217,7 @@ window.initDraftComparePage = async function () {
             fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmt(fgD1)}</span></td>
-                ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(fgHD1)}</span></td>` : ''}
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmt(fgD2)}</span></td>
                 <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmt(fgDelta)}</span></td>
                 <td></td>
@@ -1204,7 +1230,7 @@ window.initDraftComparePage = async function () {
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d1Key])}</span></td>
-                    ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(r[hd1Key] || 0)}</span></td>` : ''}
+                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d2Key])}</span></td>
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(delta)}</span></td>
                     <td class="amount-cell ${cls}">${fmtPct(dynPct)}</td>
@@ -1221,7 +1247,7 @@ window.initDraftComparePage = async function () {
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
-                    ${compareMode === 'vs-baseline' ? '<th class="amount-cell">HD1</th>' : ''}
+                    ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
@@ -1234,7 +1260,7 @@ window.initDraftComparePage = async function () {
                 <thead><tr>
                     <th>Fund / Program</th>
                     <th class="amount-cell">${getD1Label()}</th>
-                    ${compareMode === 'vs-baseline' ? '<th class="amount-cell">HD1</th>' : ''}
+                    ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="amount-cell">${getD2Label()}</th>
                     <th class="amount-cell">Change</th>
                     <th class="amount-cell">%</th>
@@ -1523,21 +1549,34 @@ window.initDraftComparePage = async function () {
         render();
     });
 
-    // --- Compare mode toggle (HD1 vs SD1 | vs Gov's Request) ---
-    document.getElementById('mode-btn-hd1sd1')?.addEventListener('click', () => {
-        compareMode = 'hd1-sd1';
-        document.getElementById('mode-btn-hd1sd1').classList.add('active');
-        document.getElementById('mode-btn-baseline')?.classList.remove('active');
+    // --- Compare timeline: Gov's Request / HD1 / SD1 checkboxes ---
+    const updateTimeline = () => {
+        govActive  = document.getElementById('tl-gov')?.checked  ?? true;
+        hd1Active  = document.getElementById('tl-hd1')?.checked  ?? true;
+        sd1Active  = document.getElementById('tl-sd1')?.checked  ?? true;
+
+        // Enforce minimum two active nodes: disable a checkbox if unchecking it
+        // would leave only one node active.
+        const activeCount = [govActive, hd1Active, sd1Active].filter(Boolean).length;
+        ['gov', 'hd1', 'sd1'].forEach(node => {
+            const cb = document.getElementById(`tl-${node}`);
+            if (!cb) return;
+            const nodeActive = node === 'gov' ? govActive : node === 'hd1' ? hd1Active : sd1Active;
+            // Disable this checkbox if it's currently checked and is the only one keeping count ≥ 2
+            cb.disabled = nodeActive && activeCount <= 2;
+        });
+
+        // Reflect inactive state visually on each node
+        ['gov', 'hd1', 'sd1'].forEach(node => {
+            const el = document.getElementById(`tl-node-${node}`);
+            const cb = document.getElementById(`tl-${node}`);
+            if (el) el.classList.toggle('tl-inactive', !(cb?.checked));
+        });
+
         updateSummaryCards();
         render();
-    });
-    document.getElementById('mode-btn-baseline')?.addEventListener('click', () => {
-        compareMode = 'vs-baseline';
-        document.getElementById('mode-btn-baseline').classList.add('active');
-        document.getElementById('mode-btn-hd1sd1')?.classList.remove('active');
-        updateSummaryCards();
-        render();
-    });
+    };
+    document.querySelectorAll('.tl-cb').forEach(cb => cb.addEventListener('change', updateTimeline));
 
     // --- Reading guide toggle ---
 
