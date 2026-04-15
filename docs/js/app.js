@@ -1618,6 +1618,7 @@ function aggregateByDepartment(fy) {
     const byDept = new Map();
     for (const r of (fyComparisonData || [])) {
         if (!r.department_code) continue;
+        if (r.fund_category !== 'General Funds') continue; // tax dollars → general fund only
         const amt = r[key] || 0;
         if (amt === 0) continue;
         if (!byDept.has(r.department_code)) {
@@ -1654,7 +1655,7 @@ window.taxCalculatorPage = async function () {
     return `
         <section class="tax-calc-page">
             <h2>Where Do My Taxes Go?</h2>
-            <p class="page-desc">Enter what you paid in Hawaiʻi state taxes to see a proportional breakdown of where those dollars went across state government.</p>
+            <p class="page-desc">Hawaiʻi income tax funds the state General Fund — about $10.6B of the total budget. Enter what you paid to see how your dollars were proportionally allocated across state agencies.</p>
 
             <div class="tax-input-card">
                 <div class="income-inputs-row">
@@ -1691,7 +1692,7 @@ window.taxCalculatorPage = async function () {
 
             <div class="summary-cards-grid tax-summary-grid" id="tax-summary"></div>
 
-            <p class="calc-note">Note: Hawaiʻi personal income tax primarily funds the general fund portion of the budget (about $10B of $23B). This calculator distributes your payment proportionally across the entire state budget for illustration.</p>
+            <p class="calc-note">This calculator shows only General Fund appropriations — the portion of the state budget funded by taxes like income tax, general excise tax, and other state revenues. Federal grants, bond proceeds, and special funds are excluded.</p>
 
             <div class="treemap-breadcrumb" id="treemap-breadcrumb">
                 <span class="crumb-root">All departments</span>
@@ -1780,7 +1781,7 @@ window.initTaxCalculatorPage = async function () {
                     <div class="label">${d.code} — ${d.name.replace(/^Department of /, '')}</div>
                     <div class="dept-pct-row">
                         <div class="dept-bar-wrap"><div class="dept-bar" style="width:${pct.toFixed(2)}%"></div></div>
-                        <span class="dept-pct-label">of state budget</span>
+                        <span class="dept-pct-label">of General Fund</span>
                     </div>
                 </div>`;
             }
@@ -1790,7 +1791,7 @@ window.initTaxCalculatorPage = async function () {
             : `<div class="summary-card empty-state"><div class="amount">—</div><div class="label">Your tax paid</div><div class="card-sub">Enter above ↑</div></div>`;
         el.innerHTML = `
             ${taxPaidCard}
-            <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">FY${activeFY} state budget</div></div>
+            <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">FY${activeFY} General Fund</div></div>
             ${top3Html}
         `;
     };
