@@ -77,6 +77,17 @@ const fmt = (amount) => {
     return `$${amount.toLocaleString()}`;
 };
 
+// HTML-aware version: wraps number and unit in separate spans for styling
+const fmtHtml = (amount) => {
+    if (amount == null) return '<span class="fmt-num">$0</span>';
+    const abs = Math.abs(amount);
+    const sign = amount < 0 ? '-' : '';
+    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(1)}</span><span class="fmt-unit"> billion</span>`;
+    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(1)}</span><span class="fmt-unit"> million</span>`;
+    if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
+    return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
+};
+
 const fmtPct = (v) => v != null ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—';
 
 function sortDepartments(direction = 'desc') {
@@ -146,10 +157,10 @@ window.homePage = async function () {
         <section class="home-page">
             <div class="context-banner"><strong>Historical reference:</strong> This is the FY2025–26 enacted budget (HB300), passed by the Legislature last year. For the current FY2026–27 supplemental budget draft comparison, see <a href="#/">HB1800 →</a></div>
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">Total Budget</div></div>
-                <div class="summary-card"><div class="amount">${fmt(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmt(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
-                <div class="summary-card"><div class="amount">${fmt(summaryStats.one_time_appropriations)}</div><div class="label">One-Time</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(grandTotal)}</div><div class="label">Total Budget</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.one_time_appropriations)}</div><div class="label">One-Time</div></div>
                 ${positions ? `<div class="summary-card"><div class="amount">${positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div></div>` : ''}
             </div>
             <div class="controls-bar">
@@ -257,9 +268,9 @@ window.departmentDetailPage = async function (params) {
             </div>
 
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmt(total)}</div><div class="label">Total</div></div>
-                <div class="summary-card"><div class="amount">${fmt(dept.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmt(dept.capital_budget)}</div><div class="label">Capital</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(total)}</div><div class="label">Total</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(dept.operating_budget)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtml(dept.capital_budget)}</div><div class="label">Capital</div></div>
                 ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
             </div>
 
@@ -732,7 +743,7 @@ window.initDraftComparePage = async function () {
         const changeCard = (delta, label) => {
             const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
             const negCls = delta < 0 ? ' change-negative' : '';
-            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmt(delta)}</div><div class="label">${label}</div></div>`;
+            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmtHtml(delta)}</div><div class="label">${label}</div></div>`;
         };
 
         // HB300 reference bar (always shown, outside compact grid)
@@ -751,18 +762,18 @@ window.initDraftComparePage = async function () {
             const cardRow = (hb300Val, hd1Val, sd1Val, delta, deltaLabel) => {
                 if (triple) {
                     return `
-                        <div class="summary-card"><div class="amount">${fmt(hb300Val)}</div><div class="label">HB300</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(hb300Val)}</div><div class="label">HB300</div></div>
                         <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(hd1Val)}</div><div class="label">HD1</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(hd1Val)}</div><div class="label">HD1</div></div>
                         <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(sd1Val)}</div><div class="label">SD1</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(sd1Val)}</div><div class="label">SD1</div></div>
                         <div class="card-arrow"></div>
                         ${changeCard(delta, deltaLabel)}`;
                 } else {
                     return `
-                        <div class="summary-card"><div class="amount">${fmt(hd1Val)}</div><div class="label">${d1Label}</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(hd1Val)}</div><div class="label">${d1Label}</div></div>
                         <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(sd1Val)}</div><div class="label">${d2Label}</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(sd1Val)}</div><div class="label">${d2Label}</div></div>
                         <div class="card-arrow"></div>
                         ${changeCard(delta, deltaLabel)}`;
                 }
@@ -1792,7 +1803,7 @@ window.initTaxCalculatorPage = async function () {
             : `<div class="summary-card empty-state"><div class="amount">—</div><div class="label">Your tax paid</div><div class="card-sub">Enter above ↑</div></div>`;
         el.innerHTML = `
             ${taxPaidCard}
-            <div class="summary-card"><div class="amount">${fmt(grandTotal)}</div><div class="label">FY${activeFY} General Fund</div></div>
+            <div class="summary-card"><div class="amount">${fmtHtml(grandTotal)}</div><div class="label">FY${activeFY} General Fund</div></div>
             ${top3Html}
         `;
     };

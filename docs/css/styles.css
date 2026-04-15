@@ -201,6 +201,20 @@ body {
     display: block;
 }
 
+.summary-card .amount .fmt-num {
+    font-size: 1em;
+    font-weight: 700;
+    color: inherit;
+}
+
+.summary-card .amount .fmt-unit {
+    font-size: 0.52em;
+    font-weight: 500;
+    color: #7a8fa6;
+    letter-spacing: 0.03em;
+    vertical-align: 0.15em;
+}
+
 .summary-card .label {
     color: #666;
     font-size: 0.9rem;
