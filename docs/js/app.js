@@ -808,9 +808,7 @@ window.initDraftComparePage = async function () {
         const summary = activeData.summary;
         const statsEl = document.getElementById('draft-stats-bar');
         if (statsEl) {
-            statsEl.innerHTML = `
-                <span class="stat-tag stat-tag-positive">▲ <strong>${summary.items_increased}</strong> increases</span>
-                <span class="stat-tag stat-tag-negative">▼ <strong>${summary.items_decreased}</strong> decreases</span>`;
+            statsEl.innerHTML = '';
         }
     };
 
