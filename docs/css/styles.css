@@ -1830,8 +1830,78 @@ mark.search-highlight {
     flex-wrap: wrap;
     margin-bottom: 0.5rem;
 }
-.compare-mode-toggle {
+/* ── Compare timeline (Gov's Request → HD1 → SD1) ── */
+.compare-timeline {
+    display: flex;
+    align-items: stretch;
     margin-left: auto;
+    gap: 0;
+    padding: 4px 0;
+}
+.tl-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 68px;
+    justify-content: flex-end; /* align dot rows to the same baseline */
+}
+.tl-dot-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 14px;
+}
+.tl-seg {
+    flex: 1;
+    height: 2px;
+    background: #b0bbb7;
+    transition: background 0.15s;
+}
+.tl-node:first-child .tl-seg-before,
+.tl-node:last-child  .tl-seg-after  { visibility: hidden; }
+.tl-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #2c3e50;
+    flex-shrink: 0;
+    border: 2px solid #2c3e50;
+    transition: background 0.15s, border-color 0.15s;
+}
+.tl-node.tl-inactive .tl-dot {
+    background: #fff;
+    border-color: #b0bbb7;
+}
+.tl-node.tl-inactive .tl-seg {
+    background: #dde2e0;
+}
+.tl-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-align: center;
+    color: #2c3e50;
+    line-height: 1.25;
+    transition: color 0.15s, text-decoration 0.15s;
+    white-space: nowrap;
+    min-height: 2.5em; /* reserve space for 2-line labels so dots align */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+.tl-node.tl-inactive .tl-label {
+    color: #aab5b1;
+    text-decoration: line-through;
+}
+.tl-cb {
+    cursor: pointer;
+    accent-color: #2c3e50;
+    width: 14px;
+    height: 14px;
+}
+.tl-cb:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
 }
 .hb300-ref-bar {
     display: flex;
