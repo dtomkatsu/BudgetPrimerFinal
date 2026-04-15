@@ -82,6 +82,8 @@ FUND_MAP = {
     "OTHER FEDERAL FUND":        ("P", "Other Federal Funds"),
     "OTHER FEDERAL FUNDS":       ("P", "Other Federal Funds"),
     "PRIVATE CONTRIBUTIONS":     ("R", "Private Contributions"),
+    "PRIVATE CONTRIB.":          ("R", "Private Contributions"),
+    "PRIVATE CONTRIB":           ("R", "Private Contributions"),
     "COUNTY FUND":               ("S", "County Funds"),
     "COUNTY FUNDS":              ("S", "County Funds"),
     "TRUST FUND":                ("T", "Trust Funds"),
