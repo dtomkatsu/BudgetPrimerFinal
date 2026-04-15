@@ -737,13 +737,7 @@ window.initDraftComparePage = async function () {
         // HB300 reference bar (always shown, outside compact grid)
         const hb300RefEl = document.getElementById('hb300-ref');
         if (hb300RefEl) {
-            hb300RefEl.innerHTML = `
-                <div class="hb300-ref-bar">
-                    <span class="hb300-ref-label">HB300 (enacted FY${meta.fiscal_year}):</span>
-                    <span class="hb300-ref-chip">${fmt(hb300Total)} total</span>
-                    <span class="hb300-ref-chip">${fmt(op.hb300)} operating</span>
-                    <span class="hb300-ref-chip">${fmt(cap.hb300)} capital</span>
-                </div>`;
+            hb300RefEl.innerHTML = '';
         }
 
         const cardsEl = document.getElementById('draft-cards');
