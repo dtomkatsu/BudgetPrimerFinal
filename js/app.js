@@ -921,9 +921,6 @@ window.initDraftComparePage = async function () {
                 <select id="draft-filter" class="items-filter-select">
                     <option value="all"${filterVal==='all'?' selected':''}>All Changes</option>
                     <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
-                    <option value="increases"${filterVal==='increases'?' selected':''}>Increases Only</option>
-                    <option value="decreases"${filterVal==='decreases'?' selected':''}>Decreases Only</option>
-                    <option value="added"${filterVal==='added'?' selected':''}>Newly Added</option>
                 </select>
              </span>`
             + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">`;
