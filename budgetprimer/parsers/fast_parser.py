@@ -402,6 +402,7 @@ class FastBudgetParser(BaseBudgetParser):
         allocations: List[BudgetAllocation] = []
         state = ParserState()
         pat = self._compiled_patterns
+        in_cip_project_list = False  # Section 14: skip TOTAL FUNDING (already counted in Part II)
 
         lines = content.split('\n')
         for i, raw_line in enumerate(lines):
@@ -487,6 +488,14 @@ class FastBudgetParser(BaseBudgetParser):
                             break
                     continue
 
+                # --- 0c. CIP project list marker (Section 14) ---
+                # Section 14 lists capital improvement projects that are already counted
+                # in Part II INVESTMENT CAPITAL lines. Skip TOTAL FUNDING lines after this point.
+                if 'CAPITAL IMPROVEMENT PROJECTS AUTHORIZED' in line:
+                    in_cip_project_list = True
+                    self.logger.debug("Entered CIP project list section (Section 14); skipping TOTAL FUNDING lines")
+                    continue
+
                 # --- 1. Category header (A. ECONOMIC DEVELOPMENT) ---
                 m = pat['category'].match(line)
                 if m:
@@ -504,8 +513,10 @@ class FastBudgetParser(BaseBudgetParser):
                 # --- 2b. TOTAL FUNDING line (grants/subsidies in capital section) ---
                 # These carry the real dept code and amounts for grant items
                 # e.g., "TOTAL FUNDING  LBR  350 C  C"
+                # SKIP in CIP project list section (Section 14), as these are project breakdowns
+                # of funds already counted in Part II INVESTMENT CAPITAL lines.
                 m = pat['total_funding'].match(line)
-                if m and state.has_context():
+                if m and state.has_context() and not in_cip_project_list:
                     dept = m.group(1).upper()
                     state.department_code = dept
                     self._append_pair(
