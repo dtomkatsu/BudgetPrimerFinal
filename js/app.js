@@ -710,15 +710,16 @@ window.initDraftComparePage = async function () {
 
         const sumBy = (section) => {
             const sr = recs.filter(r => r.section === section);
-            const d1Joined = sr.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const hd1AmtKey = 'amount_' + meta.draft1.toLowerCase(); // always amount_hd1
+            const hd1 = sr.reduce((s, r) => s + (r[hd1AmtKey] || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
             // HB300 totals from fyComparisonData (full, not joined — avoids missing programs)
             const hb300 = (fyComparisonData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
             // In vs-hb300 mode use the full HB300 total so the summary reflects the real enacted budget
-            const d1 = compareMode === 'vs-hb300' ? hb300 : d1Joined;
-            return { d1, d2, delta: d2 - d1, hb300, hd1: d1Joined };
+            const d1 = compareMode === 'vs-hb300' ? hb300 : hd1;
+            return { d1, d2, delta: d2 - d1, hb300, hd1 };
         };
         const op = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
@@ -747,9 +748,13 @@ window.initDraftComparePage = async function () {
 
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
+            const triple = compareMode === 'vs-hb300';
+            // Update outer grid class to triple when showing 3 cards
+            cardsEl.className = `summary-cards-grid compact${triple ? ' triple' : ''}`;
+
             // Helper to render card row with optional HD1 column in vs-hb300 mode
             const cardRow = (hb300Val, hd1Val, sd1Val, delta, deltaLabel) => {
-                if (compareMode === 'vs-hb300') {
+                if (triple) {
                     return `
                         <div class="summary-card"><div class="amount">${fmt(hb300Val)}</div><div class="label">HB300</div></div>
                         <div class="card-arrow">→</div>
@@ -767,19 +772,20 @@ window.initDraftComparePage = async function () {
                         ${changeCard(delta, deltaLabel)}`;
                 }
             };
+            const innerGrid = `summary-cards-grid compact${triple ? ' triple' : ''}`;
 
             cardsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Total</div>
                 ${cardRow(op.hb300 + cap.hb300, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
                 <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                 <div class="card-row-collapsible" id="cards-operating" style="display:none;">
-                    <div class="summary-cards-grid compact">
+                    <div class="${innerGrid}">
                         ${cardRow(op.hb300, op.hd1, op.d2, op.delta, 'Change')}
                     </div>
                 </div>
                 <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                 <div class="card-row-collapsible" id="cards-capital" style="display:none;">
-                    <div class="summary-cards-grid compact">
+                    <div class="${innerGrid}">
                         ${cardRow(cap.hb300, cap.hd1, cap.d2, cap.delta, 'Change')}
                     </div>
                 </div>`;
