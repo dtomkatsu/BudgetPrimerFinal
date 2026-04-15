@@ -395,8 +395,20 @@ def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
 
                 # Extract values
                 values = extract_row_values(row, cols)
-                amount_fy2026 = values.get("fy26_rec", values.get("fy26_curr", 0.0))
-                amount_fy2027 = values.get("fy27_rec", values.get("fy27_curr", 0.0))
+                # REC APPRN = CURR APPRN + ADJUSTMENT.
+                # When REC is zero the column is blank in the PDF, so pdfplumber
+                # won't extract a word there.  If fy_adj is present but fy_rec is
+                # absent, compute rec = curr + adj (may be 0 when adj cancels curr).
+                def _rec(rec_key: str, curr_key: str, adj_key: str) -> float:
+                    if rec_key in values:
+                        return values[rec_key]
+                    curr = values.get(curr_key, 0.0)
+                    if adj_key in values:
+                        return curr + values[adj_key]
+                    return curr
+
+                amount_fy2026 = _rec("fy26_rec", "fy26_curr", "fy26_adj")
+                amount_fy2027 = _rec("fy27_rec", "fy27_curr", "fy27_adj")
 
                 # Skip zero/empty rows
                 if amount_fy2026 == 0 and amount_fy2027 == 0:
