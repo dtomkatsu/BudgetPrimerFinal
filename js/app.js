@@ -1724,6 +1724,7 @@ window.taxCalculatorPage = async function () {
 window.initTaxCalculatorPage = async function () {
     let activeFY = 2026;
     let drillDept = null;     // null = top-level, otherwise dept code
+    let showMore = false;     // true = showing <1% departments tier
     let taxAmount = 0;
     let chart = null;
     let expandedDetailDept = null;  // for table drill-down (mirrors treemap)
@@ -1800,8 +1801,13 @@ window.initTaxCalculatorPage = async function () {
         const canvas = document.getElementById('tax-treemap');
         if (!canvas || !window.Chart) return;
 
-        // Determine dataset: top-level depts or one dept's programs
-        let tree, keyName, labelFn, isDrill = false;
+        // Split departments into main (>=1%) and small (<1%)
+        const mainDepts = depts.filter(d => d.total / grandTotal >= 0.01);
+        const moreDepts = depts.filter(d => d.total / grandTotal < 0.01);
+        const moreTotal = moreDepts.reduce((s, d) => s + d.total, 0);
+
+        // Determine dataset based on current view state
+        let tree, isDrill = false, isMore = false;
         if (drillDept) {
             const dept = depts.find(d => d.code === drillDept);
             if (!dept) { drillDept = null; return renderTreemap(depts, grandTotal, ratio); }
@@ -1813,14 +1819,35 @@ window.initTaxCalculatorPage = async function () {
                 yourShare: p.total * ratio,
                 color: colorForIndex(i),
             }));
+        } else if (showMore) {
+            isMore = true;
+            tree = moreDepts.map((d, i) => ({
+                code: d.code,
+                name: d.name,
+                value: d.total,
+                yourShare: d.total * ratio,
+                color: colorForIndex(mainDepts.length + i),
+            }));
         } else {
-            tree = depts.map((d, i) => ({
+            // Top-level: main depts + synthetic "More" tile
+            tree = mainDepts.map((d, i) => ({
                 code: d.code,
                 name: d.name,
                 value: d.total,
                 yourShare: d.total * ratio,
                 color: colorForIndex(i),
+                isSynthetic: false,
             }));
+            if (moreDepts.length > 0) {
+                tree.push({
+                    code: 'MORE',
+                    name: `More (${moreDepts.length} depts <1%)`,
+                    value: moreTotal,
+                    yourShare: moreTotal * ratio,
+                    color: '#adb5bd',
+                    isSynthetic: true,
+                });
+            }
         }
 
         // Update breadcrumb
@@ -1828,10 +1855,24 @@ window.initTaxCalculatorPage = async function () {
         if (crumb) {
             if (isDrill) {
                 const dept = depts.find(d => d.code === drillDept);
-                crumb.innerHTML = `<span class="crumb-root" data-crumb="root">All departments</span> <span class="crumb-sep">▶</span> <span class="crumb-current">${drillDept} — ${dept?.name || ''}</span>`;
+                const fromMore = moreDepts.some(d => d.code === drillDept);
+                if (fromMore) {
+                    crumb.innerHTML = `<span class="crumb-root" data-crumb="root">All departments</span> <span class="crumb-sep">▶</span> <span class="crumb-root" data-crumb="more">More (&lt;1%)</span> <span class="crumb-sep">▶</span> <span class="crumb-current">${drillDept} — ${dept?.name || ''}</span>`;
+                } else {
+                    crumb.innerHTML = `<span class="crumb-root" data-crumb="root">All departments</span> <span class="crumb-sep">▶</span> <span class="crumb-current">${drillDept} — ${dept?.name || ''}</span>`;
+                }
+            } else if (isMore) {
+                crumb.innerHTML = `<span class="crumb-root" data-crumb="root">All departments</span> <span class="crumb-sep">▶</span> <span class="crumb-current">More (&lt;1%)</span>`;
             } else {
                 crumb.innerHTML = `<span class="crumb-root-active">All departments</span>`;
             }
+            crumb.querySelectorAll('[data-crumb]').forEach(el => {
+                el.addEventListener('click', () => {
+                    if (el.dataset.crumb === 'root') { drillDept = null; showMore = false; }
+                    if (el.dataset.crumb === 'more') { drillDept = null; showMore = true; }
+                    recompute();
+                });
+            });
         }
 
         if (chart) { chart.destroy(); chart = null; }
@@ -1892,6 +1933,14 @@ window.initTaxCalculatorPage = async function () {
                     const idx = elements[0].index;
                     const d = chart.data.datasets[0].tree[idx];
                     if (!isDrill && d?.code) {
+                        if (d.code === 'MORE') {
+                            showMore = true;
+                            drillDept = null;
+                        } else {
+                            drillDept = d.code;
+                        }
+                        recompute();
+                    } else if (isMore && d?.code) {
                         drillDept = d.code;
                         recompute();
                     }
@@ -2031,19 +2080,14 @@ window.initTaxCalculatorPage = async function () {
         if (fy === activeFY) return;
         activeFY = fy;
         drillDept = null;
+        showMore = false;
         expandedDetailDept = null;
         document.querySelectorAll('#calc-fy-toggle button').forEach(b =>
             b.classList.toggle('active', parseInt(b.dataset.fy, 10) === activeFY));
         recompute();
     });
 
-    // Breadcrumb: click root to go back
-    document.getElementById('treemap-breadcrumb')?.addEventListener('click', (e) => {
-        if (e.target.closest('[data-crumb="root"]')) {
-            drillDept = null;
-            recompute();
-        }
-    });
+    // Breadcrumb clicks handled inside renderTreemap via data-crumb attributes
 
     // Program search
     const searchInput = document.getElementById('tax-program-search');
