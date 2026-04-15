@@ -31,6 +31,9 @@ class Router {
             if (window.loadFYComparison) {
                 loadPromises.push(window.loadFYComparison());
             }
+            if (window.loadGovernorRequest) {
+                loadPromises.push(window.loadGovernorRequest());
+            }
             if (window.loadDraftComparison) {
                 loadPromises.push(window.loadDraftComparison());
             }
