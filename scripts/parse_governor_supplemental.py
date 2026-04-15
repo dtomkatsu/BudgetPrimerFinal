@@ -73,6 +73,10 @@ FUND_MAP = {
     "GENERAL OBLIGATION BONDS":  ("C", "General Obligation Bond Fund"),
     "REVENUE BOND FUND":         ("E", "Revenue Bond Funds"),
     "REVENUE BOND FUNDS":        ("E", "Revenue Bond Funds"),
+    "REVENUE BONDS":             ("E", "Revenue Bond Funds"),
+    "G.O.BONDS":                 ("C", "General Obligation Bond Fund"),
+    "G.O. REIMBURSABLE BONDS":   ("C", "General Obligation Bond Fund"),
+    "G.O.REIMBURSABLE BONDS":    ("C", "General Obligation Bond Fund"),
     "FEDERAL FUND":              ("N", "Federal Funds"),
     "FEDERAL FUNDS":             ("N", "Federal Funds"),
     "OTHER FEDERAL FUND":        ("P", "Other Federal Funds"),
@@ -319,6 +323,11 @@ def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
         dept_code = "PSD"
     dept_name = DEPARTMENT_NAMES.get(dept_code, dept_code)
 
+    # Track per-program section state so continuation pages inherit correctly:
+    # a program's capital BY-MEANS-OF-FINANCING block can spill onto the next
+    # page, which has no "CAPITAL INVESTMENT" marker.
+    program_state: dict[str, tuple[str, bool]] = {}
+
     with pdfplumber.open(path) as pdf:
         for page_idx, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
@@ -337,8 +346,19 @@ def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
 
             # Group rows; identify section boundaries
             rows = group_by_row(words)
-            current_section = "Operating"  # default until we see CAPITAL INVESTMENT
-            in_capital_funds = False       # becomes True after TOTAL CAPITAL COST
+
+            # Decide starting state for this page:
+            # - If the page has no OPERATING / CAPITAL INVESTMENT markers but we
+            #   already tracked this program on a prior page (capital spillover),
+            #   resume that state.
+            has_op_marker = bool(re.search(r"\bOPERATING\b", text))
+            has_cip_marker = "CAPITAL INVESTMENT" in text
+            prior = program_state.get(program_id)
+            if prior and not has_op_marker and not has_cip_marker:
+                current_section, in_capital_funds = prior
+            else:
+                current_section = "Operating"
+                in_capital_funds = False
 
             for row in rows:
                 row_text_upper = " ".join(w["text"] for w in row).upper()
@@ -392,34 +412,45 @@ def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
                     "amount_fy2027": amount_fy2027,
                 }
 
+            # Remember this page's ending state so continuation pages for the
+            # same program can resume in the correct section.
+            program_state[program_id] = (current_section, in_capital_funds)
+
 
 def main():
     root = pathlib.Path(__file__).parent.parent
     pdf_dir = root / "data" / "raw" / "governor_supplemental_fy27"
     out_path = root / "docs" / "js" / "governor_request.json"
 
-    all_records: list[dict] = []
-    # Aggregate multi-page programs: same (program_id, fund_type, section) -> sum amounts
-    # (Because leaf programs can appear on multiple detail pages, we dedupe on first occurrence.)
-    seen: set[tuple[str, str, str]] = set()
+    # Aggregate by (program_id, fund_type, section): sum amounts.
+    # Required because a single program page can have multiple fund rows for the
+    # same (section, fund_type) — e.g. TRN airport programs have SPECIAL FUND in
+    # both "CURR LEASE PAYMENTS" and "OPERATING" sub-sections that must be summed.
+    accum: dict[tuple[str, str, str], dict] = {}
 
     by_dept: dict[str, int] = defaultdict(int)
     totals = defaultdict(float)
 
     for pdf_path in sorted(pdf_dir.glob("*.pdf")):
+        if pdf_path.name.startswith("06_"):  # skip statewide summary if present
+            continue
         print(f"Parsing {pdf_path.name}...", end=" ", flush=True)
-        count = 0
+        page_count = 0
         for rec in parse_pdf(pdf_path):
+            page_count += 1
             key = (rec["program_id"], rec["fund_type"], rec["section"])
-            if key in seen:
-                continue
-            seen.add(key)
-            all_records.append(rec)
-            by_dept[rec["department_code"]] += 1
-            totals[f"{rec['section']} FY26"] += rec["amount_fy2026"]
-            totals[f"{rec['section']} FY27"] += rec["amount_fy2027"]
-            count += 1
-        print(f"{count} records")
+            if key in accum:
+                accum[key]["amount_fy2026"] += rec["amount_fy2026"]
+                accum[key]["amount_fy2027"] += rec["amount_fy2027"]
+            else:
+                accum[key] = rec
+        print(f"{page_count} rows")
+
+    all_records = list(accum.values())
+    for rec in all_records:
+        by_dept[rec["department_code"]] += 1
+        totals[f"{rec['section']} FY26"] += rec["amount_fy2026"]
+        totals[f"{rec['section']} FY27"] += rec["amount_fy2027"]
 
     # Write output
     out_path.parent.mkdir(parents=True, exist_ok=True)
