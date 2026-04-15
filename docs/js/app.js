@@ -679,7 +679,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div id="draft-results"></div>
 
             <div id="projects-section" class="projects-section">
-                <h3>Capital Projects (Section 14) <span class="projects-compare-label" id="projects-compare-label"></span></h3>
+                <h3>Capital Projects</h3>
                 <p class="section-desc">Project-level detail for capital appropriations. Click a <span class="section-chip section-chip-link" style="pointer-events:none;">Capital Improvement →</span> chip on any program row to jump to that program's projects.</p>
                 <div id="projects-list"></div>
             </div>
@@ -1297,11 +1297,6 @@ window.initDraftComparePage = async function () {
         const d1Key = `amount_${d1Label.toLowerCase()}`;
         const d2Key = `amount_${d2Label.toLowerCase()}`;
 
-        // Update the compare label in the heading to clarify this section always shows HD1 vs SD1
-        const compareLabelEl = document.getElementById('projects-compare-label');
-        if (compareLabelEl) {
-            compareLabelEl.textContent = `— ${d1Label} vs ${d2Label}`;
-        }
 
         // Build a lookup of program_id → program_name from comparison data
         const progNameMap = new Map();
