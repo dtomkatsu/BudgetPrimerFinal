@@ -634,6 +634,115 @@ body {
     white-space: nowrap;
 }
 
+/* Clickable Capital Improvement chip that scrolls to the projects section */
+a.section-chip-link {
+    text-decoration: none;
+    cursor: pointer;
+    background: #e2eef7;
+    border-color: #b7d2e5;
+    color: #1f4e71;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+a.section-chip-link:hover {
+    background: #cfe3f2;
+    border-color: #85b4d1;
+    text-decoration: none;
+}
+
+/* Section 14 capital projects list */
+.projects-section {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 2px solid #e5e5e5;
+}
+.projects-section h3 {
+    margin: 0 0 6px 0;
+    font-size: 1.25rem;
+    color: #2e3e2e;
+}
+.projects-section .section-desc {
+    font-size: 0.88rem;
+    color: #6a6a6a;
+    margin: 0 0 16px 0;
+}
+.project-program-panel {
+    border: 1px solid #dbe3e6;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: hidden;
+}
+.project-program-header {
+    padding: 10px 14px;
+    background: #f5f8fa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    user-select: none;
+}
+.project-program-header:hover { background: #eaf1f6; }
+.project-program-header .toggle-arrow {
+    display: inline-block;
+    width: 12px;
+    color: #5a7080;
+    font-size: 0.75rem;
+}
+.project-program-header strong { color: #234; }
+.project-program-header .project-count {
+    color: #6a6a6a;
+    font-size: 0.82rem;
+    font-weight: 400;
+}
+.project-program-header .project-totals {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: #556;
+    font-variant-numeric: tabular-nums;
+}
+.project-program-header .project-totals .positive { color: #28a745; }
+.project-program-header .project-totals .negative { color: #dc3545; }
+.project-table {
+    margin: 0 !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    font-size: 0.85rem;
+}
+.project-table thead th {
+    background: #fafbfc;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #5a6a75;
+    padding: 6px 10px;
+}
+.project-table td {
+    padding: 8px 10px;
+    vertical-align: top;
+}
+.project-table .project-num {
+    font-variant-numeric: tabular-nums;
+    color: #6a6a6a;
+    width: 50px;
+    white-space: nowrap;
+}
+.project-table .project-name {
+    font-weight: 500;
+    color: #2e3e2e;
+}
+.project-table .project-scope {
+    font-size: 0.78rem;
+    color: #7a7a7a;
+    line-height: 1.4;
+    margin-top: 3px;
+    max-width: 520px;
+}
+.project-table .project-row.change-added { border-left: 3px solid #28a745; }
+.project-table .project-row.change-removed { border-left: 3px solid #dc3545; }
+.project-table .project-row.change-modified { border-left: 3px solid #e0b341; }
+.project-table .project-row.change-unchanged { border-left: 3px solid transparent; }
+
 .positive { color: #28a745; }
 .negative { color: #dc3545; }
 .muted { color: #999; font-size: 0.85em; margin-top: 10px; }

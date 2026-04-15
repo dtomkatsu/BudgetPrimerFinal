@@ -7,6 +7,8 @@ let programsData = [];
 let fyComparisonData = [];
 let draftComparisonData = null;     // FY2026 comparison
 let draftComparisonDataFY27 = null; // FY2027 comparison
+let projectsDataFY26 = null;        // Section 14 CIP projects FY26
+let projectsDataFY27 = null;        // Section 14 CIP projects FY27
 
 // ---------------------------------------------------------------------------
 // Data loading
@@ -536,6 +538,21 @@ window.notFoundPage = async function () {
 // Draft Comparison Data Loader
 // ---------------------------------------------------------------------------
 
+window.loadProjects = async function () {
+    try {
+        const [r26, r27] = await Promise.all([
+            fetch('./js/projects_fy26.json?v=' + Date.now()).catch(() => null),
+            fetch('./js/projects_fy27.json?v=' + Date.now()).catch(() => null),
+        ]);
+        if (r26 && r26.ok) projectsDataFY26 = await r26.json();
+        if (r27 && r27.ok) projectsDataFY27 = await r27.json();
+        return { fy26: projectsDataFY26, fy27: projectsDataFY27 };
+    } catch (e) {
+        console.warn('Projects data not available:', e.message);
+        return null;
+    }
+};
+
 window.loadDraftComparison = async function () {
     try {
         const [r26, r27] = await Promise.all([
@@ -607,6 +624,12 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
             <div class="search-summary" id="draft-summary"></div>
             <div id="draft-results"></div>
+
+            <div id="projects-section" class="projects-section">
+                <h3>Capital Projects (Section 14)</h3>
+                <p class="section-desc">Specific projects funded by the capital appropriations above. Click a <span class="section-chip section-chip-link" style="pointer-events:none;">Capital Improvement →</span> chip on any program row to jump to that program's projects.</p>
+                <div id="projects-list"></div>
+            </div>
         </section>`;
 };
 
@@ -616,6 +639,8 @@ window.initDraftComparePage = async function () {
     if (!hasData) return;
 
     let activeData = draftComparisonData || draftComparisonDataFY27;
+    let activeProjects = draftComparisonData ? projectsDataFY26 : projectsDataFY27;
+    let expandedProjectPrograms = new Set();
     let sortCol = 'change';
     let sortDir = 'asc';
     let checkedSections = null; // null = all
@@ -1012,8 +1037,13 @@ window.initDraftComparePage = async function () {
                         const secFunds = new Set(secRows.map(r => r.fund_category).filter(Boolean));
                         const secFundLabel = secFunds.size === 1 ? shortFund([...secFunds][0]) : (secFunds.size > 1 ? `${secFunds.size} funds` : '');
                         const secFundTitle = secFunds.size > 1 ? [...secFunds].join(' · ') : '';
+                        const secHasProjects = sec === 'Capital Improvement'
+                            && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
+                        const secChipHtml = secHasProjects
+                            ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${sec} →</a>`
+                            : `<span class="section-chip">${sec}</span>`;
                         bodyHtml += `<tr class="prog-section-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                            <td class="section-indent"><span class="section-chip">${sec}</span></td>
+                            <td class="section-indent">${secChipHtml}</td>
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
@@ -1023,9 +1053,14 @@ window.initDraftComparePage = async function () {
                         </tr>`;
                     }
                 } else {
+                    const progHasProjects = p.section === 'Capital Improvement'
+                        && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
+                    const progChipHtml = progHasProjects
+                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
+                        : `<span class="section-chip">${p.section}</span>`;
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
                         <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
-                        <td><span class="section-chip">${p.section}</span></td>
+                        <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
@@ -1117,6 +1152,107 @@ window.initDraftComparePage = async function () {
 
         window._lastDraftResults = data;
         window._lastDraftMeta = meta;
+
+        renderProjects();
+    };
+
+    // --- Render Section 14 capital projects section ---
+
+    const renderProjects = () => {
+        const listEl = document.getElementById('projects-list');
+        const sectionEl = document.getElementById('projects-section');
+        if (!listEl || !sectionEl) return;
+
+        if (!activeProjects || !activeProjects.projects_by_program) {
+            sectionEl.style.display = 'none';
+            return;
+        }
+        sectionEl.style.display = '';
+
+        const meta = activeProjects.metadata;
+        const d1Label = meta.draft1;
+        const d2Label = meta.draft2;
+        const d1Key = `amount_${d1Label.toLowerCase()}`;
+        const d2Key = `amount_${d2Label.toLowerCase()}`;
+
+        // Build a lookup of program_id → program_name from comparison data
+        const progNameMap = new Map();
+        for (const r of activeData.comparisons) {
+            if (r.program_id && !progNameMap.has(r.program_id)) {
+                progNameMap.set(r.program_id, r.program_name || '');
+            }
+        }
+
+        // Filter by current search query
+        const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
+        const entries = Object.entries(activeProjects.projects_by_program);
+
+        // Sort by program_id
+        entries.sort((a, b) => a[0].localeCompare(b[0]));
+
+        let html = '';
+        let visibleCount = 0;
+        for (const [pid, projects] of entries) {
+            if (!projects || projects.length === 0) continue;
+            const progName = progNameMap.get(pid) || (projects[0].program_name || '');
+            if (q && !pid.toLowerCase().includes(q) && !progName.toLowerCase().includes(q)) {
+                // Also try matching any project name
+                const anyMatch = projects.some(pr =>
+                    (pr.project_name || '').toLowerCase().includes(q));
+                if (!anyMatch) continue;
+            }
+            visibleCount++;
+
+            const d1Total = projects.reduce((s, pr) => s + (pr[d1Key] || 0), 0);
+            const d2Total = projects.reduce((s, pr) => s + (pr[d2Key] || 0), 0);
+            const delta = d2Total - d1Total;
+            const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+            const isOpen = expandedProjectPrograms.has(pid);
+            const arrow = isOpen ? '▼' : '▶';
+
+            const rowsHtml = projects.map(pr => {
+                const change = pr.change || 0;
+                const cls = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
+                const badge = pr.change_type === 'added' ? '<span class="badge badge-add">new</span>'
+                    : pr.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
+                const scope = pr.scope ? `<div class="project-scope">${pr.scope}</div>` : '';
+                return `<tr class="project-row change-${pr.change_type}">
+                    <td class="project-num">${pr.project_id}</td>
+                    <td><div class="project-name">${pr.project_name}</div>${scope}</td>
+                    <td><span class="fund-chip">${shortFund(pr.fund_category)}</span></td>
+                    <td class="amount-cell"><span class="figure-chip">${fmt(pr[d1Key])}</span></td>
+                    <td class="amount-cell"><span class="figure-chip">${fmt(pr[d2Key])}</span></td>
+                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(change)}</span> ${badge}</td>
+                </tr>`;
+            }).join('');
+
+            html += `<div class="project-program-panel" id="projects-${pid}">
+                <div class="project-program-header" data-project-pid="${pid}">
+                    <span class="toggle-arrow">${arrow}</span>
+                    <strong>${pid}</strong> ${progName}
+                    <span class="project-count">(${projects.length} project${projects.length === 1 ? '' : 's'})</span>
+                    <span class="project-totals">
+                        ${fmt(d1Total)} → ${fmt(d2Total)}
+                        <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>
+                    </span>
+                </div>
+                <table class="data-table project-table" id="projects-${pid}-body" style="display:${isOpen ? '' : 'none'};">
+                    <thead><tr>
+                        <th>#</th><th>Project</th><th>Fund</th>
+                        <th class="amount-cell">${d1Label}</th>
+                        <th class="amount-cell">${d2Label}</th>
+                        <th class="amount-cell">Change</th>
+                    </tr></thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>`;
+        }
+
+        if (visibleCount === 0) {
+            html = `<div class="empty-state"><p>No capital projects match the current filter.</p></div>`;
+        }
+
+        listEl.innerHTML = html;
     };
 
     // --- Header dropdown logic (inside table headers) ---
@@ -1156,6 +1292,35 @@ window.initDraftComparePage = async function () {
     });
 
     // --- Sortable column headers + department expand/collapse ---
+
+    // --- Project section: scroll-to-projects chips + panel toggles ---
+
+    document.addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-scroll-projects]');
+        if (chip) {
+            e.preventDefault();
+            e.stopPropagation();
+            const pid = chip.dataset.scrollProjects;
+            expandedProjectPrograms.add(pid);
+            renderProjects();
+            requestAnimationFrame(() => {
+                const panel = document.getElementById(`projects-${pid}`);
+                if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            return;
+        }
+        const header = e.target.closest('.project-program-header');
+        if (header) {
+            const pid = header.dataset.projectPid;
+            if (expandedProjectPrograms.has(pid)) expandedProjectPrograms.delete(pid);
+            else expandedProjectPrograms.add(pid);
+            const body = document.getElementById(`projects-${pid}-body`);
+            const arrow = header.querySelector('.toggle-arrow');
+            const isOpen = expandedProjectPrograms.has(pid);
+            if (body) body.style.display = isOpen ? '' : 'none';
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+        }
+    });
 
     document.getElementById('draft-results')?.addEventListener('click', (e) => {
         // Cross-reference split-dept link: scroll to and expand that department
@@ -1238,7 +1403,8 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set();
+        activeProjects = projectsDataFY26;
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
@@ -1247,7 +1413,8 @@ window.initDraftComparePage = async function () {
     document.getElementById('fy-btn-27')?.addEventListener('click', () => {
         if (!draftComparisonDataFY27) return;
         activeData = draftComparisonDataFY27;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set();
+        activeProjects = projectsDataFY27;
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();

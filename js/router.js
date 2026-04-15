@@ -34,6 +34,9 @@ class Router {
             if (window.loadDraftComparison) {
                 loadPromises.push(window.loadDraftComparison());
             }
+            if (window.loadProjects) {
+                loadPromises.push(window.loadProjects());
+            }
             
             // Wait for both to complete
             await Promise.all(loadPromises);
