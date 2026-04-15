@@ -718,7 +718,7 @@ window.initDraftComparePage = async function () {
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
             // In vs-hb300 mode use the full HB300 total so the summary reflects the real enacted budget
             const d1 = compareMode === 'vs-hb300' ? hb300 : d1Joined;
-            return { d1, d2, delta: d2 - d1, hb300 };
+            return { d1, d2, delta: d2 - d1, hb300, hd1: d1Joined };
         };
         const op = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
@@ -747,31 +747,40 @@ window.initDraftComparePage = async function () {
 
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
+            // Helper to render card row with optional HD1 column in vs-hb300 mode
+            const cardRow = (hb300Val, hd1Val, sd1Val, delta, deltaLabel) => {
+                if (compareMode === 'vs-hb300') {
+                    return `
+                        <div class="summary-card"><div class="amount">${fmt(hb300Val)}</div><div class="label">HB300</div></div>
+                        <div class="card-arrow">→</div>
+                        <div class="summary-card"><div class="amount">${fmt(hd1Val)}</div><div class="label">HD1</div></div>
+                        <div class="card-arrow">→</div>
+                        <div class="summary-card"><div class="amount">${fmt(sd1Val)}</div><div class="label">SD1</div></div>
+                        <div class="card-arrow"></div>
+                        ${changeCard(delta, deltaLabel)}`;
+                } else {
+                    return `
+                        <div class="summary-card"><div class="amount">${fmt(hd1Val)}</div><div class="label">${d1Label}</div></div>
+                        <div class="card-arrow">→</div>
+                        <div class="summary-card"><div class="amount">${fmt(sd1Val)}</div><div class="label">${d2Label}</div></div>
+                        <div class="card-arrow"></div>
+                        ${changeCard(delta, deltaLabel)}`;
+                }
+            };
+
             cardsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Total</div>
-                <div class="summary-card"><div class="amount">${fmt(totalD1)}</div><div class="label">${d1Label}</div></div>
-                <div class="card-arrow">→</div>
-                <div class="summary-card"><div class="amount">${fmt(totalD2)}</div><div class="label">${d2Label}</div></div>
-                <div class="card-arrow"></div>
-                ${changeCard(totalNet, 'Net Change')}
+                ${cardRow(op.hb300 + cap.hb300, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
                 <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                 <div class="card-row-collapsible" id="cards-operating" style="display:none;">
                     <div class="summary-cards-grid compact">
-                        <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${d1Label}</div></div>
-                        <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${d2Label}</div></div>
-                        <div class="card-arrow"></div>
-                        ${changeCard(op.delta, 'Change')}
+                        ${cardRow(op.hb300, op.hd1, op.d2, op.delta, 'Change')}
                     </div>
                 </div>
                 <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                 <div class="card-row-collapsible" id="cards-capital" style="display:none;">
                     <div class="summary-cards-grid compact">
-                        <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${d1Label}</div></div>
-                        <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${d2Label}</div></div>
-                        <div class="card-arrow"></div>
-                        ${changeCard(cap.delta, 'Change')}
+                        ${cardRow(cap.hb300, cap.hd1, cap.d2, cap.delta, 'Change')}
                     </div>
                 </div>`;
 
