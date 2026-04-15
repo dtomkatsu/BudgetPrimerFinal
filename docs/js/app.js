@@ -654,8 +654,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div id="draft-results"></div>
 
             <div id="projects-section" class="projects-section">
-                <h3>Capital Projects (Section 14)</h3>
-                <p class="section-desc">Specific projects funded by the capital appropriations above. Click a <span class="section-chip section-chip-link" style="pointer-events:none;">Capital Improvement →</span> chip on any program row to jump to that program's projects.</p>
+                <h3>Capital Projects (Section 14) <span class="projects-compare-label" id="projects-compare-label"></span></h3>
+                <p class="section-desc">Project-level detail for capital appropriations. Click a <span class="section-chip section-chip-link" style="pointer-events:none;">Capital Improvement →</span> chip on any program row to jump to that program's projects.</p>
                 <div id="projects-list"></div>
             </div>
 
@@ -682,17 +682,19 @@ window.initDraftComparePage = async function () {
     let expandedPrograms = new Set();
     let compareMode = 'vs-baseline'; // 'hd1-sd1' | 'vs-baseline'
 
-    // Build baseline lookup from governorRequestData: key = program_id + '_' + fund_type
+    // Build baseline lookup from governorRequestData.
+    // Key includes section so a program with the same fund_type in both
+    // Operating and Capital doesn't clobber the other.
     const baselineLookup = new Map();
     for (const r of (governorRequestData || [])) {
-        baselineLookup.set(`${r.program_id}_${r.fund_type}`, r);
+        baselineLookup.set(`${r.program_id}_${r.fund_type}_${r.section}`, r);
     }
 
     // Inject amount_baseline into each comparison record (once at init)
     const injectBaseline = (dataset) => {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
         for (const r of dataset.comparisons) {
-            const match = baselineLookup.get(`${r.program_id}_${r.fund_type}`);
+            const match = baselineLookup.get(`${r.program_id}_${r.fund_type}_${r.section}`);
             r.amount_baseline = match ? (match[fyKey] || 0) : 0;
         }
     };
@@ -841,6 +843,7 @@ window.initDraftComparePage = async function () {
     const render = () => {
         const meta = activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
+        const hd1Key = 'amount_' + meta.draft1.toLowerCase(); // always 'amount_hd1'
         const mode = document.getElementById('draft-filter')?.value || 'all';
         const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
 
@@ -938,6 +941,7 @@ window.initDraftComparePage = async function () {
         const depts = [...deptMap.values()].map(d => {
             d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            d.hd1 = d.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
             d.delta = d.d2 - d.d1;
             return d;
         }).sort((a, b) => {
@@ -981,13 +985,14 @@ window.initDraftComparePage = async function () {
                     pMap.set(pid, {
                         program_id: pid, program_name: r.program_name || '',
                         department_code: r.department_code, department_name: r.department_name,
-                        d1: 0, d2: 0, funds: new Set(), sections: new Set(),
+                        d1: 0, d2: 0, hd1: 0, funds: new Set(), sections: new Set(),
                         hasAdded: false, hasRemoved: false, rawRows: [],
                     });
                 }
                 const p = pMap.get(pid);
                 p.d1 += r[d1Key] || 0;
                 p.d2 += r[d2Key] || 0;
+                p.hd1 += r[hd1Key] || 0;
                 if (r.fund_category) p.funds.add(r.fund_category);
                 if (r.section) p.sections.add(r.section);
                 if (r.change_type === 'added') p.hasAdded = true;
@@ -1021,6 +1026,7 @@ window.initDraftComparePage = async function () {
                 <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmt(deptD1)}</span></td>
+                ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(dept.hd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmt(deptD2)}</span></td>
                 <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmt(deptDelta)}</span></td>
                 <td></td>
@@ -1103,6 +1109,7 @@ window.initDraftComparePage = async function () {
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
+                        ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
@@ -1111,6 +1118,7 @@ window.initDraftComparePage = async function () {
                         const secRows = p.rawRows.filter(r => r.section === sec);
                         const secD1 = secRows.reduce((s, r) => s + (r[d1Key] || 0), 0);
                         const secD2 = secRows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+                        const secHD1 = secRows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
                         const secDelta = secD2 - secD1;
                         const secCls = secDelta > 0 ? 'positive' : secDelta < 0 ? 'negative' : '';
                         const secPct = secD1 !== 0 ? ((secD2 - secD1) / Math.abs(secD1)) * 100 : (secD2 !== 0 ? 100 : 0);
@@ -1127,6 +1135,7 @@ window.initDraftComparePage = async function () {
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
+                            ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(secHD1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD2)}</span></td>
                             <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
@@ -1143,6 +1152,7 @@ window.initDraftComparePage = async function () {
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
+                        ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
@@ -1169,6 +1179,7 @@ window.initDraftComparePage = async function () {
         for (const fg of fundGroups) {
             const fgD1 = fg.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const fgD2 = fg.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            const fgHD1 = fg.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
             const fgDelta = fgD2 - fgD1;
             const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
             const isOpen = autoExpandFunds || expandedFundTypes.has(fg.type);
@@ -1180,6 +1191,7 @@ window.initDraftComparePage = async function () {
             fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmt(fgD1)}</span></td>
+                ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmt(fgD2)}</span></td>
                 <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmt(fgDelta)}</span></td>
                 <td></td>
@@ -1192,6 +1204,7 @@ window.initDraftComparePage = async function () {
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d1Key])}</span></td>
+                    ${compareMode === 'vs-baseline' ? `<td class="amount-cell"><span class="figure-chip">${fmt(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d2Key])}</span></td>
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(delta)}</span></td>
                     <td class="amount-cell ${cls}">${fmtPct(dynPct)}</td>
@@ -1208,6 +1221,7 @@ window.initDraftComparePage = async function () {
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
+                    ${compareMode === 'vs-baseline' ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
@@ -1220,6 +1234,7 @@ window.initDraftComparePage = async function () {
                 <thead><tr>
                     <th>Fund / Program</th>
                     <th class="amount-cell">${getD1Label()}</th>
+                    ${compareMode === 'vs-baseline' ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="amount-cell">${getD2Label()}</th>
                     <th class="amount-cell">Change</th>
                     <th class="amount-cell">%</th>
@@ -1255,6 +1270,12 @@ window.initDraftComparePage = async function () {
         const d2Label = meta.draft2;
         const d1Key = `amount_${d1Label.toLowerCase()}`;
         const d2Key = `amount_${d2Label.toLowerCase()}`;
+
+        // Update the compare label in the heading to clarify this section always shows HD1 vs SD1
+        const compareLabelEl = document.getElementById('projects-compare-label');
+        if (compareLabelEl) {
+            compareLabelEl.textContent = `— ${d1Label} vs ${d2Label}`;
+        }
 
         // Build a lookup of program_id → program_name from comparison data
         const progNameMap = new Map();
