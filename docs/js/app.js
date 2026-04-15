@@ -71,8 +71,8 @@ window.loadFYComparison = async function () {
 
 const fmt = (amount) => {
     if (amount == null) return '$0';
-    if (Math.abs(amount) >= 1e9) return `$${(amount / 1e9).toFixed(1)}B`;
-    if (Math.abs(amount) >= 1e6) return `$${(amount / 1e6).toFixed(1)}M`;
+    if (Math.abs(amount) >= 1e9) return `$${(amount / 1e9).toFixed(1)} billion`;
+    if (Math.abs(amount) >= 1e6) return `$${(amount / 1e6).toFixed(1)} million`;
     if (Math.abs(amount) >= 1e3) return `$${(amount / 1e3).toFixed(0)}K`;
     return `$${amount.toLocaleString()}`;
 };
