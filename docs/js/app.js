@@ -684,6 +684,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                 <div id="projects-list"></div>
             </div>
 
+            <div id="fund-detail-section"></div>
+
             <div class="draft-meta-bar">
                 <span>See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></span>
             </div>
@@ -1254,7 +1256,9 @@ window.initDraftComparePage = async function () {
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
             </table>
-            <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>
+            <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>`;
+
+        document.getElementById('fund-detail-section').innerHTML = `
             <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="A — General funds for everyday state spending&#10;B — Special funds set aside for specific purposes&#10;C — General obligation bond funds for public projects&#10;E — Revenue bond funds repaid from project earnings&#10;K/L/M/N — Federal aid funds from the U.S. government&#10;S — County funds from county governments&#10;T — Trust funds held for specific long-term purposes">Fund Detail</span></h3>
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
@@ -1506,7 +1510,10 @@ window.initDraftComparePage = async function () {
             });
             return;
         }
-        // Fund group row expand/collapse
+    });
+
+    // --- Fund detail section: expand/collapse + export ---
+    document.getElementById('fund-detail-section')?.addEventListener('click', (e) => {
         const fundRow = e.target.closest('.fund-group-row');
         if (fundRow) {
             const ft = fundRow.dataset.fundType;
@@ -1628,17 +1635,23 @@ window.initDraftComparePage = async function () {
                 change: r.change, pct_change: r.pct_change, change_type: r.change_type,
             }));
             downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
-        } else if (btn.id === 'export-fund-detail') {
-            const rows = activeData.comparisons.map(r => ({
-                fund_type: r.fund_type, fund_category: r.fund_category,
-                program_id: r.program_id, program_name: r.program_name,
-                department_code: r.department_code, department_name: r.department_name,
-                section: r.section,
-                [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
-                change: r.change, pct_change: r.pct_change,
-            }));
-            downloadCSV(rows, `${meta.bill_number}_fund_detail_FY${meta.fiscal_year}.csv`);
         }
+    });
+
+    document.getElementById('fund-detail-section')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button.export-btn');
+        if (!btn || btn.id !== 'export-fund-detail') return;
+        const meta = window._lastDraftMeta || activeData.metadata;
+        const d1Key = getD1Key(), d2Key = getD2Key();
+        const rows = activeData.comparisons.map(r => ({
+            fund_type: r.fund_type, fund_category: r.fund_category,
+            program_id: r.program_id, program_name: r.program_name,
+            department_code: r.department_code, department_name: r.department_name,
+            section: r.section,
+            [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
+            change: r.change, pct_change: r.pct_change,
+        }));
+        downloadCSV(rows, `${meta.bill_number}_fund_detail_FY${meta.fiscal_year}.csv`);
     });
 
     // --- Initial render ---
