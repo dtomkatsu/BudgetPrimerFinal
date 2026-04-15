@@ -65,6 +65,19 @@ window.loadFYComparison = async function () {
     }
 };
 
+let governorRequestData = [];
+window.loadGovernorRequest = async function () {
+    try {
+        const response = await fetch('./js/governor_request.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        governorRequestData = await response.json();
+        return governorRequestData;
+    } catch (e) {
+        console.error('Error loading Governor request:', e);
+        return [];
+    }
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -615,7 +628,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div class="compare-toggles-bar">
                 ${fyToggle}
                 <div class="fy-toggle compare-mode-toggle">
-                    <button class="sort-btn active" id="mode-btn-hb300" data-mode="vs-hb300">vs HB300 (enacted)</button>
+                    <button class="sort-btn active" id="mode-btn-baseline" data-mode="vs-baseline">vs Gov's Request</button>
                     <button class="sort-btn" id="mode-btn-hd1sd1" data-mode="hd1-sd1">HD1 vs SD1</button>
                 </div>
             </div>
@@ -667,28 +680,28 @@ window.initDraftComparePage = async function () {
     let expandedDepts = new Set();
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
-    let compareMode = 'vs-hb300'; // 'hd1-sd1' | 'vs-hb300'
+    let compareMode = 'vs-baseline'; // 'hd1-sd1' | 'vs-baseline'
 
-    // Build HB300 lookup from fyComparisonData: key = program_id + '_' + fund_type
-    const hb300Lookup = new Map();
-    for (const r of (fyComparisonData || [])) {
-        hb300Lookup.set(`${r.program_id}_${r.fund_type}`, r);
+    // Build baseline lookup from governorRequestData: key = program_id + '_' + fund_type
+    const baselineLookup = new Map();
+    for (const r of (governorRequestData || [])) {
+        baselineLookup.set(`${r.program_id}_${r.fund_type}`, r);
     }
 
-    // Inject amount_hb300 into each comparison record (once at init)
-    const injectHB300 = (dataset) => {
+    // Inject amount_baseline into each comparison record (once at init)
+    const injectBaseline = (dataset) => {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
         for (const r of dataset.comparisons) {
-            const match = hb300Lookup.get(`${r.program_id}_${r.fund_type}`);
-            r.amount_hb300 = match ? (match[fyKey] || 0) : 0;
+            const match = baselineLookup.get(`${r.program_id}_${r.fund_type}`);
+            r.amount_baseline = match ? (match[fyKey] || 0) : 0;
         }
     };
-    if (draftComparisonData) injectHB300(draftComparisonData);
-    if (draftComparisonDataFY27) injectHB300(draftComparisonDataFY27);
+    if (draftComparisonData) injectBaseline(draftComparisonData);
+    if (draftComparisonDataFY27) injectBaseline(draftComparisonDataFY27);
 
-    const getD1Key = () => compareMode === 'vs-hb300' ? 'amount_hb300' : 'amount_' + activeData.metadata.draft1.toLowerCase();
+    const getD1Key = () => compareMode === 'vs-baseline' ? 'amount_baseline' : 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
-    const getD1Label = () => compareMode === 'vs-hb300' ? 'HB300' : activeData.metadata.draft1;
+    const getD1Label = () => compareMode === 'vs-baseline' ? "Gov's Request" : activeData.metadata.draft1;
     const getD2Label = () => activeData.metadata.draft2;
 
     // Shorten fund category names for display (e.g., "General Funds" → "General")
@@ -725,20 +738,20 @@ window.initDraftComparePage = async function () {
             const hd1AmtKey = 'amount_' + meta.draft1.toLowerCase(); // always amount_hd1
             const hd1 = sr.reduce((s, r) => s + (r[hd1AmtKey] || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            // HB300 totals from fyComparisonData (full, not joined — avoids missing programs)
-            const hb300 = (fyComparisonData || [])
+            // Baseline totals from governorRequestData (full, not joined — avoids missing programs)
+            const baseline = (governorRequestData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
-            // In vs-hb300 mode use the full HB300 total so the summary reflects the real enacted budget
-            const d1 = compareMode === 'vs-hb300' ? hb300 : hd1;
-            return { d1, d2, delta: d2 - d1, hb300, hd1 };
+            // In vs-baseline mode use the full baseline total so the summary reflects the real Governor's request
+            const d1 = compareMode === 'vs-baseline' ? baseline : hd1;
+            return { d1, d2, delta: d2 - d1, baseline, hd1 };
         };
         const op = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
         const totalD1 = op.d1 + cap.d1;
         const totalD2 = op.d2 + cap.d2;
         const totalNet = totalD2 - totalD1;
-        const hb300Total = op.hb300 + cap.hb300;
+        const baselineTotal = op.baseline + cap.baseline;
 
         const changeCard = (delta, label) => {
             const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
@@ -754,15 +767,15 @@ window.initDraftComparePage = async function () {
 
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
-            const triple = compareMode === 'vs-hb300';
+            const triple = compareMode === 'vs-baseline';
             // Update outer grid class to triple when showing 3 cards
             cardsEl.className = `summary-cards-grid compact${triple ? ' triple' : ''}`;
 
-            // Helper to render card row with optional HD1 column in vs-hb300 mode
-            const cardRow = (hb300Val, hd1Val, sd1Val, delta, deltaLabel) => {
+            // Helper to render card row with optional HD1 column in vs-baseline mode
+            const cardRow = (baselineVal, hd1Val, sd1Val, delta, deltaLabel) => {
                 if (triple) {
                     return `
-                        <div class="summary-card"><div class="amount">${fmtHtml(hb300Val)}</div><div class="label">HB300</div></div>
+                        <div class="summary-card"><div class="amount">${fmtHtml(baselineVal)}</div><div class="label">Gov's Request</div></div>
                         <div class="card-arrow">→</div>
                         <div class="summary-card"><div class="amount">${fmtHtml(hd1Val)}</div><div class="label">HD1</div></div>
                         <div class="card-arrow">→</div>
@@ -782,17 +795,17 @@ window.initDraftComparePage = async function () {
 
             cardsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Total</div>
-                ${cardRow(op.hb300 + cap.hb300, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
+                ${cardRow(op.baseline + cap.baseline, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
                 <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                 <div class="card-row-collapsible" id="cards-operating" style="display:none;">
                     <div class="${innerGrid}">
-                        ${cardRow(op.hb300, op.hd1, op.d2, op.delta, 'Change')}
+                        ${cardRow(op.baseline, op.hd1, op.d2, op.delta, 'Change')}
                     </div>
                 </div>
                 <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                 <div class="card-row-collapsible" id="cards-capital" style="display:none;">
                     <div class="${innerGrid}">
-                        ${cardRow(cap.hb300, cap.hd1, cap.d2, cap.delta, 'Change')}
+                        ${cardRow(cap.baseline, cap.hd1, cap.d2, cap.delta, 'Change')}
                     </div>
                 </div>`;
 
@@ -1489,17 +1502,17 @@ window.initDraftComparePage = async function () {
         render();
     });
 
-    // --- Compare mode toggle (HD1 vs SD1 | vs HB300) ---
+    // --- Compare mode toggle (HD1 vs SD1 | vs Gov's Request) ---
     document.getElementById('mode-btn-hd1sd1')?.addEventListener('click', () => {
         compareMode = 'hd1-sd1';
         document.getElementById('mode-btn-hd1sd1').classList.add('active');
-        document.getElementById('mode-btn-hb300')?.classList.remove('active');
+        document.getElementById('mode-btn-baseline')?.classList.remove('active');
         updateSummaryCards();
         render();
     });
-    document.getElementById('mode-btn-hb300')?.addEventListener('click', () => {
-        compareMode = 'vs-hb300';
-        document.getElementById('mode-btn-hb300').classList.add('active');
+    document.getElementById('mode-btn-baseline')?.addEventListener('click', () => {
+        compareMode = 'vs-baseline';
+        document.getElementById('mode-btn-baseline').classList.add('active');
         document.getElementById('mode-btn-hd1sd1')?.classList.remove('active');
         updateSummaryCards();
         render();
