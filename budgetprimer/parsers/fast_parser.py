@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from .base_parser import BaseBudgetParser
 from ..models import (
     BudgetAllocation,
+    BudgetProject,
     BudgetSection,
     FundType,
     Program,
@@ -246,6 +247,28 @@ class FastBudgetParser(BaseBudgetParser):
                 re.IGNORECASE,
             ),
 
+            # --- Section 14 patterns (CIP project list) ---
+            # Unnumbered program header (e.g. "BED101 - OFFICE OF INTERNATIONAL AFFAIRS")
+            'cip_program': re.compile(
+                r'^\s*([A-Z]{2,4}\d{2,4})\s*[-\u2013]\s*(.+?)\s*$',
+            ),
+            # Project header (e.g. "1.          EAST-WEST CENTER, OAHU" or "2.1  NEW ANIMAL...")
+            # Accepts "1." (integer with trailing dot) or "2.1" (decimal subproject).
+            'cip_project': re.compile(
+                r'^\s*(\d+(?:\.\d+)?)\.?\s{2,}([A-Z].+?)\s*$',
+            ),
+            # Section 14 TOTAL FUNDING line — more permissive than the Part II variant.
+            # Handles all three forms: FY1 only, FY2 only, and both.
+            #   "TOTAL FUNDING  BED  5,000 C    C"      → FY1=5000C, FY2=0C
+            #   "TOTAL FUNDING  AGS         C  4,000 C" → FY1=0C,    FY2=4000C
+            #   "TOTAL FUNDING  TRN  17,061 E 26,760 E" → FY1=17061E, FY2=26760E
+            'cip_total_funding': re.compile(
+                r'^\s*TOTAL\s+FUNDING\s+([A-Z]{2,4})\s+'
+                r'(?:([\d,]+)\s+)?([A-Z])\s+'       # FY1: optional amount + required fund
+                r'(?:([\d,]+)\s+)?([A-Z])\s*$',     # FY2: optional amount + required fund
+                re.IGNORECASE,
+            ),
+
             # --- section headers (no inline amounts) ---
             'section': re.compile(
                 r'^\s*(OPERATING|(INVESTMENT\s+CAPITAL)'
@@ -270,8 +293,12 @@ class FastBudgetParser(BaseBudgetParser):
 
         Returns:
             List of BudgetAllocation objects.
+
+        Side effects:
+            Populates `self.projects` with List[BudgetProject] from Section 14.
         """
         self.logger.info(f"Starting fast parse of {file_path}")
+        self.projects: List[BudgetProject] = []
 
         try:
             content = self._read_file(file_path)
@@ -286,7 +313,10 @@ class FastBudgetParser(BaseBudgetParser):
 
             allocations = self._remove_suspicious_duplicates(allocations)
 
-            self.logger.info(f"Successfully parsed {len(allocations)} budget allocations")
+            self.logger.info(
+                f"Successfully parsed {len(allocations)} budget allocations "
+                f"and {len(self.projects)} Section 14 projects"
+            )
             return allocations
 
         except Exception as e:
@@ -404,6 +434,13 @@ class FastBudgetParser(BaseBudgetParser):
         pat = self._compiled_patterns
         in_cip_project_list = False  # Section 14: skip TOTAL FUNDING (already counted in Part II)
 
+        # Section 14 project-parsing state
+        cip_program_id: str = ''
+        cip_program_name: str = ''
+        cip_category: str = ''
+        cip_dept_code: str = ''  # Derived from program_id prefix
+        cur_project: Optional[Dict] = None  # {project_id, project_name, scope_lines, line_number}
+
         lines = content.split('\n')
         for i, raw_line in enumerate(lines):
             try:
@@ -494,6 +531,89 @@ class FastBudgetParser(BaseBudgetParser):
                 if 'CAPITAL IMPROVEMENT PROJECTS AUTHORIZED' in line:
                     in_cip_project_list = True
                     self.logger.debug("Entered CIP project list section (Section 14); skipping TOTAL FUNDING lines")
+                    continue
+
+                # --- 0d. Section 14 project parsing ---
+                # When inside the CIP project list, parse project-level structure into
+                # self.projects. Do NOT emit BudgetAllocation records here (those come
+                # from Part II).
+                if in_cip_project_list:
+                    # Category header (A. ECONOMIC DEVELOPMENT)
+                    mc = pat['category'].match(line)
+                    if mc:
+                        code = mc.group(1).upper()
+                        cip_category = CATEGORY_MAP.get(code, 'Other')
+                        continue
+
+                    # Unnumbered program header (BED101 - OFFICE OF INTERNATIONAL AFFAIRS)
+                    mp = pat['cip_program'].match(line)
+                    if mp and mp.group(1)[:3].upper() in DEPARTMENT_NAMES:
+                        cip_program_id = mp.group(1).strip().upper()
+                        cip_program_name = mp.group(2).strip()
+                        cip_dept_code = cip_program_id[:3].upper()
+                        cur_project = None  # Flush in-progress project
+                        continue
+
+                    # TOTAL FUNDING line — emit project(s) for cur_project
+                    mt = pat['cip_total_funding'].match(line)
+                    if mt and cur_project and cip_program_id:
+                        dept = mt.group(1).upper()
+                        fy1_num = int(re.sub(r'[^\d]', '', mt.group(2))) if mt.group(2) else 0
+                        fy2_num = int(re.sub(r'[^\d]', '', mt.group(4))) if mt.group(4) else 0
+                        fy1_fund = (mt.group(3) or 'C').upper()
+                        fy2_fund = (mt.group(5) or fy1_fund).upper()
+                        scope_text = ' '.join(
+                            s.strip() for s in cur_project['scope_lines'] if s.strip()
+                        )
+                        # Emit FY1 project (amounts are in thousands → multiply by 1000)
+                        if fy1_num > 0:
+                            self.projects.append(BudgetProject(
+                                project_id=cur_project['project_id'],
+                                project_name=cur_project['project_name'],
+                                scope=scope_text,
+                                program_id=cip_program_id,
+                                program_name=cip_program_name,
+                                department_code=dept,
+                                category=cip_category or 'Uncategorized',
+                                fiscal_year=self.fy1,
+                                amount=float(fy1_num) * 1000.0,
+                                fund_type=FundType.from_string(fy1_fund),
+                                line_number=line_num,
+                            ))
+                        if fy2_num > 0:
+                            self.projects.append(BudgetProject(
+                                project_id=cur_project['project_id'],
+                                project_name=cur_project['project_name'],
+                                scope=scope_text,
+                                program_id=cip_program_id,
+                                program_name=cip_program_name,
+                                department_code=dept,
+                                category=cip_category or 'Uncategorized',
+                                fiscal_year=self.fy2,
+                                amount=float(fy2_num) * 1000.0,
+                                fund_type=FundType.from_string(fy2_fund),
+                                line_number=line_num,
+                            ))
+                        cur_project = None
+                        continue
+
+                    # Project header (1. EAST-WEST CENTER, OAHU or 2.1  NEW ...)
+                    # Check after cip_program to avoid matching "BED101 - NAME" as a number.
+                    mj = pat['cip_project'].match(line)
+                    # Guard: the matched first group must look like a project number
+                    # (purely digits/dot), NOT a department code.
+                    if mj and re.fullmatch(r'\d+(?:\.\d+)?', mj.group(1)):
+                        cur_project = {
+                            'project_id': mj.group(1),
+                            'project_name': mj.group(2).strip(),
+                            'scope_lines': [],
+                            'line_number': line_num,
+                        }
+                        continue
+
+                    # Any other non-empty line inside a project → scope continuation
+                    if cur_project is not None and line:
+                        cur_project['scope_lines'].append(line)
                     continue
 
                 # --- 1. Category header (A. ECONOMIC DEVELOPMENT) ---
