@@ -1752,3 +1752,91 @@ mark.search-highlight {
     color: #888;
     text-align: right;
 }
+
+/* ── Tax calc input restructure ───────────────────────────── */
+.income-inputs-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+.income-field {
+    flex: 2 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.filing-field {
+    flex: 1 1 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.income-field label,
+.filing-field label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+.filing-field select {
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fff;
+    color: var(--text-color);
+}
+.tax-paid-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 0.75rem;
+}
+.tax-paid-row .tax-input-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+.auto-label {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 0.25rem;
+}
+
+/* ── HB300 reference bar + compare toggles ────────────────── */
+.compare-toggles-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+.compare-mode-toggle {
+    margin-left: auto;
+}
+.hb300-ref-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    background: #f0f4f2;
+    border: 1px solid #c8d8d0;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+.hb300-ref-label {
+    font-weight: 600;
+    color: #4a7a6a;
+    white-space: nowrap;
+}
+.hb300-ref-chip {
+    background: #fff;
+    border: 1px solid #b8cec7;
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    color: #333;
+    white-space: nowrap;
+}

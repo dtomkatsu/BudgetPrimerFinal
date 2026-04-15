@@ -604,8 +604,15 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             <div class="draft-meta-bar">
                 <span>See also: <a href="https://hiappleseed.org/publications/hawaii-budget-primer-fy202526" target="_blank" rel="noopener">Hawaiʻi Budget Primer FY2025–26</a></span>
             </div>
-            ${fyToggle}
+            <div class="compare-toggles-bar">
+                ${fyToggle}
+                <div class="fy-toggle compare-mode-toggle">
+                    <button class="sort-btn active" id="mode-btn-hd1sd1" data-mode="hd1-sd1">HD1 vs SD1</button>
+                    <button class="sort-btn" id="mode-btn-hb300" data-mode="vs-hb300">vs HB300 (enacted)</button>
+                </div>
+            </div>
 
+            <div id="hb300-ref"></div>
             <div class="summary-cards-grid compact" id="draft-cards"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
@@ -648,9 +655,29 @@ window.initDraftComparePage = async function () {
     let expandedDepts = new Set();
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
+    let compareMode = 'hd1-sd1'; // 'hd1-sd1' | 'vs-hb300'
 
-    const getD1Key = () => 'amount_' + activeData.metadata.draft1.toLowerCase();
+    // Build HB300 lookup from fyComparisonData: key = program_id + '_' + fund_type
+    const hb300Lookup = new Map();
+    for (const r of (fyComparisonData || [])) {
+        hb300Lookup.set(`${r.program_id}_${r.fund_type}`, r);
+    }
+
+    // Inject amount_hb300 into each comparison record (once at init)
+    const injectHB300 = (dataset) => {
+        const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        for (const r of dataset.comparisons) {
+            const match = hb300Lookup.get(`${r.program_id}_${r.fund_type}`);
+            r.amount_hb300 = match ? (match[fyKey] || 0) : 0;
+        }
+    };
+    if (draftComparisonData) injectHB300(draftComparisonData);
+    if (draftComparisonDataFY27) injectHB300(draftComparisonDataFY27);
+
+    const getD1Key = () => compareMode === 'vs-hb300' ? 'amount_hb300' : 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD2Key = () => 'amount_' + activeData.metadata.draft2.toLowerCase();
+    const getD1Label = () => compareMode === 'vs-hb300' ? 'HB300' : activeData.metadata.draft1;
+    const getD2Label = () => activeData.metadata.draft2;
 
     // Shorten fund category names for display (e.g., "General Funds" → "General")
     const shortFund = (cat) => {
@@ -677,19 +704,26 @@ window.initDraftComparePage = async function () {
     const updateSummaryCards = () => {
         const meta = activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
+        const d1Label = getD1Label(), d2Label = getD2Label();
         const recs = activeData.comparisons;
+        const fyKey = meta.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
 
         const sumBy = (section) => {
             const sr = recs.filter(r => r.section === section);
             const d1 = sr.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            return { d1, d2, delta: d2 - d1 };
+            // HB300 totals from fyComparisonData
+            const hb300 = (fyComparisonData || [])
+                .filter(r => r.section === section)
+                .reduce((s, r) => s + (r[fyKey] || 0), 0);
+            return { d1, d2, delta: d2 - d1, hb300 };
         };
         const op = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
         const totalD1 = op.d1 + cap.d1;
         const totalD2 = op.d2 + cap.d2;
         const totalNet = totalD2 - totalD1;
+        const hb300Total = op.hb300 + cap.hb300;
 
         const changeCard = (delta, label) => {
             const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
@@ -697,21 +731,33 @@ window.initDraftComparePage = async function () {
             return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmt(delta)}</div><div class="label">${label}</div></div>`;
         };
 
+        // HB300 reference bar (always shown, outside compact grid)
+        const hb300RefEl = document.getElementById('hb300-ref');
+        if (hb300RefEl) {
+            hb300RefEl.innerHTML = `
+                <div class="hb300-ref-bar">
+                    <span class="hb300-ref-label">HB300 (enacted FY${meta.fiscal_year}):</span>
+                    <span class="hb300-ref-chip">${fmt(hb300Total)} total</span>
+                    <span class="hb300-ref-chip">${fmt(op.hb300)} operating</span>
+                    <span class="hb300-ref-chip">${fmt(cap.hb300)} capital</span>
+                </div>`;
+        }
+
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
             cardsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Total</div>
-                <div class="summary-card"><div class="amount">${fmt(totalD1)}</div><div class="label">${meta.draft1}</div></div>
+                <div class="summary-card"><div class="amount">${fmt(totalD1)}</div><div class="label">${d1Label}</div></div>
                 <div class="card-arrow">→</div>
-                <div class="summary-card"><div class="amount">${fmt(totalD2)}</div><div class="label">${meta.draft2}</div></div>
+                <div class="summary-card"><div class="amount">${fmt(totalD2)}</div><div class="label">${d2Label}</div></div>
                 <div class="card-arrow"></div>
                 ${changeCard(totalNet, 'Net Change')}
                 <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                 <div class="card-row-collapsible" id="cards-operating" style="display:none;">
                     <div class="summary-cards-grid compact">
-                        <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${meta.draft1}</div></div>
+                        <div class="summary-card"><div class="amount">${fmt(op.d1)}</div><div class="label">${d1Label}</div></div>
                         <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${meta.draft2}</div></div>
+                        <div class="summary-card"><div class="amount">${fmt(op.d2)}</div><div class="label">${d2Label}</div></div>
                         <div class="card-arrow"></div>
                         ${changeCard(op.delta, 'Change')}
                     </div>
@@ -719,9 +765,9 @@ window.initDraftComparePage = async function () {
                 <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                 <div class="card-row-collapsible" id="cards-capital" style="display:none;">
                     <div class="summary-cards-grid compact">
-                        <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${meta.draft1}</div></div>
+                        <div class="summary-card"><div class="amount">${fmt(cap.d1)}</div><div class="label">${d1Label}</div></div>
                         <div class="card-arrow">→</div>
-                        <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${meta.draft2}</div></div>
+                        <div class="summary-card"><div class="amount">${fmt(cap.d2)}</div><div class="label">${d2Label}</div></div>
                         <div class="card-arrow"></div>
                         ${changeCard(cap.delta, 'Change')}
                     </div>
@@ -1106,14 +1152,15 @@ window.initDraftComparePage = async function () {
             </tr>`;
 
             for (const r of fg.rows) {
-                const delta = r.change || 0;
+                const delta = r[d2Key] - r[d1Key];
                 const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+                const dynPct = r[d1Key] !== 0 ? ((delta / Math.abs(r[d1Key])) * 100) : (delta !== 0 ? 100 : 0);
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d1Key])}</span></td>
                     <td class="amount-cell"><span class="figure-chip">${fmt(r[d2Key])}</span></td>
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(delta)}</span></td>
-                    <td class="amount-cell ${cls}">${r.pct_change != null ? fmtPct(r.pct_change) : '—'}</td>
+                    <td class="amount-cell ${cls}">${fmtPct(dynPct)}</td>
                 </tr>`;
             }
         }
@@ -1126,8 +1173,8 @@ window.initDraftComparePage = async function () {
                         <div class="th-dropdown-menu">${secChecks}</div></th>
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
-                    <th class="sortable amount-cell" data-sort="d1">${meta.draft1}${sortArrow('d1')}</th>
-                    <th class="sortable amount-cell" data-sort="d2">${meta.draft2}${sortArrow('d2')}</th>
+                    <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
+                    <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
                 </tr></thead>
@@ -1138,8 +1185,8 @@ window.initDraftComparePage = async function () {
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
                     <th>Fund / Program</th>
-                    <th class="amount-cell">${meta.draft1}</th>
-                    <th class="amount-cell">${meta.draft2}</th>
+                    <th class="amount-cell">${getD1Label()}</th>
+                    <th class="amount-cell">${getD2Label()}</th>
                     <th class="amount-cell">Change</th>
                     <th class="amount-cell">%</th>
                 </tr></thead>
@@ -1421,6 +1468,22 @@ window.initDraftComparePage = async function () {
         render();
     });
 
+    // --- Compare mode toggle (HD1 vs SD1 | vs HB300) ---
+    document.getElementById('mode-btn-hd1sd1')?.addEventListener('click', () => {
+        compareMode = 'hd1-sd1';
+        document.getElementById('mode-btn-hd1sd1').classList.add('active');
+        document.getElementById('mode-btn-hb300')?.classList.remove('active');
+        updateSummaryCards();
+        render();
+    });
+    document.getElementById('mode-btn-hb300')?.addEventListener('click', () => {
+        compareMode = 'vs-hb300';
+        document.getElementById('mode-btn-hb300').classList.add('active');
+        document.getElementById('mode-btn-hd1sd1')?.classList.remove('active');
+        updateSummaryCards();
+        render();
+    });
+
     // --- Reading guide toggle ---
 
     const readingGuideToggle = document.getElementById('reading-guide-toggle');
@@ -1584,31 +1647,31 @@ window.taxCalculatorPage = async function () {
             <p class="page-desc">Enter what you paid in Hawaiʻi state taxes to see a proportional breakdown of where those dollars went across state government.</p>
 
             <div class="tax-input-card">
-                <label for="tax-input" class="tax-input-label">Your Hawaiʻi state tax paid</label>
-                <div class="input-with-prefix">
-                    <span class="prefix">$</span>
-                    <input type="number" id="tax-input" placeholder="5000" min="0" step="100" inputmode="numeric" autocomplete="off">
-                </div>
-                <button class="action-link" id="tax-helper-toggle" type="button">📊 Help me estimate from my income</button>
-                <div id="tax-helper" class="tax-helper" style="display:none;">
-                    <div class="helper-row">
-                        <label>Gross annual income
-                            <div class="input-with-prefix small">
-                                <span class="prefix">$</span>
-                                <input type="number" id="tax-helper-income" placeholder="75000" min="0" step="1000">
-                            </div>
-                        </label>
-                        <label>Filing status
-                            <select id="tax-helper-filing">
-                                <option value="single">Single</option>
-                                <option value="mfj">Married filing jointly</option>
-                                <option value="hoh">Head of household</option>
-                            </select>
-                        </label>
-                        <button id="tax-helper-calc" class="sort-btn" type="button">Calculate</button>
+                <div class="income-inputs-row">
+                    <div class="income-field">
+                        <label for="tax-helper-income">Annual income</label>
+                        <div class="input-with-prefix">
+                            <span class="prefix">$</span>
+                            <input type="number" id="tax-helper-income" placeholder="75,000" min="0" step="1000" inputmode="numeric" autocomplete="off">
+                        </div>
                     </div>
-                    <p class="helper-note">Estimate uses 2025 Hawaiʻi income tax brackets and standard deduction. Actual tax depends on itemized deductions, credits, and other factors.</p>
+                    <div class="filing-field">
+                        <label for="tax-helper-filing">Filing status</label>
+                        <select id="tax-helper-filing">
+                            <option value="single">Single</option>
+                            <option value="mfj">Married filing jointly</option>
+                            <option value="hoh">Head of household</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="tax-paid-row">
+                    <label for="tax-input" class="tax-input-label">Hawaiʻi state tax paid <span class="auto-label" id="tax-auto-label"></span></label>
+                    <div class="input-with-prefix">
+                        <span class="prefix">$</span>
+                        <input type="number" id="tax-input" placeholder="0" min="0" step="100" inputmode="numeric" autocomplete="off">
+                    </div>
+                </div>
+                <p class="helper-note">Estimate uses 2025 Hawaiʻi income tax brackets and standard deduction. Actual tax may vary.</p>
             </div>
 
             <div class="fy-toggle" id="calc-fy-toggle">
@@ -1778,7 +1841,9 @@ window.initTaxCalculatorPage = async function () {
                             const d = ctx?.raw?._data;
                             if (!d) return '';
                             const shareStr = taxAmount > 0 ? fmtYour(d.yourShare) : fmt(d.value);
-                            return [d.code, shareStr];
+                            // Show full name if available, fall back to code
+                            const nameStr = d.name && d.name !== d.code ? d.name.replace(/^Department of /, '') : d.code;
+                            return [nameStr, shareStr];
                         },
                         color: '#fff',
                         font: { size: 11, weight: '600' },
@@ -1917,26 +1982,34 @@ window.initTaxCalculatorPage = async function () {
     // --- Wire up controls ---
 
     const taxInput = document.getElementById('tax-input');
-    taxInput?.addEventListener('input', (e) => {
-        taxAmount = parseFloat(e.target.value) || 0;
-        recompute();
-    });
 
-    document.getElementById('tax-helper-toggle')?.addEventListener('click', () => {
-        const panel = document.getElementById('tax-helper');
-        if (!panel) return;
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    });
-
-    document.getElementById('tax-helper-calc')?.addEventListener('click', () => {
+    // Helper: auto-compute tax from income field and push to tax input
+    const autoComputeFromIncome = () => {
         const income = parseFloat(document.getElementById('tax-helper-income')?.value) || 0;
         const filing = document.getElementById('tax-helper-filing')?.value || 'single';
-        const tax = computeHawaiiTax(income, filing);
-        if (taxInput) {
-            taxInput.value = tax;
-            taxAmount = tax;
-            recompute();
+        const autoLabel = document.getElementById('tax-auto-label');
+        if (income > 0) {
+            const tax = computeHawaiiTax(income, filing);
+            if (taxInput) {
+                taxInput.value = tax;
+                taxAmount = tax;
+            }
+            if (autoLabel) autoLabel.textContent = '(estimated)';
+        } else {
+            if (autoLabel) autoLabel.textContent = '';
         }
+        recompute();
+    };
+
+    document.getElementById('tax-helper-income')?.addEventListener('input', autoComputeFromIncome);
+    document.getElementById('tax-helper-filing')?.addEventListener('change', autoComputeFromIncome);
+
+    // Manual override of tax paid field clears the "estimated" label
+    taxInput?.addEventListener('input', (e) => {
+        taxAmount = parseFloat(e.target.value) || 0;
+        const autoLabel = document.getElementById('tax-auto-label');
+        if (autoLabel) autoLabel.textContent = '';
+        recompute();
     });
 
     // FY toggle
