@@ -1058,8 +1058,34 @@ window.initDraftComparePage = async function () {
             const arrow = isOpen ? '▼' : '▶';
 
             const programs = aggregatePrograms(dept.rows);
+
+            // Detect inter-department transfers within this dept for the collapsed-row indicator
+            const deptTransferDests = new Set();
+            const deptTransferSources = new Set();
+            const XFER_THRESHOLD = 1000000;
+            for (const p of programs) {
+                const sdm = splitPrograms.get(p.program_id);
+                if (!sdm) continue;
+                const td = sdm.get(dept.code)?.delta || 0;
+                for (const [od, odEntry] of sdm) {
+                    if (od === dept.code) continue;
+                    const odDelta = odEntry.delta || 0;
+                    if (Math.abs(td) > XFER_THRESHOLD && Math.abs(odDelta) > XFER_THRESHOLD &&
+                        ((td < 0 && odDelta > 0) || (td > 0 && odDelta < 0))) {
+                        (td < 0 ? deptTransferDests : deptTransferSources).add(od);
+                    }
+                }
+            }
+            let deptTransferNote = '';
+            if (deptTransferDests.size > 0 || deptTransferSources.size > 0) {
+                const tipParts = [];
+                if (deptTransferDests.size > 0) tipParts.push(`funds moved to ${[...deptTransferDests].join(', ')}`);
+                if (deptTransferSources.size > 0) tipParts.push(`funds moved from ${[...deptTransferSources].join(', ')}`);
+                deptTransferNote = ` <span class="dept-transfer-note" title="Contains inter-department transfers (${tipParts.join('; ')}). Expand to see details.">↔ transfers</span>`;
+            }
+
             bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
-                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span></td>
+                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span>${deptTransferNote}</td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmt(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(dept.hd1)}</span></td>` : ''}
@@ -1091,6 +1117,7 @@ window.initDraftComparePage = async function () {
                         if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
                         return `${sign}$${(abs / 1e3).toFixed(0)}K`;
                     };
+                    const fmtAbs = (v) => fmtNet(Math.abs(v)).slice(1); // strip leading sign
 
                     // Find depts with a meaningfully offsetting change
                     const offsetDepts = otherDepts.filter(d => {
@@ -1104,17 +1131,23 @@ window.initDraftComparePage = async function () {
                         const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
                         const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
 
+                        // Direction is uniform: if this dept decreased, money moved OUT (→); if increased, moved IN (←)
+                        const movedOut = thisDelta < 0;
+                        const dirIcon = movedOut ? '→' : '←';
+                        const verb = movedOut ? 'Moved to' : 'Moved from';
+                        const partialVerb = movedOut ? 'Partly moved to' : 'Partly moved from';
+
                         const offsetParts = offsetDepts.map(d => {
                             const od = splitDeptMap.get(d)?.delta || 0;
-                            return `${fmtNet(od)} in <a class="transfer-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`;
+                            return `<a class="transfer-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a> (${fmtAbs(od)})`;
                         }).join(', ');
 
                         if (isPure) {
-                            transferBadge = `<span class="transfer-badge transfer-pure" title="Funds moved to/from another department — total program funding unchanged.">↔ offset: ${offsetParts}</span>`;
+                            transferBadge = `<span class="transfer-badge transfer-pure" title="Funds moved between departments — total program funding is unchanged.">${dirIcon} ${verb} ${offsetParts}</span>`;
                         } else {
                             const netLabel = fmtNet(totalNet);
-                            const netDesc = totalNet < 0 ? 'net cut' : 'net increase';
-                            transferBadge = `<span class="transfer-badge transfer-partial" title="Part of this change reflects funds moved to/from another department, but there is also a real net change.">⚠ offset: ${offsetParts} (${netLabel} ${netDesc})</span>`;
+                            const netDesc = totalNet < 0 ? 'net cut' : 'net add';
+                            transferBadge = `<span class="transfer-badge transfer-partial" title="Part of this change reflects an inter-department transfer. Net change across all involved departments: ${netLabel}.">${dirIcon} ${partialVerb} ${offsetParts}; ${netDesc}: ${netLabel}</span>`;
                         }
                     } else {
                         // No offsetting change — just show a quiet cross-link in the name column
