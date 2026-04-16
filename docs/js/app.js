@@ -628,47 +628,52 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     const meta = initData.metadata;
 
     const fyToggle = (draftComparisonData && draftComparisonDataFY27) ? `
-        <div class="fy-toggle">
-            <button class="sort-btn active" id="fy-btn-26" data-fy="26">FY2026</button>
-            <button class="sort-btn" id="fy-btn-27" data-fy="27">FY2027</button>
-        </div>` : (draftComparisonDataFY27 ? '<div class="fy-toggle"><button class="sort-btn active" data-fy="27">FY2027</button></div>' : '');
+        <div class="fy-seg-ctrl">
+            <button id="fy-btn-26" data-fy="26" class="active">FY2026</button>
+            <button id="fy-btn-27" data-fy="27">FY2027</button>
+        </div>` : (draftComparisonDataFY27 ? '<div class="fy-seg-ctrl"><button class="active" data-fy="27">FY2027</button></div>' : '');
 
     return `
         <section class="compare-page">
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
-            <div class="compare-controls-stack">
-                <div class="compare-timeline" id="compare-timeline">
-                    <div class="tl-node" id="tl-node-gov">
-                        <span class="tl-label">Gov's<br>Request</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
-                            <span class="tl-seg tl-seg-after"></span>
+            <div class="compare-controls-bar">
+                <div class="ctrl-group">
+                    <div class="ctrl-label">Fiscal Year</div>
+                    ${fyToggle}
+                </div>
+                <div class="ctrl-divider"></div>
+                <div class="ctrl-group ctrl-group-timeline">
+                    <div class="ctrl-label">Drafts to compare</div>
+                    <div class="compare-timeline" id="compare-timeline">
+                        <div class="tl-node" id="tl-node-gov">
+                            <span class="tl-label">Gov's<br>Request</span>
+                            <div class="tl-dot-row">
+                                <span class="tl-seg tl-seg-before"></span>
+                                <span class="tl-dot"></span>
+                                <span class="tl-seg tl-seg-after"></span>
+                            </div>
+                            <input type="checkbox" class="tl-cb" id="tl-gov" checked>
                         </div>
-                        <input type="checkbox" class="tl-cb" id="tl-gov" checked>
-                    </div>
-                    <div class="tl-node" id="tl-node-hd1">
-                        <span class="tl-label">HD1</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
-                            <span class="tl-seg tl-seg-after"></span>
+                        <div class="tl-node" id="tl-node-hd1">
+                            <span class="tl-label">HD1</span>
+                            <div class="tl-dot-row">
+                                <span class="tl-seg tl-seg-before"></span>
+                                <span class="tl-dot"></span>
+                                <span class="tl-seg tl-seg-after"></span>
+                            </div>
+                            <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
                         </div>
-                        <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
-                    </div>
-                    <div class="tl-node" id="tl-node-sd1">
-                        <span class="tl-label">SD1</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
-                            <span class="tl-seg tl-seg-after"></span>
+                        <div class="tl-node" id="tl-node-sd1">
+                            <span class="tl-label">SD1</span>
+                            <div class="tl-dot-row">
+                                <span class="tl-seg tl-seg-before"></span>
+                                <span class="tl-dot"></span>
+                                <span class="tl-seg tl-seg-after"></span>
+                            </div>
+                            <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                         </div>
-                        <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                     </div>
                 </div>
-            <div class="compare-toggles-bar">
-                ${fyToggle}
-            </div>
             </div>
 
             <div id="hb300-ref"></div>
@@ -846,14 +851,13 @@ window.initDraftComparePage = async function () {
             cardsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Total</div>
                 ${cardRow(op.baseline + cap.baseline, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
-                <div class="card-section-label card-section-toggle" data-target="cards-operating"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
-                <div class="card-row-collapsible" id="cards-operating" style="display:none;">
+                <div class="card-section-label card-section-toggle" data-target="cards-both"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Expand to see Operating and Capital Improvement breakdowns.">Operating &amp; Capital</span></div>
+                <div class="card-row-collapsible" id="cards-both" style="display:none;">
+                    <div class="card-section-sub"><span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
                     <div class="${innerGrid}">
                         ${cardRow(op.baseline, op.hd1, op.d2, op.delta, 'Change')}
                     </div>
-                </div>
-                <div class="card-section-label card-section-toggle" data-target="cards-capital"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
-                <div class="card-row-collapsible" id="cards-capital" style="display:none;">
+                    <div class="card-section-sub"><span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
                     <div class="${innerGrid}">
                         ${cardRow(cap.baseline, cap.hd1, cap.d2, cap.delta, 'Change')}
                     </div>
@@ -1052,6 +1056,34 @@ window.initDraftComparePage = async function () {
                 if (r.change_type === 'removed') p.hasRemoved = true;
                 p.rawRows.push(r);
             }
+            // For split programs (appear in multiple departments), augment this dept's
+            // aggregation with records from other departments — but only for sections
+            // that the current dept already has. This ensures the section/fund sub-rows
+            // (and the program-level total) reflect the FULL program allocation, not just
+            // the slice booked to this dept in the current draft.
+            // Example: HMS220 Capital Improvement under HMS was $0 HD1 because the $68M
+            // was booked under BED in HD1 and only transferred to HMS in SD1. With this
+            // augmentation, HMS/HMS220 Capital now correctly shows $68M HD1.
+            for (const p of pMap.values()) {
+                if (!splitPrograms.has(p.program_id)) continue;
+                // Save pre-augmentation (dept-scoped) totals so we can later compute
+                // each program's individual contribution to the dept-vs-program mismatch.
+                p.d1DeptScope = p.d1;
+                p.d2DeptScope = p.d2;
+                const mySections = new Set(p.rawRows.map(r => r.section));
+                p.crossDeptAugmented = new Set(); // other depts pulled in
+                for (const r of activeData.comparisons) {
+                    if (r.program_id !== p.program_id) continue;
+                    if (r.department_code === p.department_code) continue;
+                    if (!mySections.has(r.section)) continue;
+                    p.d1  += r[d1Key]  || 0;
+                    p.d2  += r[d2Key]  || 0;
+                    p.hd1 += r[hd1Key] || 0;
+                    if (r.fund_category) p.funds.add(r.fund_category);
+                    p.rawRows.push(r);
+                    p.crossDeptAugmented.add(r.department_code);
+                }
+            }
             return [...pMap.values()].map(p => {
                 p.change = p.d2 - p.d1;
                 p.pct_change = p.d1 !== 0 ? ((p.d2 - p.d1) / Math.abs(p.d1)) * 100 : (p.d2 !== 0 ? 100 : 0);
@@ -1076,29 +1108,55 @@ window.initDraftComparePage = async function () {
 
             const programs = aggregatePrograms(dept.rows);
 
-            // Detect inter-department transfers within this dept for the collapsed-row indicator
-            const deptTransferDests = new Set();
-            const deptTransferSources = new Set();
-            const XFER_THRESHOLD = 1000000;
-            for (const p of programs) {
-                const sdm = splitPrograms.get(p.program_id);
-                if (!sdm) continue;
-                const td = sdm.get(dept.code)?.delta || 0;
-                for (const [od, odEntry] of sdm) {
-                    if (od === dept.code) continue;
-                    const odDelta = odEntry.delta || 0;
-                    if (Math.abs(td) > XFER_THRESHOLD && Math.abs(odDelta) > XFER_THRESHOLD &&
-                        ((td < 0 && odDelta > 0) || (td > 0 && odDelta < 0))) {
-                        (td < 0 ? deptTransferDests : deptTransferSources).add(od);
-                    }
-                }
-            }
+            // Reconciliation badge: when cross-dept aggregation makes split programs show
+            // a change that differs from the slice of money actually booked to this dept,
+            // the numbers won't appear to add up. Explain it in plain language.
+            // Mismatch = dept.delta − sum(programs.change). For each split program,
+            // its individual contribution to the mismatch is:
+            //   contribution = (dept-scoped change) − (augmented program.change)
+            // Only programs with non-trivial contribution are listed.
+            const MISMATCH_THRESHOLD = 1000000;    // $1M — minimum dept-level mismatch to show badge
+            const PROG_CONTRIB_THRESHOLD = 100000; // $100K — minimum per-program contribution to list
+            const programChangeSum = programs.reduce((s, p) => s + p.change, 0);
+            const mismatch = dept.delta - programChangeSum;
+
+            // Tag each split program with its individual contribution and direction
+            const affectedPrograms = programs
+                .filter(p => splitPrograms.has(p.program_id) && p.crossDeptAugmented && p.crossDeptAugmented.size > 0)
+                .map(p => {
+                    const deptScopedChange = (p.d2DeptScope || 0) - (p.d1DeptScope || 0);
+                    const contribution = deptScopedChange - p.change;
+                    return { ...p, contribution };
+                })
+                .filter(p => Math.abs(p.contribution) >= PROG_CONTRIB_THRESHOLD);
+
             let deptTransferNote = '';
-            if (deptTransferDests.size > 0 || deptTransferSources.size > 0) {
-                const tipParts = [];
-                if (deptTransferDests.size > 0) tipParts.push(`funds moved to ${[...deptTransferDests].join(', ')}`);
-                if (deptTransferSources.size > 0) tipParts.push(`funds moved from ${[...deptTransferSources].join(', ')}`);
-                deptTransferNote = ` <span class="dept-transfer-note" title="Contains inter-department transfers (${tipParts.join('; ')}). Expand to see details.">↔ transfers</span>`;
+            if (Math.abs(mismatch) >= MISMATCH_THRESHOLD && affectedPrograms.length > 0) {
+                // Title-case a program name while preserving parenthesized acronyms: (HYCF), (DHS), etc.
+                const prettyName = (name) => (name || '').split(' ').map(word => {
+                    if (/^\([A-Z]+\)$/.test(word)) return word;
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                }).join(' ');
+
+                const incoming = affectedPrograms.filter(p => p.contribution > 0);
+                const outgoing = affectedPrograms.filter(p => p.contribution < 0);
+                const isMixed = incoming.length > 0 && outgoing.length > 0;
+
+                const listProgs = (arr) => arr.map(p => `${p.program_id} ${prettyName(p.program_name)}`).join(', ');
+
+                let badgeLabel, tooltip;
+                if (isMixed) {
+                    badgeLabel = 'some program funding shifted between departments';
+                    tooltip = `Some funding for programs (${listProgs(incoming)}) is routed through ${dept.code} from other departments, while funding for (${listProgs(outgoing)}) is routed from ${dept.code} to other departments. The programs still get the same money — the budget just records which department holds the line item. That's why this row has a change but the program rows show $0 change.`;
+                } else if (incoming.length > 0) {
+                    badgeLabel = 'some program funding routed through this dept';
+                    tooltip = `Part of the funding for (${listProgs(incoming)}) is routed through ${dept.code} even though the programs are run by other departments. The programs still get the same money — the budget just records which department holds the line item. That's why this row's total went up but the program rows show $0 change.`;
+                } else {
+                    badgeLabel = 'some program funding routed through other depts';
+                    tooltip = `Part of the funding for (${listProgs(outgoing)}) is now routed through other departments instead of ${dept.code}. The programs still get the same money — the budget just records which department holds the line item. That's why this row's total went down but the program rows show $0 change.`;
+                }
+                const tooltipEscaped = tooltip.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                deptTransferNote = ` <span class="dept-transfer-note" title="${tooltipEscaped}">↔ ${badgeLabel}</span>`;
             }
 
             bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
