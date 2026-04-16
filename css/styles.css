@@ -1213,6 +1213,29 @@ th.sortable:hover {
     text-decoration: underline;
 }
 
+/* Fund-type sub-rows (drill-down inside a multi-fund program/section row) */
+.prog-fund-row {
+    background: #f9fafb;
+}
+.prog-fund-row td {
+    border-top: none;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+.fund-indent {
+    padding-left: 3rem !important;
+    font-size: 0.82rem;
+    color: #444;
+}
+.fund-indent-deep {
+    padding-left: 4rem !important;
+}
+.fund-name-full {
+    color: #888;
+    font-size: 0.78rem;
+    margin-left: 4px;
+}
+
 /* Fund type info note (e.g. GO Bond explanation) */
 .fund-note {
     font-size: 0.72rem;
