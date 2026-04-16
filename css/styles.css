@@ -208,11 +208,11 @@ body {
 }
 
 .summary-card .amount .fmt-unit {
-    font-size: 0.52em;
+    font-size: 0.68em;
     font-weight: 500;
     color: #7a8fa6;
     letter-spacing: 0.03em;
-    vertical-align: 0.15em;
+    vertical-align: 0.1em;
 }
 
 .summary-card .label {
@@ -597,7 +597,8 @@ body {
     background: #f4f6f8;
     border: 1px solid #e3e7eb;
     border-radius: 4px;
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     min-width: 3.5rem;
     text-align: right;
