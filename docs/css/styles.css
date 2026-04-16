@@ -1581,7 +1581,7 @@ th.sortable:hover {
 
 /* ===== Highlights section (below Total) ===== */
 .highlights-section {
-    margin-top: 0.85rem;
+    margin-top: 1.5rem;
     margin-bottom: 0.5rem;
 }
 .highlights-section .card-section-total {
@@ -1652,6 +1652,25 @@ th.sortable:hover {
     font-style: italic;
     padding: 0.3rem 0;
     font-size: 0.85rem;
+}
+.highlight-item.highlight-hidden {
+    display: none;
+}
+.highlight-more-btn {
+    background: none;
+    border: none;
+    padding: 0.3rem 0 0.1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--primary-color, #2e7d32);
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+.highlight-more-btn:hover {
+    text-decoration: underline;
 }
 
 /* ===== About Page ===== */
