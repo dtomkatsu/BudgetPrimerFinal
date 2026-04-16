@@ -1978,7 +1978,7 @@ mark.search-highlight {
 }
 .ctrl-label-fy      { grid-column: 1; grid-row: 1; }
 .ctrl-label-timeline{ grid-column: 3; grid-row: 1; }
-.ctrl-cell-fy       { grid-column: 1; grid-row: 2; align-self: start; }
+.ctrl-cell-fy       { grid-column: 1; grid-row: 2; align-self: center; }
 .ctrl-cell-timeline { grid-column: 3; grid-row: 2; align-self: start; }
 .ctrl-divider {
     grid-column: 2;
