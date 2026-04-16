@@ -609,10 +609,10 @@ body {
     letter-spacing: -0.01em;
 }
 .figure-chip .fmt-unit {
-    font-size: 0.68rem;
-    font-weight: 400;
-    color: #8a99a8;
-    letter-spacing: 0.01em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b7d8f;
+    letter-spacing: 0.02em;
     margin-left: 1px;
 }
 /* Tinted chip for the Change column based on direction */
