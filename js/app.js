@@ -95,8 +95,8 @@ const fmtHtml = (amount) => {
     if (amount == null) return '<span class="fmt-num">$0</span>';
     const abs = Math.abs(amount);
     const sign = amount < 0 ? '-' : '';
-    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(1)}</span><span class="fmt-unit"> billion</span>`;
-    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(1)}</span><span class="fmt-unit"> million</span>`;
+    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(1)}</span><span class="fmt-unit">B</span>`;
+    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(1)}</span><span class="fmt-unit">M</span>`;
     if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
     return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
 };
