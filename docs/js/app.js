@@ -1013,6 +1013,9 @@ window.initDraftComparePage = async function () {
         // Auto-expand departments when searching
         const autoExpand = q.length > 0;
 
+        // Active fiscal year for inline toggle
+        const activeYear = (activeData === draftComparisonData) ? 26 : 27;
+
         // Aggregate records by program_id within each department
         const aggregatePrograms = (rows) => {
             const pMap = new Map();
@@ -1343,7 +1346,7 @@ window.initDraftComparePage = async function () {
         document.getElementById('draft-results').innerHTML = `
             <table class="data-table" id="draft-table">
                 <thead><tr>
-                    <th class="sortable" data-sort="program_name">Program${sortArrow('program_name')}</th>
+                    <th class="sortable th-program-col" data-sort="program_name"><span class="th-program-label">Program${sortArrow('program_name')}</span>${(draftComparisonData && draftComparisonDataFY27) ? `<span class="fy-inline-toggle" id="fy-inline-toggle"><button class="fy-inline-btn${activeYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>` : ''}</th>
                     <th class="th-dropdown" id="th-section"><span class="th-dropdown-btn">${secLabel}</span>
                         <div class="th-dropdown-menu">${secChecks}</div></th>
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
@@ -1572,6 +1575,14 @@ window.initDraftComparePage = async function () {
                     if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
             }
+            return;
+        }
+        // Inline year toggle inside Program header
+        const fyInlineBtn = e.target.closest('[data-fy-inline]');
+        if (fyInlineBtn) {
+            e.stopPropagation();
+            const fy = fyInlineBtn.dataset.fyInline;
+            document.getElementById(`fy-btn-${fy}`)?.click();
             return;
         }
         // Sortable headers
