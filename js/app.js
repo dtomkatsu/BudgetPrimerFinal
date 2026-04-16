@@ -652,8 +652,9 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <h2>HB 1800: Draft Comparison</h2>
-            <p class="compare-page-desc">This page tracks how Hawaiʻi's proposed 2026 supplemental budget changed as it moved through the legislature. Use the controls below to compare any two drafts — the Governor's original request, the House version (HD1), and the Senate version (SD1) — and see what was added, cut, or shifted for each state department and program. Toggle between fiscal years FY2026 and FY2027 to view the two-year picture.</p>
+            <div class="compare-page-eyebrow">2026 Session · Supplemental Budget</div>
+            <h2>HB 1800 · Draft Comparison</h2>
+            <p class="compare-page-desc">How Hawaiʻi's 2026 supplemental budget has changed as it's moved through the legislature. Compare the Governor's Request, HD1, and SD1 drafts to see what was added, cut, or moved across departments. Toggle FY2026 / FY2027 for the two-year view.</p>
             <div class="compare-controls-bar">
                 <div class="ctrl-label ctrl-label-fy">Fiscal Year</div>
                 <div class="ctrl-divider"></div>

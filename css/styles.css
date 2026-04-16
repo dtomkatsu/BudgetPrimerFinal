@@ -2150,6 +2150,14 @@ mark.search-highlight {
 }
 
 /* ── Compare page description ── */
+.compare-page-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7a8a85;
+    margin-bottom: 0.3rem;
+}
 .compare-page-desc {
     font-size: 0.95rem;
     line-height: 1.65;
