@@ -1214,6 +1214,9 @@ th.sortable:hover {
 }
 
 /* Fund-type sub-rows (drill-down inside a multi-fund program/section row) */
+.prog-fund-row.hidden {
+    display: none;
+}
 .prog-fund-row, .fund-sub-row {
     background: #f9fafb;
 }
