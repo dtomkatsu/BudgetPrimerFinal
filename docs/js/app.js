@@ -1005,7 +1005,7 @@ window.initDraftComparePage = async function () {
             };
 
             highlightsEl.innerHTML = `
-                <div class="card-section-label card-section-total">Highlights <span class="highlights-sub">${d1Label} → ${d2Label}</span></div>
+                <div class="card-section-label card-section-total">Highlights</div>
                 <ul class="highlights-list">
                     ${combined.length
                         ? combined.map(renderSentence).join('')
