@@ -572,6 +572,15 @@ body {
     z-index: 1;
 }
 
+.th-sub {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: #999;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
 .data-table tbody tr:hover {
     background: #f0f8f4;
 }
@@ -1148,6 +1157,38 @@ th.sortable:hover {
 }
 .realloc-note.realloc-pure .split-link:hover {
     color: #0d2c47;
+}
+
+/* Transfer badge — shown in the Change cell when a program is split across depts */
+.transfer-badge {
+    display: block;
+    font-size: 0.67rem;
+    font-weight: 500;
+    font-style: normal;
+    margin-top: 4px;
+    border-radius: 4px;
+    padding: 1px 5px;
+    cursor: help;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+.transfer-pure {
+    color: #1a5276;
+    background: #eaf4fb;
+    border: 1px solid #aed6f1;
+}
+.transfer-partial {
+    color: #7a5c00;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+}
+.transfer-link {
+    color: inherit;
+    text-decoration: underline dotted;
+    font-style: normal;
+}
+.transfer-link:hover {
+    text-decoration: underline;
 }
 
 /* Fund type info note (e.g. GO Bond explanation) */

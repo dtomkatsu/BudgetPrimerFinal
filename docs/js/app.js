@@ -736,6 +736,11 @@ window.initDraftComparePage = async function () {
     const getD2Key = () => sd1Active ? 'amount_' + activeData.metadata.draft2.toLowerCase() : 'amount_' + activeData.metadata.draft1.toLowerCase();
     const getD1Label = () => govActive ? "Gov's Request" : activeData.metadata.draft1;
     const getD2Label = () => sd1Active ? activeData.metadata.draft2 : activeData.metadata.draft1;
+    const getChangeLabel = (sortArrowHtml = '') => {
+        const from = govActive ? 'Gov.' : 'HD1';
+        const to = sd1Active ? 'SD1' : 'HD1';
+        return `Change${sortArrowHtml}<span class="th-sub">${from} → ${to}</span>`;
+    };
     // HD1 is a visible middle column only when it is active AND is not itself an endpoint
     const showHD1Col = () => hd1Active && govActive && sd1Active;
 
@@ -980,6 +985,11 @@ window.initDraftComparePage = async function () {
         });
 
         // Build cross-reference map: program_id → Map<deptCode, {d1, d2, delta}>
+        // Always use HD1→SD1 deltas (not the baseline) so reallocation detection is reliable:
+        // the baseline lookup assigns the same value to all dept rows for the same program,
+        // making it impossible to detect which dept gained/lost between drafts.
+        const splitHd1Key = 'amount_' + meta.draft1.toLowerCase(); // always amount_hd1
+        const splitD2Key  = 'amount_' + meta.draft2.toLowerCase(); // always amount_sd1
         const splitPrograms = new Map();
         for (const r of activeData.comparisons) {
             const pid = r.program_id;
@@ -989,8 +999,8 @@ window.initDraftComparePage = async function () {
             const deptMap = splitPrograms.get(pid);
             if (!deptMap.has(dept)) deptMap.set(dept, { d1: 0, d2: 0 });
             const entry = deptMap.get(dept);
-            entry.d1 += r[d1Key] || 0;
-            entry.d2 += r[d2Key] || 0;
+            entry.d1 += r[splitHd1Key] || 0;
+            entry.d2 += r[splitD2Key] || 0;
         }
         // Only keep programs that appear in 2+ departments; compute delta
         for (const [pid, deptMap] of splitPrograms) {
@@ -1067,24 +1077,11 @@ window.initDraftComparePage = async function () {
                 // Cross-reference note for programs split across departments
                 const splitDeptMap = splitPrograms.get(p.program_id);
                 let crossRefNote = '';
+                let transferBadge = '';
                 if (splitDeptMap) {
                     const otherDepts = [...splitDeptMap.keys()].filter(d => d !== dept.code);
-                    const otherLinks = otherDepts
-                        .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
-                        .join(', ');
-                    crossRefNote = ` <span class="split-note">also in ${otherLinks}</span>`;
-
-                    // Detect reallocation: significant negative here, offsetting positive elsewhere
                     const thisDelta = splitDeptMap.get(dept.code)?.delta || 0;
                     const THRESHOLD = 1000000; // $1M minimum to flag
-                    const offsetDepts = otherDepts.filter(d => {
-                        const od = splitDeptMap.get(d)?.delta || 0;
-                        return thisDelta < -THRESHOLD && od > THRESHOLD;
-                    });
-                    const sourceDepts = otherDepts.filter(d => {
-                        const od = splitDeptMap.get(d)?.delta || 0;
-                        return thisDelta > THRESHOLD && od < -THRESHOLD;
-                    });
 
                     const fmtNet = (v) => {
                         const sign = v < 0 ? '−' : '+';
@@ -1094,36 +1091,36 @@ window.initDraftComparePage = async function () {
                         return `${sign}$${(abs / 1e3).toFixed(0)}K`;
                     };
 
+                    // Find depts with a meaningfully offsetting change
+                    const offsetDepts = otherDepts.filter(d => {
+                        const od = splitDeptMap.get(d)?.delta || 0;
+                        return Math.abs(thisDelta) > THRESHOLD && Math.abs(od) > THRESHOLD &&
+                               ((thisDelta < 0 && od > 0) || (thisDelta > 0 && od < 0));
+                    });
+
                     if (offsetDepts.length > 0) {
-                        const offsetLinks = offsetDepts
-                            .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
-                            .join(', ');
-                        // Net change across all involved depts for this program
                         const allInvolved = [dept.code, ...offsetDepts];
                         const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
                         const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
+
+                        const offsetParts = offsetDepts.map(d => {
+                            const od = splitDeptMap.get(d)?.delta || 0;
+                            return `${fmtNet(od)} in <a class="transfer-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`;
+                        }).join(', ');
+
                         if (isPure) {
-                            crossRefNote += ` <span class="realloc-note realloc-pure" title="The apparent cut here reflects funds moved to another department — the total program funding is unchanged.">↔ funding shifted to ${offsetLinks} — same total, different department</span>`;
+                            transferBadge = `<span class="transfer-badge transfer-pure" title="Funds moved to/from another department — total program funding unchanged.">↔ offset: ${offsetParts}</span>`;
                         } else {
                             const netLabel = fmtNet(totalNet);
                             const netDesc = totalNet < 0 ? 'net cut' : 'net increase';
-                            crossRefNote += ` <span class="realloc-note" title="Part of this change reflects funds moved to another department, but there is also a real net change in total program funding.">⚠ partly shifted to ${offsetLinks} (${netLabel} ${netDesc})</span>`;
+                            transferBadge = `<span class="transfer-badge transfer-partial" title="Part of this change reflects funds moved to/from another department, but there is also a real net change.">⚠ offset: ${offsetParts} (${netLabel} ${netDesc})</span>`;
                         }
-                    } else if (sourceDepts.length > 0) {
-                        const sourceLinks = sourceDepts
+                    } else {
+                        // No offsetting change — just show a quiet cross-link in the name column
+                        const otherLinks = otherDepts
                             .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
                             .join(', ');
-                        // Net change across all involved depts for this program
-                        const allInvolved = [dept.code, ...sourceDepts];
-                        const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
-                        const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
-                        if (isPure) {
-                            crossRefNote += ` <span class="realloc-note realloc-pure" title="Part of the apparent increase here reflects funds moved from another department — the total program funding is unchanged.">↔ includes funds shifted from ${sourceLinks} — same total, different department</span>`;
-                        } else {
-                            const netLabel = fmtNet(totalNet);
-                            const netDesc = totalNet > 0 ? 'net increase' : 'net cut';
-                            crossRefNote += ` <span class="realloc-note" title="Part of this change reflects funds moved from another department, but there is also a real net change in total program funding.">⚠ partly shifted from ${sourceLinks} (${netLabel} ${netDesc})</span>`;
-                        }
+                        crossRefNote = ` <span class="split-note">also in ${otherLinks}</span>`;
                     }
                 }
 
@@ -1136,7 +1133,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
@@ -1179,7 +1176,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                 }
@@ -1248,7 +1245,7 @@ window.initDraftComparePage = async function () {
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
                     ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
-                    <th class="sortable amount-cell" data-sort="change">Change${sortArrow('change')}</th>
+                    <th class="sortable amount-cell" data-sort="change">${getChangeLabel(sortArrow('change'))}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
                 </tr></thead>
                 <tbody>${bodyHtml}</tbody>
@@ -1263,7 +1260,7 @@ window.initDraftComparePage = async function () {
                     <th class="amount-cell">${getD1Label()}</th>
                     ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="amount-cell">${getD2Label()}</th>
-                    <th class="amount-cell">Change</th>
+                    <th class="amount-cell">${getChangeLabel()}</th>
                     <th class="amount-cell">%</th>
                 </tr></thead>
                 <tbody>${fundHtml}</tbody>
@@ -1365,7 +1362,7 @@ window.initDraftComparePage = async function () {
                         <th>#</th><th>Project</th><th>Fund</th>
                         <th class="amount-cell">${d1Label}</th>
                         <th class="amount-cell">${d2Label}</th>
-                        <th class="amount-cell">Change</th>
+                        <th class="amount-cell">Change<span class="th-sub">${d1Label} → ${d2Label}</span></th>
                     </tr></thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
