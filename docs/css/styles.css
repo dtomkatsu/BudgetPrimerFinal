@@ -1308,6 +1308,33 @@ th.sortable:hover {
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     max-width: 480px;
 }
+/* Inline placement next to search bar */
+.reading-guide.reading-guide-inline {
+    margin: 0;
+    padding: 0.55rem 0.9rem;
+    flex: 1;
+    min-width: 320px;
+    max-width: 560px;
+    margin-left: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+.reading-guide.reading-guide-inline .reading-guide-summary {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+}
+.reading-guide.reading-guide-inline .reading-guide-header strong {
+    font-size: 0.82rem;
+}
+.reading-guide.reading-guide-inline .reading-guide-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.85rem;
+}
+.reading-guide.reading-guide-inline .reading-guide-toggle {
+    font-size: 0.68rem;
+    padding: 1px 8px;
+}
 .reading-guide-header {
     display: flex;
     align-items: center;
@@ -1475,6 +1502,114 @@ th.sortable:hover {
     border: 1px solid #ddd;
     border-radius: 12px;
     width: 160px;
+}
+
+/* ===== Unified search + reading-guide row ===== */
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+.search-row .search-summary {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* ===== Highlights section (below Total) ===== */
+.highlights-section {
+    margin-top: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+.highlights-section .card-section-total {
+    margin-bottom: 0.5rem;
+}
+.highlights-sub {
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: #888;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-left: 0.4rem;
+}
+.highlights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+}
+.highlights-col {
+    background: #fafbfa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem 0.6rem;
+}
+.highlights-col-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0.25rem;
+}
+.highlights-col-header.highlights-col-pos { color: #1e7e34; }
+.highlights-col-header.highlights-col-neg { color: #c62828; }
+.highlights-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.highlight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px dotted #eaeaea;
+    font-size: 0.85rem;
+}
+.highlight-item:last-child { border-bottom: none; }
+.highlight-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+.highlight-name {
+    color: #222;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.highlight-name strong {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-right: 0.3rem;
+}
+.highlight-dept {
+    font-size: 0.72rem;
+    color: #888;
+    margin-top: 1px;
+}
+.highlight-amt {
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.88rem;
+}
+.highlight-amt.positive { color: #1e7e34; }
+.highlight-amt.negative { color: #c62828; }
+.highlight-empty {
+    color: #999;
+    font-style: italic;
+    padding: 0.3rem 0;
+    font-size: 0.82rem;
+}
+@media (max-width: 680px) {
+    .highlights-grid { grid-template-columns: 1fr; }
 }
 
 /* ===== About Page ===== */

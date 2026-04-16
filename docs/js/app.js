@@ -676,22 +676,24 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
             <div id="hb300-ref"></div>
             <div class="summary-cards-grid compact" id="draft-cards"></div>
+            <div id="draft-highlights" class="highlights-section"></div>
             <div class="draft-stats" id="draft-stats-bar"></div>
 
-            <div class="reading-guide" id="reading-guide-box">
-                <div class="reading-guide-header">
-                    <span class="reading-guide-icon">ℹ</span>
-                    <strong>How to read these numbers</strong>
-                    <button class="reading-guide-toggle" id="reading-guide-toggle" aria-expanded="false">More</button>
-                </div>
-                <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
-                <div class="reading-guide-content" id="reading-guide-content" style="display: none;">
-                    <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
-                    <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
+            <div class="search-row">
+                <div class="search-summary" id="draft-summary"></div>
+                <div class="reading-guide reading-guide-inline" id="reading-guide-box">
+                    <div class="reading-guide-header">
+                        <span class="reading-guide-icon">ℹ</span>
+                        <strong>How to read these numbers</strong>
+                        <button class="reading-guide-toggle" id="reading-guide-toggle" aria-expanded="false">More</button>
+                    </div>
+                    <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
+                    <div class="reading-guide-content" id="reading-guide-content" style="display: none;">
+                        <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
+                        <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
+                    </div>
                 </div>
             </div>
-
-            <div class="search-summary" id="draft-summary"></div>
             <div id="draft-results"></div>
 
             <div id="projects-section" class="projects-section">
@@ -880,6 +882,77 @@ window.initDraftComparePage = async function () {
         const statsEl = document.getElementById('draft-stats-bar');
         if (statsEl) {
             statsEl.innerHTML = '';
+        }
+
+        // --- Highlights: largest net increases/decreases at program level ---
+        // Aggregate by program_id across all departments so split programs
+        // (e.g., Rental Housing booked under both HMS and BED) show as one line.
+        const highlightsEl = document.getElementById('draft-highlights');
+        if (highlightsEl) {
+            const progMap = new Map();
+            for (const r of recs) {
+                const pid = r.program_id;
+                if (!pid) continue;
+                if (!progMap.has(pid)) {
+                    progMap.set(pid, {
+                        program_id: pid,
+                        program_name: r.program_name || '',
+                        department_name: r.department_name || '',
+                        department_code: r.department_code || '',
+                        d1: 0, d2: 0,
+                        deptCodes: new Set(),
+                    });
+                }
+                const p = progMap.get(pid);
+                p.d1 += r[d1Key] || 0;
+                p.d2 += r[d2Key] || 0;
+                if (r.department_code) p.deptCodes.add(r.department_code);
+            }
+            const programs = [...progMap.values()]
+                .map(p => { p.change = p.d2 - p.d1; return p; })
+                .filter(p => Math.abs(p.change) >= 1);
+
+            const topN = 5;
+            const increases = programs.filter(p => p.change > 0)
+                .sort((a, b) => b.change - a.change).slice(0, topN);
+            const decreases = programs.filter(p => p.change < 0)
+                .sort((a, b) => a.change - b.change).slice(0, topN);
+
+            const renderRow = (p, cls) => {
+                const sign = p.change > 0 ? '+' : '';
+                const deptLabel = p.deptCodes.size > 1
+                    ? `${p.deptCodes.size} depts`
+                    : (p.department_name || p.department_code || '');
+                return `<li class="highlight-item">
+                    <div class="highlight-info">
+                        <span class="highlight-name"><strong>${p.program_id}</strong> ${p.program_name}</span>
+                        <span class="highlight-dept">${deptLabel}</span>
+                    </div>
+                    <span class="highlight-amt ${cls}">${sign}${fmt(p.change)}</span>
+                </li>`;
+            };
+
+            const fromLabel = d1Label, toLabel = d2Label;
+            highlightsEl.innerHTML = `
+                <div class="card-section-label card-section-total">Highlights <span class="highlights-sub">${fromLabel} → ${toLabel}</span></div>
+                <div class="highlights-grid">
+                    <div class="highlights-col">
+                        <div class="highlights-col-header highlights-col-pos">Largest increases</div>
+                        <ul class="highlights-list">
+                            ${increases.length
+                                ? increases.map(p => renderRow(p, 'positive')).join('')
+                                : '<li class="highlight-empty">No increases in this view</li>'}
+                        </ul>
+                    </div>
+                    <div class="highlights-col">
+                        <div class="highlights-col-header highlights-col-neg">Largest decreases</div>
+                        <ul class="highlights-list">
+                            ${decreases.length
+                                ? decreases.map(p => renderRow(p, 'negative')).join('')
+                                : '<li class="highlight-empty">No decreases in this view</li>'}
+                        </ul>
+                    </div>
+                </div>`;
         }
     };
 
