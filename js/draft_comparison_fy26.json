@@ -4,17 +4,17 @@
     "draft2": "SD1",
     "bill_number": "HB1800",
     "fiscal_year": 2026,
-    "generated_at": "2026-04-14T15:55:50.673224",
+    "generated_at": "2026-04-16T11:48:22.432968",
     "net_change": 43999086.0
   },
   "summary": {
-    "total_draft1": 23112539252.0,
-    "total_draft2": 23156538338.0,
+    "total_draft1": 23110752202.0,
+    "total_draft2": 23154751288.0,
     "net_change": 43999086.0,
-    "total_items": 691,
-    "items_modified": 19,
-    "items_increased": 11,
-    "items_decreased": 8,
+    "total_items": 692,
+    "items_modified": 17,
+    "items_increased": 10,
+    "items_decreased": 7,
     "items_added": 5,
     "items_removed": 3
   },
@@ -123,21 +123,6 @@
       "change_type": "modified",
       "program_name": "OFFICE OF HOMELAND SECURITY",
       "department_name": "Department of Law Enforcement"
-    },
-    {
-      "program_id": "AGS233",
-      "department_code": "AGS",
-      "fund_type": "A",
-      "fund_category": "General Funds",
-      "section": "Operating",
-      "category": "Government Operations",
-      "amount_hd1": 4019443.0,
-      "amount_sd1": 3692561.0,
-      "change": -326882.0,
-      "pct_change": -8.132519854119092,
-      "change_type": "modified",
-      "program_name": "CENTRAL SERVICES - BUILDING REPAIRS AND ALTERATIONS",
-      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "AGR101",
@@ -1010,6 +995,36 @@
       "department_name": "Department of Accounting and General Services"
     },
     {
+      "program_id": "AGS233",
+      "department_code": "AGS",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 3692561.0,
+      "amount_sd1": 3692561.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "CENTRAL SERVICES - BUILDING REPAIRS AND ALTERATIONS",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
+      "program_id": "AGS234",
+      "department_code": "AGS",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 1088500.0,
+      "amount_sd1": 1088500.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "CENTRAL SERVICES - CEMETERY MANAGEMENT OFFICE",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
       "program_id": "AGS240",
       "department_code": "AGS",
       "fund_type": "A",
@@ -1097,6 +1112,21 @@
       "pct_change": 0.0,
       "change_type": "modified",
       "program_name": "SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
+      "program_id": "AGS820",
+      "department_code": "AGS",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Economic Development",
+      "amount_hd1": 360000.0,
+      "amount_sd1": 360000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "HAWAII BROADBAND AND DIGITAL EQUITY OFFICE",
       "department_name": "Department of Accounting and General Services"
     },
     {
@@ -2126,8 +2156,8 @@
       "fund_category": "General Funds",
       "section": "Operating",
       "category": "Government Operations",
-      "amount_hd1": 15871385.0,
-      "amount_sd1": 15871385.0,
+      "amount_hd1": 14051217.0,
+      "amount_sd1": 14051217.0,
       "change": 0.0,
       "pct_change": 0.0,
       "change_type": "modified",
@@ -10233,21 +10263,6 @@
       "change_type": "modified",
       "program_name": "AIRPORTS ADMINISTRATION",
       "department_name": "Department of Transportation"
-    },
-    {
-      "program_id": "AGS234",
-      "department_code": "AGS",
-      "fund_type": "A",
-      "fund_category": "General Funds",
-      "section": "Operating",
-      "category": "Government Operations",
-      "amount_hd1": 1088500.0,
-      "amount_sd1": 1415382.0,
-      "change": 326882.0,
-      "pct_change": 30.03050068902159,
-      "change_type": "modified",
-      "program_name": "CENTRAL SERVICES - CEMETERY MANAGEMENT OFFICE",
-      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "LAW901",

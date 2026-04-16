@@ -9,6 +9,7 @@ let draftComparisonData = null;     // FY2026 comparison
 let draftComparisonDataFY27 = null; // FY2027 comparison
 let projectsDataFY26 = null;        // Section 14 CIP projects FY26
 let projectsDataFY27 = null;        // Section 14 CIP projects FY27
+let governorProjectsData = null;    // Governor's supplemental capital projects (S78)
 
 // ---------------------------------------------------------------------------
 // Data loading
@@ -592,13 +593,15 @@ window.notFoundPage = async function () {
 
 window.loadProjects = async function () {
     try {
-        const [r26, r27] = await Promise.all([
+        const [r26, r27, rGov] = await Promise.all([
             fetch('./js/projects_fy26.json?v=' + Date.now()).catch(() => null),
             fetch('./js/projects_fy27.json?v=' + Date.now()).catch(() => null),
+            fetch('./js/governor_projects.json?v=' + Date.now()).catch(() => null),
         ]);
         if (r26 && r26.ok) projectsDataFY26 = await r26.json();
         if (r27 && r27.ok) projectsDataFY27 = await r27.json();
-        return { fy26: projectsDataFY26, fy27: projectsDataFY27 };
+        if (rGov && rGov.ok) governorProjectsData = await rGov.json();
+        return { fy26: projectsDataFY26, fy27: projectsDataFY27, gov: governorProjectsData };
     } catch (e) {
         console.warn('Projects data not available:', e.message);
         return null;
@@ -1462,15 +1465,17 @@ window.initDraftComparePage = async function () {
                         }
                     }
                 } else if (p.funds.size > 1) {
-                    // Non-mixed multi-fund: render as expandable program with fund sub-rows nested inside
+                    // Non-mixed multi-fund: render as expandable fund-group with fund sub-rows nested inside
                     const progHasProjects = p.section === 'Capital Improvement'
                         && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
                     const progChipHtml = progHasProjects
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
-                    const progArrow = progOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                    const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
+                    const fundOpen = expandedFunds.has(fundKey);
+                    const fundArrow = fundOpen ? '▼' : '▶';
+                    bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
+                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -1492,7 +1497,7 @@ window.initDraftComparePage = async function () {
                         const fDelta = f.d2 - f.d1;
                         const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                         const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
-                        bodyHtml += `<tr class="prog-section-row fund-sub-row${isOpen && expandedPrograms.has(progKey) ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                        bodyHtml += `<tr class="prog-fund-row${isOpen && fundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
                             <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                             <td></td><td></td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
@@ -1618,6 +1623,11 @@ window.initDraftComparePage = async function () {
 
     // --- Render Section 14 capital projects section ---
 
+    // Normalize a project name for cross-source matching:
+    // strip leading "LUMP SUM " (present in bill text but not Gov PDF) and collapse whitespace.
+    const normProjectName = (s) =>
+        (s || '').replace(/^LUMP\s+SUM\s+/i, '').trim().toUpperCase().replace(/\s+/g, ' ');
+
     const renderProjects = () => {
         const listEl = document.getElementById('projects-list');
         const sectionEl = document.getElementById('projects-section');
@@ -1630,10 +1640,32 @@ window.initDraftComparePage = async function () {
         sectionEl.style.display = '';
 
         const meta = activeProjects.metadata;
-        const d1Label = meta.draft1;
-        const d2Label = meta.draft2;
-        const d1Key = `amount_${d1Label.toLowerCase()}`;
-        const d2Key = `amount_${d2Label.toLowerCase()}`;
+        // Always keep HD1/SD1 keys for the bill-draft comparison columns
+        const hd1Key = `amount_${meta.draft1.toLowerCase()}`; // 'amount_hd1'
+        const sd1Key = `amount_${meta.draft2.toLowerCase()}`; // 'amount_sd1'
+
+        // Which fiscal year are we displaying? (drives the gov amount key)
+        const govFyKey = activeData.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+
+        // Build gov lookup: "(program_id):(normed_name):(fund_category)" → gov amount
+        // Only populated when govActive and governor_projects data is loaded.
+        const govMap = new Map();
+        if (govActive && governorProjectsData && governorProjectsData.projects_by_program) {
+            for (const projs of Object.values(governorProjectsData.projects_by_program)) {
+                for (const p of projs) {
+                    const k = `${p.program_id}:${normProjectName(p.project_name)}:${p.fund_category}`;
+                    govMap.set(k, (govMap.get(k) || 0) + (p[govFyKey] || 0));
+                }
+            }
+        }
+
+        // Determine the effective d1/d2 labels matching the program-level comparison table
+        const projD1Label = govActive ? "Gov's Req." : meta.draft1;
+        const projD2Label = sd1Active ? meta.draft2 : meta.draft1;
+        const showProjHD1 = govActive && hd1Active && sd1Active; // middle HD1 column
+        // Total colspan for dept summary row
+        // Columns: Program + # + Project + Fund + [1 "d1" col: Gov or HD1] + [optional HD1 middle] + d2 + Change
+        const totalCols = 4 + 1 + (showProjHD1 ? 1 : 0) + 2;
 
         // Build dept name lookup from comparison data
         const deptNameMap = new Map();
@@ -1689,42 +1721,67 @@ window.initDraftComparePage = async function () {
                 return (Number(a.project_id) || 0) - (Number(b.project_id) || 0);
             });
 
-            const d1Total = filteredProjects.reduce((s, pr) => s + (pr[d1Key] || 0), 0);
-            const d2Total = filteredProjects.reduce((s, pr) => s + (pr[d2Key] || 0), 0);
+            // Compute per-project gov amount and totals
+            const getGovAmt = (pr) => {
+                if (!govActive || govMap.size === 0) return null;
+                const k = `${pr.program_id}:${normProjectName(pr.project_name)}:${pr.fund_category}`;
+                return govMap.has(k) ? govMap.get(k) : null;
+            };
+
+            // Effective d1 amount per project (gov if govActive, else HD1)
+            const getD1Amt = (pr) => govActive ? (getGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
+            // Effective d2 amount (SD1 if sd1Active, else HD1)
+            const getD2Amt = (pr) => sd1Active ? (pr[sd1Key] || 0) : (pr[hd1Key] || 0);
+
+            const d1Total = filteredProjects.reduce((s, pr) => s + getD1Amt(pr), 0);
+            const d2Total = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
+            const hd1Total = filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
             const isOpen = expandedProjectPrograms.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
-            // Dept group row
+            // Dept group row — colspan spans all columns
+            let deptTotalsHtml = `${fmt(d1Total)} <span class="proj-draft-label">${projD1Label}</span>`;
+            if (showProjHD1) deptTotalsHtml += ` → ${fmt(hd1Total)} <span class="proj-draft-label">HD1</span>`;
+            deptTotalsHtml += ` → ${fmt(d2Total)} <span class="proj-draft-label">${projD2Label}</span>`;
+            deptTotalsHtml += ` <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>`;
+
             bodyRows += `<tr class="dept-group-row project-dept-row" data-project-dept="${dept.code}">
-                <td colspan="7" class="project-dept-cell">
+                <td colspan="${totalCols}" class="project-dept-cell">
                     <span class="dept-arrow">${arrow}</span>
                     <strong>${dept.code}</strong> ${dept.name}
                     <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span>
-                    <span class="project-totals">
-                        ${fmt(d1Total)} <span class="proj-draft-label">${d1Label}</span>
-                        → ${fmt(d2Total)} <span class="proj-draft-label">${d2Label}</span>
-                        <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>
-                    </span>
+                    <span class="project-totals">${deptTotalsHtml}</span>
                 </td>
             </tr>`;
 
             // Individual project rows (hidden until dept expanded)
             for (const pr of filteredProjects) {
-                const change = pr.change || 0;
+                const govAmt = getGovAmt(pr);
+                const d1Amt = getD1Amt(pr);
+                const d2Amt = getD2Amt(pr);
+                const hd1Amt = pr[hd1Key] || 0;
+                const change = d2Amt - d1Amt;
                 const cls = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
                 const badge = pr.change_type === 'added' ? '<span class="badge badge-add">new</span>'
                     : pr.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
                 const scope = pr.scope ? `<div class="project-scope">${pr.scope}</div>` : '';
                 const progName = pr.program_name || '';
+                const govCell = govActive
+                    ? `<td class="amount-cell"><span class="figure-chip${govAmt === null ? ' fig-na' : ''}">${govAmt !== null ? fmtHtml(govAmt) : '—'}</span></td>`
+                    : '';
+                const hd1Cell = showProjHD1
+                    ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Amt)}</span></td>`
+                    : '';
                 bodyRows += `<tr class="project-row change-${pr.change_type}${isOpen ? '' : ' hidden'}" data-project-dept="${dept.code}">
                     <td class="project-program-cell"><strong>${pr.program_id}</strong><div class="project-prog-name">${progName}</div></td>
                     <td class="project-num">${pr.project_id}</td>
                     <td><div class="project-name">${pr.project_name}</div>${scope}</td>
                     <td><span class="fund-chip">${shortFund(pr.fund_category)}</span></td>
-                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(pr[d1Key])}</span></td>
-                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(pr[d2Key])}</span></td>
+                    ${govCell}
+                    ${hd1Cell}
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(d2Amt)}</span></td>
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(change)}</span> ${badge}</td>
                 </tr>`;
             }
@@ -1734,15 +1791,21 @@ window.initDraftComparePage = async function () {
         if (visibleCount === 0) {
             html = `<div class="empty-state"><p>No capital projects match the current filter.</p></div>`;
         } else {
+            const govTh = govActive ? `<th class="amount-cell">${projD1Label}</th>` : '';
+            const hd1Th = showProjHD1 ? `<th class="amount-cell">HD1</th>` : '';
+            const d2Th = govActive ? `<th class="amount-cell">${projD2Label}</th>` : `<th class="amount-cell">${projD2Label}</th>`;
+            const changeTh = `<th class="amount-cell">Change<span class="th-sub">${projD1Label} → ${projD2Label}</span></th>`;
             html = `<table class="data-table project-table">
                 <thead><tr>
                     <th>Program</th>
                     <th>#</th>
                     <th>Project</th>
                     <th>Fund</th>
-                    <th class="amount-cell">${d1Label}</th>
-                    <th class="amount-cell">${d2Label}</th>
-                    <th class="amount-cell">Change<span class="th-sub">${d1Label} → ${d2Label}</span></th>
+                    ${govActive ? '' : `<th class="amount-cell">${meta.draft1}</th>`}
+                    ${govTh}
+                    ${hd1Th}
+                    ${d2Th}
+                    ${changeTh}
                 </tr></thead>
                 <tbody>${bodyRows}</tbody>
             </table>`;
