@@ -713,18 +713,19 @@ window.initDraftComparePage = async function () {
     let sd1Active = true;
 
     // Build baseline lookup from governorRequestData.
-    // Key includes section so a program with the same fund_type in both
-    // Operating and Capital doesn't clobber the other.
+    // Key includes department_code + section so that a program which exists
+    // under dept A in the governor's request but was moved/added under dept B
+    // in the legislature's drafts doesn't inherit dept A's baseline value.
     const baselineLookup = new Map();
     for (const r of (governorRequestData || [])) {
-        baselineLookup.set(`${r.program_id}_${r.fund_type}_${r.section}`, r);
+        baselineLookup.set(`${r.department_code}_${r.program_id}_${r.fund_type}_${r.section}`, r);
     }
 
     // Inject amount_baseline into each comparison record (once at init)
     const injectBaseline = (dataset) => {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
         for (const r of dataset.comparisons) {
-            const match = baselineLookup.get(`${r.program_id}_${r.fund_type}_${r.section}`);
+            const match = baselineLookup.get(`${r.department_code}_${r.program_id}_${r.fund_type}_${r.section}`);
             r.amount_baseline = match ? (match[fyKey] || 0) : 0;
         }
     };
