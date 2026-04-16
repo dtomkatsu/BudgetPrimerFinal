@@ -1258,7 +1258,7 @@ window.initDraftComparePage = async function () {
                         const fDelta = f.d2 - f.d1;
                         const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                         const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
-                        bodyHtml += `<tr class="prog-section-row fund-sub-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                        bodyHtml += `<tr class="prog-section-row fund-sub-row${isOpen && expandedPrograms.has(progKey) ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
                             <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                             <td></td><td></td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
