@@ -1213,6 +1213,47 @@ th.sortable:hover {
     text-decoration: underline;
 }
 
+/* Inline FY year toggle in the Program column header */
+.th-program-col {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+.th-program-label {
+    flex: 1;
+    white-space: nowrap;
+}
+.fy-inline-toggle {
+    display: inline-flex;
+    border: 1px solid #b0bfb0;
+    border-radius: 5px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.fy-inline-btn {
+    padding: 2px 8px;
+    background: none;
+    border: none;
+    border-right: 1px solid #b0bfb0;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #555;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+.fy-inline-btn:last-child {
+    border-right: none;
+}
+.fy-inline-btn.active {
+    background: var(--primary-color, #2e7d32);
+    color: #fff;
+}
+.fy-inline-btn:not(.active):hover {
+    background: #edf2ed;
+}
+
 /* Fund-type sub-rows (drill-down inside a multi-fund program/section row) */
 .prog-fund-row.hidden {
     display: none;
