@@ -597,11 +597,23 @@ body {
     background: #f4f6f8;
     border: 1px solid #e3e7eb;
     border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 700;
     font-variant-numeric: tabular-nums;
     min-width: 3.5rem;
     text-align: right;
+    white-space: nowrap;
+}
+.figure-chip .fmt-num {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.01em;
+}
+.figure-chip .fmt-unit {
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: #8a99a8;
+    letter-spacing: 0.01em;
+    margin-left: 1px;
 }
 /* Tinted chip for the Change column based on direction */
 .amount-cell.positive .figure-chip {
@@ -1954,18 +1966,22 @@ mark.search-highlight {
 }
 
 /* ── HB300 reference bar + compare toggles ────────────────── */
+.compare-controls-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
 .compare-toggles-bar {
     display: flex;
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    margin-bottom: 0.5rem;
 }
 /* ── Compare timeline (Gov's Request → HD1 → SD1) ── */
 .compare-timeline {
     display: flex;
     align-items: stretch;
-    margin-left: auto;
     gap: 0;
     padding: 4px 0;
 }
