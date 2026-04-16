@@ -91,12 +91,23 @@ const fmt = (amount) => {
 };
 
 // HTML-aware version: wraps number and unit in separate spans for styling
+// Short form (M/B/K) — used in table chips
 const fmtHtml = (amount) => {
     if (amount == null) return '<span class="fmt-num">$0</span>';
     const abs = Math.abs(amount);
     const sign = amount < 0 ? '-' : '';
     if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(2)}</span><span class="fmt-unit">B</span>`;
     if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(2)}</span><span class="fmt-unit">M</span>`;
+    if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
+    return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
+};
+// Full-word form — used in summary cards
+const fmtHtmlFull = (amount) => {
+    if (amount == null) return '<span class="fmt-num">$0</span>';
+    const abs = Math.abs(amount);
+    const sign = amount < 0 ? '-' : '';
+    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(2)}</span><span class="fmt-unit"> billion</span>`;
+    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(2)}</span><span class="fmt-unit"> million</span>`;
     if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
     return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
 };
@@ -800,7 +811,7 @@ window.initDraftComparePage = async function () {
         const changeCard = (delta, label) => {
             const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
             const negCls = delta < 0 ? ' change-negative' : '';
-            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmtHtml(delta)}</div><div class="label">${label}</div></div>`;
+            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmtHtmlFull(delta)}</div><div class="label">${label}</div></div>`;
         };
 
         // HB300 reference bar (always shown, outside compact grid)
@@ -824,7 +835,7 @@ window.initDraftComparePage = async function () {
 
                 let html = '';
                 nodes.forEach((n, i) => {
-                    html += `<div class="summary-card"><div class="amount">${fmtHtml(n.val)}</div><div class="label">${n.label}</div></div>`;
+                    html += `<div class="summary-card"><div class="amount">${fmtHtmlFull(n.val)}</div><div class="label">${n.label}</div></div>`;
                     if (i < nodes.length - 1) html += `<div class="card-arrow">→</div>`;
                 });
                 html += `<div class="card-arrow"></div>${changeCard(delta, deltaLabel)}`;

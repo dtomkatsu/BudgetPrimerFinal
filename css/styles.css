@@ -1319,6 +1319,7 @@ th.sortable:hover {
     font-size: 0.875rem;
     line-height: 1.55;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    max-width: 480px;
 }
 .reading-guide-header {
     display: flex;
@@ -1977,7 +1978,7 @@ mark.search-highlight {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    padding-left: 0.75rem;
+    padding-left: 1.5rem;
 }
 /* ── Compare timeline (Gov's Request → HD1 → SD1) ── */
 .compare-timeline {
