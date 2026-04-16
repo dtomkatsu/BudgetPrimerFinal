@@ -84,8 +84,8 @@ window.loadGovernorRequest = async function () {
 
 const fmt = (amount) => {
     if (amount == null) return '$0';
-    if (Math.abs(amount) >= 1e9) return `$${(amount / 1e9).toFixed(1)} billion`;
-    if (Math.abs(amount) >= 1e6) return `$${(amount / 1e6).toFixed(1)} million`;
+    if (Math.abs(amount) >= 1e9) return `$${(amount / 1e9).toFixed(2)} billion`;
+    if (Math.abs(amount) >= 1e6) return `$${(amount / 1e6).toFixed(2)} million`;
     if (Math.abs(amount) >= 1e3) return `$${(amount / 1e3).toFixed(0)}K`;
     return `$${amount.toLocaleString()}`;
 };
@@ -95,8 +95,8 @@ const fmtHtml = (amount) => {
     if (amount == null) return '<span class="fmt-num">$0</span>';
     const abs = Math.abs(amount);
     const sign = amount < 0 ? '-' : '';
-    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(1)}</span><span class="fmt-unit">B</span>`;
-    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(1)}</span><span class="fmt-unit">M</span>`;
+    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(2)}</span><span class="fmt-unit">B</span>`;
+    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(2)}</span><span class="fmt-unit">M</span>`;
     if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
     return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
 };
