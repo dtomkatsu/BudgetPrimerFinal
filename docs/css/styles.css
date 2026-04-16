@@ -1166,6 +1166,21 @@ th.sortable:hover {
     color: #0d2c47;
 }
 
+/* Transfer indicator — shown on collapsed department rows that contain inter-dept transfers */
+.dept-transfer-note {
+    display: inline-block;
+    font-size: 0.67rem;
+    font-weight: 500;
+    color: #1a5276;
+    background: #eaf4fb;
+    border: 1px solid #aed6f1;
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    cursor: help;
+    vertical-align: middle;
+}
+
 /* Transfer badge — shown in the Change cell when a program is split across depts */
 .transfer-badge {
     display: block;
