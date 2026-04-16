@@ -652,7 +652,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
+            <h2>HB 1800: Draft Comparison</h2>
+            <p class="compare-page-desc">This page tracks how Hawaiʻi's proposed 2026 supplemental budget changed as it moved through the legislature. Use the controls below to compare any two drafts — the Governor's original request, the House version (HD1), and the Senate version (SD1) — and see what was added, cut, or shifted for each state department and program. Toggle between fiscal years FY2026 and FY2027 to view the two-year picture.</p>
             <div class="compare-controls-bar">
                 <div class="ctrl-label ctrl-label-fy">Fiscal Year</div>
                 <div class="ctrl-divider"></div>
@@ -1024,8 +1025,21 @@ window.initDraftComparePage = async function () {
                 </ul>`;
 
             document.getElementById('highlight-more-btn')?.addEventListener('click', function() {
-                highlightsEl.querySelectorAll('.highlight-hidden').forEach(el => el.classList.remove('highlight-hidden'));
-                this.parentElement.remove();
+                const hidden = highlightsEl.querySelectorAll('.highlight-hidden');
+                const isExpanded = hidden.length === 0;
+                if (isExpanded) {
+                    // Collapse: re-hide items beyond the visible count
+                    let idx = 0;
+                    highlightsEl.querySelectorAll('.highlight-item').forEach(el => {
+                        if (idx >= VISIBLE_COUNT) el.classList.add('highlight-hidden');
+                        idx++;
+                    });
+                    this.textContent = `▶ Show ${moreCount} more`;
+                } else {
+                    // Expand
+                    hidden.forEach(el => el.classList.remove('highlight-hidden'));
+                    this.textContent = '▲ Show less';
+                }
             });
         }
     };
