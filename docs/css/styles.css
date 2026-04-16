@@ -726,6 +726,13 @@ a.section-chip-link:hover {
 }
 .project-program-header .project-totals .positive { color: #28a745; }
 .project-program-header .project-totals .negative { color: #dc3545; }
+.proj-gov-total { color: #1a5276; font-weight: 500; }
+.proj-gov-label, .proj-draft-label {
+    font-size: 0.72rem;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-left: 1px;
+}
 .project-table {
     margin: 0 !important;
     border-radius: 0;
