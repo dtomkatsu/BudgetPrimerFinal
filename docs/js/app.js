@@ -1233,12 +1233,8 @@ window.initDraftComparePage = async function () {
                     const progChipHtml = progHasProjects
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
-                    const isFundGroup = p.funds.size > 1;
-                    const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
-                    const fundOpen = expandedFunds.has(fundKey);
-                    const fundArrow = fundOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row${isFundGroup ? ' prog-fund-group' : ''}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${isFundGroup ? ` data-fund-key="${fundKey}"` : ''}>
-                        <td class="detail-indent">${isFundGroup ? `<span class="dept-arrow">${fundArrow}</span> ` : ''}<strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
+                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
@@ -1247,31 +1243,6 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
-                    if (isFundGroup) {
-                        const byFund = new Map();
-                        for (const r of p.rawRows) {
-                            const fc = r.fund_category || '(unknown)';
-                            if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
-                            const f = byFund.get(fc);
-                            f.d1  += r[d1Key]  || 0;
-                            f.d2  += r[d2Key]  || 0;
-                            f.hd1 += r[hd1Key] || 0;
-                        }
-                        for (const [fc, f] of byFund) {
-                            const fDelta = f.d2 - f.d1;
-                            const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
-                            const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
-                            bodyHtml += `<tr class="prog-fund-row${isOpen && fundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
-                                <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
-                                <td></td><td></td>
-                                <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
-                                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
-                                <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
-                                <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
-                                <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
-                            </tr>`;
-                        }
-                    }
                 }
             }
         }
