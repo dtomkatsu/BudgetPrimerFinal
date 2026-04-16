@@ -1214,10 +1214,10 @@ th.sortable:hover {
 }
 
 /* Fund-type sub-rows (drill-down inside a multi-fund program/section row) */
-.prog-fund-row {
+.prog-fund-row, .fund-sub-row {
     background: #f9fafb;
 }
-.prog-fund-row td {
+.prog-fund-row td, .fund-sub-row td {
     border-top: none;
     padding-top: 3px;
     padding-bottom: 3px;
