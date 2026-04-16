@@ -1346,7 +1346,7 @@ window.initDraftComparePage = async function () {
         document.getElementById('draft-results').innerHTML = `
             <table class="data-table" id="draft-table">
                 <thead><tr>
-                    <th class="sortable th-program-col" data-sort="program_name"><span class="th-program-label">Program${sortArrow('program_name')}</span>${(draftComparisonData && draftComparisonDataFY27) ? `<span class="fy-inline-toggle" id="fy-inline-toggle"><button class="fy-inline-btn${activeYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>` : ''}</th>
+                    <th class="sortable th-program-col" data-sort="program_name"><div class="th-program-inner"><span class="th-program-label">Program${sortArrow('program_name')}</span>${(draftComparisonData && draftComparisonDataFY27) ? `<span class="fy-inline-toggle" id="fy-inline-toggle"><button class="fy-inline-btn${activeYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>` : ''}</div></th>
                     <th class="th-dropdown" id="th-section"><span class="th-dropdown-btn">${secLabel}</span>
                         <div class="th-dropdown-menu">${secChecks}</div></th>
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>

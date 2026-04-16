@@ -1214,7 +1214,7 @@ th.sortable:hover {
 }
 
 /* Inline FY year toggle in the Program column header */
-.th-program-col {
+.th-program-inner {
     display: flex;
     align-items: center;
     gap: 0.5rem;
