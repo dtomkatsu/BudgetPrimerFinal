@@ -626,9 +626,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
         <section class="compare-page">
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
             <div class="compare-controls-stack">
-            <div class="compare-toggles-bar">
-                ${fyToggle}
-            </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <div class="tl-node" id="tl-node-gov">
                         <span class="tl-label">Gov's<br>Request</span>
@@ -658,6 +655,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                     </div>
                 </div>
+            <div class="compare-toggles-bar">
+                ${fyToggle}
             </div>
             </div>
 
