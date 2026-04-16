@@ -707,6 +707,7 @@ window.initDraftComparePage = async function () {
     let expandedDepts = new Set();
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
+    let expandedFunds = new Set();
     // Timeline state: which nodes are active (all true = Gov's Request → HD1 → SD1)
     let govActive = true;
     let hd1Active = true;
@@ -1186,8 +1187,12 @@ window.initDraftComparePage = async function () {
                         const secChipHtml = secHasProjects
                             ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${sec} →</a>`
                             : `<span class="section-chip">${sec}</span>`;
-                        bodyHtml += `<tr class="prog-section-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                            <td class="section-indent">${secChipHtml}</td>
+                        const isSecFundGroup = secFunds.size > 1;
+                        const secFundKey = `${dept.code}:${p.program_id}:${sec}`;
+                        const secFundOpen = expandedFunds.has(secFundKey);
+                        const secFundArrow = secFundOpen ? '▼' : '▶';
+                        bodyHtml += `<tr class="prog-section-row${isSecFundGroup ? ' prog-fund-group' : ''}${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${isSecFundGroup ? ` data-fund-key="${secFundKey}"` : ''}>
+                            <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow">${secFundArrow}</span> ` : ''}${secChipHtml}</td>
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
@@ -1196,6 +1201,31 @@ window.initDraftComparePage = async function () {
                             <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
                         </tr>`;
+                        if (isSecFundGroup) {
+                            const byFund = new Map();
+                            for (const r of secRows) {
+                                const fc = r.fund_category || '(unknown)';
+                                if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
+                                const f = byFund.get(fc);
+                                f.d1  += r[d1Key]  || 0;
+                                f.d2  += r[d2Key]  || 0;
+                                f.hd1 += r[hd1Key] || 0;
+                            }
+                            for (const [fc, f] of byFund) {
+                                const fDelta = f.d2 - f.d1;
+                                const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
+                                const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
+                                bodyHtml += `<tr class="prog-fund-row${isOpen && progOpen && secFundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}" data-fund-key="${secFundKey}">
+                                    <td class="fund-indent fund-indent-deep"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                                    <td></td><td></td>
+                                    <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
+                                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
+                                    <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
+                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
+                                    <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
+                                </tr>`;
+                            }
+                        }
                     }
                 } else {
                     const progHasProjects = p.section === 'Capital Improvement'
@@ -1203,8 +1233,12 @@ window.initDraftComparePage = async function () {
                     const progChipHtml = progHasProjects
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
-                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
-                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                    const isFundGroup = p.funds.size > 1;
+                    const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
+                    const fundOpen = expandedFunds.has(fundKey);
+                    const fundArrow = fundOpen ? '▼' : '▶';
+                    bodyHtml += `<tr class="dept-detail-row${isFundGroup ? ' prog-fund-group' : ''}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${isFundGroup ? ` data-fund-key="${fundKey}"` : ''}>
+                        <td class="detail-indent">${isFundGroup ? `<span class="dept-arrow">${fundArrow}</span> ` : ''}<strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
@@ -1213,6 +1247,31 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
+                    if (isFundGroup) {
+                        const byFund = new Map();
+                        for (const r of p.rawRows) {
+                            const fc = r.fund_category || '(unknown)';
+                            if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
+                            const f = byFund.get(fc);
+                            f.d1  += r[d1Key]  || 0;
+                            f.d2  += r[d2Key]  || 0;
+                            f.hd1 += r[hd1Key] || 0;
+                        }
+                        for (const [fc, f] of byFund) {
+                            const fDelta = f.d2 - f.d1;
+                            const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
+                            const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
+                            bodyHtml += `<tr class="prog-fund-row${isOpen && fundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
+                                <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                                <td></td><td></td>
+                                <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
+                                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
+                                <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
+                                <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
+                                <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
+                            </tr>`;
+                        }
+                    }
                 }
             }
         }
@@ -1525,11 +1584,31 @@ window.initDraftComparePage = async function () {
             });
             if (!isOpen) {
                 document.querySelectorAll(`.prog-section-row[data-dept="${dept}"]`).forEach(row => row.classList.add('hidden'));
+                document.querySelectorAll(`.prog-fund-row[data-dept="${dept}"]`).forEach(row => row.classList.add('hidden'));
             } else {
                 document.querySelectorAll(`.prog-section-row[data-dept="${dept}"]`).forEach(row => {
                     row.classList.toggle('hidden', !expandedPrograms.has(row.dataset.prog));
                 });
+                document.querySelectorAll(`.prog-fund-row[data-dept="${dept}"]`).forEach(row => {
+                    const fkOpen = expandedFunds.has(row.dataset.fundKey);
+                    const pgOpen = row.dataset.prog ? expandedPrograms.has(row.dataset.prog) : true;
+                    row.classList.toggle('hidden', !(fkOpen && pgOpen));
+                });
             }
+            return;
+        }
+        // Fund group row expand/collapse (multi-fund program or section rows)
+        const fundGroupRow = e.target.closest('.prog-fund-group');
+        if (fundGroupRow) {
+            const fk = fundGroupRow.dataset.fundKey;
+            if (expandedFunds.has(fk)) expandedFunds.delete(fk);
+            else expandedFunds.add(fk);
+            const arrow = fundGroupRow.querySelector('.dept-arrow');
+            const isOpen = expandedFunds.has(fk);
+            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            document.querySelectorAll(`.prog-fund-row[data-fund-key="${fk}"]`).forEach(row => {
+                row.classList.toggle('hidden', !isOpen);
+            });
             return;
         }
         // Program group row expand/collapse (mixed section)
@@ -1543,6 +1622,10 @@ window.initDraftComparePage = async function () {
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
             document.querySelectorAll(`.prog-section-row[data-prog="${progKey}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
+            });
+            // Also cascade to fund sub-rows under this program's sections
+            document.querySelectorAll(`.prog-fund-row[data-prog="${progKey}"]`).forEach(row => {
+                row.classList.toggle('hidden', !isOpen || !expandedFunds.has(row.dataset.fundKey));
             });
             return;
         }
@@ -1570,7 +1653,7 @@ window.initDraftComparePage = async function () {
         if (!draftComparisonData) return;
         activeData = draftComparisonData;
         activeProjects = projectsDataFY26;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedProjectPrograms = new Set();
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedFunds = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
@@ -1580,7 +1663,7 @@ window.initDraftComparePage = async function () {
         if (!draftComparisonDataFY27) return;
         activeData = draftComparisonDataFY27;
         activeProjects = projectsDataFY27;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedProjectPrograms = new Set();
+        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedFunds = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();
