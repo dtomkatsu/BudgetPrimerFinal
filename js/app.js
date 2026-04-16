@@ -1296,6 +1296,13 @@ window.initDraftComparePage = async function () {
         const d1Key = `amount_${d1Label.toLowerCase()}`;
         const d2Key = `amount_${d2Label.toLowerCase()}`;
 
+        // Build Gov's Request CIP total by program_id (aggregate across all fund types)
+        const fyKey = activeData.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        const govCipByProgram = new Map();
+        for (const r of (governorRequestData || [])) {
+            if (r.section !== 'Capital Improvement') continue;
+            govCipByProgram.set(r.program_id, (govCipByProgram.get(r.program_id) || 0) + (r[fyKey] || 0));
+        }
 
         // Build a lookup of program_id → program_name from comparison data
         const progNameMap = new Map();
@@ -1329,6 +1336,7 @@ window.initDraftComparePage = async function () {
             const d2Total = projects.reduce((s, pr) => s + (pr[d2Key] || 0), 0);
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+            const govTotal = govCipByProgram.get(pid);
             const isOpen = expandedProjectPrograms.has(pid);
             const arrow = isOpen ? '▼' : '▶';
 
@@ -1354,7 +1362,7 @@ window.initDraftComparePage = async function () {
                     <strong>${pid}</strong> ${progName}
                     <span class="project-count">(${projects.length} project${projects.length === 1 ? '' : 's'})</span>
                     <span class="project-totals">
-                        ${fmt(d1Total)} → ${fmt(d2Total)}
+                        ${govActive && govTotal != null ? `<span class="proj-gov-total">${fmt(govTotal)} <span class="proj-gov-label">Gov.</span></span> → ` : ''}${fmt(d1Total)} <span class="proj-draft-label">${d1Label}</span> → ${fmt(d2Total)} <span class="proj-draft-label">${d2Label}</span>
                         <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>
                     </span>
                 </div>
