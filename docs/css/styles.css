@@ -1977,13 +1977,14 @@ mark.search-highlight {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    padding-left: 0.75rem;
 }
 /* ── Compare timeline (Gov's Request → HD1 → SD1) ── */
 .compare-timeline {
     display: flex;
     align-items: stretch;
     gap: 0;
-    padding: 4px 0;
+    padding: 12px 0;
 }
 .tl-node {
     display: flex;
