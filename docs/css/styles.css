@@ -565,7 +565,8 @@ body {
 }
 
 .data-table th {
-    background: #f8f9fa;
+    background: #eef4f0;
+    border-bottom: 2px solid var(--primary-color, #2e7d32);
     font-weight: 600;
     position: sticky;
     top: 0;
