@@ -778,7 +778,7 @@
     "fund_category": "General Obligation Bond Fund",
     "section": "Capital Improvement",
     "amount_fy2026": 6500000.0,
-    "amount_fy2027": 34225000.0
+    "amount_fy2027": 63025000.0
   },
   {
     "program_id": "AGR141",
@@ -4661,7 +4661,7 @@
     "fund_category": "General Funds",
     "section": "Operating",
     "amount_fy2026": 1031466906.0,
-    "amount_fy2027": 1076466906.0
+    "amount_fy2027": 1092966906.0
   },
   {
     "program_id": "HMS401",
@@ -5816,7 +5816,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 31094536.0,
-    "amount_fy2027": 31094536.0
+    "amount_fy2027": 34094536.0
   },
   {
     "program_id": "LNR806",
@@ -5959,7 +5959,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 24483607.0,
-    "amount_fy2027": 22983607.0
+    "amount_fy2027": 29983607.0
   },
   {
     "program_id": "LNR101",
@@ -5981,7 +5981,7 @@
     "fund_category": "General Obligation Bond Fund",
     "section": "Capital Improvement",
     "amount_fy2026": 17155000.0,
-    "amount_fy2027": 0.0
+    "amount_fy2027": 16500000.0
   },
   {
     "program_id": "LNR102",
@@ -6432,7 +6432,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 34282904.0,
-    "amount_fy2027": 34632052.0
+    "amount_fy2027": 34488571.0
   },
   {
     "program_id": "TRN114",
@@ -6652,7 +6652,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 476268398.0,
-    "amount_fy2027": 491281225.0
+    "amount_fy2027": 494281225.0
   },
   {
     "program_id": "TRN195",
@@ -7037,7 +7037,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 122924440.0,
-    "amount_fy2027": 112372371.0
+    "amount_fy2027": 112572371.0
   },
   {
     "program_id": "TRN395",
@@ -7147,7 +7147,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 25508570.0,
-    "amount_fy2027": 25522385.0
+    "amount_fy2027": 25537385.0
   },
   {
     "program_id": "TRN511",
@@ -7191,7 +7191,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 28978093.0,
-    "amount_fy2027": 30042366.0
+    "amount_fy2027": 30077366.0
   },
   {
     "program_id": "TRN531",
@@ -7279,7 +7279,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 229186637.0,
-    "amount_fy2027": 220403413.0
+    "amount_fy2027": 212970287.0
   },
   {
     "program_id": "TRN595",
@@ -7356,7 +7356,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 12319296.0,
-    "amount_fy2027": 12678431.0
+    "amount_fy2027": 20717557.0
   },
   {
     "program_id": "TRN597",
@@ -7400,7 +7400,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 33851577.0,
-    "amount_fy2027": 36436644.0
+    "amount_fy2027": 36502644.0
   },
   {
     "program_id": "TRN995",
@@ -7444,7 +7444,7 @@
     "fund_category": "General Funds",
     "section": "Operating",
     "amount_fy2026": 289634091.0,
-    "amount_fy2027": 291418531.0
+    "amount_fy2027": 296418531.0
   },
   {
     "program_id": "UOH100",
@@ -7774,7 +7774,7 @@
     "fund_category": "General Funds",
     "section": "Operating",
     "amount_fy2026": 3797693.0,
-    "amount_fy2027": 3797693.0
+    "amount_fy2027": 8797693.0
   },
   {
     "program_id": "UOH881",
@@ -7830,5 +7830,16 @@
     "section": "Capital Improvement",
     "amount_fy2026": 2000000,
     "amount_fy2027": 0.0
+  },
+  {
+    "program_id": "LNR806",
+    "program_name": "PARKS ADMINISTRATION AND OPERATIONS",
+    "department_code": "LNR",
+    "department_name": "Department of Land & Natural Resources",
+    "fund_type": "B",
+    "fund_category": "Special Funds",
+    "section": "Capital Improvement",
+    "amount_fy2026": 0.0,
+    "amount_fy2027": 4000000
   }
 ]
