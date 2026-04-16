@@ -1956,20 +1956,17 @@ mark.search-highlight {
 /* ── HB300 reference bar + compare toggles ────────────────── */
 /* ── Unified view-controls bar ── */
 .compare-controls-bar {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 1.5rem;
+    row-gap: 8px;
+    align-items: start;
     background: #f5f7f6;
     border: 1px solid #dde2e0;
     border-radius: 8px;
     padding: 14px 20px;
     margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-.ctrl-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 .ctrl-label {
     font-size: 0.65rem;
@@ -1977,13 +1974,19 @@ mark.search-highlight {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #7a8a85;
+    align-self: end;
 }
+.ctrl-label-fy      { grid-column: 1; grid-row: 1; }
+.ctrl-label-timeline{ grid-column: 3; grid-row: 1; }
+.ctrl-cell-fy       { grid-column: 1; grid-row: 2; align-self: start; }
+.ctrl-cell-timeline { grid-column: 3; grid-row: 2; align-self: start; }
 .ctrl-divider {
+    grid-column: 2;
+    grid-row: 1 / span 2;
     width: 1px;
-    height: 52px;
     background: #dde2e0;
-    align-self: center;
-    flex-shrink: 0;
+    justify-self: center;
+    align-self: stretch;
 }
 
 /* ── FY segmented control ── */

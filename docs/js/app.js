@@ -637,13 +637,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
         <section class="compare-page">
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
             <div class="compare-controls-bar">
-                <div class="ctrl-group">
-                    <div class="ctrl-label">Fiscal Year</div>
-                    ${fyToggle}
-                </div>
+                <div class="ctrl-label ctrl-label-fy">Fiscal Year</div>
                 <div class="ctrl-divider"></div>
-                <div class="ctrl-group ctrl-group-timeline">
-                    <div class="ctrl-label">Drafts to compare</div>
+                <div class="ctrl-label ctrl-label-timeline">Drafts to compare</div>
+                <div class="ctrl-cell ctrl-cell-fy">${fyToggle}</div>
+                <div class="ctrl-cell ctrl-cell-timeline">
                     <div class="compare-timeline" id="compare-timeline">
                         <div class="tl-node" id="tl-node-gov">
                             <span class="tl-label">Gov's<br>Request</span>
