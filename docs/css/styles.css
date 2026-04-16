@@ -616,6 +616,14 @@ body {
     letter-spacing: 0.02em;
     margin-left: 3px;
 }
+/* N/A chip — used when gov amount is unavailable for a project */
+.figure-chip.fig-na {
+    color: #aaa;
+    font-style: italic;
+    background: #fafafa;
+    border-color: #e8e8e8;
+    min-width: 2rem;
+}
 /* Tinted chip for the Change column based on direction */
 .amount-cell.positive .figure-chip {
     background: #e8f5ec;

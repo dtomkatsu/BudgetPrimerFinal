@@ -176,7 +176,7 @@ class FastBudgetParser(BaseBudgetParser):
             # a hyphen (e.g. "32. KALIHI-PALAMA HEALTH CENTER") from being treated as
             # program headers where "KALIHI" would be misread as a program ID.
             'program': re.compile(
-                r'^\s*\d+\.\s+([A-Z]{2,4}\d{2,4})\s*[-\u2013]\s*(.+)',
+                r'^\s*\d+[A-Z]?\.\s+([A-Z]{2,4}\d{2,4})\s*[-\u2013]\s*(.+)',
                 re.IGNORECASE,
             ),
             'category': re.compile(
@@ -186,6 +186,13 @@ class FastBudgetParser(BaseBudgetParser):
             'investment_capital': re.compile(
                 r'^\s*INVESTMENT\s+CAPITAL'
                 r'(?:\s+([A-Z0-9]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?)?',
+                re.IGNORECASE,
+            ),
+            # Blank-FY1 IC header: "INVESTMENT CAPITAL  DEPT  FUND  AMOUNT_FUND"
+            # FY1 column has only a fund letter (no amount); FY2 has the actual amount.
+            # e.g. "INVESTMENT CAPITAL  LNR  C  2,000,000C"
+            'investment_capital_fy2_only': re.compile(
+                r'^\s*INVESTMENT\s+CAPITAL\s+([A-Z]{2,4})\s+([A-Z])\s+([\d,]+)([A-Z])\s*$',
                 re.IGNORECASE,
             ),
             'operating_line': re.compile(
@@ -482,47 +489,139 @@ class FastBudgetParser(BaseBudgetParser):
                     bare_fy1 = int(m2.group(1).replace(',', ''))
                     bare_fy2 = int(m2.group(3).replace(',', ''))
                     bare_fund = m2.group(2).upper()
+                    # The bare amendment refers to the preceding IC line's dept.
+                    preceding_dept = None
+                    for a in reversed(allocations):
+                        if a.program_id == state.program_id:
+                            preceding_dept = a.department_code
+                            break
+                    cur_sec = state.section_enum
+                    found_fy2 = False
                     for a in reversed(allocations):
                         if (a.program_id == state.program_id
                                 and a.fiscal_year == self.fy2
                                 and a.fund_type is not None
-                                and a.fund_type.value == bare_fund):
+                                and a.fund_type.value == bare_fund
+                                and a.section == cur_sec
+                                and (preceding_dept is None
+                                     or a.department_code == preceding_dept)):
                             a.amount = bare_fy2
+                            found_fy2 = True
                             self.logger.debug(
                                 f'L{line_num}: two-col bare amendment FY2 '
-                                f'{a.program_id} fund={bare_fund} → {bare_fy2}'
+                                f'{a.program_id} dept={a.department_code} '
+                                f'fund={bare_fund} → {bare_fy2}'
                             )
                             break
+                    if not found_fy2 and bare_fy2 > 0 and cur_sec == BudgetSection.CAPITAL_IMPROVEMENT:
+                        new_a = self._make_allocation(
+                            state,
+                            preceding_dept or state.department_code or '',
+                            bare_fy2, bare_fund, self.fy2, line_num,
+                            section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                            notes='Investment Capital - two-col bare amendment from zero',
+                        )
+                        if new_a:
+                            allocations.append(new_a)
+                    found_fy1 = False
                     for a in reversed(allocations):
                         if (a.program_id == state.program_id
                                 and a.fiscal_year == self.fy1
                                 and a.fund_type is not None
-                                and a.fund_type.value == bare_fund):
+                                and a.fund_type.value == bare_fund
+                                and a.section == cur_sec
+                                and (preceding_dept is None
+                                     or a.department_code == preceding_dept)):
                             a.amount = bare_fy1
+                            found_fy1 = True
                             self.logger.debug(
                                 f'L{line_num}: two-col bare amendment FY1 '
-                                f'{a.program_id} fund={bare_fund} → {bare_fy1}'
+                                f'{a.program_id} dept={a.department_code} '
+                                f'fund={bare_fund} → {bare_fy1}'
                             )
                             break
+                    if not found_fy1 and bare_fy1 > 0 and cur_sec == BudgetSection.CAPITAL_IMPROVEMENT:
+                        new_a = self._make_allocation(
+                            state,
+                            preceding_dept or state.department_code or '',
+                            bare_fy1, bare_fund, self.fy1, line_num,
+                            section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                            notes='Investment Capital - two-col bare amendment FY1 from zero',
+                        )
+                        if new_a:
+                            allocations.append(new_a)
                     continue
 
                 m = pat['bare_amendment'].match(raw_line)
                 if m and state.has_context():
                     bare_amt = int(m.group(1).replace(',', ''))
                     bare_fund = m.group(2).upper()
+                    # The bare amendment always refers to the IMMEDIATELY PRECEDING
+                    # IC line's dept + fund. Find that dept by walking back to the
+                    # most recent allocation in this program (any FY).
+                    preceding_dept = None
+                    for a in reversed(allocations):
+                        if a.program_id == state.program_id:
+                            preceding_dept = a.department_code
+                            break
                     # Walk backwards through allocations to find the most recent
-                    # FY2 entry for this program + fund that can be overridden.
+                    # FY2 entry for this program + fund + matching dept AND section to override.
+                    # Section must match to avoid CIP bare amendments from trampling Operating
+                    # allocations of the same fund/dept when a program has both sections.
+                    cur_sec = state.section_enum
+                    found_override = False
                     for a in reversed(allocations):
                         if (a.program_id == state.program_id
                                 and a.fiscal_year == self.fy2
                                 and a.fund_type is not None
-                                and a.fund_type.value == bare_fund):
+                                and a.fund_type.value == bare_fund
+                                and a.section == cur_sec
+                                and (preceding_dept is None
+                                     or a.department_code == preceding_dept)):
                             a.amount = bare_amt
+                            found_override = True
                             self.logger.debug(
                                 f'L{line_num}: bare amendment overrides FY2 '
-                                f'{a.program_id} fund={bare_fund} → {bare_amt}'
+                                f'{a.program_id} dept={a.department_code} '
+                                f'fund={bare_fund} → {bare_amt}'
                             )
                             break
+                    if not found_override and state.section_enum == BudgetSection.CAPITAL_IMPROVEMENT:
+                        # FY27 was explicitly 0 (or never stored) in the IC line;
+                        # the bare amendment is the real FY27 value — create it now.
+                        # Use the dept from the preceding IC line if we found one.
+                        new_a = self._make_allocation(
+                            state,
+                            preceding_dept or state.department_code or '',
+                            bare_amt, bare_fund, self.fy2, line_num,
+                            section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                            notes='Investment Capital - bare amendment from zero',
+                        )
+                        if new_a:
+                            allocations.append(new_a)
+                            self.logger.debug(
+                                f'L{line_num}: bare amendment created new CIP FY2 '
+                                f'{state.program_id} dept={preceding_dept} '
+                                f'fund={bare_fund} = {bare_amt}'
+                            )
+                    elif not found_override and state.section_enum == BudgetSection.OPERATING and bare_amt > 0:
+                        # FY27 was explicitly 0 (or never stored) in the OPERATING line;
+                        # e.g. "OPERATING DEPT 400,000A 0A" followed by a bare amendment.
+                        # The bare amendment is the real FY27 value — create it now.
+                        new_a = self._make_allocation(
+                            state,
+                            preceding_dept or state.department_code or '',
+                            bare_amt, bare_fund, self.fy2, line_num,
+                            section_override=BudgetSection.OPERATING,
+                            notes='Operating - bare amendment from zero',
+                        )
+                        if new_a:
+                            allocations.append(new_a)
+                            self.logger.debug(
+                                f'L{line_num}: bare amendment created new OPERATING FY2 '
+                                f'{state.program_id} dept={preceding_dept} '
+                                f'fund={bare_fund} = {bare_amt}'
+                            )
                     continue
 
                 # --- 0c. CIP project list marker (Section 14) ---
@@ -653,6 +752,23 @@ class FastBudgetParser(BaseBudgetParser):
                     continue
 
                 # --- 3. INVESTMENT CAPITAL header (with optional inline amounts) ---
+                # Try blank-FY1 variant first (more specific): "IC  DEPT  FUND  AMOUNT_FUND"
+                m_ic2 = pat['investment_capital_fy2_only'].match(line)
+                if m_ic2:
+                    state.section = 'INVESTMENT CAPITAL'
+                    self._append_pair(
+                        allocations, state,
+                        dept_code=m_ic2.group(1),
+                        fy1_amount_str=None,
+                        fy1_fund=m_ic2.group(4) or 'C',
+                        fy2_amount_str=m_ic2.group(3),
+                        fy2_fund=m_ic2.group(4) or 'C',
+                        line_number=line_num,
+                        section_override=BudgetSection.CAPITAL_IMPROVEMENT,
+                        notes='Investment Capital - blank FY1 header',
+                    )
+                    continue
+
                 m = pat['investment_capital'].match(line)
                 if m:
                     state.section = 'INVESTMENT CAPITAL'
@@ -826,13 +942,30 @@ class FastBudgetParser(BaseBudgetParser):
                 m = pat['section'].match(line)
                 if m:
                     state.section = m.group(1).strip()
+                    fund_default = 'C' if 'INVESTMENT' in state.section.upper() else 'A'
+
+                    # First try blank-FY1 format: "SECTION  DEPT  FUND  AMOUNT_FUND"
+                    # (Amount belongs to FY2, FY1 is blank.)
+                    blank_fy1 = re.search(
+                        r'([A-Z]{2,4})\s+([A-Z])\s+([\d,]+)([A-Z])\s*$', line
+                    )
+                    if blank_fy1:
+                        self._append_pair(
+                            allocations, state,
+                            dept_code=blank_fy1.group(1),
+                            fy1_amount_str=None,
+                            fy1_fund=blank_fy1.group(4) or blank_fy1.group(2) or fund_default,
+                            fy2_amount_str=blank_fy1.group(3),
+                            fy2_fund=blank_fy1.group(4) or fund_default,
+                            line_number=line_num,
+                        )
+                        continue
 
                     # Check for amounts appended after the section keyword
                     amt_m = re.search(
                         r'([A-Z]+)\s+([\d,]+)([A-Z]?)(?:\s+([\d,]+)([A-Z]?))?\s*$', line
                     )
                     if amt_m:
-                        fund_default = 'C' if 'INVESTMENT' in state.section.upper() else 'A'
                         self._append_pair(
                             allocations, state,
                             dept_code=amt_m.group(1),

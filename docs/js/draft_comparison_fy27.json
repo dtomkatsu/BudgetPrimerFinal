@@ -4,19 +4,19 @@
     "draft2": "SD1",
     "bill_number": "HB1800",
     "fiscal_year": 2027,
-    "generated_at": "2026-04-14T15:55:50.983290",
-    "net_change": -267441078.0
+    "generated_at": "2026-04-16T11:48:22.734089",
+    "net_change": -101166252.0
   },
   "summary": {
-    "total_draft1": 24355243115.0,
-    "total_draft2": 24087802037.0,
-    "net_change": -267441078.0,
-    "total_items": 667,
-    "items_modified": 351,
-    "items_increased": 89,
-    "items_decreased": 262,
-    "items_added": 21,
-    "items_removed": 9
+    "total_draft1": 24851867330.0,
+    "total_draft2": 24750701078.0,
+    "net_change": -101166252.0,
+    "total_items": 738,
+    "items_modified": 405,
+    "items_increased": 114,
+    "items_decreased": 291,
+    "items_added": 38,
+    "items_removed": 25
   },
   "comparisons": [
     {
@@ -140,18 +140,18 @@
       "department_name": "University of Hawaii"
     },
     {
-      "program_id": "EDN407",
+      "program_id": "PSD900",
       "department_code": "AGS",
       "fund_type": "C",
       "fund_category": "General Obligation Bond Fund",
       "section": "Capital Improvement",
-      "category": "Education",
-      "amount_hd1": 33000000.0,
-      "amount_sd1": null,
-      "change": -33000000.0,
-      "pct_change": null,
-      "change_type": "removed",
-      "program_name": "PUBLIC LIBRARIES",
+      "category": "Public Safety",
+      "amount_hd1": 52001000.0,
+      "amount_sd1": 21000000.0,
+      "change": -31001000.0,
+      "pct_change": -59.6161612276687,
+      "change_type": "modified",
+      "program_name": "GENERAL ADMINISTRATION",
       "department_name": "Department of Accounting and General Services"
     },
     {
@@ -183,6 +183,21 @@
       "change_type": "modified",
       "program_name": "UNIVERSITY OF HAWAII, MANOA",
       "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "EDN407",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 33000000.0,
+      "amount_sd1": 6950000.0,
+      "change": -26050000.0,
+      "pct_change": -78.93939393939394,
+      "change_type": "modified",
+      "program_name": "PUBLIC LIBRARIES",
+      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "HTH212",
@@ -275,6 +290,21 @@
       "department_name": "Department of Budget and Finance"
     },
     {
+      "program_id": "LNR401",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 14000000.0,
+      "amount_sd1": 1050000.0,
+      "change": -12950000.0,
+      "pct_change": -92.5,
+      "change_type": "modified",
+      "program_name": "ECOSYSTEM PROTECTION AND RESTORATION",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
       "program_id": "BUF745",
       "department_code": "BUF",
       "fund_type": "A",
@@ -305,6 +335,36 @@
       "department_name": "Department of Accounting and General Services"
     },
     {
+      "program_id": "BED146",
+      "department_code": "BED",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 11675000.0,
+      "amount_sd1": null,
+      "change": -11675000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "NATURAL ENERGY LABORATORY OF HAWAII AUTHORITY",
+      "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
+      "program_id": "DEF114",
+      "department_code": "DEF",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 11000000.0,
+      "amount_sd1": null,
+      "change": -11000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "HAWAII NATIONAL GUARD YOUTH CHALLENGE ACADEMY",
+      "department_name": "Department of Defense"
+    },
+    {
       "program_id": "LNR402",
       "department_code": "LNR",
       "fund_type": "A",
@@ -320,7 +380,22 @@
       "department_name": "Department of Land and Natural Resources"
     },
     {
-      "program_id": "SUB301",
+      "program_id": "SUB401",
+      "department_code": "COM",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 10500000.0,
+      "amount_sd1": null,
+      "change": -10500000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "COUNTY OF MAUI",
+      "department_name": "County of Maui"
+    },
+    {
+      "program_id": "SUB401",
       "department_code": "COM",
       "fund_type": "S",
       "fund_category": "County Funds",
@@ -331,8 +406,38 @@
       "change": -10500000.0,
       "pct_change": null,
       "change_type": "removed",
-      "program_name": "COUNTY OF HAWAII",
+      "program_name": "COUNTY OF MAUI",
       "department_name": "County of Maui"
+    },
+    {
+      "program_id": "HHL602",
+      "department_code": "HHL",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 25500000.0,
+      "amount_sd1": 15060000.0,
+      "change": -10440000.0,
+      "pct_change": -40.94117647058824,
+      "change_type": "modified",
+      "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+      "department_name": "Department of Hawaiian Home Lands"
+    },
+    {
+      "program_id": "UOH210",
+      "department_code": "UOH",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 9500000.0,
+      "amount_sd1": null,
+      "change": -9500000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "UNIVERSITY OF HAWAII, HILO",
+      "department_name": "University of Hawaii"
     },
     {
       "program_id": "HHL602",
@@ -350,6 +455,36 @@
       "department_name": "Department of Hawaiian Home Lands"
     },
     {
+      "program_id": "LNR402",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 9350000.0,
+      "amount_sd1": 750000.0,
+      "change": -8600000.0,
+      "pct_change": -91.97860962566845,
+      "change_type": "modified",
+      "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "DEF112",
+      "department_code": "DEF",
+      "fund_type": "P",
+      "fund_category": "Other Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 8580000.0,
+      "amount_sd1": null,
+      "change": -8580000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "SERVICES TO VETERANS",
+      "department_name": "Department of Defense"
+    },
+    {
       "program_id": "HMS777",
       "department_code": "HMS",
       "fund_type": "A",
@@ -363,6 +498,21 @@
       "change_type": "modified",
       "program_name": "OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS",
       "department_name": "Department of Human Services"
+    },
+    {
+      "program_id": "EDN450",
+      "department_code": "EDN",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 27106000.0,
+      "amount_sd1": 19000000.0,
+      "change": -8106000.0,
+      "pct_change": -29.90481812144913,
+      "change_type": "modified",
+      "program_name": "SCHOOL FACILITIES AUTHORITY",
+      "department_name": "Department of Education"
     },
     {
       "program_id": "LNR407",
@@ -455,6 +605,21 @@
       "department_name": "University of Hawaii"
     },
     {
+      "program_id": "LNR801",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": 29000000.0,
+      "amount_sd1": 22200000.0,
+      "change": -6800000.0,
+      "pct_change": -23.448275862068964,
+      "change_type": "modified",
+      "program_name": "OCEAN-BASED RECREATION",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
       "program_id": "BUF101",
       "department_code": "BUF",
       "fund_type": "A",
@@ -530,19 +695,34 @@
       "department_name": "Department of Business, Economic Development, and Tourism"
     },
     {
-      "program_id": "PSD900",
-      "department_code": "AGS",
+      "program_id": "PSD404",
+      "department_code": "PSD",
       "fund_type": "C",
       "fund_category": "General Obligation Bond Fund",
       "section": "Capital Improvement",
       "category": "Public Safety",
-      "amount_hd1": 5501000.0,
+      "amount_hd1": 5500000.0,
       "amount_sd1": null,
-      "change": -5501000.0,
+      "change": -5500000.0,
       "pct_change": null,
       "change_type": "removed",
-      "program_name": "GENERAL ADMINISTRATION",
-      "department_name": "Department of Accounting and General Services"
+      "program_name": "WAIAWA CORRECTIONAL FACILITY",
+      "department_name": "Department of Corrections and Rehabilitation"
+    },
+    {
+      "program_id": "LNR804",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": 5300000.0,
+      "amount_sd1": null,
+      "change": -5300000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "FOREST AND OUTDOOR RECREATION",
+      "department_name": "Department of Land and Natural Resources"
     },
     {
       "program_id": "HMS303",
@@ -573,6 +753,51 @@
       "change_type": "modified",
       "program_name": "DEBT SERVICE PAYMENTS - UH",
       "department_name": "Department of Budget and Finance"
+    },
+    {
+      "program_id": "LNR407",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 5000000.0,
+      "amount_sd1": null,
+      "change": -5000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "NATURAL AREA RESERVES AND WATERSHED MANAGEMENT",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "SUB301",
+      "department_code": "COH",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 5000000.0,
+      "amount_sd1": null,
+      "change": -5000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "COUNTY OF HAWAII",
+      "department_name": "County of Hawaii"
+    },
+    {
+      "program_id": "SUB301",
+      "department_code": "COH",
+      "fund_type": "S",
+      "fund_category": "County Funds",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 5000000.0,
+      "amount_sd1": null,
+      "change": -5000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "COUNTY OF HAWAII",
+      "department_name": "County of Hawaii"
     },
     {
       "program_id": "SUB301",
@@ -740,6 +965,21 @@
       "department_name": "Department of Human Services"
     },
     {
+      "program_id": "HMS503",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 3500000.0,
+      "amount_sd1": null,
+      "change": -3500000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "HAWAII YOUTH CORRECTIONAL FACILITY (HYCF)",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
       "program_id": "BED100",
       "department_code": "BED",
       "fund_type": "A",
@@ -768,6 +1008,21 @@
       "change_type": "modified",
       "program_name": "CHARTER SCHOOLS",
       "department_name": "Department of Education"
+    },
+    {
+      "program_id": "AGR131",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 4000000.0,
+      "amount_sd1": 1000000.0,
+      "change": -3000000.0,
+      "pct_change": -75.0,
+      "change_type": "modified",
+      "program_name": "RABIES QUARANTINE",
+      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "BED150",
@@ -843,6 +1098,21 @@
       "change_type": "removed",
       "program_name": "KAUAI HIGHWAYS",
       "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "UOH700",
+      "department_code": "UOH",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 3000000.0,
+      "amount_sd1": null,
+      "change": -3000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+      "department_name": "University of Hawaii"
     },
     {
       "program_id": "LNR909",
@@ -950,6 +1220,21 @@
       "department_name": "Department of Hawaiian Home Lands"
     },
     {
+      "program_id": "LAW822",
+      "department_code": "LAW",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Public Safety",
+      "amount_hd1": 2848600.0,
+      "amount_sd1": 418000.0,
+      "change": -2430600.0,
+      "pct_change": -85.32612511409113,
+      "change_type": "modified",
+      "program_name": "OFFICE OF THE STATE FIRE MARSHAL",
+      "department_name": "Department of Law Enforcement"
+    },
+    {
       "program_id": "BED120",
       "department_code": "BED",
       "fund_type": "A",
@@ -993,6 +1278,21 @@
       "change_type": "modified",
       "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
       "department_name": "Department of Agriculture and Biosecurity"
+    },
+    {
+      "program_id": "DEF112",
+      "department_code": "DEF",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 2220000.0,
+      "amount_sd1": null,
+      "change": -2220000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "SERVICES TO VETERANS",
+      "department_name": "Department of Defense"
     },
     {
       "program_id": "AGR192",
@@ -1128,6 +1428,36 @@
       "change_type": "modified",
       "program_name": "GENERAL ASSISTANCE PAYMENTS",
       "department_name": "Department of Human Services"
+    },
+    {
+      "program_id": "LAW900",
+      "department_code": "LAW",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Public Safety",
+      "amount_hd1": 4000000.0,
+      "amount_sd1": 2000000.0,
+      "change": -2000000.0,
+      "pct_change": -50.0,
+      "change_type": "modified",
+      "program_name": "GENERAL ADMINISTRATION",
+      "department_name": "Department of Law Enforcement"
+    },
+    {
+      "program_id": "LNR172",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 2000000.0,
+      "amount_sd1": null,
+      "change": -2000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT",
+      "department_name": "Department of Land and Natural Resources"
     },
     {
       "program_id": "HTH430",
@@ -1460,6 +1790,21 @@
       "department_name": "Department of Taxation"
     },
     {
+      "program_id": "TRN995",
+      "department_code": "TRN",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Transportation",
+      "amount_hd1": 1155000.0,
+      "amount_sd1": null,
+      "change": -1155000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "GENERAL ADMINISTRATION",
+      "department_name": "Department of Transportation"
+    },
+    {
       "program_id": "HTH420",
       "department_code": "HTH",
       "fund_type": "A",
@@ -1578,6 +1923,21 @@
       "change_type": "modified",
       "program_name": "WATER RESOURCES",
       "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "TRN595",
+      "department_code": "TRN",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Transportation",
+      "amount_hd1": 1000000.0,
+      "amount_sd1": null,
+      "change": -1000000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "HIGHWAYS ADMINISTRATION",
+      "department_name": "Department of Transportation"
     },
     {
       "program_id": "AGS881",
@@ -2705,6 +3065,21 @@
       "department_name": "Department of Agriculture and Biosecurity"
     },
     {
+      "program_id": "BED101",
+      "department_code": "BED",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Economic Development",
+      "amount_hd1": 200000.0,
+      "amount_sd1": null,
+      "change": -200000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "OFFICE OF INTERNATIONAL AFFAIRS",
+      "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
       "program_id": "AGR141",
       "department_code": "AGR",
       "fund_type": "A",
@@ -3153,6 +3528,21 @@
       "change_type": "modified",
       "program_name": "NON-STATE FACILITIES",
       "department_name": "Department of Corrections and Rehabilitation"
+    },
+    {
+      "program_id": "DEF116",
+      "department_code": "DEF",
+      "fund_type": "P",
+      "fund_category": "Other Federal Funds",
+      "section": "Operating",
+      "category": "Public Safety",
+      "amount_hd1": 40548677.0,
+      "amount_sd1": 40449383.0,
+      "change": -99294.0,
+      "pct_change": -0.24487605353930536,
+      "change_type": "modified",
+      "program_name": "HAWAII ARMY AND AIR NATIONAL GUARD",
+      "department_name": "Department of Defense"
     },
     {
       "program_id": "HTH906",
@@ -3740,6 +4130,21 @@
       "department_name": "Department of Land and Natural Resources"
     },
     {
+      "program_id": "AGS820",
+      "department_code": "AGS",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Economic Development",
+      "amount_hd1": 396888.0,
+      "amount_sd1": 360000.0,
+      "change": -36888.0,
+      "pct_change": -9.294309729697044,
+      "change_type": "modified",
+      "program_name": "HAWAII BROADBAND AND DIGITAL EQUITY OFFICE",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
       "program_id": "LBR901",
       "department_code": "LBR",
       "fund_type": "A",
@@ -3768,6 +4173,21 @@
       "change_type": "modified",
       "program_name": "WAIAWA CORRECTIONAL FACILITY",
       "department_name": "Department of Corrections and Rehabilitation"
+    },
+    {
+      "program_id": "TRN511",
+      "department_code": "TRN",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 4700000.0,
+      "amount_sd1": 4675000.0,
+      "change": -25000.0,
+      "pct_change": -0.5319148936170213,
+      "change_type": "modified",
+      "program_name": "HAWAII HIGHWAYS",
+      "department_name": "Department of Transportation"
     },
     {
       "program_id": "BED138",
@@ -3903,6 +4323,21 @@
       "change_type": "modified",
       "program_name": "HAWAII TOURISM AUTHORITY - WORKFORCE DEVELOPMENT",
       "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
+      "program_id": "AGR141",
+      "department_code": "AGR",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 1000.0,
+      "amount_sd1": null,
+      "change": -1000.0,
+      "pct_change": null,
+      "change_type": "removed",
+      "program_name": "AGRICULTURAL RESOURCE MANAGEMENT",
+      "department_name": "Department of Agriculture and Biosecurity"
     },
     {
       "program_id": "TRN133",
@@ -4535,6 +4970,21 @@
       "department_name": "Department of Accounting and General Services"
     },
     {
+      "program_id": "AGS892",
+      "department_code": "AGS",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 326882.0,
+      "amount_sd1": 326882.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "STATE BUILDING CODE COUNCIL",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
       "program_id": "ATG100",
       "department_code": "ATG",
       "fund_type": "T",
@@ -4777,6 +5227,21 @@
     {
       "program_id": "BED144",
       "department_code": "BED",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 7000000.0,
+      "amount_sd1": 7000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "OFFICE OF PLANNING AND SUSTAINABLE DEVELOPMENT",
+      "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
+      "program_id": "BED144",
+      "department_code": "BED",
       "fund_type": "N",
       "fund_category": "Federal Funds",
       "section": "Operating",
@@ -4856,12 +5321,42 @@
       "fund_category": "Special Funds",
       "section": "Operating",
       "category": "Government Operations",
-      "amount_hd1": 427625844.0,
-      "amount_sd1": 427625844.0,
+      "amount_hd1": 427305000.0,
+      "amount_sd1": 427305000.0,
       "change": 0.0,
       "pct_change": 0.0,
       "change_type": "modified",
       "program_name": "DEPARTMENTAL ADMINISTRATION AND BUDGET DIVISION",
+      "department_name": "Department of Budget and Finance"
+    },
+    {
+      "program_id": "BUF102",
+      "department_code": "BUF",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 1820168.0,
+      "amount_sd1": 1820168.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "COLLECTIVE BARGAINING - STATEWIDE",
+      "department_name": "Department of Budget and Finance"
+    },
+    {
+      "program_id": "BUF102",
+      "department_code": "BUF",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Operating",
+      "category": "Government Operations",
+      "amount_hd1": 320844.0,
+      "amount_sd1": 320844.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "COLLECTIVE BARGAINING - STATEWIDE",
       "department_name": "Department of Budget and Finance"
     },
     {
@@ -5077,9 +5572,24 @@
     {
       "program_id": "DEF116",
       "department_code": "DEF",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Public Safety",
+      "amount_hd1": 7400000.0,
+      "amount_sd1": 7400000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "HAWAII ARMY AND AIR NATIONAL GUARD",
+      "department_name": "Department of Defense"
+    },
+    {
+      "program_id": "DEF116",
+      "department_code": "DEF",
       "fund_type": "P",
       "fund_category": "Other Federal Funds",
-      "section": "Operating",
+      "section": "Capital Improvement",
       "category": "Public Safety",
       "amount_hd1": 16600000.0,
       "amount_sd1": 16600000.0,
@@ -5435,6 +5945,21 @@
       "department_name": "Department of Education"
     },
     {
+      "program_id": "EDN450",
+      "department_code": "EDN",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": 4894000.0,
+      "amount_sd1": 4894000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "SCHOOL FACILITIES AUTHORITY",
+      "department_name": "Department of Education"
+    },
+    {
       "program_id": "EDN500",
       "department_code": "EDN",
       "fund_type": "B",
@@ -5627,6 +6152,21 @@
       "pct_change": 0.0,
       "change_type": "modified",
       "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+      "department_name": "Department of Hawaiian Home Lands"
+    },
+    {
+      "program_id": "HHL625",
+      "department_code": "HHL",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": 100000.0,
+      "amount_sd1": 100000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "ADMINISTRATION AND OPERATING SUPPORT",
       "department_name": "Department of Hawaiian Home Lands"
     },
     {
@@ -6036,6 +6576,21 @@
     },
     {
       "program_id": "HTH100",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": 2525000.0,
+      "amount_sd1": 2525000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
+      "program_id": "HTH100",
       "department_code": "HTH",
       "fund_type": "U",
       "fund_category": "Interdepartmental Transfers",
@@ -6318,6 +6873,21 @@
       "change_type": "modified",
       "program_name": "CHILD AND ADOLESCENT MENTAL HEALTH",
       "department_name": "Department of Health"
+    },
+    {
+      "program_id": "HTH501",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": 1000000.0,
+      "amount_sd1": 1000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "DEVELOPMENTAL DISABILITIES",
+      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "HTH501",
@@ -7147,6 +7717,21 @@
     {
       "program_id": "LNR141",
       "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 2000000.0,
+      "amount_sd1": 2000000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "WATER AND LAND DEVELOPMENT",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "LNR141",
+      "department_code": "LNR",
       "fund_type": "T",
       "fund_category": "Trust Funds",
       "section": "Operating",
@@ -7537,6 +8122,21 @@
     {
       "program_id": "TRN104",
       "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 7001000.0,
+      "amount_sd1": 7001000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "GENERAL AVIATION",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN104",
+      "department_code": "TRN",
       "fund_type": "N",
       "fund_category": "Federal Funds",
       "section": "Capital Improvement",
@@ -7562,6 +8162,66 @@
       "pct_change": 0.0,
       "change_type": "modified",
       "program_name": "HILO INTERNATIONAL AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN111",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 7030000.0,
+      "amount_sd1": 7030000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "HILO INTERNATIONAL AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN111",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000.0,
+      "amount_sd1": 1000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "HILO INTERNATIONAL AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN114",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 82830000.0,
+      "amount_sd1": 82830000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "ELLISON ONIZUKA KONA INTERNATIONAL AIRPORT AT KEAHOLE",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN114",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000.0,
+      "amount_sd1": 1000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "ELLISON ONIZUKA KONA INTERNATIONAL AIRPORT AT KEAHOLE",
       "department_name": "Department of Transportation"
     },
     {
@@ -7610,6 +8270,21 @@
       "department_name": "Department of Transportation"
     },
     {
+      "program_id": "TRN131",
+      "department_code": "TRN",
+      "fund_type": "N",
+      "fund_category": "Federal Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 1000.0,
+      "amount_sd1": 1000.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "KAHULUI AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
       "program_id": "TRN133",
       "department_code": "TRN",
       "fund_type": "B",
@@ -7618,6 +8293,21 @@
       "category": "Transportation",
       "amount_hd1": 762525.0,
       "amount_sd1": 762525.0,
+      "change": 0.0,
+      "pct_change": 0.0,
+      "change_type": "modified",
+      "program_name": "HANA AIRPORT",
+      "department_name": "Department of Transportation"
+    },
+    {
+      "program_id": "TRN133",
+      "department_code": "TRN",
+      "fund_type": "E",
+      "fund_category": "Revenue Bond Funds",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": 11386000.0,
+      "amount_sd1": 11386000.0,
       "change": 0.0,
       "pct_change": 0.0,
       "change_type": "modified",
@@ -8825,6 +9515,21 @@
       "department_name": "Department of Accounting and General Services"
     },
     {
+      "program_id": "BED107",
+      "department_code": "BED",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": null,
+      "amount_sd1": 250000.0,
+      "change": 250000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "FOREIGN TRADE ZONE",
+      "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
       "program_id": "LNR810",
       "department_code": "LNR",
       "fund_type": "B",
@@ -8838,6 +9543,21 @@
       "change_type": "modified",
       "program_name": "PREVENTION OF NATURAL DISASTERS",
       "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "EDN600",
+      "department_code": "EDN",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 275000.0,
+      "change": 275000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "CHARTER SCHOOLS",
+      "department_name": "Department of Education"
     },
     {
       "program_id": "UOH700",
@@ -8915,18 +9635,33 @@
       "department_name": "Department of Commerce and Consumer Affairs"
     },
     {
-      "program_id": "DEF118",
+      "program_id": "LNR404",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 1500000.0,
+      "amount_sd1": 2000000.0,
+      "change": 500000.0,
+      "pct_change": 33.33333333333333,
+      "change_type": "modified",
+      "program_name": "WATER RESOURCES",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "LAW822",
       "department_code": "LAW",
       "fund_type": "B",
       "fund_category": "Special Funds",
-      "section": "Capital Improvement",
+      "section": "Operating",
       "category": "Public Safety",
       "amount_hd1": 200000.0,
       "amount_sd1": 718600.0,
       "change": 518600.0,
       "pct_change": 259.3,
       "change_type": "modified",
-      "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+      "program_name": "OFFICE OF THE STATE FIRE MARSHAL",
       "department_name": "Department of Law Enforcement"
     },
     {
@@ -8988,6 +9723,21 @@
       "change_type": "modified",
       "program_name": "PESTICIDES",
       "department_name": "Department of Agriculture and Biosecurity"
+    },
+    {
+      "program_id": "LNR908",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": null,
+      "amount_sd1": 600000.0,
+      "change": 600000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "KAHOOLAWE ISLAND RESERVE COMMISSION",
+      "department_name": "Department of Land and Natural Resources"
     },
     {
       "program_id": "CCA901",
@@ -9305,18 +10055,33 @@
       "department_name": "Department of Hawaiian Home Lands"
     },
     {
-      "program_id": "UOH900",
+      "program_id": "UOH881",
+      "department_code": "UOH",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": null,
+      "amount_sd1": 2000000.0,
+      "change": 2000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "AQUARIA",
+      "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "UOH120",
       "department_code": "UOH",
       "fund_type": "W",
       "fund_category": "Revolving Funds",
-      "section": "Capital Improvement",
+      "section": "Operating",
       "category": "Education",
       "amount_hd1": null,
       "amount_sd1": 2037983.0,
       "change": 2037983.0,
       "pct_change": null,
       "change_type": "added",
-      "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+      "program_name": "UNIVERSITY OF HAWAII, MANOA - COLLEGE OF TROPICAL AGRICULTURE AND HUMAN RESILIENCE",
       "department_name": "University of Hawaii"
     },
     {
@@ -9395,6 +10160,21 @@
       "department_name": "Department of Agriculture and Biosecurity"
     },
     {
+      "program_id": "TRN501",
+      "department_code": "TRN",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Transportation",
+      "amount_hd1": null,
+      "amount_sd1": 2500000.0,
+      "change": 2500000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "OAHU HIGHWAYS",
+      "department_name": "Department of Transportation"
+    },
+    {
       "program_id": "TRN511",
       "department_code": "TRN",
       "fund_type": "E",
@@ -9455,6 +10235,21 @@
       "department_name": "Subsidies"
     },
     {
+      "program_id": "UOH700",
+      "department_code": "UOH",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 3000000.0,
+      "change": 3000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+      "department_name": "University of Hawaii"
+    },
+    {
       "program_id": "BED144",
       "department_code": "BED",
       "fund_type": "B",
@@ -9500,6 +10295,21 @@
       "department_name": "Department of Transportation"
     },
     {
+      "program_id": "HMS503",
+      "department_code": "HMS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Human Services",
+      "amount_hd1": null,
+      "amount_sd1": 3500000.0,
+      "change": 3500000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "HAWAII YOUTH CORRECTIONAL FACILITY (HYCF)",
+      "department_name": "Department of Human Services"
+    },
+    {
       "program_id": "HTH840",
       "department_code": "HTH",
       "fund_type": "B",
@@ -9515,6 +10325,21 @@
       "department_name": "Department of Health"
     },
     {
+      "program_id": "BED146",
+      "department_code": "BED",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": null,
+      "amount_sd1": 3675000.0,
+      "change": 3675000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "NATURAL ENERGY LABORATORY OF HAWAII AUTHORITY",
+      "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
       "program_id": "PSD402",
       "department_code": "PSD",
       "fund_type": "A",
@@ -9528,6 +10353,21 @@
       "change_type": "modified",
       "program_name": "HALAWA CORRECTIONAL FACILITY",
       "department_name": "Department of Corrections and Rehabilitation"
+    },
+    {
+      "program_id": "AGS111",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": null,
+      "amount_sd1": 4000000.0,
+      "change": 4000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "ARCHIVES - RECORDS MANAGEMENT",
+      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "UOH800",
@@ -9587,6 +10427,21 @@
       "pct_change": 24.99500099980004,
       "change_type": "modified",
       "program_name": "PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",
+      "department_name": "Department of Accounting and General Services"
+    },
+    {
+      "program_id": "HTH907",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": 1000000.0,
+      "amount_sd1": 6100000.0,
+      "change": 5100000.0,
+      "pct_change": 509.99999999999994,
+      "change_type": "modified",
+      "program_name": "GENERAL ADMINISTRATION",
       "department_name": "Department of Accounting and General Services"
     },
     {
@@ -9650,6 +10505,21 @@
       "department_name": "Department of Education"
     },
     {
+      "program_id": "LNR906",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 11200000.0,
+      "amount_sd1": 18000000.0,
+      "change": 6800000.0,
+      "pct_change": 60.71428571428571,
+      "change_type": "modified",
+      "program_name": "LNR - NATURAL AND PHYSICAL ENVIRONMENT",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
       "program_id": "EDN400",
       "department_code": "EDN",
       "fund_type": "W",
@@ -9665,19 +10535,34 @@
       "department_name": "Department of Education"
     },
     {
-      "program_id": "UOH900",
+      "program_id": "UOH120",
       "department_code": "UOH",
       "fund_type": "B",
       "fund_category": "Special Funds",
-      "section": "Capital Improvement",
+      "section": "Operating",
       "category": "Education",
       "amount_hd1": null,
       "amount_sd1": 7425785.0,
       "change": 7425785.0,
       "pct_change": null,
       "change_type": "added",
-      "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+      "program_name": "UNIVERSITY OF HAWAII, MANOA - COLLEGE OF TROPICAL AGRICULTURE AND HUMAN RESILIENCE",
       "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "LNR806",
+      "department_code": "LNR",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Culture and Recreation",
+      "amount_hd1": 8500000.0,
+      "amount_sd1": 16000000.0,
+      "change": 7500000.0,
+      "pct_change": 88.23529411764706,
+      "change_type": "modified",
+      "program_name": "PARKS ADMINISTRATION AND OPERATION",
+      "department_name": "Department of Land and Natural Resources"
     },
     {
       "program_id": "AGR192",
@@ -9755,6 +10640,36 @@
       "department_name": "Department of Land and Natural Resources"
     },
     {
+      "program_id": "HTH710",
+      "department_code": "HTH",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": null,
+      "amount_sd1": 9400000.0,
+      "change": 9400000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "STATE LABORATORY SERVICES",
+      "department_name": "Department of Health"
+    },
+    {
+      "program_id": "LNR101",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": 13801000.0,
+      "amount_sd1": 23270000.0,
+      "change": 9469000.0,
+      "pct_change": 68.6109702195493,
+      "change_type": "modified",
+      "program_name": "PUBLIC LANDS MANAGEMENT",
+      "department_name": "Department of Land and Natural Resources"
+    },
+    {
       "program_id": "HMS777",
       "department_code": "HMS",
       "fund_type": "C",
@@ -9770,7 +10685,22 @@
       "department_name": "Department of Human Services"
     },
     {
-      "program_id": "SUB301",
+      "program_id": "SUB401",
+      "department_code": "SUB",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Government Operations",
+      "amount_hd1": null,
+      "amount_sd1": 10500000.0,
+      "change": 10500000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "COUNTY OF MAUI",
+      "department_name": "Subsidies"
+    },
+    {
+      "program_id": "SUB401",
       "department_code": "SUB",
       "fund_type": "S",
       "fund_category": "County Funds",
@@ -9781,7 +10711,7 @@
       "change": 10500000.0,
       "pct_change": null,
       "change_type": "added",
-      "program_name": "COUNTY OF HAWAII",
+      "program_name": "COUNTY OF MAUI",
       "department_name": "Subsidies"
     },
     {
@@ -9845,6 +10775,36 @@
       "department_name": "Department of Land and Natural Resources"
     },
     {
+      "program_id": "PSD900",
+      "department_code": "PSD",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Public Safety",
+      "amount_hd1": 5501000.0,
+      "amount_sd1": 20000000.0,
+      "change": 14499000.0,
+      "pct_change": 263.57025995273585,
+      "change_type": "modified",
+      "program_name": "GENERAL ADMINISTRATION",
+      "department_name": "Department of Corrections and Rehabilitation"
+    },
+    {
+      "program_id": "UOH210",
+      "department_code": "UOH",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 15000000.0,
+      "change": 15000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "UNIVERSITY OF HAWAII, HILO",
+      "department_name": "University of Hawaii"
+    },
+    {
       "program_id": "LNR101",
       "department_code": "LNR",
       "fund_type": "B",
@@ -9858,6 +10818,21 @@
       "change_type": "modified",
       "program_name": "PUBLIC LANDS MANAGEMENT",
       "department_name": "Department of Land and Natural Resources"
+    },
+    {
+      "program_id": "HTH212",
+      "department_code": "AGS",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Health",
+      "amount_hd1": null,
+      "amount_sd1": 16600000.0,
+      "change": 16600000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "HAWAII HEALTH SYSTEMS CORPORATION -  REGIONS",
+      "department_name": "Department of Accounting and General Services"
     },
     {
       "program_id": "TRN511",
@@ -9875,19 +10850,34 @@
       "department_name": "Department of Transportation"
     },
     {
-      "program_id": "PSD900",
-      "department_code": "PSD",
-      "fund_type": "C",
-      "fund_category": "General Obligation Bond Fund",
-      "section": "Capital Improvement",
-      "category": "Public Safety",
+      "program_id": "UOH120",
+      "department_code": "UOH",
+      "fund_type": "A",
+      "fund_category": "General Funds",
+      "section": "Operating",
+      "category": "Education",
       "amount_hd1": null,
-      "amount_sd1": 20000000.0,
-      "change": 20000000.0,
+      "amount_sd1": 20246608.0,
+      "change": 20246608.0,
       "pct_change": null,
       "change_type": "added",
-      "program_name": "GENERAL ADMINISTRATION",
-      "department_name": "Department of Corrections and Rehabilitation"
+      "program_name": "UNIVERSITY OF HAWAII, MANOA - COLLEGE OF TROPICAL AGRICULTURE AND HUMAN RESILIENCE",
+      "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "BED113",
+      "department_code": "BED",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": null,
+      "amount_sd1": 21000000.0,
+      "change": 21000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "HAWAII TOURISM AUTHORITY - ADMINISTRATION AND GOVERNANCE",
+      "department_name": "Department of Business, Economic Development, and Tourism"
     },
     {
       "program_id": "BED170",
@@ -9903,6 +10893,36 @@
       "change_type": "added",
       "program_name": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
       "department_name": "Department of Business, Economic Development, and Tourism"
+    },
+    {
+      "program_id": "AGR141",
+      "department_code": "AGR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Economic Development",
+      "amount_hd1": 20725000.0,
+      "amount_sd1": 46250000.0,
+      "change": 25525000.0,
+      "pct_change": 123.16043425814233,
+      "change_type": "modified",
+      "program_name": "AGRICULTURAL RESOURCE MANAGEMENT",
+      "department_name": "Department of Agriculture and Biosecurity"
+    },
+    {
+      "program_id": "LNR405",
+      "department_code": "LNR",
+      "fund_type": "C",
+      "fund_category": "General Obligation Bond Fund",
+      "section": "Capital Improvement",
+      "category": "Environment",
+      "amount_hd1": 1000000.0,
+      "amount_sd1": 27000000.0,
+      "change": 26000000.0,
+      "pct_change": 2600.0,
+      "change_type": "modified",
+      "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+      "department_name": "Department of Land and Natural Resources"
     },
     {
       "program_id": "UOH100",
@@ -9935,6 +10955,36 @@
       "department_name": "Department of Education"
     },
     {
+      "program_id": "UOH800",
+      "department_code": "UOH",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 30000000.0,
+      "change": 30000000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+      "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "UOH100",
+      "department_code": "UOH",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 46500000.0,
+      "change": 46500000.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "UNIVERSITY OF HAWAII, MANOA",
+      "department_name": "University of Hawaii"
+    },
+    {
       "program_id": "DEF118",
       "department_code": "DEF",
       "fund_type": "A",
@@ -9950,15 +11000,30 @@
       "department_name": "Department of Defense"
     },
     {
-      "program_id": "UOH900",
+      "program_id": "UOH120",
       "department_code": "UOH",
       "fund_type": "N",
       "fund_category": "Federal Funds",
-      "section": "Capital Improvement",
+      "section": "Operating",
       "category": "Education",
       "amount_hd1": null,
       "amount_sd1": 56377999.0,
       "change": 56377999.0,
+      "pct_change": null,
+      "change_type": "added",
+      "program_name": "UNIVERSITY OF HAWAII, MANOA - COLLEGE OF TROPICAL AGRICULTURE AND HUMAN RESILIENCE",
+      "department_name": "University of Hawaii"
+    },
+    {
+      "program_id": "UOH900",
+      "department_code": "UOH",
+      "fund_type": "B",
+      "fund_category": "Special Funds",
+      "section": "Capital Improvement",
+      "category": "Education",
+      "amount_hd1": null,
+      "amount_sd1": 65004000.0,
+      "change": 65004000.0,
       "pct_change": null,
       "change_type": "added",
       "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
