@@ -1227,7 +1227,49 @@ window.initDraftComparePage = async function () {
                             }
                         }
                     }
+                } else if (p.funds.size > 1) {
+                    // Non-mixed multi-fund: render as expandable program with fund sub-rows nested inside
+                    const progHasProjects = p.section === 'Capital Improvement'
+                        && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
+                    const progChipHtml = progHasProjects
+                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
+                        : `<span class="section-chip">${p.section}</span>`;
+                    const progArrow = progOpen ? '▼' : '▶';
+                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                        <td>${progChipHtml}</td>
+                        <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
+                    </tr>`;
+                    const byFund = new Map();
+                    for (const r of p.rawRows) {
+                        const fc = r.fund_category || '(unknown)';
+                        if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
+                        const f = byFund.get(fc);
+                        f.d1  += r[d1Key]  || 0;
+                        f.d2  += r[d2Key]  || 0;
+                        f.hd1 += r[hd1Key] || 0;
+                    }
+                    for (const [fc, f] of byFund) {
+                        const fDelta = f.d2 - f.d1;
+                        const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
+                        const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
+                        bodyHtml += `<tr class="prog-section-row fund-sub-row${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
+                            <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                            <td></td><td></td>
+                            <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
+                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
+                            <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
+                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
+                            <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
+                        </tr>`;
+                    }
                 } else {
+                    // Single-fund: plain leaf row
                     const progHasProjects = p.section === 'Capital Improvement'
                         && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
                     const progChipHtml = progHasProjects
