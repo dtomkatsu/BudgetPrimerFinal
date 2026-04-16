@@ -625,8 +625,10 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     return `
         <section class="compare-page">
             <h2>HB1800: <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_HD1.htm" target="_blank" rel="noopener">HD1</a> → <a class="draft-title-link" href="https://capitol.hawaii.gov/sessions/session2026/bills/HB1800_SD1.htm" target="_blank" rel="noopener">SD1</a> Draft Comparison</h2>
+            <div class="compare-controls-stack">
             <div class="compare-toggles-bar">
                 ${fyToggle}
+            </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <div class="tl-node" id="tl-node-gov">
                         <span class="tl-label">Gov's<br>Request</span>
@@ -656,6 +658,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                     </div>
                 </div>
+            </div>
             </div>
 
             <div id="hb300-ref"></div>
@@ -1091,10 +1094,10 @@ window.initDraftComparePage = async function () {
             bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span>${deptTransferNote}</td>
                 <td></td><td></td>
-                <td class="amount-cell"><span class="figure-chip">${fmt(deptD1)}</span></td>
-                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(dept.hd1)}</span></td>` : ''}
-                <td class="amount-cell"><span class="figure-chip">${fmt(deptD2)}</span></td>
-                <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmt(deptDelta)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
+                <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmtHtml(deptDelta)}</span></td>
                 <td></td>
             </tr>`;
 
@@ -1168,10 +1171,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
@@ -1198,10 +1201,10 @@ window.initDraftComparePage = async function () {
                             <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow">${secFundArrow}</span> ` : ''}${secChipHtml}</td>
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
-                            <td class="amount-cell"><span class="figure-chip">${fmt(secD1)}</span></td>
-                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(secHD1)}</span></td>` : ''}
-                            <td class="amount-cell"><span class="figure-chip">${fmt(secD2)}</span></td>
-                            <td class="amount-cell ${secCls}"><span class="figure-chip">${fmt(secDelta)}</span></td>
+                            <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD1)}</span></td>
+                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(secHD1)}</span></td>` : ''}
+                            <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD2)}</span></td>
+                            <td class="amount-cell ${secCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span></td>
                             <td class="amount-cell ${secCls}">${fmtPct(secPct)}</td>
                         </tr>`;
                         if (isSecFundGroup) {
@@ -1221,10 +1224,10 @@ window.initDraftComparePage = async function () {
                                 bodyHtml += `<tr class="prog-fund-row${isOpen && progOpen && secFundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}" data-fund-key="${secFundKey}">
                                     <td class="fund-indent fund-indent-deep"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                                     <td></td><td></td>
-                                    <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
-                                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
-                                    <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
-                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
+                                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
+                                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
+                                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
+                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span></td>
                                     <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
                                 </tr>`;
                             }
@@ -1242,10 +1245,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                     const byFund = new Map();
@@ -1264,10 +1267,10 @@ window.initDraftComparePage = async function () {
                         bodyHtml += `<tr class="prog-section-row fund-sub-row${isOpen && expandedPrograms.has(progKey) ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
                             <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                             <td></td><td></td>
-                            <td class="amount-cell"><span class="figure-chip">${fmt(f.d1)}</span></td>
-                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(f.hd1)}</span></td>` : ''}
-                            <td class="amount-cell"><span class="figure-chip">${fmt(f.d2)}</span></td>
-                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmt(fDelta)}</span></td>
+                            <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
+                            ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
+                            <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
+                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span></td>
                             <td class="amount-cell ${fCls}">${fmtPct(fPct)}</td>
                         </tr>`;
                     }
@@ -1282,10 +1285,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmt(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
                         <td class="amount-cell ${cls}">${p.pct_change != null ? fmtPct(p.pct_change) : '—'}</td>
                     </tr>`;
                 }
@@ -1321,10 +1324,10 @@ window.initDraftComparePage = async function () {
                 : '';
             fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
-                <td class="amount-cell"><span class="figure-chip">${fmt(fgD1)}</span></td>
-                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(fgHD1)}</span></td>` : ''}
-                <td class="amount-cell"><span class="figure-chip">${fmt(fgD2)}</span></td>
-                <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmt(fgDelta)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
+                <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmtHtml(fgDelta)}</span></td>
                 <td></td>
             </tr>`;
 
@@ -1334,10 +1337,10 @@ window.initDraftComparePage = async function () {
                 const dynPct = r[d1Key] !== 0 ? ((delta / Math.abs(r[d1Key])) * 100) : (delta !== 0 ? 100 : 0);
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
-                    <td class="amount-cell"><span class="figure-chip">${fmt(r[d1Key])}</span></td>
-                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmt(r[hd1Key] || 0)}</span></td>` : ''}
-                    <td class="amount-cell"><span class="figure-chip">${fmt(r[d2Key])}</span></td>
-                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(delta)}</span></td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
+                    ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
+                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(delta)}</span></td>
                     <td class="amount-cell ${cls}">${fmtPct(dynPct)}</td>
                 </tr>`;
             }
@@ -1458,9 +1461,9 @@ window.initDraftComparePage = async function () {
                     <td class="project-num">${pr.project_id}</td>
                     <td><div class="project-name">${pr.project_name}</div>${scope}</td>
                     <td><span class="fund-chip">${shortFund(pr.fund_category)}</span></td>
-                    <td class="amount-cell"><span class="figure-chip">${fmt(pr[d1Key])}</span></td>
-                    <td class="amount-cell"><span class="figure-chip">${fmt(pr[d2Key])}</span></td>
-                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmt(change)}</span> ${badge}</td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(pr[d1Key])}</span></td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(pr[d2Key])}</span></td>
+                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(change)}</span> ${badge}</td>
                 </tr>`;
             }).join('');
 
