@@ -1004,13 +1004,29 @@ window.initDraftComparePage = async function () {
                 </li>`;
             };
 
+            const VISIBLE_COUNT = 2;
+            const itemsHtml = combined.length
+                ? combined.map((p, i) => {
+                    const li = renderSentence(p);
+                    return i < VISIBLE_COUNT ? li : li.replace('class="highlight-item"', 'class="highlight-item highlight-hidden"');
+                }).join('')
+                : '<li class="highlight-empty">No significant changes in this view</li>';
+            const moreCount = Math.max(0, combined.length - VISIBLE_COUNT);
+            const moreBtn = moreCount > 0
+                ? `<li><button class="highlight-more-btn" id="highlight-more-btn">▶ Show ${moreCount} more</button></li>`
+                : '';
+
             highlightsEl.innerHTML = `
                 <div class="card-section-label card-section-total">Highlights</div>
                 <ul class="highlights-list">
-                    ${combined.length
-                        ? combined.map(renderSentence).join('')
-                        : '<li class="highlight-empty">No significant changes in this view</li>'}
+                    ${itemsHtml}
+                    ${moreBtn}
                 </ul>`;
+
+            document.getElementById('highlight-more-btn')?.addEventListener('click', function() {
+                highlightsEl.querySelectorAll('.highlight-hidden').forEach(el => el.classList.remove('highlight-hidden'));
+                this.parentElement.remove();
+            });
         }
     };
 
