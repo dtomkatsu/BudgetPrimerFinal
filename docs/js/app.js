@@ -1259,7 +1259,7 @@ window.initDraftComparePage = async function () {
                         const secHasProjects = sec === 'Capital Improvement'
                             && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
                         const secChipHtml = secHasProjects
-                            ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${sec} →</a>`
+                            ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${sec} →</a>`
                             : `<span class="section-chip">${sec}</span>`;
                         const isSecFundGroup = secFunds.size > 1;
                         const secFundKey = `${dept.code}:${p.program_id}:${sec}`;
@@ -1306,7 +1306,7 @@ window.initDraftComparePage = async function () {
                     const progHasProjects = p.section === 'Capital Improvement'
                         && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
                     const progChipHtml = progHasProjects
-                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
+                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
@@ -1347,7 +1347,7 @@ window.initDraftComparePage = async function () {
                     const progHasProjects = p.section === 'Capital Improvement'
                         && activeProjects?.projects_by_program?.[p.program_id]?.length > 0;
                     const progChipHtml = progHasProjects
-                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${p.program_id}">${p.section} →</a>`
+                        ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
                         <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
@@ -1475,57 +1475,91 @@ window.initDraftComparePage = async function () {
         const d1Key = `amount_${d1Label.toLowerCase()}`;
         const d2Key = `amount_${d2Label.toLowerCase()}`;
 
-        // Build Gov's Request CIP total by program_id (aggregate across all fund types)
-        const fyKey = activeData.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
-        const govCipByProgram = new Map();
-        for (const r of (governorRequestData || [])) {
-            if (r.section !== 'Capital Improvement') continue;
-            govCipByProgram.set(r.program_id, (govCipByProgram.get(r.program_id) || 0) + (r[fyKey] || 0));
-        }
-
-        // Build a lookup of program_id → program_name from comparison data
-        const progNameMap = new Map();
+        // Build dept name lookup from comparison data
+        const deptNameMap = new Map();
         for (const r of activeData.comparisons) {
-            if (r.program_id && !progNameMap.has(r.program_id)) {
-                progNameMap.set(r.program_id, r.program_name || '');
+            if (r.department_code && !deptNameMap.has(r.department_code)) {
+                deptNameMap.set(r.department_code, r.department_name || r.department_code);
             }
         }
+
+        // Flatten all projects and group by department_code
+        const deptMap = new Map(); // deptCode → { code, name, projects[] }
+        for (const projects of Object.values(activeProjects.projects_by_program)) {
+            for (const pr of projects) {
+                const dc = pr.department_code || '(unknown)';
+                if (!deptMap.has(dc)) {
+                    deptMap.set(dc, {
+                        code: dc,
+                        name: deptNameMap.get(dc) || pr.department_name || dc,
+                        projects: [],
+                    });
+                }
+                deptMap.get(dc).projects.push(pr);
+            }
+        }
+
+        // Sort depts alphabetically by code
+        const depts = [...deptMap.values()].sort((a, b) => a.code.localeCompare(b.code));
 
         // Filter by current search query
         const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
-        const entries = Object.entries(activeProjects.projects_by_program);
 
-        // Sort by program_id
-        entries.sort((a, b) => a[0].localeCompare(b[0]));
-
-        let html = '';
+        let bodyRows = '';
         let visibleCount = 0;
-        for (const [pid, projects] of entries) {
-            if (!projects || projects.length === 0) continue;
-            const progName = progNameMap.get(pid) || (projects[0].program_name || '');
-            if (q && !pid.toLowerCase().includes(q) && !progName.toLowerCase().includes(q)) {
-                // Also try matching any project name
-                const anyMatch = projects.some(pr =>
-                    (pr.project_name || '').toLowerCase().includes(q));
-                if (!anyMatch) continue;
-            }
+
+        for (const dept of depts) {
+            // Apply search filter per project
+            const filteredProjects = q
+                ? dept.projects.filter(pr =>
+                    dept.code.toLowerCase().includes(q) ||
+                    dept.name.toLowerCase().includes(q) ||
+                    (pr.program_id || '').toLowerCase().includes(q) ||
+                    (pr.program_name || '').toLowerCase().includes(q) ||
+                    (pr.project_name || '').toLowerCase().includes(q))
+                : [...dept.projects];
+
+            if (filteredProjects.length === 0) continue;
             visibleCount++;
 
-            const d1Total = projects.reduce((s, pr) => s + (pr[d1Key] || 0), 0);
-            const d2Total = projects.reduce((s, pr) => s + (pr[d2Key] || 0), 0);
+            // Sort: program_id first, then project_id numerically
+            filteredProjects.sort((a, b) => {
+                const pidCmp = (a.program_id || '').localeCompare(b.program_id || '');
+                if (pidCmp !== 0) return pidCmp;
+                return (Number(a.project_id) || 0) - (Number(b.project_id) || 0);
+            });
+
+            const d1Total = filteredProjects.reduce((s, pr) => s + (pr[d1Key] || 0), 0);
+            const d2Total = filteredProjects.reduce((s, pr) => s + (pr[d2Key] || 0), 0);
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-            const govTotal = govCipByProgram.get(pid);
-            const isOpen = expandedProjectPrograms.has(pid);
+            const isOpen = expandedProjectPrograms.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
-            const rowsHtml = projects.map(pr => {
+            // Dept group row
+            bodyRows += `<tr class="dept-group-row project-dept-row" data-project-dept="${dept.code}">
+                <td colspan="7" class="project-dept-cell">
+                    <span class="dept-arrow">${arrow}</span>
+                    <strong>${dept.code}</strong> ${dept.name}
+                    <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span>
+                    <span class="project-totals">
+                        ${fmt(d1Total)} <span class="proj-draft-label">${d1Label}</span>
+                        → ${fmt(d2Total)} <span class="proj-draft-label">${d2Label}</span>
+                        <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>
+                    </span>
+                </td>
+            </tr>`;
+
+            // Individual project rows (hidden until dept expanded)
+            for (const pr of filteredProjects) {
                 const change = pr.change || 0;
                 const cls = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
                 const badge = pr.change_type === 'added' ? '<span class="badge badge-add">new</span>'
                     : pr.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
                 const scope = pr.scope ? `<div class="project-scope">${pr.scope}</div>` : '';
-                return `<tr class="project-row change-${pr.change_type}">
+                const progName = pr.program_name || '';
+                bodyRows += `<tr class="project-row change-${pr.change_type}${isOpen ? '' : ' hidden'}" data-project-dept="${dept.code}">
+                    <td class="project-program-cell"><strong>${pr.program_id}</strong><div class="project-prog-name">${progName}</div></td>
                     <td class="project-num">${pr.project_id}</td>
                     <td><div class="project-name">${pr.project_name}</div>${scope}</td>
                     <td><span class="fund-chip">${shortFund(pr.fund_category)}</span></td>
@@ -1533,32 +1567,25 @@ window.initDraftComparePage = async function () {
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(pr[d2Key])}</span></td>
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(change)}</span> ${badge}</td>
                 </tr>`;
-            }).join('');
-
-            html += `<div class="project-program-panel" id="projects-${pid}">
-                <div class="project-program-header" data-project-pid="${pid}">
-                    <span class="toggle-arrow">${arrow}</span>
-                    <strong>${pid}</strong> ${progName}
-                    <span class="project-count">(${projects.length} project${projects.length === 1 ? '' : 's'})</span>
-                    <span class="project-totals">
-                        ${govActive && govTotal != null ? `<span class="proj-gov-total">${fmt(govTotal)} <span class="proj-gov-label">Gov.</span></span> → ` : ''}${fmt(d1Total)} <span class="proj-draft-label">${d1Label}</span> → ${fmt(d2Total)} <span class="proj-draft-label">${d2Label}</span>
-                        <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>
-                    </span>
-                </div>
-                <table class="data-table project-table" id="projects-${pid}-body" style="display:${isOpen ? '' : 'none'};">
-                    <thead><tr>
-                        <th>#</th><th>Project</th><th>Fund</th>
-                        <th class="amount-cell">${d1Label}</th>
-                        <th class="amount-cell">${d2Label}</th>
-                        <th class="amount-cell">Change<span class="th-sub">${d1Label} → ${d2Label}</span></th>
-                    </tr></thead>
-                    <tbody>${rowsHtml}</tbody>
-                </table>
-            </div>`;
+            }
         }
 
+        let html;
         if (visibleCount === 0) {
             html = `<div class="empty-state"><p>No capital projects match the current filter.</p></div>`;
+        } else {
+            html = `<table class="data-table project-table">
+                <thead><tr>
+                    <th>Program</th>
+                    <th>#</th>
+                    <th>Project</th>
+                    <th>Fund</th>
+                    <th class="amount-cell">${d1Label}</th>
+                    <th class="amount-cell">${d2Label}</th>
+                    <th class="amount-cell">Change<span class="th-sub">${d1Label} → ${d2Label}</span></th>
+                </tr></thead>
+                <tbody>${bodyRows}</tbody>
+            </table>`;
         }
 
         listEl.innerHTML = html;
@@ -1609,25 +1636,25 @@ window.initDraftComparePage = async function () {
         if (chip) {
             e.preventDefault();
             e.stopPropagation();
-            const pid = chip.dataset.scrollProjects;
-            expandedProjectPrograms.add(pid);
+            const deptCode = chip.dataset.scrollProjects;
+            expandedProjectPrograms.add(deptCode);
             renderProjects();
             requestAnimationFrame(() => {
-                const panel = document.getElementById(`projects-${pid}`);
-                if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const row = document.querySelector(`.project-dept-row[data-project-dept="${deptCode}"]`);
+                if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
             return;
         }
-        const header = e.target.closest('.project-program-header');
-        if (header) {
-            const pid = header.dataset.projectPid;
-            if (expandedProjectPrograms.has(pid)) expandedProjectPrograms.delete(pid);
-            else expandedProjectPrograms.add(pid);
-            const body = document.getElementById(`projects-${pid}-body`);
-            const arrow = header.querySelector('.toggle-arrow');
-            const isOpen = expandedProjectPrograms.has(pid);
-            if (body) body.style.display = isOpen ? '' : 'none';
+        const deptRow = e.target.closest('.project-dept-row');
+        if (deptRow) {
+            const deptCode = deptRow.dataset.projectDept;
+            if (expandedProjectPrograms.has(deptCode)) expandedProjectPrograms.delete(deptCode);
+            else expandedProjectPrograms.add(deptCode);
+            const isOpen = expandedProjectPrograms.has(deptCode);
+            const arrow = deptRow.querySelector('.dept-arrow');
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            document.querySelectorAll(`.project-row[data-project-dept="${deptCode}"]`)
+                .forEach(r => r.classList.toggle('hidden', !isOpen));
         }
     });
 
