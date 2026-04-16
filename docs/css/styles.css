@@ -613,7 +613,7 @@ body {
     font-weight: 600;
     color: #6b7d8f;
     letter-spacing: 0.02em;
-    margin-left: 1px;
+    margin-left: 3px;
 }
 /* Tinted chip for the Change column based on direction */
 .amount-cell.positive .figure-chip {
