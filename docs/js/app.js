@@ -672,7 +672,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                 <span class="ctrl-divider-v"></span>
                 <div class="compare-timeline" id="compare-timeline">
                     <div class="tl-node" id="tl-node-gov">
-                        <span class="tl-label">Gov's<br>Request</span>
+                        <span class="tl-label">Gov.</span>
                         <div class="tl-dot-row">
                             <span class="tl-seg tl-seg-before"></span>
                             <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
@@ -860,9 +860,9 @@ window.initDraftComparePage = async function () {
             { id: 'tl-amt-gov', val: tabGov, active: govActive },
             { id: 'tl-amt-hd1', val: tabHD1, active: hd1Active },
             { id: 'tl-amt-sd1', val: tabSD1, active: sd1Active },
-        ].forEach(({ id, val, active }) => {
+        ].forEach(({ id, val }) => {
             const el = document.getElementById(id);
-            if (el) el.textContent = active ? fmtShort(val) : '';
+            if (el) el.textContent = fmtShort(val);
         });
 
         // Net change badge
