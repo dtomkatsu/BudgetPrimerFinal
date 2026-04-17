@@ -675,7 +675,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <span class="tl-label">Gov's<br>Request</span>
                         <div class="tl-dot-row">
                             <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
+                            <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <input type="checkbox" class="tl-cb" id="tl-gov" checked>
@@ -684,7 +684,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <span class="tl-label">HD1</span>
                         <div class="tl-dot-row">
                             <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
+                            <label class="tl-dot-lbl" for="tl-hd1"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
@@ -693,7 +693,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <span class="tl-label">SD1</span>
                         <div class="tl-dot-row">
                             <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-dot"></span>
+                            <label class="tl-dot-lbl" for="tl-sd1"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
