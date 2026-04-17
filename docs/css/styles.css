@@ -554,12 +554,12 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin: 1rem 0 2rem;
-    font-size: 0.9em;
+    font-size: 0.99em;
 }
 
 .data-table th,
 .data-table td {
-    padding: 8px 12px;
+    padding: 9px 13px;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
@@ -575,7 +575,7 @@ body {
 
 .th-sub {
     display: block;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 400;
     color: #999;
     white-space: nowrap;
@@ -594,23 +594,23 @@ body {
 /* Pill/chip around HD1 & SD1 numbers — subtle neutral container */
 .figure-chip {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 9px;
     background: #f4f6f8;
     border: 1px solid #e3e7eb;
     border-radius: 4px;
     font-variant-numeric: tabular-nums;
-    min-width: 3.5rem;
+    min-width: 3.85rem;
     text-align: right;
     white-space: nowrap;
 }
 .figure-chip .fmt-num {
-    font-size: 0.9rem;
+    font-size: 0.99rem;
     font-weight: 600;
     color: #1a1a1a;
     letter-spacing: -0.01em;
 }
 .figure-chip .fmt-unit {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
     font-weight: 600;
     color: #6b7d8f;
     letter-spacing: 0.02em;
@@ -637,11 +637,11 @@ body {
 /* Pill/chip around section labels (Operating, Capital Improvement, Mixed, etc.) */
 .section-chip {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 9px;
     background: #eef3f6;
     border: 1px solid #d5dfe6;
     border-radius: 10px;
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     font-weight: 500;
     color: #3a5260;
     letter-spacing: 0.01em;
@@ -668,11 +668,11 @@ body {
 }
 .fund-chip {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 9px;
     background: #f3eff6;
     border: 1px solid #ddd1e3;
     border-radius: 10px;
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     font-weight: 500;
     color: #4e3a60;
     letter-spacing: 0.01em;
@@ -702,39 +702,39 @@ a.section-chip-link:hover {
 }
 .projects-section h3 {
     margin: 0 0 6px 0;
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     color: #2e3e2e;
 }
 .projects-section .section-desc {
-    font-size: 0.88rem;
+    font-size: 0.97rem;
     color: #6a6a6a;
     margin: 0 0 16px 0;
 }
 /* ── Capital Projects table ── */
 .project-table {
-    font-size: 0.85rem;
+    font-size: 0.935rem;
 }
 .project-table thead th {
     background: #fafbfc;
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: #5a6a75;
-    padding: 6px 10px;
+    padding: 7px 11px;
 }
 .project-table td {
-    padding: 8px 10px;
+    padding: 9px 11px;
     vertical-align: top;
 }
 /* Dept group rows inside the project table */
 .project-table .project-dept-row { cursor: pointer; user-select: none; }
 .project-table .project-dept-row:hover td { background: #eaf1ee; }
 .project-dept-cell {
-    padding: 10px 14px !important;
+    padding: 11px 15px !important;
 }
 .project-dept-cell .project-totals {
     float: right;
-    font-size: 0.82rem;
+    font-size: 0.90rem;
     color: #556;
     font-variant-numeric: tabular-nums;
 }
@@ -746,17 +746,17 @@ a.section-chip-link:hover {
     min-width: 80px;
 }
 .project-prog-name {
-    font-size: 0.74rem;
+    font-size: 0.81rem;
     color: #7a8a85;
     font-weight: 400;
     margin-top: 2px;
     white-space: normal;
-    max-width: 120px;
+    max-width: 132px;
 }
 .project-table .project-num {
     font-variant-numeric: tabular-nums;
     color: #6a6a6a;
-    width: 44px;
+    width: 48px;
     white-space: nowrap;
 }
 .project-table .project-name {
@@ -764,7 +764,7 @@ a.section-chip-link:hover {
     color: #2e3e2e;
 }
 .project-table .project-scope {
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     color: #7a7a7a;
     line-height: 1.4;
     margin-top: 3px;
@@ -775,7 +775,7 @@ a.section-chip-link:hover {
 .project-table .project-row.change-modified { border-left: 3px solid #e0b341; }
 .project-table .project-row.change-unchanged { border-left: 3px solid transparent; }
 .proj-gov-label, .proj-draft-label {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
     font-weight: 400;
     opacity: 0.7;
     margin-left: 1px;
@@ -787,9 +787,9 @@ a.section-chip-link:hover {
 
 .badge {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 10px;
-    font-size: 0.75em;
+    font-size: 0.83em;
     font-weight: 600;
     text-transform: uppercase;
 }
@@ -828,17 +828,17 @@ a.section-chip-link:hover {
 .search-input {
     flex: 1;
     min-width: 200px;
-    padding: 8px 12px;
+    padding: 9px 13px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 0.95em;
+    font-size: 1.05em;
 }
 
 .filter-select {
-    padding: 8px 12px;
+    padding: 9px 13px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: 0.99em;
     background: white;
 }
 
@@ -1003,9 +1003,9 @@ a.section-chip-link:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 12px;
+    padding: 7px 13px;
     cursor: pointer;
-    font-size: 0.85em;
+    font-size: 0.94em;
     white-space: nowrap;
     color: #333;
 }
@@ -1037,19 +1037,19 @@ th.sortable:hover {
     background: #e9ecef;
 }
 .dept-group-row td {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 11px;
+    padding-bottom: 11px;
 }
 .dept-arrow {
     display: inline-block;
     width: 1em;
-    font-size: 0.8em;
+    font-size: 0.88em;
     color: #666;
 }
 .dept-count {
     font-weight: 400;
     color: #888;
-    font-size: 0.85em;
+    font-size: 0.935em;
 }
 .dept-detail-row.hidden,
 .project-row.hidden {
@@ -1057,7 +1057,7 @@ th.sortable:hover {
 }
 .dept-detail-row .detail-indent,
 .fund-detail-row .detail-indent {
-    padding-left: 2rem;
+    padding-left: 2.2rem;
 }
 .prog-group-row {
     cursor: pointer;
@@ -1066,13 +1066,13 @@ th.sortable:hover {
     display: none;
 }
 .prog-section-row .section-indent {
-    padding-left: 3.5rem;
+    padding-left: 3.85rem;
     font-style: italic;
     color: #555;
 }
 .fund-detail-heading {
     margin: 2rem 0 0.75rem;
-    font-size: 1.1rem;
+    font-size: 1.21rem;
     color: var(--text-color);
     cursor: help;
 }
@@ -1096,8 +1096,8 @@ th.sortable:hover {
     background: #e9ecef;
 }
 .fund-group-row td {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 11px;
+    padding-bottom: 11px;
 }
 .fund-detail-row.hidden {
     display: none;
@@ -1125,7 +1125,7 @@ th.sortable:hover {
 
 /* Split-department cross-reference note */
 .split-note {
-    font-size: 0.75rem;
+    font-size: 0.83rem;
     font-weight: 400;
     color: #888;
     margin-left: 0.5rem;
@@ -1143,14 +1143,14 @@ th.sortable:hover {
 /* Reallocation warning note */
 .realloc-note {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.79rem;
     font-weight: 500;
     font-style: normal;
     color: #7a5c00;
     background: #fff8e1;
     border: 1px solid #ffe082;
     border-radius: 4px;
-    padding: 1px 6px;
+    padding: 1px 7px;
     margin-left: 0.4rem;
     cursor: help;
     white-space: nowrap;
@@ -1178,13 +1178,13 @@ th.sortable:hover {
 /* Transfer indicator — shown on collapsed department rows that contain inter-dept transfers */
 .dept-transfer-note {
     display: inline-block;
-    font-size: 0.67rem;
+    font-size: 0.74rem;
     font-weight: 500;
     color: #1a5276;
     background: #eaf4fb;
     border: 1px solid #aed6f1;
     border-radius: 3px;
-    padding: 1px 6px;
+    padding: 1px 7px;
     margin-left: 6px;
     cursor: help;
     vertical-align: middle;
@@ -1193,12 +1193,12 @@ th.sortable:hover {
 /* Transfer badge — shown in the Change cell when a program is split across depts */
 .transfer-badge {
     display: block;
-    font-size: 0.67rem;
+    font-size: 0.74rem;
     font-weight: 500;
     font-style: normal;
     margin-top: 4px;
     border-radius: 4px;
-    padding: 1px 5px;
+    padding: 1px 6px;
     cursor: help;
     white-space: nowrap;
     line-height: 1.4;
@@ -1241,12 +1241,12 @@ th.sortable:hover {
     flex-shrink: 0;
 }
 .fy-inline-btn {
-    padding: 2px 8px;
+    padding: 2px 9px;
     background: none;
     border: none;
     border-right: 1px solid #b0bfb0;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.83rem;
     font-weight: 500;
     color: #555;
     line-height: 1.5;
@@ -1276,22 +1276,22 @@ th.sortable:hover {
     padding-bottom: 3px;
 }
 .fund-indent {
-    padding-left: 3rem !important;
-    font-size: 0.82rem;
+    padding-left: 3.3rem !important;
+    font-size: 0.90rem;
     color: #444;
 }
 .fund-indent-deep {
-    padding-left: 4rem !important;
+    padding-left: 4.4rem !important;
 }
 .fund-name-full {
     color: #888;
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     margin-left: 4px;
 }
 
 /* Fund type info note (e.g. GO Bond explanation) */
 .fund-note {
-    font-size: 0.72rem;
+    font-size: 0.79rem;
     font-weight: 500;
     font-style: normal;
     color: #1a5276;
@@ -1323,13 +1323,13 @@ th.sortable:hover {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    height: 28px;
-    padding: 0 12px;
+    height: 31px;
+    padding: 0 13px;
     margin-left: auto;
     background: #f0f7f3;
     border: 1px solid #c5d5cc;
     border-radius: 14px;
-    font-size: 0.82rem;
+    font-size: 0.90rem;
     color: var(--primary-dark, #2c3e50);
     cursor: help;
     outline: none;
@@ -1341,9 +1341,9 @@ th.sortable:hover {
     border-color: var(--primary-color, #2e7d32);
 }
 .reading-guide-pill .reading-guide-icon {
-    width: 1.05rem;
-    height: 1.05rem;
-    font-size: 0.72rem;
+    width: 1.16rem;
+    height: 1.16rem;
+    font-size: 0.79rem;
     background: var(--primary-color, #2e7d32);
     color: #fff;
     border-radius: 50%;
@@ -1355,7 +1355,7 @@ th.sortable:hover {
 }
 .reading-guide-pill strong {
     font-weight: 600;
-    font-size: 0.82rem;
+    font-size: 0.90rem;
     white-space: nowrap;
     letter-spacing: 0.01em;
 }
@@ -1526,9 +1526,9 @@ th.sortable:hover {
 /* Stat tags for stats bar and summary line */
 .stat-tag {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 3px 11px;
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 0.94rem;
     margin: 2px 3px;
     border: 1px solid transparent;
 }
@@ -1543,9 +1543,9 @@ th.sortable:hover {
 
 .filter-inline {
     display: inline-block;
-    height: 28px;
-    padding: 2px 8px;
-    font-size: 0.82rem;
+    height: 31px;
+    padding: 2px 9px;
+    font-size: 0.90rem;
     border: 1px solid #ddd;
     border-radius: 12px;
     background: #f8f8f8;
@@ -1567,12 +1567,12 @@ th.sortable:hover {
 }
 .search-inline {
     display: inline-block;
-    height: 28px;
-    padding: 2px 10px;
-    font-size: 0.82rem;
+    height: 31px;
+    padding: 2px 11px;
+    font-size: 0.90rem;
     border: 1px solid #ddd;
     border-radius: 12px;
-    width: 160px;
+    width: 176px;
 }
 
 /* ===== Unified search + reading-guide row ===== */
@@ -1982,23 +1982,23 @@ th.sortable:hover {
     background: #fff;
     border: 1.5px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.35rem 0.75rem;
+    padding: 0.385rem 0.825rem;
     gap: 0.5rem;
-    min-width: 240px;
-    max-width: 360px;
-    flex: 1 1 240px;
+    min-width: 264px;
+    max-width: 396px;
+    flex: 1 1 264px;
     transition: border-color 0.15s;
 }
 .search-input-wrap:focus-within {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(108,142,127,0.15);
 }
-.search-icon { font-size: 0.9rem; color: #888; flex-shrink: 0; }
+.search-icon { font-size: 0.99rem; color: #888; flex-shrink: 0; }
 .search-input-wrap input[type="text"] {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     color: var(--text-color);
     width: 100%;
     min-width: 0;
@@ -2008,7 +2008,7 @@ th.sortable:hover {
     border: none;
     cursor: pointer;
     color: #888;
-    font-size: 0.8rem;
+    font-size: 0.88rem;
     padding: 0 2px;
     line-height: 1;
     display: inline-flex;
@@ -2019,7 +2019,7 @@ th.sortable:hover {
 .search-clear:hover { color: #333; }
 
 .search-status {
-    font-size: 0.85rem;
+    font-size: 0.935rem;
     color: #555;
     margin-bottom: 0.5rem;
     font-style: italic;
