@@ -655,63 +655,56 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <div class="compare-page-eyebrow">2026 Session · Supplemental Budget</div>
-            <h2>HB 1800 · Draft Comparison</h2>
-            <p class="compare-page-desc">See how Hawaiʻi's 2026 supplemental budget has changed as it's moved through the legislature. Compare the Governor's request, House Draft 1, and Senate Draft 1 drafts to see what was added, cut, or moved across departments.</p>
-            <div class="compare-controls-bar">
-                <div class="ctrl-label ctrl-label-fy">Fiscal Year</div>
-                <div class="ctrl-divider"></div>
-                <div class="ctrl-label ctrl-label-timeline">Drafts to compare</div>
-                <div class="ctrl-cell ctrl-cell-fy">${fyToggle}</div>
-                <div class="ctrl-cell ctrl-cell-timeline">
-                    <div class="compare-timeline" id="compare-timeline">
-                        <div class="tl-node" id="tl-node-gov">
-                            <span class="tl-label">Gov's<br>Request</span>
-                            <div class="tl-dot-row">
-                                <span class="tl-seg tl-seg-before"></span>
-                                <span class="tl-dot"></span>
-                                <span class="tl-seg tl-seg-after"></span>
-                            </div>
-                            <input type="checkbox" class="tl-cb" id="tl-gov" checked>
-                        </div>
-                        <div class="tl-node" id="tl-node-hd1">
-                            <span class="tl-label">HD1</span>
-                            <div class="tl-dot-row">
-                                <span class="tl-seg tl-seg-before"></span>
-                                <span class="tl-dot"></span>
-                                <span class="tl-seg tl-seg-after"></span>
-                            </div>
-                            <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
-                        </div>
-                        <div class="tl-node" id="tl-node-sd1">
-                            <span class="tl-label">SD1</span>
-                            <div class="tl-dot-row">
-                                <span class="tl-seg tl-seg-before"></span>
-                                <span class="tl-dot"></span>
-                                <span class="tl-seg tl-seg-after"></span>
-                            </div>
-                            <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="hb300-ref"></div>
-            <div class="summary-cards-grid compact" id="draft-cards"></div>
-            <div id="draft-highlights" class="highlights-section"></div>
-            <div class="draft-stats" id="draft-stats-bar"></div>
-
-            <div class="search-row">
-                <div class="search-summary" id="draft-summary"></div>
-                <div class="reading-guide-pill" id="reading-guide-box" tabindex="0">
-                    <span class="reading-guide-icon">ℹ</span>
-                    <strong>How to read these numbers</strong>
+            <div class="compare-page-titlerow">
+                <h2>HB 1800 · Draft Comparison</h2>
+                <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
+                    ⓘ How to read this
                     <div class="reading-guide-panel">
                         <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
                         <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
                         <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
                     </div>
+                </span>
+            </div>
+            <p class="compare-page-desc">Compare the Governor's request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved across departments.</p>
+            <div class="compare-controls-bar">
+                ${fyToggle}
+                <span class="ctrl-divider-v"></span>
+                <div class="compare-timeline" id="compare-timeline">
+                    <div class="tl-node" id="tl-node-gov">
+                        <span class="tl-label">Gov's<br>Request</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-gov" checked>
+                    </div>
+                    <div class="tl-node" id="tl-node-hd1">
+                        <span class="tl-label">HD1</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
+                    </div>
+                    <div class="tl-node" id="tl-node-sd1">
+                        <span class="tl-label">SD1</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-dot"></span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
+                    </div>
                 </div>
+            </div>
+
+            <div id="draft-cards"></div>
+
+            <div class="search-row">
+                <div class="search-summary" id="draft-summary"></div>
             </div>
             <div id="draft-results"></div>
 
@@ -838,214 +831,56 @@ window.initDraftComparePage = async function () {
             return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmtHtmlFull(delta)}</div><div class="label">${label}</div></div>`;
         };
 
-        // HB300 reference bar (always shown, outside compact grid)
-        const hb300RefEl = document.getElementById('hb300-ref');
-        if (hb300RefEl) {
-            hb300RefEl.innerHTML = '';
-        }
-
         const cardsEl = document.getElementById('draft-cards');
         if (cardsEl) {
-            const triple = showHD1Col(); // HD1 is a middle node when all three are active
-            // Update outer grid class to triple when showing 3 cards
-            cardsEl.className = `summary-cards-grid compact${triple ? ' triple' : ''}`;
+            // Build ordered visible nodes
+            const nodes = [];
+            if (govActive) nodes.push({ val: op.baseline + cap.baseline, label: "Gov's Request" });
+            if (hd1Active) nodes.push({ val: op.hd1 + cap.hd1,          label: 'HD1' });
+            if (sd1Active) nodes.push({ val: totalD2,                    label: d2Label });
 
-            // Build an ordered list of which nodes are visible, then render cards for them
-            const cardRow = (baselineVal, hd1Val, sd1Val, delta, deltaLabel) => {
-                const nodes = [];
-                if (govActive)  nodes.push({ val: baselineVal, label: "Gov's Request" });
-                if (hd1Active)  nodes.push({ val: hd1Val,      label: 'HD1' });
-                if (sd1Active)  nodes.push({ val: sd1Val,      label: d2Label });
+            const nodeHtml = nodes.map((n, i) =>
+                `<div class="strip-node">
+                    <div class="strip-amt">${fmtHtmlFull(n.val)}</div>
+                    <div class="strip-lbl">${n.label}</div>
+                </div>${i < nodes.length - 1 ? '<span class="strip-arrow">→</span>' : ''}`
+            ).join('');
 
-                let html = '';
-                nodes.forEach((n, i) => {
-                    html += `<div class="summary-card"><div class="amount">${fmtHtmlFull(n.val)}</div><div class="label">${n.label}</div></div>`;
-                    if (i < nodes.length - 1) html += `<div class="card-arrow">→</div>`;
-                });
-                html += `<div class="card-arrow"></div>${changeCard(delta, deltaLabel)}`;
-                return html;
+            const netCls = totalNet > 0 ? 'positive' : totalNet < 0 ? 'negative' : '';
+
+            const subRow = (label, d1, d2, hd1Val, delta) => {
+                const sn = [];
+                if (govActive) sn.push({ val: d1,     label: "Gov" });
+                if (hd1Active) sn.push({ val: hd1Val, label: 'HD1' });
+                if (sd1Active) sn.push({ val: d2,     label: d2Label });
+                const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+                return `<div class="strip-sub-row">
+                    <span class="strip-sub-lbl">${label}</span>
+                    ${sn.map((n, i) =>
+                        `<span class="strip-sub-val">${fmtHtmlFull(n.val)}</span>${i < sn.length - 1 ? '<span class="strip-sub-arrow">→</span>' : ''}`
+                    ).join('')}
+                    <span class="strip-sub-delta ${cls}">${fmt(delta)}</span>
+                </div>`;
             };
-            const innerGrid = `summary-cards-grid compact${triple ? ' triple' : ''}`;
 
             cardsEl.innerHTML = `
-                <div class="card-section-label card-section-total">Total</div>
-                ${cardRow(op.baseline + cap.baseline, op.hd1 + cap.hd1, totalD2, totalNet, 'Net Change')}
-                <div class="card-section-label card-section-toggle" data-target="cards-both"><span class="toggle-arrow">▶</span> <span class="has-tooltip" data-tooltip="Expand to see Operating and Capital Improvement breakdowns.">Operating &amp; Capital</span></div>
-                <div class="card-row-collapsible" id="cards-both" style="display:none;">
-                    <div class="card-section-sub"><span class="has-tooltip" data-tooltip="Recurring expenditures for day-to-day government operations, including personnel, services, and supplies.">Operating</span></div>
-                    <div class="${innerGrid}">
-                        ${cardRow(op.baseline, op.hd1, op.d2, op.delta, 'Change')}
+                <div class="summary-strip">
+                    ${nodeHtml}
+                    <span class="strip-sep"></span>
+                    <div class="strip-delta ${netCls}">
+                        <div class="strip-amt">${fmtHtmlFull(totalNet)}</div>
+                        <div class="strip-lbl">Net Change</div>
                     </div>
-                    <div class="card-section-sub"><span class="has-tooltip" data-tooltip="One-time spending on construction, land acquisition, and major infrastructure projects funded through bond proceeds or capital appropriations.">Capital Improvement</span></div>
-                    <div class="${innerGrid}">
-                        ${cardRow(cap.baseline, cap.hd1, cap.d2, cap.delta, 'Change')}
-                    </div>
+                    <details class="strip-opcap">
+                        <summary>Op / Capital</summary>
+                        <div class="strip-opcap-body">
+                            ${subRow('Operating', op.d1, op.d2, op.hd1, op.delta)}
+                            ${subRow('Capital', cap.d1, cap.d2, cap.hd1, cap.delta)}
+                        </div>
+                    </details>
                 </div>`;
-
-            cardsEl.querySelectorAll('.card-section-toggle').forEach(label => {
-                label.addEventListener('click', () => {
-                    const target = document.getElementById(label.dataset.target);
-                    const arrow = label.querySelector('.toggle-arrow');
-                    if (target.style.display === 'none') {
-                        target.style.display = 'block';
-                        arrow.textContent = '▼';
-                    } else {
-                        target.style.display = 'none';
-                        arrow.textContent = '▶';
-                    }
-                });
-            });
         }
 
-        const summary = activeData.summary;
-        const statsEl = document.getElementById('draft-stats-bar');
-        if (statsEl) {
-            statsEl.innerHTML = '';
-        }
-
-        // --- Highlights: largest net increases/decreases at (program × section) level ---
-        //
-        // Why aggregate by program_id + section (not just program_id)?
-        //   A program can have both Operating and Capital flows. If we lumped them, a
-        //   program that added $50M to operating but cut $40M from capital would net
-        //   out to +$10M and hide the capital cut entirely.
-        //
-        // Why pull d1 from governorRequestData when govActive?
-        //   The `comparisons` dataset only contains rows that appear in HD1 and/or SD1.
-        //   A program that existed in Gov's Request but got $0 in both HD1 and SD1 has
-        //   NO row in comparisons — its baseline is unrecoverable from `amount_baseline`
-        //   alone. Pulling d1 directly from governorRequestData surfaces these
-        //   "vanished" programs as the real decreases they are.
-        const highlightsEl = document.getElementById('draft-highlights');
-        if (highlightsEl) {
-            const key = (pid, sec) => pid + '|' + (sec || '');
-            const progMap = new Map();
-            const ensure = (pid, sec, name, deptCode, deptName) => {
-                const k = key(pid, sec);
-                if (!progMap.has(k)) {
-                    progMap.set(k, {
-                        program_id: pid,
-                        program_name: name || '',
-                        section: sec || '',
-                        department_code: deptCode || '',
-                        department_name: deptName || '',
-                        d1: 0, d2: 0,
-                        deptCodes: new Set(),
-                    });
-                }
-                return progMap.get(k);
-            };
-
-            if (govActive) {
-                // d1 from governorRequestData (captures programs fully dropped in HD1/SD1)
-                const fyKey = meta.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
-                for (const g of (governorRequestData || [])) {
-                    if (!g.program_id) continue;
-                    const e = ensure(g.program_id, g.section, g.program_name, g.department_code, g.department_name);
-                    e.d1 += g[fyKey] || 0;
-                    if (g.department_code) e.deptCodes.add(g.department_code);
-                }
-                // d2 from comparisons
-                for (const r of recs) {
-                    if (!r.program_id) continue;
-                    const e = ensure(r.program_id, r.section, r.program_name, r.department_code, r.department_name);
-                    e.d2 += r[d2Key] || 0;
-                    if (r.department_code) e.deptCodes.add(r.department_code);
-                }
-            } else {
-                // Both d1 (HD1) and d2 (SD1 or HD1) from comparisons
-                for (const r of recs) {
-                    if (!r.program_id) continue;
-                    const e = ensure(r.program_id, r.section, r.program_name, r.department_code, r.department_name);
-                    e.d1 += r[d1Key] || 0;
-                    e.d2 += r[d2Key] || 0;
-                    if (r.department_code) e.deptCodes.add(r.department_code);
-                }
-            }
-
-            const HIGHLIGHT_THRESHOLD = 50000; // suppress noise (<$50K changes)
-            const programs = [...progMap.values()]
-                .map(p => { p.change = p.d2 - p.d1; return p; })
-                .filter(p => Math.abs(p.change) >= HIGHLIGHT_THRESHOLD);
-
-            // Interleave: top 4 increases + top 4 decreases, sorted by absolute magnitude
-            const topN = 4;
-            const increases = programs.filter(p => p.change > 0)
-                .sort((a, b) => b.change - a.change).slice(0, topN);
-            const decreases = programs.filter(p => p.change < 0)
-                .sort((a, b) => a.change - b.change).slice(0, topN);
-            const combined = [...increases, ...decreases]
-                .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
-
-            const sectionLabel = (sec) => {
-                if (sec === 'Capital Improvement') return 'capital budget';
-                if (sec === 'Operating') return 'operating budget';
-                return '';
-            };
-
-            const possessive = (name) => {
-                // English style: names ending in 's' take apostrophe only ("Highways'"),
-                // others take 's ("Public Lands Management's").
-                if (!name) return '';
-                return /s$/i.test(name) ? `${name}'` : `${name}'s`;
-            };
-
-            const renderSentence = (p) => {
-                const isPositive = p.change > 0;
-                const cls = isPositive ? 'positive' : 'negative';
-                const verb = isPositive ? 'added to' : 'cut from';
-                const amountAbs = Math.abs(p.change);
-                const amountStr = fmt(amountAbs);
-                const name = prettyName(p.program_name);
-                const secStr = sectionLabel(p.section);
-                const secHtml = secStr ? `<span class="highlight-section">${secStr}</span>` : '';
-                return `<li class="highlight-item">
-                    <span class="highlight-bullet ${cls}">${isPositive ? '+' : '−'}</span>
-                    <span class="highlight-text">
-                        <span class="highlight-amt ${cls}">${amountStr}</span>
-                        ${verb}
-                        <span class="highlight-target">${possessive(name)} ${secHtml}</span>
-                    </span>
-                </li>`;
-            };
-
-            const VISIBLE_COUNT = 2;
-            const itemsHtml = combined.length
-                ? combined.map((p, i) => {
-                    const li = renderSentence(p);
-                    return i < VISIBLE_COUNT ? li : li.replace('class="highlight-item"', 'class="highlight-item highlight-hidden"');
-                }).join('')
-                : '<li class="highlight-empty">No significant changes in this view</li>';
-            const moreCount = Math.max(0, combined.length - VISIBLE_COUNT);
-            const moreBtn = moreCount > 0
-                ? `<li><button class="highlight-more-btn" id="highlight-more-btn">▶ Show ${moreCount} more</button></li>`
-                : '';
-
-            highlightsEl.innerHTML = `
-                <div class="card-section-label card-section-total">Highlights</div>
-                <ul class="highlights-list">
-                    ${itemsHtml}
-                    ${moreBtn}
-                </ul>`;
-
-            document.getElementById('highlight-more-btn')?.addEventListener('click', function() {
-                const hidden = highlightsEl.querySelectorAll('.highlight-hidden');
-                const isExpanded = hidden.length === 0;
-                if (isExpanded) {
-                    // Collapse: re-hide items beyond the visible count
-                    let idx = 0;
-                    highlightsEl.querySelectorAll('.highlight-item').forEach(el => {
-                        if (idx >= VISIBLE_COUNT) el.classList.add('highlight-hidden');
-                        idx++;
-                    });
-                    this.textContent = `▶ Show ${moreCount} more`;
-                } else {
-                    // Expand
-                    hidden.forEach(el => el.classList.remove('highlight-hidden'));
-                    this.textContent = '▲ Show less';
-                }
-            });
-        }
     };
 
     // --- Build checkbox options from data ---
