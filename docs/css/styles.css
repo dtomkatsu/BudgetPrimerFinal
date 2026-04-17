@@ -2194,7 +2194,7 @@ mark.search-highlight {
 .compare-controls-bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;   /* pin to top — prevents FY toggle shifting when breakdown opens */
     gap: 0.75rem;
     background: #f5f7f6;
     border: 1px solid #dde2e0;
@@ -2203,11 +2203,17 @@ mark.search-highlight {
     margin-bottom: 1rem;
 }
 /* slim vertical divider between FY toggle and timeline */
+/* margin-top offsets it to the dot-row level: label (2.125rem) + gap (6px) + ½dot (10px) - ½self (14px) */
 .ctrl-divider-v {
     width: 1px;
     height: 28px;
     background: #d0d8d4;
     flex-shrink: 0;
+    margin-top: calc(2.125rem + 2px);
+}
+/* FY segmented control: same vertical offset as the divider so it sits at dot-row level */
+.fy-seg-ctrl {
+    margin-top: calc(2.125rem + 2px);
 }
 
 /* ── FY segmented control ── */
@@ -2349,19 +2355,29 @@ mark.search-highlight {
     box-shadow: 0 0 0 4px rgba(30, 126, 52, 0.15);
     border-color: #5aaa75;
 }
-/* Amount shown directly beneath each timeline dot */
+/* Amount beneath each timeline dot — chip styling (consistent w/ figure-chip in table) */
 .tl-amt {
-    display: block;        /* must be block for min-height to prevent layout shift */
-    font-size: 0.9rem;
+    display: inline-block;
+    padding: 3px 10px;
+    background: #f4f6f8;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    font-size: 0.88rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #1a2330;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
     white-space: nowrap;
-    min-height: 1.1em;     /* reserve space even when text is empty */
+    min-height: 1.6em;          /* reserve a consistent row height */
+    min-width: 3.2em;
+    line-height: 1.25;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .tl-node.tl-inactive .tl-amt {
     color: #aab5b1;
+    background: #f9fafa;
+    border-color: #ebeeed;
 }
 
 /* ── Card section sub-headers (inside combined Operating & Capital collapse) ── */
@@ -2378,90 +2394,127 @@ mark.search-highlight {
     margin-top: 0;
     padding-top: 0.1rem;
 }
-/* ── Summary strip: net change badge + [Total][Op][Cap] tabs ── */
-.summary-strip {
-    display: flex;
+/* ── Net Change node — 4th timeline node, derived from SD1 ── */
+/* Give it a bit more breathing room than the data nodes */
+.tl-net-node {
+    min-width: 126px;
+    margin-left: 18px; /* gap between SD1 and the derived Net node */
+}
+/* No connector line into Net Change, and no stub extending right from SD1.   */
+/* We keep the .tl-seg elements for flex spacing, but make them invisible.    */
+.tl-net-node .tl-seg { visibility: hidden; }
+.tl-node:nth-last-child(2) .tl-seg-after { visibility: hidden; }
+/* Triangle/arrow marker replaces the dot on the Net node */
+.tl-net-marker {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    background: #fff;
-    border-left: 4px solid var(--strip-accent, #b0bbb7);
-    border-radius: 0 8px 8px 0;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-    padding: 8px 18px;
-    margin-bottom: 0.9rem;
-    font-variant-numeric: tabular-nums;
-}
-/* Text inside the net change badge */
-.strip-amt {
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: #2c3e50;
-    line-height: 1.2;
-}
-.strip-lbl {
-    font-size: 0.62rem;
-    font-weight: 600;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #eef1f0;
+    border: 1.5px solid #c9d1cd;
     color: #7a8a85;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+    flex-shrink: 0;
 }
-/* Net change badge */
-.strip-delta {
+.tl-net-node.positive .tl-net-marker {
+    background: #e8f5ec;
+    border-color: #6fb58a;
+    color: #1e7e34;
+}
+.tl-net-node.negative .tl-net-marker {
+    background: #fbecee;
+    border-color: #e08290;
+    color: #c62828;
+}
+/* Net chip — override the neutral .tl-amt with direction-coloured styling */
+.tl-net-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 3px 11px;
+    font-weight: 800;
+}
+.tl-net-node.positive .tl-net-chip {
+    background: #e8f5ec;
+    border-color: #a5d6a7;
+    color: #1e7e34;
+}
+.tl-net-node.negative .tl-net-chip {
+    background: #fbecee;
+    border-color: #f2c9ce;
+    color: #c62828;
+}
+/* Percentage, shown inline after the dollar amount inside the chip */
+.tl-net-pct {
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 0.78;
+    letter-spacing: 0;
+}
+
+/* ── Op / Cap breakdown sub-chips (hidden unless "More" is clicked) ── */
+.tl-breakdown {
     display: flex;
     flex-direction: column;
+    gap: 1px;
     align-items: center;
-    padding: 5px 12px;
-    border-radius: 8px;
-    background: #f0f2f1;
-    border: 1px solid #dde2e0;
-    min-width: 80px;
-    text-align: center;
-    flex-shrink: 0;
+    margin-top: 4px;
 }
-.strip-delta.positive { background: #e8f5e9; border-color: #a5d6a7; }
-.strip-delta.negative { background: #fdecea; border-color: #f5a5a5; }
-.strip-delta.positive .strip-amt { color: #1e7e34; }
-.strip-delta.negative .strip-amt { color: #c62828; }
-.strip-delta-pct {
-    font-size: 0.66rem;
+.tl-breakdown[hidden] { display: none; }
+.tl-bd-row {
+    font-size: 0.74rem;
     font-weight: 700;
-    line-height: 1;
-    margin-top: 1px;
-    color: #7a8a85;
+    color: #3c4a47;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    line-height: 1.35;
 }
-.strip-delta.positive .strip-delta-pct { color: #2e7d32; }
-.strip-delta.negative .strip-delta-pct { color: #b71c1c; }
-/* Segmented [Total][Operating][Capital] tabs */
-.strip-tabs {
+.tl-bd-lbl {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #8a9492;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 5px;
+    min-width: 1.8em;
+    text-align: right;
+}
+.tl-node.tl-inactive .tl-bd-row  { color: #aab5b1; }
+.tl-node.tl-inactive .tl-bd-lbl  { color: #c0c8c5; }
+/* Net-node breakdown inherits direction color for emphasis */
+.tl-net-node.positive .tl-bd-row { color: #1e7e34; }
+.tl-net-node.negative .tl-bd-row { color: #c62828; }
+
+/* ── draft-cards: empty now, collapse it ── */
+#draft-cards:empty {
+    display: none;
+}
+/* Wrapper for Gov amount row: caret sits to the left of the chip */
+.tl-amt-wrap {
     display: flex;
-    gap: 2px;
-    background: #edf0ef;
-    border-radius: 6px;
-    padding: 3px;
+    align-items: center;
+    gap: 4px;
+}
+/* Tiny expand/collapse caret left of Gov amount */
+.tl-expand-caret {
+    background: none;
+    border: none;
+    padding: 0 1px;
+    font-size: 0.58rem;
+    line-height: 1;
+    color: #9aaba5;
+    cursor: pointer;
+    transition: color 0.12s;
     flex-shrink: 0;
 }
-.strip-tab {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 4px 10px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: #5a7a70;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-}
-.strip-tab:hover:not(.active) {
-    background: #dde6e2;
+.tl-expand-caret:hover {
     color: #2c3e50;
-}
-.strip-tab.active {
-    background: #fff;
-    color: #2c3e50;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 
 .hb300-ref-bar {
