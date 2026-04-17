@@ -678,6 +678,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
+                        <span class="tl-amt" id="tl-amt-gov"></span>
                         <input type="checkbox" class="tl-cb" id="tl-gov" checked>
                     </div>
                     <div class="tl-node" id="tl-node-hd1">
@@ -687,6 +688,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <label class="tl-dot-lbl" for="tl-hd1"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
+                        <span class="tl-amt" id="tl-amt-hd1"></span>
                         <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
                     </div>
                     <div class="tl-node" id="tl-node-sd1">
@@ -696,6 +698,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <label class="tl-dot-lbl" for="tl-sd1"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
+                        <span class="tl-amt" id="tl-amt-sd1"></span>
                         <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                     </div>
                 </div>
@@ -841,9 +844,9 @@ window.initDraftComparePage = async function () {
         if (hd1Active) nodes.push({ val: tabHD1, label: 'HD1' });
         if (sd1Active) nodes.push({ val: tabSD1, label: d2Label });
 
-        // Compact format for amounts below timeline dots: $23.1B, $300M, etc.
+        // Compact format for amounts shown directly under each timeline dot
         const fmtShort = (n) => {
-            if (n == null) return '$0';
+            if (n == null) return '';
             const abs = Math.abs(n);
             const sign = n < 0 ? '-' : '';
             if (abs >= 1e9) return `${sign}$${+(abs / 1e9).toFixed(1)}B`;
@@ -852,29 +855,24 @@ window.initDraftComparePage = async function () {
             return `${sign}$${abs.toFixed(0)}`;
         };
 
-        // Mini timeline: ●───●───● with amounts + labels below each dot
-        const stripTlHtml = `<div class="strip-tl">${nodes.map((n, i) => {
-            const isFirst = i === 0;
-            const isLast  = i === nodes.length - 1;
-            return `<div class="strip-tl-node">
-                <div class="strip-tl-dot-row">
-                    <div class="strip-tl-seg${isFirst ? ' strip-tl-seg--hide' : ''}"></div>
-                    <div class="strip-tl-dot"></div>
-                    <div class="strip-tl-seg${isLast  ? ' strip-tl-seg--hide' : ''}"></div>
-                </div>
-                <div class="strip-tl-amt">${fmtShort(n.val)}</div>
-                <div class="strip-tl-lbl">${n.label}</div>
-            </div>`;
-        }).join('')}</div>`;
+        // Update amounts directly under each dot in the existing timeline controls
+        [
+            { id: 'tl-amt-gov', val: tabGov, active: govActive },
+            { id: 'tl-amt-hd1', val: tabHD1, active: hd1Active },
+            { id: 'tl-amt-sd1', val: tabSD1, active: sd1Active },
+        ].forEach(({ id, val, active }) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = active ? fmtShort(val) : '';
+        });
 
-        // Net change badge — smaller, on the left
+        // Net change badge
         const netBadge = `<div class="strip-delta ${netCls}">
             <div class="strip-amt">${fmtHtmlFull(tabNet)}</div>
             <div class="strip-delta-pct">${fmtPct(netPct)}</div>
             <div class="strip-lbl">Net Change</div>
         </div>`;
 
-        // C: Segmented [Total][Operating][Capital] tabs
+        // Segmented [Total][Operating][Capital] tabs
         const tabDefs = [
             { key: 'total', label: 'Total' },
             { key: 'op',    label: 'Operating' },
@@ -884,14 +882,13 @@ window.initDraftComparePage = async function () {
             `<button class="strip-tab${activeStripTab === tb.key ? ' active' : ''}" data-tab="${tb.key}">${tb.label}</button>`
         ).join('')}</div>`;
 
-        // A: colored left border keyed to net change sign
+        // Colored left border keyed to net change sign
         const accentColor = tabNet > 0 ? '#1e7e34' : tabNet < 0 ? '#c62828' : '#b0bbb7';
 
+        // Strip is now just: net change badge + tabs
         cardsEl.innerHTML = `
             <div class="summary-strip" style="--strip-accent: ${accentColor}">
                 ${netBadge}
-                <div class="strip-v-sep"></div>
-                ${stripTlHtml}
                 ${tabCtrl}
             </div>`;
 
