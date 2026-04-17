@@ -1381,6 +1381,10 @@ th.sortable:hover {
     white-space: nowrap;
     letter-spacing: 0.01em;
 }
+/* Panel text must be allowed to wrap regardless of the pill's nowrap rule */
+.reading-guide-panel strong {
+    white-space: normal;
+}
 .reading-guide-panel {
     position: absolute;
     top: calc(100% + 8px);
@@ -1420,6 +1424,19 @@ th.sortable:hover {
 }
 .reading-guide-panel p:last-child {
     margin-bottom: 0;
+}
+/* On narrow viewports the pill sits near the left edge; switch to fixed
+   positioning so the panel spans the usable screen width. */
+@media (max-width: 600px) {
+    .reading-guide-panel {
+        position: fixed;
+        top: auto;
+        left: 1rem;
+        right: 1rem;
+        min-width: 0;
+        max-width: none;
+        width: auto;
+    }
 }
 .reading-guide-panel .reading-guide-summary {
     margin: 0 0 0.6rem;
