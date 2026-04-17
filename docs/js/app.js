@@ -1500,9 +1500,32 @@ window.initDraftComparePage = async function () {
     // --- Render Section 14 capital projects section ---
 
     // Normalize a project name for cross-source matching:
-    // strip leading "LUMP SUM " (present in bill text but not Gov PDF) and collapse whitespace.
-    const normProjectName = (s) =>
-        (s || '').replace(/^LUMP\s+SUM\s+/i, '').trim().toUpperCase().replace(/\s+/g, ' ');
+    // Normalise project names for Gov PDF ↔ HD1/SD1 matching.
+    // Handles: "LUMP SUM" prefix, leading numeric codes ("009 ", "- "),
+    // trailing island/statewide suffixes (", OAHU" etc.), "&" → "AND",
+    // ", AND" → " AND", and common abbreviations used in the Gov PDF.
+    const normProjectName = (s) => {
+        const ABBR = {
+            PLNS:'PLANS', DSGN:'DESIGN', CONSTR:'CONSTRUCTION', EQUIP:'EQUIPMENT',
+            INFSN:'INFUSION', RNTL:'RENTAL', HSING:'HOUSING', HSNG:'HOUSING',
+            RVLVING:'REVOLVING', RVLVNG:'REVOLVING', FND:'FUND',
+            RENVTNS:'RENOVATIONS', UPGRDS:'UPGRADES',
+            DEPT:'DEPARTMENT', DVLPMNT:'DEVELOPMENT', PRDVLPMNT:'PREDEVELOPMENT',
+        };
+        const LOC = /,\s*(OAHU|HAWAII|MAUI|KAUAI|MOLOKAI|LANAI|STATEWIDE|ALL ISLANDS)\s*$/i;
+        let n = (s || '')
+            .replace(/^LUMP\s+SUM\s+/i, '')   // "LUMP SUM …"
+            .replace(/^\d+\s+/,        '')    // "009 …", "1 …"
+            .replace(/^-\s+/,          '')    // "- …"
+            .trim().toUpperCase().replace(/\s+/g, ' ')
+            .replace(LOC, '')                 // trailing location
+            .replace(/,\s*AND\b/g, ' AND')    // ", AND" → " AND"
+            .replace(/\s*&\s*/g, ' AND ');    // "&" → "AND"
+        // Expand abbreviations (whole-word only)
+        n = n.replace(/\b(PLNS|DSGN|CONSTR|EQUIP|INFSN|RNTL|HSING|HSNG|RVLVING|RVLVNG|FND|RENVTNS|UPGRDS|DEPT|DVLPMNT|PRDVLPMNT)\b/g,
+            m => ABBR[m] || m);
+        return n.replace(/\s+/g, ' ').trim();
+    };
 
     const renderProjects = () => {
         const listEl = document.getElementById('projects-list');
@@ -1532,6 +1555,19 @@ window.initDraftComparePage = async function () {
                     const k = `${p.program_id}:${normProjectName(p.project_name)}:${p.fund_category}`;
                     govMap.set(k, (govMap.get(k) || 0) + (p[govFyKey] || 0));
                 }
+            }
+        }
+
+        // Program-level Gov CIP totals from governor_request.json.
+        // Used as the authoritative d1 for dept-level summary rows when govActive,
+        // because project-name mismatches (abbreviations, truncation) cause govMap
+        // lookups to return null for many projects, making the summed total show $0.
+        const govCipProgTotals = new Map(); // program_id → total for govFyKey
+        if (govActive && governorRequestData) {
+            for (const r of governorRequestData) {
+                if (r.section !== 'Capital Improvement') continue;
+                govCipProgTotals.set(r.program_id,
+                    (govCipProgTotals.get(r.program_id) || 0) + (r[govFyKey] || 0));
             }
         }
 
@@ -1571,14 +1607,42 @@ window.initDraftComparePage = async function () {
         const getGovAmt = (pr) => {
             if (!govActive || govMap.size === 0) return null;
             const k = `${pr.program_id}:${normProjectName(pr.project_name)}:${pr.fund_category}`;
-            return govMap.has(k) ? govMap.get(k) : null;
+            if (govMap.has(k)) return govMap.get(k);
+            // Prefix match: gov PDF sometimes truncates project names mid-word.
+            // If the HD1 normalised name STARTS WITH the gov normalised name (min 30 chars),
+            // treat it as the same project.
+            const prefix = `${pr.program_id}:`;
+            const suffix = `:${pr.fund_category}`;
+            for (const [gk, val] of govMap) {
+                if (!gk.startsWith(prefix) || !gk.endsWith(suffix)) continue;
+                const gName = gk.slice(prefix.length, gk.length - suffix.length);
+                const hName = k.slice(prefix.length, k.length - suffix.length);
+                if (gName.length >= 30 && hName.startsWith(gName)) return val;
+            }
+            return null;
         };
         const getD1Amt = (pr) => govActive ? (getGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
         const getD2Amt = (pr) => sd1Active ? (pr[sd1Key] || 0) : (pr[hd1Key] || 0);
 
+        // Helper: program-level gov total for a set of projects (uses govCipProgTotals)
+        const govD1ForProjects = (projects) => {
+            const seen = new Set();
+            let total = 0;
+            for (const pr of projects) {
+                if (!seen.has(pr.program_id)) {
+                    seen.add(pr.program_id);
+                    total += govCipProgTotals.get(pr.program_id) || 0;
+                }
+            }
+            return total;
+        };
+
         // Sort depts by projSortCol using pre-computed aggregate totals
         const depts = [...deptMap.values()].map(d => {
-            const d1  = d.projects.reduce((s, pr) => s + getD1Amt(pr), 0);
+            // Use program-level gov totals for d1 so sorting is correct even when
+            // individual project names don't match govMap (abbreviations, truncation)
+            const d1  = govActive ? govD1ForProjects(d.projects)
+                                  : d.projects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             const d2  = d.projects.reduce((s, pr) => s + getD2Amt(pr), 0);
             const hd1 = d.projects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             return { ...d, _d1: d1, _d2: d2, _hd1: hd1, _delta: d2 - d1 };
@@ -1632,8 +1696,11 @@ window.initDraftComparePage = async function () {
                 return projSortDir === 'asc' ? va - vb : vb - va;
             });
 
-            const d1Total = filteredProjects.reduce((s, pr) => s + getD1Amt(pr), 0);
-            const d2Total = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
+            // Gov d1 uses program-level governor_request.json totals so the dept summary
+            // row is correct even when individual project names don't match govMap.
+            const d1Total = govActive ? govD1ForProjects(filteredProjects)
+                                      : filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
+            const d2Total  = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
             const hd1Total = filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
