@@ -1072,6 +1072,38 @@ window.initDraftComparePage = async function () {
         // Active fiscal year for inline toggle
         const activeYear = (activeData === draftComparisonData) ? 26 : 27;
 
+        // --- Data-quality annotations ---
+        // Known bill-drafting anomalies surfaced as inline ⚠ tooltips.
+        const DATA_NOTES = {
+            // UOH100 FY27 HD1: Part II explicitly zeroes Revenue Bond (E) capital
+            // via a continuation override not present in Section 14, which still
+            // records $28.5M. Both parsers are correct; the bill disagrees with
+            // itself. Part II is the authoritative appropriation.
+            'UOH100': {
+                fy27: 'HD1 Part II sets Revenue Bond capital (fund E) to $0 via an explicit zero override. Section 14 project detail still records $28.5M — an apparent bill-drafting omission. HD1 E figures above follow Part II.'
+            },
+            // SUB501: "Subsidies" is a cross-departmental accounting roll-up in
+            // Part II. Capital projects funded through SUB are physically listed
+            // under the originating departments in Section 14, so SUB501 will
+            // appear short relative to Part II in any project-level comparison.
+            'SUB501': {
+                any: 'Subsidies (SUB501) is a cross-departmental accounting code. Capital project detail is listed under the originating departments in Section 14, not under SUB — so project-level totals will appear lower than the Part II appropriation.'
+            },
+        };
+
+        /**
+         * Returns an HTML badge string for known data-quality notes on a program,
+         * or '' if none apply.
+         */
+        const buildDataNote = (programId, fy) => {
+            const entry = DATA_NOTES[programId];
+            if (!entry) return '';
+            const msg = entry[`fy${fy}`] || entry.any || '';
+            if (!msg) return '';
+            const escaped = msg.replace(/"/g, '&quot;');
+            return ` <span class="data-note" title="${escaped}" aria-label="Data note: ${escaped}">⚠</span>`;
+        };
+
         // Aggregate records by program_id within each department
         const aggregatePrograms = (rows) => {
             const pMap = new Map();
@@ -1271,11 +1303,12 @@ window.initDraftComparePage = async function () {
                         crossRefNote = ` <span class="split-note">also in ${otherLinks}</span>`;
                     }
                 }
+                const dataNoteHtml = buildDataNote(p.program_id, activeYear);
 
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -1351,7 +1384,7 @@ window.initDraftComparePage = async function () {
                     const fundOpen = expandedFunds.has(fundKey);
                     const fundArrow = fundOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -1391,7 +1424,7 @@ window.initDraftComparePage = async function () {
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
-                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}</td>
+                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -1790,9 +1823,13 @@ window.initDraftComparePage = async function () {
             const hd1Th = showProjHD1 ? `<th class="sortable amount-cell" data-sort-proj="hd1">HD1${projSortArrow('hd1')}</th>` : '';
             const d2Th = `<th class="sortable amount-cell" data-sort-proj="d2">${projD2Label}${projSortArrow('d2')}</th>`;
             const changeTh = `<th class="sortable amount-cell" data-sort-proj="change">Change<span class="th-sub">${projD1Label} → ${projD2Label}</span>${projSortArrow('change')}</th>`;
+            const activeProjYear = (activeProjects === projectsDataFY26) ? 26 : 27;
+            const projFyToggle = (projectsDataFY26 && projectsDataFY27)
+                ? `<span class="fy-inline-toggle" id="fy-inline-toggle-proj"><button class="fy-inline-btn${activeProjYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeProjYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>`
+                : '';
             html = `<table class="data-table project-table">
                 <thead><tr>
-                    <th class="sortable" data-sort-proj="program">Program${projSortArrow('program')}</th>
+                    <th class="sortable th-program-col" data-sort-proj="program"><div class="th-program-inner"><span class="th-program-label">Program${projSortArrow('program')}</span>${projFyToggle}</div></th>
                     <th>#</th>
                     <th class="sortable" data-sort-proj="project">Project${projSortArrow('project')}</th>
                     <th>Fund</th>
@@ -1850,6 +1887,14 @@ window.initDraftComparePage = async function () {
     // --- Project section: scroll-to-projects chips + panel toggles ---
 
     document.addEventListener('click', (e) => {
+        // FY year toggle inside capital projects table header
+        const fyProjBtn = e.target.closest('[data-fy-inline]');
+        if (fyProjBtn && fyProjBtn.closest('#projects-list')) {
+            e.stopPropagation();
+            const fy = fyProjBtn.dataset.fyInline;
+            document.getElementById(`fy-btn-${fy}`)?.click();
+            return;
+        }
         // Capital projects table — sortable column headers
         const projTh = e.target.closest('th.sortable[data-sort-proj]');
         if (projTh) {
