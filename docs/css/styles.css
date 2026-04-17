@@ -715,7 +715,8 @@ a.section-chip-link:hover {
     font-size: 0.935rem;
 }
 .project-table thead th {
-    background: #fafbfc;
+    background: #eef4f0;
+    border-bottom: 2px solid var(--primary-color, #2e7d32);
     font-size: 0.86rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -1302,6 +1303,27 @@ th.sortable:hover {
     margin-left: 0.4rem;
     cursor: help;
     white-space: nowrap;
+}
+
+/* Data-quality annotation badge (bill-drafting anomalies, rollup notes) */
+.data-note {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #7d5a00;
+    background: #fff8e1;
+    border: 1px solid #f0c040;
+    border-radius: 3px;
+    padding: 0px 4px;
+    margin-left: 0.35rem;
+    cursor: help;
+    white-space: nowrap;
+    vertical-align: middle;
+    line-height: 1.6;
+}
+.data-note:hover {
+    background: #fff3b0;
+    border-color: #e6a800;
 }
 
 /* Reading guide callout box */

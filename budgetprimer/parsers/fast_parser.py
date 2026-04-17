@@ -18,7 +18,7 @@ Pattern Matching Precedence (order matters):
 import re
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Pattern
+from typing import Any, Dict, List, Optional, Pattern
 from dataclasses import dataclass, field
 
 from .base_parser import BaseBudgetParser
@@ -262,7 +262,10 @@ class FastBudgetParser(BaseBudgetParser):
             # Project header (e.g. "1.          EAST-WEST CENTER, OAHU" or "2.1  NEW ANIMAL...")
             # Accepts "1." (integer with trailing dot) or "2.1" (decimal subproject).
             'cip_project': re.compile(
-                r'^\s*(\d+(?:\.\d+)?)\.?\s{2,}([A-Z].+?)\s*$',
+                # First char of name can be a letter OR digit — titles like
+                # "3RD HAWAII STATE VETERAN'S HOME" or "442ND LEGACY CENTER"
+                # are real project names in the bill.
+                r'^\s*(\d+(?:\.\d+)?)\.?\s{2,}([A-Z0-9].+?)\s*$',
             ),
             # Section 14 TOTAL FUNDING line — more permissive than the Part II variant.
             # Handles all three forms: FY1 only, FY2 only, and both.
@@ -273,6 +276,31 @@ class FastBudgetParser(BaseBudgetParser):
                 r'^\s*TOTAL\s+FUNDING\s+([A-Z]{2,4})\s+'
                 r'(?:([\d,]+)\s+)?([A-Z])\s+'       # FY1: optional amount + required fund
                 r'(?:([\d,]+)\s+)?([A-Z])\s*$',     # FY2: optional amount + required fund
+                re.IGNORECASE,
+            ),
+            # Section 14 continuation row: a bare "amount fund-letter" appearing
+            # directly after a TOTAL FUNDING line. In HB1800 HD1 this represents
+            # the bill's amended FY2 appropriation for the same fund; it either
+            # overrides the just-emitted FY2 project amount, or (if FY2 was blank)
+            # creates the FY2 project entry from scratch.
+            # Matched against the stripped line so leading whitespace is ignored;
+            # the guards in _extract_allocations (cur_project is None AND a
+            # last_cip_emission exists) confine this match to the narrow window
+            # between a TOTAL FUNDING emission and the next project header.
+            # e.g., "67,000 E" (stripped from "                         67,000 E")
+            'cip_continuation_amount': re.compile(
+                r'^([\d,]+)\s+([A-Z])$',
+            ),
+            # Section 14 secondary fund row: "DEPT  [amt] fund  [amt] fund"
+            # Appears under a project after its TOTAL FUNDING line to add another
+            # fund source. e.g. "TRN   26,064 E   10,100 E" or "TRN  32,394 N  40,400 N"
+            # Same shape as cip_total_funding but without the "TOTAL FUNDING" prefix.
+            # Matched against the stripped line; confined to the in-project window
+            # by the same cur_project/last_cip_emission guards as continuation rows.
+            'cip_secondary_fund': re.compile(
+                r'^([A-Z]{2,4})\s+'
+                r'(?:([\d,]+)\s+)?([A-Z])\s+'
+                r'(?:([\d,]+)\s+)?([A-Z])\s*$',
                 re.IGNORECASE,
             ),
 
@@ -440,6 +468,14 @@ class FastBudgetParser(BaseBudgetParser):
         state = ParserState()
         pat = self._compiled_patterns
         in_cip_project_list = False  # Section 14: skip TOTAL FUNDING (already counted in Part II)
+        # Tracks the last Section 14 emission so we can (a) apply HD1-style
+        # continuation-row FY2 overrides, and (b) dedupe SD1-style duplicate
+        # project blocks (same program + same project_id with/without leading
+        # whitespace, representing House vs Senate versions stacked as two blocks).
+        last_cip_emission: Optional[Dict[str, Any]] = None
+        # Deferred dedup: set when a same-title sub-project header fires.
+        # Resolved at the next TOTAL FUNDING line by comparing funds.
+        pending_fund_dedup: Optional[Dict[str, Any]] = None
 
         # Section 14 project-parsing state
         cip_program_id: str = ''
@@ -651,6 +687,8 @@ class FastBudgetParser(BaseBudgetParser):
                         cip_program_name = mp.group(2).strip()
                         cip_dept_code = cip_program_id[:3].upper()
                         cur_project = None  # Flush in-progress project
+                        last_cip_emission = None  # emission context is per-program
+                        pending_fund_dedup = None
                         continue
 
                     # TOTAL FUNDING line — emit project(s) for cur_project
@@ -661,10 +699,32 @@ class FastBudgetParser(BaseBudgetParser):
                         fy2_num = int(re.sub(r'[^\d]', '', mt.group(4))) if mt.group(4) else 0
                         fy1_fund = (mt.group(3) or 'C').upper()
                         fy2_fund = (mt.group(5) or fy1_fund).upper()
+                        # Resolve deferred same-title dedup. Senate duplicate
+                        # blocks share the prev emission's FY1 fund + FY1
+                        # amount (the "keep FY1, modify FY2" pattern).
+                        # Distinct-but-same-titled projects typically differ
+                        # on FY1 amount (e.g. UOH100 #23.1 vs #24: 0 vs 4M).
+                        fy1_amount_new = float(fy1_num) * 1000.0
+                        if (pending_fund_dedup is not None
+                                and pending_fund_dedup['program_id'] == cip_program_id
+                                and pending_fund_dedup['prev_fy1_fund'] == fy1_fund
+                                and pending_fund_dedup['prev_fy2_fund'] == fy2_fund
+                                and pending_fund_dedup['prev_fy1_amount'] == fy1_amount_new):
+                            stale = pending_fund_dedup['stale_refs']
+                            if stale:
+                                self.projects = [p for p in self.projects if id(p) not in stale]
+                            self.logger.debug(
+                                f"L{line_num}: CIP same-title dedup fired "
+                                f"{cip_program_id} #{cur_project['project_id']} "
+                                f"(funds {fy1_fund}/{fy2_fund}, fy1={fy1_amount_new:,.0f})"
+                            )
+                        pending_fund_dedup = None
                         scope_text = ' '.join(
                             s.strip() for s in cur_project['scope_lines'] if s.strip()
                         )
                         # Emit FY1 project (amounts are in thousands → multiply by 1000)
+                        fy1_proj_ref = None
+                        fy2_proj_ref = None
                         if fy1_num > 0:
                             self.projects.append(BudgetProject(
                                 project_id=cur_project['project_id'],
@@ -679,6 +739,7 @@ class FastBudgetParser(BaseBudgetParser):
                                 fund_type=FundType.from_string(fy1_fund),
                                 line_number=line_num,
                             ))
+                            fy1_proj_ref = self.projects[-1]
                         if fy2_num > 0:
                             self.projects.append(BudgetProject(
                                 project_id=cur_project['project_id'],
@@ -693,7 +754,158 @@ class FastBudgetParser(BaseBudgetParser):
                                 fund_type=FundType.from_string(fy2_fund),
                                 line_number=line_num,
                             ))
+                            fy2_proj_ref = self.projects[-1]
+                        # Record the emission so a subsequent continuation row
+                        # (HD1 pattern), secondary fund row, or duplicate project
+                        # block (SD1 pattern) can amend or replace it.
+                        # fy1_proj/fy2_proj track the *most recent* fund emission
+                        # (used as the target for continuation-row overrides).
+                        # all_refs tracks every BudgetProject emitted under this
+                        # project header so the SD1 duplicate-block dedup can
+                        # remove every fund source, not just the primary.
+                        all_refs = [r for r in (fy1_proj_ref, fy2_proj_ref) if r is not None]
+                        last_cip_emission = {
+                            'program_id': cip_program_id,
+                            'program_name': cip_program_name,
+                            'project_id': cur_project['project_id'],
+                            'project_id_norm': cur_project['project_id'].strip(),
+                            'project_name': cur_project['project_name'],
+                            'project_name_key': cur_project['project_name'].strip().upper(),
+                            'scope': scope_text,
+                            'category': cip_category or 'Uncategorized',
+                            'dept': dept,
+                            'fy1_fund': fy1_fund,
+                            'fy2_fund': fy2_fund,
+                            'fy1_proj': fy1_proj_ref,
+                            'fy2_proj': fy2_proj_ref,
+                            'all_refs': all_refs,
+                            # Immutable primary-emission snapshot used by the
+                            # deferred same-title dedup. Secondary-fund rows
+                            # mutate fy1_fund/fy2_fund/fy1_proj/fy2_proj above
+                            # to retarget continuation rows, but the dedup
+                            # needs the ORIGINAL TOTAL FUNDING values.
+                            'fy1_fund_primary': fy1_fund,
+                            'fy2_fund_primary': fy2_fund,
+                            'fy1_amount_primary': float(fy1_num) * 1000.0,
+                        }
                         cur_project = None
+                        continue
+
+                    # Section 14 secondary fund row — another fund source under
+                    # the current project (same DEPT, no "TOTAL FUNDING" prefix).
+                    # e.g. "TRN  26,064 E  10,100 E". Emits FY1/FY2 projects and
+                    # refreshes last_cip_emission so subsequent continuation rows
+                    # target THIS fund (not the primary TOTAL FUNDING fund).
+                    if last_cip_emission is not None and cur_project is None:
+                        msf = pat['cip_secondary_fund'].match(line)
+                        if msf and msf.group(1).upper() == last_cip_emission.get('dept', '').upper():
+                            sf_fy1_num = int(re.sub(r'[^\d]', '', msf.group(2))) if msf.group(2) else 0
+                            sf_fy2_num = int(re.sub(r'[^\d]', '', msf.group(4))) if msf.group(4) else 0
+                            sf_fy1_fund = (msf.group(3) or 'C').upper()
+                            sf_fy2_fund = (msf.group(5) or sf_fy1_fund).upper()
+                            sf_fy1_ref = None
+                            sf_fy2_ref = None
+                            if sf_fy1_num > 0:
+                                self.projects.append(BudgetProject(
+                                    project_id=last_cip_emission['project_id'],
+                                    project_name=last_cip_emission['project_name'],
+                                    scope=last_cip_emission['scope'],
+                                    program_id=last_cip_emission['program_id'],
+                                    program_name=last_cip_emission['program_name'],
+                                    department_code=last_cip_emission['dept'],
+                                    category=last_cip_emission['category'],
+                                    fiscal_year=self.fy1,
+                                    amount=float(sf_fy1_num) * 1000.0,
+                                    fund_type=FundType.from_string(sf_fy1_fund),
+                                    line_number=line_num,
+                                ))
+                                sf_fy1_ref = self.projects[-1]
+                                last_cip_emission['all_refs'].append(sf_fy1_ref)
+                            if sf_fy2_num > 0:
+                                self.projects.append(BudgetProject(
+                                    project_id=last_cip_emission['project_id'],
+                                    project_name=last_cip_emission['project_name'],
+                                    scope=last_cip_emission['scope'],
+                                    program_id=last_cip_emission['program_id'],
+                                    program_name=last_cip_emission['program_name'],
+                                    department_code=last_cip_emission['dept'],
+                                    category=last_cip_emission['category'],
+                                    fiscal_year=self.fy2,
+                                    amount=float(sf_fy2_num) * 1000.0,
+                                    fund_type=FundType.from_string(sf_fy2_fund),
+                                    line_number=line_num,
+                                ))
+                                sf_fy2_ref = self.projects[-1]
+                                last_cip_emission['all_refs'].append(sf_fy2_ref)
+                            # Refresh continuation-target pointers to the most
+                            # recently emitted fund. A continuation row coming
+                            # next will override THIS fund's FY2.
+                            last_cip_emission['fy1_fund'] = sf_fy1_fund
+                            last_cip_emission['fy2_fund'] = sf_fy2_fund
+                            last_cip_emission['fy1_proj'] = sf_fy1_ref
+                            last_cip_emission['fy2_proj'] = sf_fy2_ref
+                            self.logger.debug(
+                                f"L{line_num}: CIP secondary fund "
+                                f"{last_cip_emission['program_id']} "
+                                f"proj={last_cip_emission['project_id']} "
+                                f"fund={sf_fy1_fund}  "
+                                f"fy1={sf_fy1_num*1000:,.0f} fy2={sf_fy2_num*1000:,.0f}"
+                            )
+                            continue
+
+                    # Section 14 continuation row (HD1 pattern):
+                    # deeply-indented bare amount directly amends the just-emitted
+                    # FY2 project. If the prior FY2 was 0/blank, creates a new FY2
+                    # entry from the last emission's context.
+                    mcc = pat['cip_continuation_amount'].match(line)
+                    if mcc and last_cip_emission is not None and cur_project is None:
+                        try:
+                            amt_thousands = int(mcc.group(1).replace(',', ''))
+                        except ValueError:
+                            amt_thousands = 0
+                        cont_fund = mcc.group(2).upper()
+                        new_amt = float(amt_thousands) * 1000.0
+                        fy2_proj = last_cip_emission.get('fy2_proj')
+                        if (fy2_proj is not None
+                                and fy2_proj.fund_type is not None
+                                and fy2_proj.fund_type.value == cont_fund):
+                            # Override existing FY2 amount
+                            fy2_proj.amount = new_amt
+                            self.logger.debug(
+                                f"L{line_num}: CIP FY2 continuation override "
+                                f"{fy2_proj.program_id} proj={fy2_proj.project_id} "
+                                f"fund={cont_fund} → {new_amt:,.0f}"
+                            )
+                        elif (fy2_proj is None and amt_thousands > 0
+                                and cont_fund == last_cip_emission.get('fy1_fund')
+                                and cont_fund == last_cip_emission.get('fy2_fund')):
+                            # FY2 was blank on main row AND the continuation fund
+                            # matches the row's fund — create new FY2 project.
+                            # (If the funds differ, the continuation row is
+                            # amending a *secondary* fund row that this parser
+                            # doesn't yet capture in Section 14; skip to avoid
+                            # creating a ghost project under the wrong fund.)
+                            new_proj = BudgetProject(
+                                project_id=last_cip_emission['project_id'],
+                                project_name=last_cip_emission['project_name'],
+                                scope=last_cip_emission['scope'],
+                                program_id=last_cip_emission['program_id'],
+                                program_name=last_cip_emission['program_name'],
+                                department_code=last_cip_emission['dept'],
+                                category=last_cip_emission['category'],
+                                fiscal_year=self.fy2,
+                                amount=new_amt,
+                                fund_type=FundType.from_string(cont_fund),
+                                line_number=line_num,
+                            )
+                            self.projects.append(new_proj)
+                            last_cip_emission['fy2_proj'] = new_proj
+                            last_cip_emission.setdefault('all_refs', []).append(new_proj)
+                            self.logger.debug(
+                                f"L{line_num}: CIP FY2 continuation created "
+                                f"{new_proj.program_id} proj={new_proj.project_id} "
+                                f"fund={cont_fund} = {new_amt:,.0f}"
+                            )
                         continue
 
                     # Project header (1. EAST-WEST CENTER, OAHU or 2.1  NEW ...)
@@ -702,6 +914,57 @@ class FastBudgetParser(BaseBudgetParser):
                     # Guard: the matched first group must look like a project number
                     # (purely digits/dot), NOT a department code.
                     if mj and re.fullmatch(r'\d+(?:\.\d+)?', mj.group(1)):
+                        new_pid_norm = mj.group(1).strip()
+                        new_pname_key = mj.group(2).strip().upper()
+                        # SD1-style duplicate-block dedup: within the same program,
+                        # the Senate amendment re-emits the House version with
+                        # either (a) the same project number but a slightly
+                        # tweaked title (e.g. BED160 #29 with/without "STATEWIDE"),
+                        # or (b) the same title but a renumbered project_id
+                        # (e.g. TRN102 " 2." becomes "1."). We fire dedup on
+                        # EITHER matching project_id OR matching title — or when
+                        # one title is a prefix of the other (covers the "title
+                        # with trailing location qualifier" case).
+                        prev_pid = last_cip_emission['project_id_norm'] if last_cip_emission else ''
+                        prev_pname = last_cip_emission['project_name_key'] if last_cip_emission else ''
+                        # Dedup strategy:
+                        #   - Exact id-match → fire immediately (strongest
+                        #     signal; House/Senate re-emit same block with
+                        #     same number).
+                        #   - Same title but different id (including sub-
+                        #     projects) → DEFER. Too ambiguous at this point:
+                        #     BED113 #2/#2.1 and UOH100 #23.1/#24/#25 share
+                        #     titles but are distinct. Resolve at the next
+                        #     TOTAL FUNDING by requiring both fund-match AND
+                        #     FY1-amount-match (Senate duplicate blocks
+                        #     preserve the FY1 figure; distinct projects
+                        #     typically differ).
+                        if (last_cip_emission is not None
+                                and last_cip_emission['program_id'] == cip_program_id
+                                and prev_pid == new_pid_norm):
+                            stale_refs = {id(p) for p in last_cip_emission.get('all_refs', [])
+                                          if p is not None}
+                            if stale_refs:
+                                self.projects = [p for p in self.projects if id(p) not in stale_refs]
+                            self.logger.debug(
+                                f"L{line_num}: CIP duplicate project "
+                                f"{cip_program_id} #{new_pid_norm} — removed prior "
+                                f"emission (id-match)"
+                            )
+                            last_cip_emission = None
+                        elif (last_cip_emission is not None
+                              and last_cip_emission['program_id'] == cip_program_id
+                              and prev_pname == new_pname_key
+                              and prev_pid != new_pid_norm):
+                            # Same title, different id: defer to TOTAL FUNDING.
+                            pending_fund_dedup = {
+                                'prev_fy1_fund': last_cip_emission.get('fy1_fund_primary'),
+                                'prev_fy2_fund': last_cip_emission.get('fy2_fund_primary'),
+                                'prev_fy1_amount': last_cip_emission.get('fy1_amount_primary', 0),
+                                'stale_refs': {id(p) for p in last_cip_emission.get('all_refs', [])
+                                               if p is not None},
+                                'program_id': cip_program_id,
+                            }
                         cur_project = {
                             'project_id': mj.group(1),
                             'project_name': mj.group(2).strip(),
