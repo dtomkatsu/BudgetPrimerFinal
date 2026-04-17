@@ -2327,14 +2327,16 @@ mark.search-highlight {
     padding-top: 0.1rem;
 }
 /* ── Summary strip (replaces cards grid) ── */
+/* A: white card with elevation + colored left border keyed to net sign */
 .summary-strip {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem 0.75rem;
-    background: #f5f7f6;
-    border: 1px solid #dde2e0;
-    border-radius: 8px;
+    background: #fff;
+    border-left: 4px solid var(--strip-accent, #b0bbb7);
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
     padding: 10px 18px;
     margin-bottom: 0.9rem;
     font-variant-numeric: tabular-nums;
@@ -2359,74 +2361,93 @@ mark.search-highlight {
     letter-spacing: 0.05em;
     margin-top: 1px;
 }
-.strip-arrow {
-    color: #9aaca6;
-    font-size: 0.95rem;
+/* D: dot-line connector between nodes */
+.strip-connector {
+    display: flex;
+    align-items: center;
     align-self: center;
-    padding: 0 2px;
+    gap: 0;
+}
+.strip-conn-line {
+    width: 14px;
+    height: 2px;
+    background: #c5cec9;
+}
+.strip-conn-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9aaca6;
+    flex-shrink: 0;
 }
 .strip-sep {
     flex: 1;
     min-width: 12px;
 }
+/* B: Net change colored badge with % */
 .strip-delta {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 4px 10px;
-    border-radius: 6px;
-    background: #eef2f0;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: #f0f2f1;
+    border: 1px solid #dde2e0;
+    min-width: 90px;
+    text-align: center;
+}
+.strip-delta .strip-amt {
+    font-size: 1.12rem;
+}
+.strip-delta.positive {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+}
+.strip-delta.negative {
+    background: #fdecea;
+    border-color: #f5a5a5;
 }
 .strip-delta.positive .strip-amt { color: #1e7e34; }
 .strip-delta.negative .strip-amt { color: #c62828; }
-.strip-opcap {
-    margin-left: auto;
-    font-size: 0.82rem;
+.strip-delta-pct {
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 1px;
+    color: #7a8a85;
 }
-.strip-opcap > summary {
-    cursor: pointer;
+.strip-delta.positive .strip-delta-pct { color: #2e7d32; }
+.strip-delta.negative .strip-delta-pct { color: #b71c1c; }
+/* C: Segmented [Total][Operating][Capital] tabs */
+.strip-tabs {
+    display: flex;
+    gap: 2px;
+    background: #edf0ef;
+    border-radius: 6px;
+    padding: 3px;
+    flex-shrink: 0;
+}
+.strip-tab {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
     color: #5a7a70;
-    font-weight: 600;
-    font-size: 0.78rem;
-    user-select: none;
-    padding: 4px 0;
-    list-style: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
 }
-.strip-opcap > summary::-webkit-details-marker { display: none; }
-.strip-opcap > summary::before { content: '▶ '; font-size: 0.65rem; }
-.strip-opcap[open] > summary::before { content: '▼ '; }
-.strip-opcap-body {
-    margin-top: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.strip-sub-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    color: #444;
-}
-.strip-sub-lbl {
-    font-weight: 600;
-    color: #5a6e68;
-    min-width: 60px;
-}
-.strip-sub-val {
-    font-variant-numeric: tabular-nums;
+.strip-tab:hover:not(.active) {
+    background: #dde6e2;
     color: #2c3e50;
 }
-.strip-sub-arrow {
-    color: #9aaca6;
-    font-size: 0.75rem;
+.strip-tab.active {
+    background: #fff;
+    color: #2c3e50;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
-.strip-sub-delta {
-    font-weight: 700;
-    margin-left: 4px;
-}
-.strip-sub-delta.positive { color: #1e7e34; }
-.strip-sub-delta.negative { color: #c62828; }
 
 .hb300-ref-bar {
     display: flex;
