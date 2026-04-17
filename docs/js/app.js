@@ -841,17 +841,33 @@ window.initDraftComparePage = async function () {
         if (hd1Active) nodes.push({ val: tabHD1, label: 'HD1' });
         if (sd1Active) nodes.push({ val: tabSD1, label: d2Label });
 
-        // D: dot-line connector (mini version of .compare-timeline style)
-        const connHtml = `<div class="strip-connector"><div class="strip-conn-line"></div><div class="strip-conn-dot"></div><div class="strip-conn-line"></div></div>`;
+        // Compact format for amounts below timeline dots: $23.1B, $300M, etc.
+        const fmtShort = (n) => {
+            if (n == null) return '$0';
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if (abs >= 1e9) return `${sign}$${+(abs / 1e9).toFixed(1)}B`;
+            if (abs >= 1e6) return `${sign}$${+(abs / 1e6).toFixed(0)}M`;
+            if (abs >= 1e3) return `${sign}$${+(abs / 1e3).toFixed(0)}K`;
+            return `${sign}$${abs.toFixed(0)}`;
+        };
 
-        const nodeHtml = nodes.map((n, i) =>
-            `<div class="strip-node">
-                <div class="strip-amt">${fmtHtmlFull(n.val)}</div>
-                <div class="strip-lbl">${n.label}</div>
-            </div>${i < nodes.length - 1 ? connHtml : ''}`
-        ).join('');
+        // Mini timeline: ●───●───● with amounts + labels below each dot
+        const stripTlHtml = `<div class="strip-tl">${nodes.map((n, i) => {
+            const isFirst = i === 0;
+            const isLast  = i === nodes.length - 1;
+            return `<div class="strip-tl-node">
+                <div class="strip-tl-dot-row">
+                    <div class="strip-tl-seg${isFirst ? ' strip-tl-seg--hide' : ''}"></div>
+                    <div class="strip-tl-dot"></div>
+                    <div class="strip-tl-seg${isLast  ? ' strip-tl-seg--hide' : ''}"></div>
+                </div>
+                <div class="strip-tl-amt">${fmtShort(n.val)}</div>
+                <div class="strip-tl-lbl">${n.label}</div>
+            </div>`;
+        }).join('')}</div>`;
 
-        // B: Net change badge with percentage
+        // Net change badge — smaller, on the left
         const netBadge = `<div class="strip-delta ${netCls}">
             <div class="strip-amt">${fmtHtmlFull(tabNet)}</div>
             <div class="strip-delta-pct">${fmtPct(netPct)}</div>
@@ -873,9 +889,9 @@ window.initDraftComparePage = async function () {
 
         cardsEl.innerHTML = `
             <div class="summary-strip" style="--strip-accent: ${accentColor}">
-                ${nodeHtml}
-                <span class="strip-sep"></span>
                 ${netBadge}
+                <div class="strip-v-sep"></div>
+                ${stripTlHtml}
                 ${tabCtrl}
             </div>`;
 
