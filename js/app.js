@@ -678,7 +678,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
-                        <span class="tl-amt" id="tl-amt-gov"></span>
+                        <div class="tl-amt-wrap">
+                            <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
+                            <span class="tl-amt" id="tl-amt-gov"></span>
+                        </div>
+                        <div class="tl-breakdown" id="tl-bd-gov" hidden></div>
                         <input type="checkbox" class="tl-cb" id="tl-gov" checked>
                     </div>
                     <div class="tl-node" id="tl-node-hd1">
@@ -689,6 +693,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <span class="tl-amt" id="tl-amt-hd1"></span>
+                        <div class="tl-breakdown" id="tl-bd-hd1" hidden></div>
                         <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
                     </div>
                     <div class="tl-node" id="tl-node-sd1">
@@ -699,7 +704,19 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <span class="tl-amt" id="tl-amt-sd1"></span>
+                        <div class="tl-breakdown" id="tl-bd-sd1" hidden></div>
                         <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
+                    </div>
+                    <!-- Net change node — 4th timeline node (derived, visually separated) -->
+                    <div class="tl-node tl-net-node" id="tl-node-net">
+                        <span class="tl-label">Net Change</span>
+                        <div class="tl-dot-row">
+                            <span class="tl-seg tl-seg-before"></span>
+                            <span class="tl-net-marker" id="tl-net-marker">●</span>
+                            <span class="tl-seg tl-seg-after"></span>
+                        </div>
+                        <span class="tl-amt tl-net-chip" id="tl-amt-net"></span>
+                        <div class="tl-breakdown" id="tl-bd-net" hidden></div>
                     </div>
                 </div>
             </div>
@@ -735,6 +752,8 @@ window.initDraftComparePage = async function () {
     let expandedProjectPrograms = new Set();
     let sortCol = 'change';
     let sortDir = 'asc';
+    let projSortCol = 'change'; // capital projects table sort
+    let projSortDir = 'desc';
     let checkedSections = null; // null = all
     let checkedFunds = null;    // null = all
     let expandedDepts = new Set();
@@ -745,7 +764,7 @@ window.initDraftComparePage = async function () {
     let govActive = true;
     let hd1Active = true;
     let sd1Active = true;
-    let activeStripTab = 'total'; // 'total' | 'op' | 'cap'
+    let showBreakdown = false; // whether Op/Cap sub-chips are visible under each node
 
     // Build baseline lookup from governorRequestData.
     // Key includes department_code + section so that a program which exists
@@ -825,24 +844,26 @@ window.initDraftComparePage = async function () {
         const op  = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
 
-        // Tab-aware source data
-        const t      = activeStripTab;
-        const tabGov = t === 'op' ? op.baseline : t === 'cap' ? cap.baseline : op.baseline + cap.baseline;
-        const tabHD1 = t === 'op' ? op.hd1      : t === 'cap' ? cap.hd1      : op.hd1 + cap.hd1;
-        const tabSD1 = t === 'op' ? op.d2        : t === 'cap' ? cap.d2        : op.d2 + cap.d2;
-        const tabD1  = t === 'op' ? op.d1        : t === 'cap' ? cap.d1        : op.d1 + cap.d1;
-        const tabNet = tabSD1 - tabD1;
-        const netCls = tabNet > 0 ? 'positive' : tabNet < 0 ? 'negative' : '';
-        const netPct = tabD1 !== 0 ? (tabNet / Math.abs(tabD1)) * 100 : (tabNet !== 0 ? 100 : 0);
+        // Totals (always shown in main chips)
+        const totGov = op.baseline + cap.baseline;
+        const totHD1 = op.hd1 + cap.hd1;
+        const totSD1 = op.d2 + cap.d2;
+        const totD1  = op.d1 + cap.d1;
+        const totNet = totSD1 - totD1;
+        const netCls = totNet > 0 ? 'positive' : totNet < 0 ? 'negative' : '';
+        const netPct = totD1 !== 0 ? (totNet / Math.abs(totD1)) * 100 : (totNet !== 0 ? 100 : 0);
+
+        // Keep aliases so the rest of the function (Net node, etc.) stays readable
+        const tabNet = totNet;
 
         const cardsEl = document.getElementById('draft-cards');
         if (!cardsEl) return;
 
-        // Build node list with tab-filtered values
+        // Build node list with total values
         const nodes = [];
-        if (govActive) nodes.push({ val: tabGov, label: "Gov's Request" });
-        if (hd1Active) nodes.push({ val: tabHD1, label: 'HD1' });
-        if (sd1Active) nodes.push({ val: tabSD1, label: d2Label });
+        if (govActive) nodes.push({ val: totGov, label: "Gov's Request" });
+        if (hd1Active) nodes.push({ val: totHD1, label: 'HD1' });
+        if (sd1Active) nodes.push({ val: totSD1, label: d2Label });
 
         // Compact format for amounts shown directly under each timeline dot
         const fmtShort = (n) => {
@@ -855,50 +876,51 @@ window.initDraftComparePage = async function () {
             return `${sign}$${abs.toFixed(0)}`;
         };
 
-        // Update amounts directly under each dot in the existing timeline controls
+        // Update main Total amounts directly under each dot
         [
-            { id: 'tl-amt-gov', val: tabGov, active: govActive },
-            { id: 'tl-amt-hd1', val: tabHD1, active: hd1Active },
-            { id: 'tl-amt-sd1', val: tabSD1, active: sd1Active },
+            { id: 'tl-amt-gov', val: totGov },
+            { id: 'tl-amt-hd1', val: totHD1 },
+            { id: 'tl-amt-sd1', val: totSD1 },
         ].forEach(({ id, val }) => {
             const el = document.getElementById(id);
             if (el) el.textContent = fmtShort(val);
         });
 
-        // Net change badge
-        const netBadge = `<div class="strip-delta ${netCls}">
-            <div class="strip-amt">${fmtHtmlFull(tabNet)}</div>
-            <div class="strip-delta-pct">${fmtPct(netPct)}</div>
-            <div class="strip-lbl">Net Change</div>
-        </div>`;
-
-        // Segmented [Total][Operating][Capital] tabs
-        const tabDefs = [
-            { key: 'total', label: 'Total' },
-            { key: 'op',    label: 'Operating' },
-            { key: 'cap',   label: 'Capital' },
+        // Populate Operating / Capital breakdown sub-chips (shown only when expanded)
+        const signed = (n) => (n > 0 ? '+' : '') + fmtShort(n);
+        const bd = [
+            { id: 'tl-bd-gov', opV: op.baseline,        capV: cap.baseline,        isNet: false },
+            { id: 'tl-bd-hd1', opV: op.hd1,             capV: cap.hd1,             isNet: false },
+            { id: 'tl-bd-sd1', opV: op.d2,              capV: cap.d2,              isNet: false },
+            { id: 'tl-bd-net', opV: op.d2 - op.d1,      capV: cap.d2 - cap.d1,     isNet: true  },
         ];
-        const tabCtrl = `<div class="strip-tabs">${tabDefs.map(tb =>
-            `<button class="strip-tab${activeStripTab === tb.key ? ' active' : ''}" data-tab="${tb.key}">${tb.label}</button>`
-        ).join('')}</div>`;
-
-        // Colored left border keyed to net change sign
-        const accentColor = tabNet > 0 ? '#1e7e34' : tabNet < 0 ? '#c62828' : '#b0bbb7';
-
-        // Strip is now just: net change badge + tabs
-        cardsEl.innerHTML = `
-            <div class="summary-strip" style="--strip-accent: ${accentColor}">
-                ${netBadge}
-                ${tabCtrl}
-            </div>`;
-
-        // Wire up tab buttons
-        cardsEl.querySelectorAll('.strip-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeStripTab = btn.dataset.tab;
-                updateSummaryCards();
-            });
+        bd.forEach(({ id, opV, capV, isNet }) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const fmt = isNet ? signed : fmtShort;
+            el.innerHTML =
+                `<span class="tl-bd-row"><span class="tl-bd-lbl">Op</span>${fmt(opV)}</span>` +
+                `<span class="tl-bd-row"><span class="tl-bd-lbl">Cap</span>${fmt(capV)}</span>`;
+            el.hidden = !showBreakdown;
         });
+
+        // Update the 4th Net Change timeline node
+        const netArrow = tabNet > 0 ? '▲' : tabNet < 0 ? '▼' : '●';
+        const netNode  = document.getElementById('tl-node-net');
+        if (netNode) netNode.className = `tl-node tl-net-node ${netCls}`;
+        const netMarker = document.getElementById('tl-net-marker');
+        if (netMarker) netMarker.textContent = netArrow;
+        const netAmtEl  = document.getElementById('tl-amt-net');
+        if (netAmtEl) {
+            const sign = tabNet > 0 ? '+' : '';
+            netAmtEl.textContent = `${sign}${fmtShort(tabNet)}`;
+        }
+        // Update expand caret on Gov amount row
+        const expandBtn = document.getElementById('tl-expand-btn');
+        if (expandBtn) expandBtn.textContent = showBreakdown ? '▴' : '▾';
+
+        // draft-cards is now empty (toggle lives on the Net Change label)
+        cardsEl.innerHTML = '';
     };
 
     // --- Build checkbox options from data ---
@@ -938,6 +960,7 @@ window.initDraftComparePage = async function () {
         const resolveSort = (r) => {
             if (sortCol === 'd1') return r[d1Key] || 0;
             if (sortCol === 'd2') return r[d2Key] || 0;
+            if (sortCol === 'hd1') return r[hd1Key] || 0;
             if (sortCol === 'program_name') return (r.program_name || '').toLowerCase();
             return r[sortCol] ?? 0;
         };
@@ -1441,7 +1464,7 @@ window.initDraftComparePage = async function () {
                     <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
-                    ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
+                    ${showHD1Col() ? `<th class="sortable amount-cell" data-sort="hd1">HD1${sortArrow('hd1')}</th>` : ''}
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">${getChangeLabel(sortArrow('change'))}</th>
                     <th class="sortable amount-cell" data-sort="pct_change">%${sortArrow('pct_change')}</th>
@@ -1544,8 +1567,33 @@ window.initDraftComparePage = async function () {
             }
         }
 
-        // Sort depts alphabetically by code
-        const depts = [...deptMap.values()].sort((a, b) => a.code.localeCompare(b.code));
+        // Helper functions hoisted before loop so they can be used for dept-level sorting
+        const getGovAmt = (pr) => {
+            if (!govActive || govMap.size === 0) return null;
+            const k = `${pr.program_id}:${normProjectName(pr.project_name)}:${pr.fund_category}`;
+            return govMap.has(k) ? govMap.get(k) : null;
+        };
+        const getD1Amt = (pr) => govActive ? (getGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
+        const getD2Amt = (pr) => sd1Active ? (pr[sd1Key] || 0) : (pr[hd1Key] || 0);
+
+        // Sort depts by projSortCol using pre-computed aggregate totals
+        const depts = [...deptMap.values()].map(d => {
+            const d1  = d.projects.reduce((s, pr) => s + getD1Amt(pr), 0);
+            const d2  = d.projects.reduce((s, pr) => s + getD2Amt(pr), 0);
+            const hd1 = d.projects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
+            return { ...d, _d1: d1, _d2: d2, _hd1: hd1, _delta: d2 - d1 };
+        }).sort((a, b) => {
+            const getVal = (d) => {
+                if (projSortCol === 'd1')     return d._d1;
+                if (projSortCol === 'd2')     return d._d2;
+                if (projSortCol === 'hd1')    return d._hd1;
+                if (projSortCol === 'change') return d._delta;
+                return d.code.toLowerCase(); // program / project / default → by dept code
+            };
+            const va = getVal(a), vb = getVal(b);
+            if (typeof va === 'string') return projSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            return projSortDir === 'asc' ? va - vb : vb - va;
+        });
 
         // Filter by current search query
         const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
@@ -1567,24 +1615,22 @@ window.initDraftComparePage = async function () {
             if (filteredProjects.length === 0) continue;
             visibleCount++;
 
-            // Sort: program_id first, then project_id numerically
+            // Sort by user-selected column
             filteredProjects.sort((a, b) => {
-                const pidCmp = (a.program_id || '').localeCompare(b.program_id || '');
-                if (pidCmp !== 0) return pidCmp;
-                return (Number(a.project_id) || 0) - (Number(b.project_id) || 0);
+                const getVal = (pr) => {
+                    if (projSortCol === 'd1')      return getD1Amt(pr);
+                    if (projSortCol === 'd2')      return getD2Amt(pr);
+                    if (projSortCol === 'hd1')     return pr[hd1Key] || 0;
+                    if (projSortCol === 'change')  return getD2Amt(pr) - getD1Amt(pr);
+                    if (projSortCol === 'program') return (pr.program_id || '').toLowerCase();
+                    if (projSortCol === 'project') return (pr.project_name || '').toLowerCase();
+                    return Number(pr.project_id) || 0;
+                };
+                const va = getVal(a), vb = getVal(b);
+                if (typeof va === 'string')
+                    return projSortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+                return projSortDir === 'asc' ? va - vb : vb - va;
             });
-
-            // Compute per-project gov amount and totals
-            const getGovAmt = (pr) => {
-                if (!govActive || govMap.size === 0) return null;
-                const k = `${pr.program_id}:${normProjectName(pr.project_name)}:${pr.fund_category}`;
-                return govMap.has(k) ? govMap.get(k) : null;
-            };
-
-            // Effective d1 amount per project (gov if govActive, else HD1)
-            const getD1Amt = (pr) => govActive ? (getGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
-            // Effective d2 amount (SD1 if sd1Active, else HD1)
-            const getD2Amt = (pr) => sd1Active ? (pr[sd1Key] || 0) : (pr[hd1Key] || 0);
 
             const d1Total = filteredProjects.reduce((s, pr) => s + getD1Amt(pr), 0);
             const d2Total = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
@@ -1594,19 +1640,14 @@ window.initDraftComparePage = async function () {
             const isOpen = expandedProjectPrograms.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
-            // Dept group row — colspan spans all columns
-            let deptTotalsHtml = `${fmt(d1Total)} <span class="proj-draft-label">${projD1Label}</span>`;
-            if (showProjHD1) deptTotalsHtml += ` → ${fmt(hd1Total)} <span class="proj-draft-label">HD1</span>`;
-            deptTotalsHtml += ` → ${fmt(d2Total)} <span class="proj-draft-label">${projD2Label}</span>`;
-            deptTotalsHtml += ` <span class="${deltaCls}">(${delta >= 0 ? '+' : ''}${fmt(delta)})</span>`;
-
+            // Dept group row — individual cells matching first table's dept row pattern
             bodyRows += `<tr class="dept-group-row project-dept-row" data-project-dept="${dept.code}">
-                <td colspan="${totalCols}" class="project-dept-cell">
-                    <span class="dept-arrow">${arrow}</span>
-                    <strong>${dept.code}</strong> ${dept.name}
-                    <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span>
-                    <span class="project-totals">${deptTotalsHtml}</span>
-                </td>
+                <td colspan="3"><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
+                <td></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(d1Total)}</span></td>
+                ${showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Total)}</span></td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(d2Total)}</span></td>
+                <td class="amount-cell ${deltaCls}"><span class="figure-chip">${fmtHtml(delta)}</span></td>
             </tr>`;
 
             // Individual project rows (hidden until dept expanded)
@@ -1644,17 +1685,19 @@ window.initDraftComparePage = async function () {
         if (visibleCount === 0) {
             html = `<div class="empty-state"><p>No capital projects match the current filter.</p></div>`;
         } else {
-            const govTh = govActive ? `<th class="amount-cell">${projD1Label}</th>` : '';
-            const hd1Th = showProjHD1 ? `<th class="amount-cell">HD1</th>` : '';
-            const d2Th = govActive ? `<th class="amount-cell">${projD2Label}</th>` : `<th class="amount-cell">${projD2Label}</th>`;
-            const changeTh = `<th class="amount-cell">Change<span class="th-sub">${projD1Label} → ${projD2Label}</span></th>`;
+            const projSortArrow = (col) =>
+                projSortCol === col ? (projSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+            const govTh = govActive ? `<th class="sortable amount-cell" data-sort-proj="d1">${projD1Label}${projSortArrow('d1')}</th>` : '';
+            const hd1Th = showProjHD1 ? `<th class="sortable amount-cell" data-sort-proj="hd1">HD1${projSortArrow('hd1')}</th>` : '';
+            const d2Th = `<th class="sortable amount-cell" data-sort-proj="d2">${projD2Label}${projSortArrow('d2')}</th>`;
+            const changeTh = `<th class="sortable amount-cell" data-sort-proj="change">Change<span class="th-sub">${projD1Label} → ${projD2Label}</span>${projSortArrow('change')}</th>`;
             html = `<table class="data-table project-table">
                 <thead><tr>
-                    <th>Program</th>
+                    <th class="sortable" data-sort-proj="program">Program${projSortArrow('program')}</th>
                     <th>#</th>
-                    <th>Project</th>
+                    <th class="sortable" data-sort-proj="project">Project${projSortArrow('project')}</th>
                     <th>Fund</th>
-                    ${govActive ? '' : `<th class="amount-cell">${meta.draft1}</th>`}
+                    ${govActive ? '' : `<th class="sortable amount-cell" data-sort-proj="d1">${meta.draft1}${projSortArrow('d1')}</th>`}
                     ${govTh}
                     ${hd1Th}
                     ${d2Th}
@@ -1708,6 +1751,15 @@ window.initDraftComparePage = async function () {
     // --- Project section: scroll-to-projects chips + panel toggles ---
 
     document.addEventListener('click', (e) => {
+        // Capital projects table — sortable column headers
+        const projTh = e.target.closest('th.sortable[data-sort-proj]');
+        if (projTh) {
+            const col = projTh.dataset.sortProj;
+            if (projSortCol === col) { projSortDir = projSortDir === 'asc' ? 'desc' : 'asc'; }
+            else { projSortCol = col; projSortDir = (col === 'program' || col === 'project') ? 'asc' : 'desc'; }
+            renderProjects();
+            return;
+        }
         const chip = e.target.closest('[data-scroll-projects]');
         if (chip) {
             e.preventDefault();
@@ -1896,6 +1948,15 @@ window.initDraftComparePage = async function () {
         render();
     };
     document.querySelectorAll('.tl-cb').forEach(cb => cb.addEventListener('change', updateTimeline));
+
+    // Expand caret (left of Gov amount) — toggle Op/Cap breakdown
+    const expandBtn = document.getElementById('tl-expand-btn');
+    if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+            showBreakdown = !showBreakdown;
+            updateSummaryCards();
+        });
+    }
 
     // --- Reading guide toggle ---
 
