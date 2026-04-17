@@ -2501,20 +2501,20 @@ mark.search-highlight {
     align-items: center;
     gap: 4px;
 }
-/* Tiny expand/collapse caret left of Gov amount */
+/* Expand/collapse caret left of Gov amount */
 .tl-expand-caret {
     background: none;
     border: none;
-    padding: 0 1px;
-    font-size: 0.58rem;
+    padding: 0 2px;
+    font-size: 0.82rem;
     line-height: 1;
-    color: #9aaba5;
+    color: #6b8a7e;
     cursor: pointer;
     transition: color 0.12s;
     flex-shrink: 0;
 }
 .tl-expand-caret:hover {
-    color: #2c3e50;
+    color: #1e4d3a;
 }
 
 .hb300-ref-bar {
