@@ -2169,13 +2169,13 @@ mark.search-highlight {
 }
 .compare-page-titlerow h2 {
     margin: 0;
-    font-size: 2.1rem;
+    font-size: 1.73rem;
 }
 /* Compact info icon — overrides pill defaults for the title-area variant */
 .compare-info-icon.reading-guide-pill {
-    height: 36px;
-    padding: 0 15px;
-    font-size: 1.17rem;
+    height: 28px;
+    padding: 0 11px;
+    font-size: 0.90rem;
     font-weight: 500;
     background: #f5f7f6;
     border-color: #d0d8d4;
@@ -2184,7 +2184,7 @@ mark.search-highlight {
     cursor: help;
 }
 .compare-page-desc {
-    font-size: 1.42rem;
+    font-size: 1.09rem;
     line-height: 1.65;
     color: #4a5568;
     max-width: 780px;
@@ -2200,21 +2200,21 @@ mark.search-highlight {
     background: #f5f7f6;
     border: 1px solid #dde2e0;
     border-radius: 8px;
-    padding: 15px 24px;
+    padding: 12px 18px;
     margin-bottom: 1rem;
 }
 /* slim vertical divider between FY toggle and timeline */
 /* margin-top offsets it to the dot-row level: label + gap + ½dot - ½self */
 .ctrl-divider-v {
     width: 1px;
-    height: 42px;
+    height: 32px;
     background: #d0d8d4;
     flex-shrink: 0;
-    margin-top: calc(3.19rem + 2px);
+    margin-top: calc(2.44rem + 2px);
 }
 /* FY segmented control: same vertical offset as the divider so it sits at dot-row level */
 .fy-seg-ctrl {
-    margin-top: calc(3.19rem + 2px);
+    margin-top: calc(2.44rem + 2px);
 }
 
 /* ── FY segmented control ── */
@@ -2226,8 +2226,8 @@ mark.search-highlight {
 }
 .fy-seg-ctrl button {
     border: none;
-    padding: 7px 22px;
-    font-size: 1.23rem;
+    padding: 6px 18px;
+    font-size: 0.94rem;
     font-weight: 600;
     background: #fff;
     color: #2c3e50;
@@ -2257,19 +2257,19 @@ mark.search-highlight {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 9px;
-    min-width: 150px;
+    gap: 7px;
+    min-width: 115px;
     justify-content: flex-end; /* align dot rows to the same baseline */
 }
 .tl-dot-row {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 30px;
+    height: 23px;
 }
 .tl-seg {
     flex: 1;
-    height: 3px;
+    height: 2px;
     background: #b0bbb7;
     transition: background 0.15s;
 }
@@ -2277,12 +2277,12 @@ mark.search-highlight {
 .tl-node:last-child  .tl-seg-after  { visibility: hidden; }
 .tl-dot {
     position: relative;
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: #2c3e50;
     flex-shrink: 0;
-    border: 3px solid #2c3e50;
+    border: 2px solid #2c3e50;
     transition: background 0.15s, border-color 0.15s;
 }
 /* Checkmark on active dots */
@@ -2293,7 +2293,7 @@ mark.search-highlight {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 900;
     color: #fff;
     line-height: 1;
@@ -2310,7 +2310,7 @@ mark.search-highlight {
     background: #dde2e0;
 }
 .tl-label {
-    font-size: 1.28rem;
+    font-size: 0.98rem;
     font-weight: 600;
     text-align: center;
     color: #2c3e50;
@@ -2359,11 +2359,11 @@ mark.search-highlight {
 /* Amount beneath each timeline dot — chip styling (consistent w/ figure-chip in table) */
 .tl-amt {
     display: inline-block;
-    padding: 5px 14px;
+    padding: 3px 12px;
     background: #f4f6f8;
     border: 1px solid #e5e7eb;
     border-radius: 999px;
-    font-size: 1.32rem;
+    font-size: 1.01rem;
     font-weight: 700;
     color: #1a2330;
     text-align: center;
@@ -2398,8 +2398,8 @@ mark.search-highlight {
 /* ── Net Change node — 4th timeline node, derived from SD1 ── */
 /* Give it a bit more breathing room than the data nodes */
 .tl-net-node {
-    min-width: 189px;
-    margin-left: 27px; /* gap between SD1 and the derived Net node */
+    min-width: 145px;
+    margin-left: 21px; /* gap between SD1 and the derived Net node */
 }
 /* No connector line into Net Change, and no stub extending right from SD1.   */
 /* We keep the .tl-seg elements for flex spacing, but make them invisible.    */
@@ -2410,13 +2410,13 @@ mark.search-highlight {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 33px;
-    height: 33px;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
     background: #eef1f0;
-    border: 2px solid #c9d1cd;
+    border: 1.5px solid #c9d1cd;
     color: #7a8a85;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 900;
     line-height: 1;
     flex-shrink: 0;
@@ -2436,7 +2436,7 @@ mark.search-highlight {
     display: inline-flex;
     align-items: baseline;
     gap: 5px;
-    padding: 5px 16px;
+    padding: 3px 13px;
     font-weight: 800;
 }
 .tl-net-node.positive .tl-net-chip {
@@ -2451,7 +2451,7 @@ mark.search-highlight {
 }
 /* Percentage, shown inline after the dollar amount inside the chip */
 .tl-net-pct {
-    font-size: 1.08rem;
+    font-size: 0.83rem;
     font-weight: 700;
     opacity: 0.78;
     letter-spacing: 0;
@@ -2461,13 +2461,13 @@ mark.search-highlight {
 .tl-breakdown {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 5px;
 }
 .tl-breakdown[hidden] { display: none; }
 .tl-bd-row {
-    font-size: 1.11rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: #3c4a47;
     font-variant-numeric: tabular-nums;
@@ -2477,12 +2477,12 @@ mark.search-highlight {
 }
 .tl-bd-lbl {
     display: inline-block;
-    font-size: 0.9rem;
+    font-size: 0.69rem;
     font-weight: 700;
     color: #8a9492;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-right: 7px;
+    margin-right: 6px;
     min-width: 1.8em;
     text-align: right;
 }
@@ -2507,7 +2507,7 @@ mark.search-highlight {
     background: none;
     border: none;
     padding: 0 2px;
-    font-size: 1.23rem;
+    font-size: 0.94rem;
     line-height: 1;
     color: #6b8a7e;
     cursor: pointer;
