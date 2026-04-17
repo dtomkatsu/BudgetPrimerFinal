@@ -742,6 +742,7 @@ window.initDraftComparePage = async function () {
     let govActive = true;
     let hd1Active = true;
     let sd1Active = true;
+    let activeStripTab = 'total'; // 'total' | 'op' | 'cap'
 
     // Build baseline lookup from governorRequestData.
     // Key includes department_code + section so that a program which exists
@@ -800,8 +801,8 @@ window.initDraftComparePage = async function () {
 
     const updateSummaryCards = () => {
         const meta = activeData.metadata;
-        const d1Key = getD1Key(), d2Key = getD2Key();
-        const d1Label = getD1Label(), d2Label = getD2Label();
+        const d2Key = getD2Key();
+        const d2Label = getD2Label();
         const recs = activeData.comparisons;
         const fyKey = meta.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
 
@@ -814,73 +815,77 @@ window.initDraftComparePage = async function () {
             const baseline = (governorRequestData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
-            // d1 is either Gov's Request (full baseline) or HD1 depending on which is the leftmost active node
+            // d1 is either Gov's Request (full baseline) or HD1 depending on leftmost active node
             const d1 = govActive ? baseline : hd1;
             return { d1, d2, delta: d2 - d1, baseline, hd1 };
         };
-        const op = sumBy('Operating');
+        const op  = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
-        const totalD1 = op.d1 + cap.d1;
-        const totalD2 = op.d2 + cap.d2;
-        const totalNet = totalD2 - totalD1;
-        const baselineTotal = op.baseline + cap.baseline;
 
-        const changeCard = (delta, label) => {
-            const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-            const negCls = delta < 0 ? ' change-negative' : '';
-            return `<div class="summary-card change-card${negCls}"><div class="amount ${cls}">${fmtHtmlFull(delta)}</div><div class="label">${label}</div></div>`;
-        };
+        // Tab-aware source data
+        const t      = activeStripTab;
+        const tabGov = t === 'op' ? op.baseline : t === 'cap' ? cap.baseline : op.baseline + cap.baseline;
+        const tabHD1 = t === 'op' ? op.hd1      : t === 'cap' ? cap.hd1      : op.hd1 + cap.hd1;
+        const tabSD1 = t === 'op' ? op.d2        : t === 'cap' ? cap.d2        : op.d2 + cap.d2;
+        const tabD1  = t === 'op' ? op.d1        : t === 'cap' ? cap.d1        : op.d1 + cap.d1;
+        const tabNet = tabSD1 - tabD1;
+        const netCls = tabNet > 0 ? 'positive' : tabNet < 0 ? 'negative' : '';
+        const netPct = tabD1 !== 0 ? (tabNet / Math.abs(tabD1)) * 100 : (tabNet !== 0 ? 100 : 0);
 
         const cardsEl = document.getElementById('draft-cards');
-        if (cardsEl) {
-            // Build ordered visible nodes
-            const nodes = [];
-            if (govActive) nodes.push({ val: op.baseline + cap.baseline, label: "Gov's Request" });
-            if (hd1Active) nodes.push({ val: op.hd1 + cap.hd1,          label: 'HD1' });
-            if (sd1Active) nodes.push({ val: totalD2,                    label: d2Label });
+        if (!cardsEl) return;
 
-            const nodeHtml = nodes.map((n, i) =>
-                `<div class="strip-node">
-                    <div class="strip-amt">${fmtHtmlFull(n.val)}</div>
-                    <div class="strip-lbl">${n.label}</div>
-                </div>${i < nodes.length - 1 ? '<span class="strip-arrow">→</span>' : ''}`
-            ).join('');
+        // Build node list with tab-filtered values
+        const nodes = [];
+        if (govActive) nodes.push({ val: tabGov, label: "Gov's Request" });
+        if (hd1Active) nodes.push({ val: tabHD1, label: 'HD1' });
+        if (sd1Active) nodes.push({ val: tabSD1, label: d2Label });
 
-            const netCls = totalNet > 0 ? 'positive' : totalNet < 0 ? 'negative' : '';
+        // D: dot-line connector (mini version of .compare-timeline style)
+        const connHtml = `<div class="strip-connector"><div class="strip-conn-line"></div><div class="strip-conn-dot"></div><div class="strip-conn-line"></div></div>`;
 
-            const subRow = (label, d1, d2, hd1Val, delta) => {
-                const sn = [];
-                if (govActive) sn.push({ val: d1,     label: "Gov" });
-                if (hd1Active) sn.push({ val: hd1Val, label: 'HD1' });
-                if (sd1Active) sn.push({ val: d2,     label: d2Label });
-                const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
-                return `<div class="strip-sub-row">
-                    <span class="strip-sub-lbl">${label}</span>
-                    ${sn.map((n, i) =>
-                        `<span class="strip-sub-val">${fmtHtmlFull(n.val)}</span>${i < sn.length - 1 ? '<span class="strip-sub-arrow">→</span>' : ''}`
-                    ).join('')}
-                    <span class="strip-sub-delta ${cls}">${fmt(delta)}</span>
-                </div>`;
-            };
+        const nodeHtml = nodes.map((n, i) =>
+            `<div class="strip-node">
+                <div class="strip-amt">${fmtHtmlFull(n.val)}</div>
+                <div class="strip-lbl">${n.label}</div>
+            </div>${i < nodes.length - 1 ? connHtml : ''}`
+        ).join('');
 
-            cardsEl.innerHTML = `
-                <div class="summary-strip">
-                    ${nodeHtml}
-                    <span class="strip-sep"></span>
-                    <div class="strip-delta ${netCls}">
-                        <div class="strip-amt">${fmtHtmlFull(totalNet)}</div>
-                        <div class="strip-lbl">Net Change</div>
-                    </div>
-                    <details class="strip-opcap">
-                        <summary>Op / Capital</summary>
-                        <div class="strip-opcap-body">
-                            ${subRow('Operating', op.d1, op.d2, op.hd1, op.delta)}
-                            ${subRow('Capital', cap.d1, cap.d2, cap.hd1, cap.delta)}
-                        </div>
-                    </details>
-                </div>`;
-        }
+        // B: Net change badge with percentage
+        const netBadge = `<div class="strip-delta ${netCls}">
+            <div class="strip-amt">${fmtHtmlFull(tabNet)}</div>
+            <div class="strip-delta-pct">${fmtPct(netPct)}</div>
+            <div class="strip-lbl">Net Change</div>
+        </div>`;
 
+        // C: Segmented [Total][Operating][Capital] tabs
+        const tabDefs = [
+            { key: 'total', label: 'Total' },
+            { key: 'op',    label: 'Operating' },
+            { key: 'cap',   label: 'Capital' },
+        ];
+        const tabCtrl = `<div class="strip-tabs">${tabDefs.map(tb =>
+            `<button class="strip-tab${activeStripTab === tb.key ? ' active' : ''}" data-tab="${tb.key}">${tb.label}</button>`
+        ).join('')}</div>`;
+
+        // A: colored left border keyed to net change sign
+        const accentColor = tabNet > 0 ? '#1e7e34' : tabNet < 0 ? '#c62828' : '#b0bbb7';
+
+        cardsEl.innerHTML = `
+            <div class="summary-strip" style="--strip-accent: ${accentColor}">
+                ${nodeHtml}
+                <span class="strip-sep"></span>
+                ${netBadge}
+                ${tabCtrl}
+            </div>`;
+
+        // Wire up tab buttons
+        cardsEl.querySelectorAll('.strip-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeStripTab = btn.dataset.tab;
+                updateSummaryCards();
+            });
+        });
     };
 
     // --- Build checkbox options from data ---
