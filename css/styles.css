@@ -2368,9 +2368,9 @@ mark.search-highlight {
 /* A: white card with elevation + colored left border keyed to net sign */
 .summary-strip {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 0.75rem;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
     background: #fff;
     border-left: 4px solid var(--strip-accent, #b0bbb7);
     border-radius: 0 8px 8px 0;
@@ -2378,64 +2378,49 @@ mark.search-highlight {
     padding: 10px 18px;
     margin-bottom: 0.9rem;
     font-variant-numeric: tabular-nums;
+    overflow: hidden;
 }
-.strip-node {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    min-width: 80px;
-}
+/* strip-amt / strip-lbl used inside .strip-delta badge */
 .strip-amt {
-    font-size: 1.05rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #2c3e50;
     line-height: 1.2;
 }
 .strip-lbl {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 600;
     color: #7a8a85;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-top: 1px;
 }
-/* D: dot-line connector between nodes */
-.strip-connector {
-    display: flex;
-    align-items: center;
-    align-self: center;
-    gap: 0;
-}
-.strip-conn-line {
-    width: 14px;
-    height: 2px;
-    background: #c5cec9;
-}
-.strip-conn-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #9aaca6;
-    flex-shrink: 0;
-}
 .strip-sep {
     flex: 1;
-    min-width: 12px;
+    min-width: 8px;
 }
-/* B: Net change colored badge with % */
+/* Vertical divider between badge and timeline */
+.strip-v-sep {
+    width: 1px;
+    background: #dde2e0;
+    flex-shrink: 0;
+    margin: 0 10px;
+    align-self: stretch;
+}
+/* Net change badge (left, compact) */
 .strip-delta {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 6px 14px;
+    justify-content: center;
+    padding: 5px 10px;
     border-radius: 8px;
     background: #f0f2f1;
     border: 1px solid #dde2e0;
-    min-width: 90px;
+    min-width: 80px;
     text-align: center;
-}
-.strip-delta .strip-amt {
-    font-size: 1.12rem;
+    flex-shrink: 0;
+    align-self: center;
 }
 .strip-delta.positive {
     background: #e8f5e9;
@@ -2448,7 +2433,7 @@ mark.search-highlight {
 .strip-delta.positive .strip-amt { color: #1e7e34; }
 .strip-delta.negative .strip-amt { color: #c62828; }
 .strip-delta-pct {
-    font-size: 0.72rem;
+    font-size: 0.66rem;
     font-weight: 700;
     line-height: 1;
     margin-top: 1px;
@@ -2456,6 +2441,61 @@ mark.search-highlight {
 }
 .strip-delta.positive .strip-delta-pct { color: #2e7d32; }
 .strip-delta.negative .strip-delta-pct { color: #b71c1c; }
+/* Mini timeline: ●───●───● */
+.strip-tl {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    flex: 1;
+    min-width: 0;
+}
+.strip-tl-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 54px;
+}
+.strip-tl-dot-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 13px;
+}
+.strip-tl-seg {
+    flex: 1;
+    height: 2px;
+    background: #b8c4c0;
+}
+.strip-tl-seg--hide {
+    visibility: hidden;
+}
+.strip-tl-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #2c3e50;
+    border: 2px solid #2c3e50;
+    flex-shrink: 0;
+}
+.strip-tl-amt {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-top: 4px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.strip-tl-lbl {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #7a8a85;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 1px;
+    text-align: center;
+    white-space: nowrap;
+}
 /* C: Segmented [Total][Operating][Capital] tabs */
 .strip-tabs {
     display: flex;
@@ -2464,6 +2504,8 @@ mark.search-highlight {
     border-radius: 6px;
     padding: 3px;
     flex-shrink: 0;
+    align-self: center;
+    margin-left: auto;
 }
 .strip-tab {
     font-size: 0.72rem;
