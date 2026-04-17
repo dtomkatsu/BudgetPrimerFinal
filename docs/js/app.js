@@ -1506,12 +1506,21 @@ window.initDraftComparePage = async function () {
     // ", AND" → " AND", and common abbreviations used in the Gov PDF.
     const normProjectName = (s) => {
         const ABBR = {
+            // Common
             PLNS:'PLANS', DSGN:'DESIGN', CONSTR:'CONSTRUCTION', EQUIP:'EQUIPMENT',
             INFSN:'INFUSION', RNTL:'RENTAL', HSING:'HOUSING', HSNG:'HOUSING',
             RVLVING:'REVOLVING', RVLVNG:'REVOLVING', FND:'FUND',
             RENVTNS:'RENOVATIONS', UPGRDS:'UPGRADES',
             DEPT:'DEPARTMENT', DVLPMNT:'DEVELOPMENT', PRDVLPMNT:'PREDEVELOPMENT',
+            // Added for better gov-PDF matching
+            LND:'LAND', ACQSTN:'ACQUISITION', DIV:'DIVISION',
+            CNSERVTN:'CONSERVATION', CNTR:'CENTER', CORR:'CORRECTIONAL',
+            RENOV:'RENOVATION', RENOVN:'RENOVATION', UPGR:'UPGRADES',
+            IMPS:'IMPROVEMENTS', IMPRVMNT:'IMPROVEMENT', INCL:'INCLUDING',
+            MED:'MEDICAL', HLTH:'HEALTH', FAC:'FACILITY', FACS:'FACILITIES',
+            BLDG:'BUILDING', BLDGS:'BUILDINGS',
         };
+        const ABBR_KEYS = Object.keys(ABBR).join('|');
         const LOC = /,\s*(OAHU|HAWAII|MAUI|KAUAI|MOLOKAI|LANAI|STATEWIDE|ALL ISLANDS)\s*$/i;
         let n = (s || '')
             .replace(/^LUMP\s+SUM\s+/i, '')   // "LUMP SUM …"
@@ -1520,10 +1529,12 @@ window.initDraftComparePage = async function () {
             .trim().toUpperCase().replace(/\s+/g, ' ')
             .replace(LOC, '')                 // trailing location
             .replace(/,\s*AND\b/g, ' AND')    // ", AND" → " AND"
-            .replace(/\s*&\s*/g, ' AND ');    // "&" → "AND"
+            .replace(/\s*&\s*/g, ' AND ')     // "&" → "AND"
+            .replace(/,/g, '');                // drop remaining commas (punctuation varies)
         // Expand abbreviations (whole-word only)
-        n = n.replace(/\b(PLNS|DSGN|CONSTR|EQUIP|INFSN|RNTL|HSING|HSNG|RVLVING|RVLVNG|FND|RENVTNS|UPGRDS|DEPT|DVLPMNT|PRDVLPMNT)\b/g,
-            m => ABBR[m] || m);
+        n = n.replace(new RegExp('\\b(' + ABBR_KEYS + ')\\b', 'g'), m => ABBR[m] || m);
+        // "FAC-WIDE" → "FACILITY-WIDE" (hyphen compound)
+        n = n.replace(/\bFAC-WIDE\b/g, 'FACILITY-WIDE');
         return n.replace(/\s+/g, ' ').trim();
     };
 
@@ -1549,11 +1560,20 @@ window.initDraftComparePage = async function () {
         // Build gov lookup: "(program_id):(normed_name):(fund_category)" → gov amount
         // Only populated when govActive and governor_projects data is loaded.
         const govMap = new Map();
+        // Secondary lookup: "(program_id):(normed_name)" → {fund_category → amount}
+        // Used as fallback when fund_category differs between gov and HD1.
+        const govByProgName = new Map();
         if (govActive && governorProjectsData && governorProjectsData.projects_by_program) {
             for (const projs of Object.values(governorProjectsData.projects_by_program)) {
                 for (const p of projs) {
-                    const k = `${p.program_id}:${normProjectName(p.project_name)}:${p.fund_category}`;
-                    govMap.set(k, (govMap.get(k) || 0) + (p[govFyKey] || 0));
+                    const nm = normProjectName(p.project_name);
+                    const k = `${p.program_id}:${nm}:${p.fund_category}`;
+                    const amt = p[govFyKey] || 0;
+                    govMap.set(k, (govMap.get(k) || 0) + amt);
+                    const pk = `${p.program_id}:${nm}`;
+                    if (!govByProgName.has(pk)) govByProgName.set(pk, new Map());
+                    const fm = govByProgName.get(pk);
+                    fm.set(p.fund_category, (fm.get(p.fund_category) || 0) + amt);
                 }
             }
         }
@@ -1606,18 +1626,30 @@ window.initDraftComparePage = async function () {
         // Helper functions hoisted before loop so they can be used for dept-level sorting
         const getGovAmt = (pr) => {
             if (!govActive || govMap.size === 0) return null;
-            const k = `${pr.program_id}:${normProjectName(pr.project_name)}:${pr.fund_category}`;
+            const hName = normProjectName(pr.project_name);
+            const k = `${pr.program_id}:${hName}:${pr.fund_category}`;
             if (govMap.has(k)) return govMap.get(k);
-            // Prefix match: gov PDF sometimes truncates project names mid-word.
-            // If the HD1 normalised name STARTS WITH the gov normalised name (min 30 chars),
-            // treat it as the same project.
+            // Bidirectional prefix match (min 25 chars overlap).
+            // Covers both gov PDF truncation and HD1 truncation cases.
             const prefix = `${pr.program_id}:`;
             const suffix = `:${pr.fund_category}`;
             for (const [gk, val] of govMap) {
                 if (!gk.startsWith(prefix) || !gk.endsWith(suffix)) continue;
                 const gName = gk.slice(prefix.length, gk.length - suffix.length);
-                const hName = k.slice(prefix.length, k.length - suffix.length);
-                if (gName.length >= 30 && hName.startsWith(gName)) return val;
+                if (gName.length >= 25 && hName.startsWith(gName)) return val;
+                if (hName.length >= 25 && gName.startsWith(hName)) return val;
+            }
+            // Name-only fallback: same program + same normed name, but fund_category
+            // differs. Returns the largest non-zero amount under that (program,name) key.
+            // Covers cases like TRN501 where HD1 lists a project under one fund and the
+            // gov splits it across multiple funds (Federal vs Revenue Bond etc.).
+            const pk = `${pr.program_id}:${hName}`;
+            if (govByProgName.has(pk)) {
+                let best = 0;
+                for (const v of govByProgName.get(pk).values()) {
+                    if (v > best) best = v;
+                }
+                return best;
             }
             return null;
         };
