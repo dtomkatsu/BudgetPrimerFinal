@@ -662,7 +662,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <div class="reading-guide-panel">
                         <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
                         <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
-                        <p>Look for <span class="realloc-note" style="pointer-events:none;">⚠ reallocation</span> badges on individual programs and <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> in the Fund Detail section below for flagged examples.</p>
+                        <p>Badges on program rows explain what kind of change occurred:<br>
+                        <span class="transfer-badge transfer-pure" style="display:inline;pointer-events:none;">→ Moved to dept</span> — funds shifted between departments; total unchanged.<br>
+                        <span class="transfer-badge transfer-partial" style="display:inline;pointer-events:none;">→ Partly moved to dept</span> — partial transfer with a net change.<br>
+                        <span class="data-note" style="pointer-events:none;">⚠</span> — known data anomaly; hover for details.<br>
+                        <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
                     </div>
                 </span>
             </div>
