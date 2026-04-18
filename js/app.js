@@ -102,6 +102,16 @@ const fmtHtml = (amount) => {
     if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
     return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
 };
+// Summary-card form: 1 decimal place, short unit (B/M/K)
+const fmtHtmlCard = (amount) => {
+    if (amount == null) return '<span class="fmt-num">$0</span>';
+    const abs = Math.abs(amount);
+    const sign = amount < 0 ? '-' : '';
+    if (abs >= 1e9) return `<span class="fmt-num">${sign}$${(abs / 1e9).toFixed(1)}</span><span class="fmt-unit">B</span>`;
+    if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(1)}</span><span class="fmt-unit">M</span>`;
+    if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
+    return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
+};
 // Full-word form — used in summary cards
 const fmtHtmlFull = (amount) => {
     if (amount == null) return '<span class="fmt-num">$0</span>';
@@ -199,10 +209,9 @@ window.homePage = async function () {
         <section class="home-page">
             <div class="context-banner"><strong>Historical reference:</strong> This is the FY2025–26 enacted budget (HB300), passed by the Legislature last year. For the current FY2026–27 supplemental budget draft comparison, see <a href="#/">HB1800 →</a></div>
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmtHtml(grandTotal)}</div><div class="label">Total Budget</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtml(summaryStats.one_time_appropriations)}</div><div class="label">One-Time</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(grandTotal)}</div><div class="label">Total Budget</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
                 ${positions ? `<div class="summary-card"><div class="amount">${positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div></div>` : ''}
             </div>
             <div class="controls-bar">
@@ -310,9 +319,9 @@ window.departmentDetailPage = async function (params) {
             </div>
 
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmtHtml(total)}</div><div class="label">Total</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtml(dept.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtml(dept.capital_budget)}</div><div class="label">Capital</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.operating_budget)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.capital_budget)}</div><div class="label">Capital</div></div>
                 ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
             </div>
 
