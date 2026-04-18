@@ -125,6 +125,72 @@ const fmtHtmlFull = (amount) => {
 
 const fmtPct = (v) => v != null ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—';
 
+// Highlight occurrences of `query` within `text` by wrapping each match in
+// <mark>. Used to make table rows self-evidently match the current search.
+// Escapes HTML in the input AND in any literal regex meta characters in the
+// query so we never inject user-controlled markup.
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const highlight = (text, query) => {
+    const safe = escapeHtml(text);
+    if (!query) return safe;
+    const esc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return safe.replace(new RegExp(esc, 'gi'), m => `<mark>${m}</mark>`);
+};
+
+// Tiny SVG sparkline showing the Gov → HD1 → SD1 trajectory for a single row.
+// `values` is an array of 2 or 3 numbers. Width 52px, height 18px.
+// Colour reflects the delta sign of last vs first value.
+const sparklineSvg = (values) => {
+    const pts = values.filter(v => v != null && !Number.isNaN(v));
+    if (pts.length < 2) return '';
+    // Skip sparkline when all values are identical (no change to show)
+    if (pts.every(v => v === pts[0])) return '';
+    const min = Math.min(...pts);
+    const max = Math.max(...pts);
+    const range = max - min;
+    const w = 52, h = 18, padX = 2, padY = 3;
+    const innerW = w - padX * 2;
+    const innerH = h - padY * 2;
+    const xStep = pts.length > 1 ? innerW / (pts.length - 1) : 0;
+    const y = (v) => range === 0 ? h / 2 : padY + innerH - ((v - min) / range) * innerH;
+    const coords = pts.map((v, i) => [padX + i * xStep, y(v)]);
+    const path = coords.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+    const delta = pts[pts.length - 1] - pts[0];
+    const colour = delta > 0 ? '#2e7d32' : delta < 0 ? '#c62828' : '#889';
+    const dots = coords.map(p =>
+        `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.6" fill="${colour}"/>`).join('');
+    return `<svg class="row-sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">`
+         + `<path d="${path}" fill="none" stroke="${colour}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>`
+         + dots + `</svg>`;
+};
+
+// Stacked horizontal bar (SVG) showing top-N programs' share of a group total.
+// `segments` is an array of { label, value } sorted desc. Renders up to 6 and
+// rolls the rest into an "other" slice. Width 90px, height 10px.
+const stackedBarSvg = (segments, total) => {
+    if (!total || total <= 0 || !segments.length) return '';
+    const W = 90, H = 10;
+    const sorted = [...segments].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+    const top = sorted.slice(0, 6);
+    const restVal = sorted.slice(6).reduce((s, x) => s + Math.abs(x.value), 0);
+    const parts = top.map(s => ({ label: s.label, value: Math.abs(s.value) }));
+    if (restVal > 0) parts.push({ label: `+${sorted.length - 6} more`, value: restVal });
+    // Muted sage-aligned palette
+    const palette = ['#5a7b68', '#7da48d', '#a5bfae', '#c8cfa8', '#c9a87b', '#a68c68', '#cdd3d8'];
+    let x = 0;
+    let svg = `<svg class="stacked-bar" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">`;
+    const sumParts = parts.reduce((s, p) => s + p.value, 0) || 1;
+    parts.forEach((p, i) => {
+        const w = (p.value / sumParts) * W;
+        const fill = palette[i % palette.length];
+        svg += `<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${fill}"><title>${escapeHtml(p.label)}: ${fmt(p.value)}</title></rect>`;
+        x += w;
+    });
+    svg += `</svg>`;
+    return svg;
+};
+
 // Title-case a program/department name while preserving parenthesized acronyms
 // like (HYCF), (DHS), and keeping short articles lowercase ("County of Kauai").
 const SMALL_WORDS = new Set(['of', 'and', 'the', 'for', 'to', 'in', 'on', 'at', 'a', 'an', 'or', 'by', 'with', 'from', 'vs']);
@@ -671,9 +737,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <div class="reading-guide-panel">
                         <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
                         <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
-                        <p>Badges on program rows explain what kind of change occurred:<br>
-                        <span class="transfer-badge transfer-pure" style="display:inline;pointer-events:none;">→ Moved to dept</span> — funds shifted between departments; total unchanged.<br>
-                        <span class="transfer-badge transfer-partial" style="display:inline;pointer-events:none;">→ Partly moved to dept</span> — partial transfer with a net change.<br>
+                        <p>Compact chips next to a program name flag cross-department links:<br>
+                        <span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span> — funds for this program moved <em>out</em> of this dept to the linked one.<br>
+                        <span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span> — funds moved <em>into</em> this dept from the linked one.<br>
+                        <span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span> — the program also appears in the linked dept (no clear direction).<br>
+                        Hover a chip to highlight the paired rows; click to jump there.<br>
                         <span class="data-note" style="pointer-events:none;">⚠</span> — known data anomaly; hover for details.<br>
                         <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
                     </div>
@@ -804,6 +872,49 @@ window.initDraftComparePage = async function () {
     };
     if (draftComparisonData) injectBaseline(draftComparisonData);
     if (draftComparisonDataFY27) injectBaseline(draftComparisonDataFY27);
+
+    // Inject "orphan" Gov records: programs that exist in the Gov request under
+    // dept A but are absent entirely from HD1/SD1 under dept A (typically because
+    // the program was moved to dept B in the legislature's drafts). Without this,
+    // those Gov dollars are dropped from the tables — the table totals drift
+    // from the timeline totals by exactly that amount. By injecting a synthetic
+    // "removed" comparison row at dept A carrying the Gov amount as baseline and
+    // zeros for HD1/SD1, the dept-A total now reflects the actual dept A → dept B
+    // flow and the paired program row under dept B is recognized as the sibling.
+    const injectOrphans = (dataset) => {
+        if (!dataset || !governorRequestData) return;
+        const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        const hd1Key = 'amount_' + dataset.metadata.draft1.toLowerCase();
+        const sd1Key = 'amount_' + dataset.metadata.draft2.toLowerCase();
+        const present = new Set();
+        for (const r of dataset.comparisons) {
+            present.add(`${r.department_code}_${r.program_id}_${r.fund_type}_${r.section}`);
+        }
+        for (const g of governorRequestData) {
+            const key = `${g.department_code}_${g.program_id}_${g.fund_type}_${g.section}`;
+            if (present.has(key)) continue;
+            const amt = g[fyKey] || 0;
+            if (amt === 0) continue;
+            dataset.comparisons.push({
+                program_id: g.program_id,
+                program_name: g.program_name || '',
+                department_code: g.department_code,
+                department_name: g.department_name || '',
+                fund_type: g.fund_type,
+                fund_category: g.fund_category || '',
+                section: g.section,
+                [hd1Key]: 0,
+                [sd1Key]: 0,
+                change: 0,
+                pct_change: 0,
+                change_type: 'removed',
+                amount_baseline: amt,
+                _govOrphan: true,
+            });
+        }
+    };
+    if (draftComparisonData) injectOrphans(draftComparisonData);
+    if (draftComparisonDataFY27) injectOrphans(draftComparisonDataFY27);
 
     // Derived getters: leftmost active = d1, rightmost active = d2
     const getD1Key = () => govActive ? 'amount_baseline' : 'amount_' + activeData.metadata.draft1.toLowerCase();
@@ -1245,59 +1356,10 @@ window.initDraftComparePage = async function () {
 
             const programs = aggregatePrograms(dept.rows);
 
-            // Reconciliation badge: when cross-dept aggregation makes split programs show
-            // a change that differs from the slice of money actually booked to this dept,
-            // the numbers won't appear to add up. Explain it in plain language.
-            // Mismatch = dept.delta − sum(programs.change). For each split program,
-            // its individual contribution to the mismatch is:
-            //   contribution = (dept-scoped change) − (augmented program.change)
-            // Only programs with non-trivial contribution are listed.
-            const MISMATCH_THRESHOLD = 1000000;    // $1M — minimum dept-level mismatch to show badge
-            const PROG_CONTRIB_THRESHOLD = 100000; // $100K — minimum per-program contribution to list
-            const programChangeSum = programs.reduce((s, p) => s + p.change, 0);
-            const mismatch = dept.delta - programChangeSum;
-
-            // Tag each split program with its individual contribution and direction
-            const affectedPrograms = programs
-                .filter(p => splitPrograms.has(p.program_id) && p.crossDeptAugmented && p.crossDeptAugmented.size > 0)
-                .map(p => {
-                    const deptScopedChange = (p.d2DeptScope || 0) - (p.d1DeptScope || 0);
-                    const contribution = deptScopedChange - p.change;
-                    return { ...p, contribution };
-                })
-                .filter(p => Math.abs(p.contribution) >= PROG_CONTRIB_THRESHOLD);
-
-            let deptTransferNote = '';
-            if (Math.abs(mismatch) >= MISMATCH_THRESHOLD && affectedPrograms.length > 0) {
-                // Title-case a program name while preserving parenthesized acronyms: (HYCF), (DHS), etc.
-                const prettyName = (name) => (name || '').split(' ').map(word => {
-                    if (/^\([A-Z]+\)$/.test(word)) return word;
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                }).join(' ');
-
-                const incoming = affectedPrograms.filter(p => p.contribution > 0);
-                const outgoing = affectedPrograms.filter(p => p.contribution < 0);
-                const isMixed = incoming.length > 0 && outgoing.length > 0;
-
-                const listProgs = (arr) => arr.map(p => `${p.program_id} ${prettyName(p.program_name)}`).join(', ');
-
-                let badgeLabel, tooltip;
-                if (isMixed) {
-                    badgeLabel = 'some program funding shifted between departments';
-                    tooltip = `Some funding for programs (${listProgs(incoming)}) is routed through ${dept.code} from other departments, while funding for (${listProgs(outgoing)}) is routed from ${dept.code} to other departments. The programs still get the same money — the budget just records which department holds the line item. That's why this row has a change but the program rows show $0 change.`;
-                } else if (incoming.length > 0) {
-                    badgeLabel = 'some program funding routed through this dept';
-                    tooltip = `Part of the funding for (${listProgs(incoming)}) is routed through ${dept.code} even though the programs are run by other departments. The programs still get the same money — the budget just records which department holds the line item. That's why this row's total went up but the program rows show $0 change.`;
-                } else {
-                    badgeLabel = 'some program funding routed through other depts';
-                    tooltip = `Part of the funding for (${listProgs(outgoing)}) is now routed through other departments instead of ${dept.code}. The programs still get the same money — the budget just records which department holds the line item. That's why this row's total went down but the program rows show $0 change.`;
-                }
-                const tooltipEscaped = tooltip.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-                deptTransferNote = ` <span class="dept-transfer-note" title="${tooltipEscaped}">↔ ${badgeLabel}</span>`;
-            }
-
+            // Dept-level pairing is now communicated via paired ↔ DEPT chips on
+            // individual program rows, so no dept-level transfer badge is needed.
             bodyHtml += `<tr class="dept-group-row${isOpen ? ' open' : ''}" data-dept="${dept.code}">
-                <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span>${deptTransferNote}</td>
+                <td><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
@@ -1312,74 +1374,60 @@ window.initDraftComparePage = async function () {
                 const progKey = `${dept.code}:${p.program_id}`;
                 const progOpen = autoExpand || expandedPrograms.has(progKey);
 
-                // Cross-reference note for programs split across departments
+                // Paired-dept chips: a unified signal that replaces the older
+                // "also in EDN" cross-ref note, the "→ Moved to AGS" transfer
+                // badge, and the "↔ routed through this dept" dept-level note.
+                // Renders one compact chip per sibling dept where the same
+                // program_id also appears. Hovering a chip (or the row itself)
+                // highlights the paired row(s) across the table. Clicking
+                // scrolls to the sibling dept.
                 const splitDeptMap = splitPrograms.get(p.program_id);
-                let crossRefNote = '';
-                let transferBadge = '';
+                let pairChips = '';
                 if (splitDeptMap) {
                     const otherDepts = [...splitDeptMap.keys()].filter(d => d !== dept.code);
-                    const thisDelta = splitDeptMap.get(dept.code)?.delta || 0;
-                    const THRESHOLD = 1000000; // $1M minimum to flag
-
-                    const fmtNet = (v) => {
-                        const sign = v < 0 ? '−' : '+';
-                        const abs = Math.abs(v);
-                        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
-                        if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
-                        return `${sign}$${(abs / 1e3).toFixed(0)}K`;
-                    };
-                    const fmtAbs = (v) => fmtNet(Math.abs(v)).slice(1); // strip leading sign
-
-                    // Find depts with a meaningfully offsetting change
-                    const offsetDepts = otherDepts.filter(d => {
-                        const od = splitDeptMap.get(d)?.delta || 0;
-                        return Math.abs(thisDelta) > THRESHOLD && Math.abs(od) > THRESHOLD &&
-                               ((thisDelta < 0 && od > 0) || (thisDelta > 0 && od < 0));
-                    });
-
-                    if (offsetDepts.length > 0) {
-                        const allInvolved = [dept.code, ...offsetDepts];
-                        const totalNet = allInvolved.reduce((s, d) => s + (splitDeptMap.get(d)?.delta || 0), 0);
-                        const isPure = Math.abs(totalNet) < Math.abs(thisDelta) * 0.15;
-
-                        // Direction is uniform: if this dept decreased, money moved OUT (→); if increased, moved IN (←)
-                        const movedOut = thisDelta < 0;
-                        const dirIcon = movedOut ? '→' : '←';
-                        const verb = movedOut ? 'Moved to' : 'Moved from';
-                        const partialVerb = movedOut ? 'Partly moved to' : 'Partly moved from';
-
-                        const offsetParts = offsetDepts.map(d => {
+                    if (otherDepts.length > 0) {
+                        const thisDelta = splitDeptMap.get(dept.code)?.delta || 0;
+                        const fmtShort = (v) => {
+                            const sign = v < 0 ? '−' : v > 0 ? '+' : '';
+                            const abs = Math.abs(v);
+                            if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+                            if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+                            if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}K`;
+                            return `${sign}$${abs}`;
+                        };
+                        pairChips = ' ' + otherDepts.map(d => {
                             const od = splitDeptMap.get(d)?.delta || 0;
-                            return `<a class="transfer-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a> (${fmtAbs(od)})`;
-                        }).join(', ');
-
-                        if (isPure) {
-                            transferBadge = `<span class="transfer-badge transfer-pure" title="Funds moved between departments — total program funding is unchanged.">${dirIcon} ${verb} ${offsetParts}</span>`;
-                        } else {
-                            const netLabel = fmtNet(totalNet);
-                            const netDesc = totalNet < 0 ? 'net cut' : 'net add';
-                            transferBadge = `<span class="transfer-badge transfer-partial" title="Part of this change reflects an inter-department transfer. Net change across all involved departments: ${netLabel}.">${dirIcon} ${partialVerb} ${offsetParts}; ${netDesc}: ${netLabel}</span>`;
-                        }
-                    } else {
-                        // No offsetting change — just show a quiet cross-link in the name column
-                        const otherLinks = otherDepts
-                            .map(d => `<a class="split-link" href="javascript:void(0)" data-scroll-dept="${d}">${d}</a>`)
-                            .join(', ');
-                        crossRefNote = ` <span class="split-note">also in ${otherLinks}</span>`;
+                            // Direction: this dept LOST while other GAINED → outgoing (→)
+                            //            this dept GAINED while other LOST → incoming (←)
+                            //            both same sign or near-zero → neutral (↔)
+                            let arrow, cls;
+                            const SIG = 100000; // $100K significance threshold per side
+                            if (Math.abs(thisDelta) > SIG && Math.abs(od) > SIG && ((thisDelta < 0) !== (od < 0))) {
+                                arrow = thisDelta < 0 ? '→' : '←';
+                                cls = thisDelta < 0 ? 'pair-chip-out' : 'pair-chip-in';
+                            } else {
+                                arrow = '↔';
+                                cls = 'pair-chip-neutral';
+                            }
+                            const tip = `This program also appears under ${d}. ${d}'s change on this program: ${fmtShort(od)}. Hover to highlight the paired row; click to jump there.`;
+                            const tipEsc = tip.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                            return `<a class="pair-chip ${cls}" href="javascript:void(0)" data-scroll-dept="${d}" data-pair-key="${p.program_id}" title="${tipEsc}">${arrow}&nbsp;${d}</a>`;
+                        }).join('');
                     }
                 }
+                const pairKeyAttr = splitDeptMap ? ` data-pair-key="${p.program_id}"` : '';
                 const dataNoteHtml = buildDataNote(p.program_id, activeYear);
 
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
+                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
-                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
+                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         const secRows = p.rawRows.filter(r => r.section === sec);
@@ -1425,7 +1473,7 @@ window.initDraftComparePage = async function () {
                                 const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                                 const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
                                 bodyHtml += `<tr class="prog-fund-row${isOpen && progOpen && secFundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}" data-fund-key="${secFundKey}">
-                                    <td class="fund-indent fund-indent-deep"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                                    <td class="fund-indent fund-indent-deep"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                                     <td></td><td></td>
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
@@ -1445,14 +1493,14 @@ window.initDraftComparePage = async function () {
                     const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
                     const fundOpen = expandedFunds.has(fundKey);
                     const fundArrow = fundOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
-                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
+                    bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
+                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                     const byFund = new Map();
                     for (const r of p.rawRows) {
@@ -1468,7 +1516,7 @@ window.initDraftComparePage = async function () {
                         const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                         const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
                         bodyHtml += `<tr class="prog-fund-row${isOpen && fundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
-                            <td class="fund-indent"><span class="fund-chip">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                            <td class="fund-indent"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
                             <td></td><td></td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
@@ -1483,18 +1531,41 @@ window.initDraftComparePage = async function () {
                     const progChipHtml = progHasProjects
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
-                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}">
-                        <td class="detail-indent"><strong>${p.program_id}</strong> ${p.program_name}${crossRefNote}${dataNoteHtml}</td>
+                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${pairKeyAttr}>
+                        <td class="detail-indent"><strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
-                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}>${p.fundShort}</span>` : ''}</td>
+                        <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span>${transferBadge}</td>
+                        <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                 }
             }
             bodyHtml += `</tbody>`;
+        }
+
+        // Grand totals row for main table
+        {
+            const gD1 = depts.reduce((s, d) => s + d.d1, 0);
+            const gD2 = depts.reduce((s, d) => s + d.d2, 0);
+            const gHD1 = depts.reduce((s, d) => s + d.hd1, 0);
+            const gDelta = gD2 - gD1;
+            const gCls = gDelta > 0 ? 'positive' : gDelta < 0 ? 'negative' : '';
+            const gArrow = gDelta > 0 ? '▲' : gDelta < 0 ? '▼' : '';
+            const gPct = gD1 !== 0 ? ((gDelta / Math.abs(gD1)) * 100) : (gDelta !== 0 ? 100 : 0);
+            const gPctStr = fmtPct(gPct).replace(/^\+/, '');
+            bodyHtml += `<tbody class="totals-block"><tr class="totals-row">
+                <td>Total (${depts.length} departments)</td>
+                <td></td><td></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD1)}</span></td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gHD1)}</span></td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD2)}</span></td>
+                <td class="amount-cell change-cell ${gCls}">
+                    <span class="change-main">${gArrow ? `<span class="change-arrow">${gArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(gDelta)}</span></span>
+                    ${gArrow ? `<span class="change-pct">${gPctStr}</span>` : ''}
+                </td>
+            </tr></tbody>`;
         }
 
         // Fund detail table — grouped by fund type
@@ -1533,8 +1604,14 @@ window.initDraftComparePage = async function () {
             const fgArrowSign = fgDelta > 0 ? '▲' : fgDelta < 0 ? '▼' : '';
             const fgDynPct = fgD1 !== 0 ? ((fgDelta / Math.abs(fgD1)) * 100) : (fgDelta !== 0 ? 100 : 0);
             const fgPctStr = fmtPct(fgDynPct).replace(/^\+/, '');
+            // Build stacked bar: each program's share of this fund's d2 total
+            const fgStackSegs = fg.rows.map(r => ({
+                label: `${r.program_id || ''} ${r.program_name || ''}`.trim(),
+                value: Math.abs(r[d2Key] || 0),
+            }));
+            const fgStackBar = stackedBarSvg(fgStackSegs, fgD2);
             fundHtml += `<tr class="fund-group-row${isOpen ? ' open' : ''}" data-fund-type="${fg.type}">
-                <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
+                <td><span class="dept-arrow">${arrow}</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` <span class="stacked-bar-wrap" title="Top programs' share of this fund">${fgStackBar}</span>` : ''}</td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
@@ -1551,7 +1628,7 @@ window.initDraftComparePage = async function () {
                 const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '';
                 const pctStr = fmtPct(dynPct).replace(/^\+/, '');
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
-                    <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
+                    <td class="detail-indent"><strong>${highlight(r.program_id || '', q)}</strong> ${highlight(r.program_name || '', q)}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
@@ -1562,6 +1639,28 @@ window.initDraftComparePage = async function () {
                 </tr>`;
             }
             fundHtml += `</tbody>`;
+        }
+
+        // Grand totals row for fund detail table
+        {
+            const fgD1 = data.reduce((s, r) => s + (r[d1Key] || 0), 0);
+            const fgD2 = data.reduce((s, r) => s + (r[d2Key] || 0), 0);
+            const fgHD1 = data.reduce((s, r) => s + (r[hd1Key] || 0), 0);
+            const fgDelta = fgD2 - fgD1;
+            const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
+            const fgArrow = fgDelta > 0 ? '▲' : fgDelta < 0 ? '▼' : '';
+            const fgPct = fgD1 !== 0 ? ((fgDelta / Math.abs(fgD1)) * 100) : (fgDelta !== 0 ? 100 : 0);
+            const fgPctStr = fmtPct(fgPct).replace(/^\+/, '');
+            fundHtml += `<tbody class="totals-block"><tr class="totals-row">
+                <td>Total (${fundGroups.length} fund types)</td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
+                <td class="amount-cell change-cell ${fgCls}">
+                    <span class="change-main">${fgArrow ? `<span class="change-arrow">${fgArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(fgDelta)}</span></span>
+                    ${fgArrow ? `<span class="change-pct">${fgPctStr}</span>` : ''}
+                </td>
+            </tr></tbody>`;
         }
 
         document.getElementById('draft-results').innerHTML = `
@@ -1859,6 +1958,7 @@ window.initDraftComparePage = async function () {
 
         let bodyRows = '';
         let visibleCount = 0;
+        let totalsD1 = 0, totalsD2 = 0, totalsHD1 = 0, totalsProjCount = 0;
 
         for (const dept of depts) {
             // Apply search filter per project
@@ -1900,6 +2000,10 @@ window.initDraftComparePage = async function () {
                                       : filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             const d2Total  = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
             const hd1Total = filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
+            totalsD1 += d1Total;
+            totalsD2 += d2Total;
+            totalsHD1 += hd1Total;
+            totalsProjCount += filteredProjects.length;
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
             const isOpen = expandedProjectPrograms.has(dept.code);
@@ -1907,7 +2011,7 @@ window.initDraftComparePage = async function () {
 
             // Dept group row — individual cells matching first table's dept row pattern
             bodyRows += `<tr class="dept-group-row project-dept-row${isOpen ? ' open' : ''}" data-project-dept="${dept.code}">
-                <td colspan="3"><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
+                <td colspan="3"><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
                 <td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(d1Total)}</span></td>
                 ${showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Total)}</span></td>` : ''}
@@ -1934,10 +2038,10 @@ window.initDraftComparePage = async function () {
                     ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Amt)}</span></td>`
                     : '';
                 bodyRows += `<tr class="project-row change-${pr.change_type}${isOpen ? '' : ' hidden'}" data-project-dept="${dept.code}">
-                    <td class="project-program-cell"><strong>${pr.program_id}</strong><div class="project-prog-name">${progName}</div></td>
+                    <td class="project-program-cell"><strong>${highlight(pr.program_id, q)}</strong><div class="project-prog-name">${highlight(progName, q)}</div></td>
                     <td class="project-num">${pr.project_id}</td>
-                    <td><div class="project-name">${pr.project_name}</div>${scope}</td>
-                    <td><span class="fund-chip">${shortFund(pr.fund_category)}</span></td>
+                    <td><div class="project-name">${highlight(pr.project_name, q)}</div>${scope}</td>
+                    <td><span class="fund-chip" data-fund-cat="${pr.fund_category || ''}">${shortFund(pr.fund_category)}</span></td>
                     ${govCell}
                     ${hd1Cell}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(d2Amt)}</span></td>
@@ -1945,6 +2049,30 @@ window.initDraftComparePage = async function () {
                 </tr>`;
             }
             bodyRows += `</tbody>`;
+        }
+
+        // Grand totals row for projects table
+        if (visibleCount > 0) {
+            const tDelta = totalsD2 - totalsD1;
+            const tCls = tDelta > 0 ? 'positive' : tDelta < 0 ? 'negative' : '';
+            const tArrow = tDelta > 0 ? '▲' : tDelta < 0 ? '▼' : '';
+            const tPct = totalsD1 !== 0 ? ((tDelta / Math.abs(totalsD1)) * 100) : (tDelta !== 0 ? 100 : 0);
+            const tPctStr = fmtPct(tPct).replace(/^\+/, '');
+            const govCell = govActive ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsD1)}</span></td>` : '';
+            const d1Cell = govActive ? '' : `<td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsD1)}</span></td>`;
+            const hd1Cell = showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsHD1)}</span></td>` : '';
+            bodyRows += `<tbody class="totals-block"><tr class="totals-row">
+                <td colspan="3">Total (${totalsProjCount} project${totalsProjCount === 1 ? '' : 's'} across ${visibleCount} department${visibleCount === 1 ? '' : 's'})</td>
+                <td></td>
+                ${d1Cell}
+                ${govCell}
+                ${hd1Cell}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsD2)}</span></td>
+                <td class="amount-cell change-cell ${tCls}">
+                    <span class="change-main">${tArrow ? `<span class="change-arrow">${tArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(tDelta)}</span></span>
+                    ${tArrow ? `<span class="change-pct">${tPctStr}</span>` : ''}
+                </td>
+            </tr></tbody>`;
         }
 
         let html;
@@ -2070,8 +2198,49 @@ window.initDraftComparePage = async function () {
         }
     });
 
-    document.getElementById('draft-results')?.addEventListener('click', (e) => {
-        // Cross-reference split-dept link: scroll to and expand that department
+    // Hover highlight: light up all rows that share a data-pair-key. Works
+    // whether the user hovers the chip itself or the row it lives on.
+    const draftResultsEl = document.getElementById('draft-results');
+    const clearPairHighlight = () => {
+        document.querySelectorAll('.pair-highlight').forEach(el => el.classList.remove('pair-highlight'));
+    };
+    const applyPairHighlight = (pairKey) => {
+        if (!pairKey) return;
+        document.querySelectorAll(`[data-pair-key="${pairKey}"]`).forEach(el => {
+            // Apply to rows only (skip the chip itself to avoid self-glow)
+            if (el.tagName === 'TR') el.classList.add('pair-highlight');
+        });
+    };
+    draftResultsEl?.addEventListener('mouseover', (e) => {
+        const chip = e.target.closest('.pair-chip');
+        if (chip) {
+            clearPairHighlight();
+            applyPairHighlight(chip.dataset.pairKey);
+        }
+    });
+    draftResultsEl?.addEventListener('mouseout', (e) => {
+        const chip = e.target.closest('.pair-chip');
+        if (chip) clearPairHighlight();
+    });
+
+    draftResultsEl?.addEventListener('click', (e) => {
+        // Paired-dept chip: scroll to sibling dept and expand it
+        const pairChip = e.target.closest('.pair-chip');
+        if (pairChip) {
+            e.preventDefault();
+            e.stopPropagation();
+            const targetDept = pairChip.dataset.scrollDept;
+            if (targetDept) {
+                expandedDepts.add(targetDept);
+                render();
+                requestAnimationFrame(() => {
+                    const row = document.querySelector(`.dept-group-row[data-dept="${targetDept}"]`);
+                    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+            return;
+        }
+        // Cross-reference split-dept link (legacy .split-link — now unused but kept for safety)
         const splitLink = e.target.closest('.split-link');
         if (splitLink) {
             e.preventDefault();
