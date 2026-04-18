@@ -723,10 +723,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <!-- Net change node — 4th timeline node (derived, visually separated) -->
                     <div class="tl-node tl-net-node" id="tl-node-net">
                         <span class="tl-label">Net Change</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <span class="tl-net-marker" id="tl-net-marker">●</span>
-                            <span class="tl-seg tl-seg-after"></span>
+                        <div class="tl-net-spark-row">
+                            <svg class="tl-net-spark" id="tl-net-spark" viewBox="0 0 60 20" aria-hidden="true"></svg>
                         </div>
                         <span class="tl-amt tl-net-chip" id="tl-amt-net"></span>
                         <div class="tl-breakdown" id="tl-bd-net" hidden></div>
@@ -924,15 +922,38 @@ window.initDraftComparePage = async function () {
         });
 
         // Update the 4th Net Change timeline node
-        const netArrow = tabNet > 0 ? '▲' : tabNet < 0 ? '▼' : '●';
         const netNode  = document.getElementById('tl-node-net');
         if (netNode) netNode.className = `tl-node tl-net-node ${netCls}`;
-        const netMarker = document.getElementById('tl-net-marker');
-        if (netMarker) netMarker.textContent = netArrow;
+        // Inline arrow + amount + percentage inside a single chip.
+        // The arrow replaces the old circle-in-dot-row marker.
         const netAmtEl  = document.getElementById('tl-amt-net');
         if (netAmtEl) {
             const sign = tabNet > 0 ? '+' : '';
-            netAmtEl.textContent = `${sign}${fmtShort(tabNet)}`;
+            const arrow = tabNet > 0 ? '▲' : tabNet < 0 ? '▼' : '●';
+            const pct = Math.abs(netPct) < 0.01 && tabNet === 0
+                ? '0%'
+                : `${sign}${netPct.toFixed(netPct > -10 && netPct < 10 ? 2 : 1)}%`;
+            netAmtEl.innerHTML =
+                `<span class="tl-net-arrow" aria-hidden="true">${arrow}</span>` +
+                `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>` +
+                `<span class="tl-net-pct">${pct}</span>`;
+        }
+        // Sparkline: three dots (Gov / HD1 / SD1) with the last highlighted.
+        // Vertically scales to the range of the three totals so visually-tiny
+        // deltas still show a slope.
+        const spark = document.getElementById('tl-net-spark');
+        if (spark) {
+            const vs = [totGov, totHD1, totSD1];
+            const mn = Math.min(...vs), mx = Math.max(...vs);
+            const range = mx - mn || 1;
+            const y = v => (15 - ((v - mn) / range) * 10).toFixed(1);
+            const xs = [6, 30, 54];
+            const pts = vs.map((v, i) => `${xs[i]},${y(v)}`).join(' ');
+            spark.innerHTML =
+                `<polyline class="tl-spark-line" points="${pts}"/>` +
+                `<circle class="tl-spark-dot" cx="${xs[0]}" cy="${y(vs[0])}" r="1.7"/>` +
+                `<circle class="tl-spark-dot" cx="${xs[1]}" cy="${y(vs[1])}" r="1.7"/>` +
+                `<circle class="tl-spark-dot tl-spark-dot-end" cx="${xs[2]}" cy="${y(vs[2])}" r="2.7"/>`;
         }
         // Update expand caret on Gov amount row
         const expandBtn = document.getElementById('tl-expand-btn');
@@ -2207,6 +2228,16 @@ window.initDraftComparePage = async function () {
                   : anchor.dataset.dept;
         return { kind, key, offset: anchor.getBoundingClientRect().top };
     };
+    // Replay the refresh animation on the Net Change node so the user gets a
+    // soft cross-fade confirming the FY swap updated the headline.
+    const playNetRefresh = () => {
+        const node = document.getElementById('tl-node-net');
+        if (!node) return;
+        node.classList.remove('tl-net-refresh');
+        void node.offsetWidth; // force reflow so re-adding the class restarts the animation
+        node.classList.add('tl-net-refresh');
+    };
+
     const restoreFYAnchor = (a) => {
         if (!a) return;
         requestAnimationFrame(() => {
@@ -2230,6 +2261,7 @@ window.initDraftComparePage = async function () {
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
+        playNetRefresh();
         render();
         restoreFYAnchor(anchor);
     });
@@ -2243,6 +2275,7 @@ window.initDraftComparePage = async function () {
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();
+        playNetRefresh();
         render();
         restoreFYAnchor(anchor);
     });

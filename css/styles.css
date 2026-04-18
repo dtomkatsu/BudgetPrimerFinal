@@ -2489,53 +2489,75 @@ mark.search-highlight {
     min-width: 145px;
     margin-left: 21px; /* gap between SD1 and the derived Net node */
 }
-/* No connector line into Net Change, and no stub extending right from SD1.   */
-/* We keep the .tl-seg elements for flex spacing, but make them invisible.    */
-.tl-net-node .tl-seg { visibility: hidden; }
+/* No stub line extending right from SD1 into Net Change */
 .tl-node:nth-last-child(2) .tl-seg-after { visibility: hidden; }
-/* Triangle/arrow marker replaces the dot on the Net node */
-.tl-net-marker {
-    display: inline-flex;
+
+/* Tiny sparkline: Gov → HD1 → SD1, last dot highlighted */
+.tl-net-spark-row {
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #eef1f0;
-    border: 1.5px solid #c9d1cd;
-    color: #7a8a85;
-    font-size: 13px;
-    font-weight: 900;
-    line-height: 1;
-    flex-shrink: 0;
+    height: 25px; /* matches the height the old marker took */
 }
-.tl-net-node.positive .tl-net-marker {
-    background: #e8f5ec;
-    border-color: #6fb58a;
-    color: #1e7e34;
+.tl-net-spark {
+    width: 60px;
+    height: 20px;
+    overflow: visible;
 }
-.tl-net-node.negative .tl-net-marker {
-    background: #fbecee;
-    border-color: #e08290;
-    color: #c62828;
+.tl-spark-line {
+    stroke: #c9d1cd;
+    stroke-width: 1.4;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
-/* Net chip — override the neutral .tl-amt with direction-coloured styling */
+.tl-spark-dot { fill: #c9d1cd; }
+.tl-spark-dot-end { fill: #7a8a85; }
+.tl-net-node.positive .tl-spark-line { stroke: #a5d6a7; }
+.tl-net-node.positive .tl-spark-dot { fill: #a5d6a7; }
+.tl-net-node.positive .tl-spark-dot-end { fill: #1e7e34; }
+.tl-net-node.negative .tl-spark-line { stroke: #f2b4ba; }
+.tl-net-node.negative .tl-spark-dot { fill: #f2b4ba; }
+.tl-net-node.negative .tl-spark-dot-end { fill: #c62828; }
+
+/* Net chip — soft tint + 3px left-accent bar, no hard border. */
 .tl-net-chip {
     display: inline-flex;
     align-items: baseline;
-    gap: 5px;
-    padding: 3px 13px;
+    gap: 6px;
+    padding: 3px 11px 3px 8px;
     font-weight: 800;
+    background: rgba(0, 0, 0, 0.04);
+    border: none;
+    border-left: 3px solid #c9d1cd;
+    border-radius: 0 5px 5px 0;
+    color: #555;
+}
+.tl-net-arrow {
+    font-size: 0.78em;
+    line-height: 1;
+    transform: translateY(-1px);
+    opacity: 0.85;
 }
 .tl-net-node.positive .tl-net-chip {
-    background: #e8f5ec;
-    border-color: #a5d6a7;
+    background: rgba(30, 126, 52, 0.08);
+    border-left-color: #1e7e34;
     color: #1e7e34;
 }
 .tl-net-node.negative .tl-net-chip {
-    background: #fbecee;
-    border-color: #f2c9ce;
+    background: rgba(198, 40, 40, 0.08);
+    border-left-color: #c62828;
     color: #c62828;
+}
+
+/* Cross-fade on FY toggle — replay animation by toggling .tl-net-refresh. */
+@keyframes tl-net-refresh {
+    0%   { opacity: 0.25; transform: translateY(1px); }
+    100% { opacity: 1;    transform: translateY(0);   }
+}
+.tl-net-refresh .tl-net-spark,
+.tl-net-refresh .tl-net-chip {
+    animation: tl-net-refresh 220ms ease;
 }
 /* Percentage, shown inline after the dollar amount inside the chip */
 .tl-net-pct {
