@@ -209,7 +209,7 @@ window.homePage = async function () {
         <section class="home-page">
             <div class="context-banner"><strong>Historical reference:</strong> This is the FY2025–26 enacted budget (HB300), passed by the Legislature last year. For the current FY2026–27 supplemental budget draft comparison, see <a href="#/">HB1800 →</a></div>
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(grandTotal)}</div><div class="label">Total Budget</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(grandTotal)}</div><div class="label">Total Budget</div><div class="label-sub">(FY 2026)</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
                 ${positions ? `<div class="summary-card"><div class="amount">${positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div></div>` : ''}
