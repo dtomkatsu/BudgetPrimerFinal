@@ -224,6 +224,13 @@ body {
     letter-spacing: 0.5px;
 }
 
+.summary-card .label-sub {
+    color: #999;
+    font-size: 0.78rem;
+    font-weight: 400;
+    margin-top: 0.15rem;
+}
+
 /* Make first summary card label bold */
 .summary-cards-grid .summary-card:first-child .label {
     font-weight: 700;
