@@ -657,10 +657,10 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
     const meta = initData.metadata;
 
     const fyToggle = (draftComparisonData && draftComparisonDataFY27) ? `
-        <div class="fy-seg-ctrl">
+        <div class="fy-seg-ctrl" data-active="26">
             <button id="fy-btn-26" data-fy="26" class="active">FY2026</button>
             <button id="fy-btn-27" data-fy="27">FY2027</button>
-        </div>` : (draftComparisonDataFY27 ? '<div class="fy-seg-ctrl"><button class="active" data-fy="27">FY2027</button></div>' : '');
+        </div>` : (draftComparisonDataFY27 ? '<div class="fy-seg-ctrl" data-active="27"><button class="active" data-fy="27">FY2027</button></div>' : '');
 
     return `
         <section class="compare-page">
@@ -681,8 +681,10 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
             </div>
             <p class="compare-page-desc">Compare the Governor's request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.</p>
             <div class="compare-controls-bar">
-                ${fyToggle}
-                <span class="ctrl-divider-v"></span>
+                <div class="compare-scope-row">
+                    <span class="compare-scope-label">Viewing</span>
+                    ${fyToggle}
+                </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <div class="tl-node" id="tl-node-gov">
                         <span class="tl-label">Gov.</span>
@@ -1067,8 +1069,11 @@ window.initDraftComparePage = async function () {
         const fundLabel = !checkedFunds ? 'Fund ▾' : `Fund (${checkedFunds.size}/${allFds.length}) ▾`;
 
         const sortArrow = (col) => {
-            const arrow = sortCol === col ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-            return arrow;
+            if (sortCol === col) {
+                return `<span class="sort-ind">${sortDir === 'asc' ? '▲' : '▼'}</span>`;
+            }
+            // Faint hint that appears on header hover
+            return `<span class="sort-hint">▲</span>`;
         };
 
         // Group by department
@@ -1230,6 +1235,7 @@ window.initDraftComparePage = async function () {
 
         let bodyHtml = '';
         for (const dept of depts) {
+            bodyHtml += `<tbody class="dept-block" data-dept-block="${dept.code}">`;
             const deptD1 = dept.d1;
             const deptD2 = dept.d2;
             const deptDelta = dept.delta;
@@ -1488,6 +1494,7 @@ window.initDraftComparePage = async function () {
                     </tr>`;
                 }
             }
+            bodyHtml += `</tbody>`;
         }
 
         // Fund detail table — grouped by fund type
@@ -1511,6 +1518,7 @@ window.initDraftComparePage = async function () {
         const autoExpandFunds = q.length > 0;
         let fundHtml = '';
         for (const fg of fundGroups) {
+            fundHtml += `<tbody class="fund-block" data-fund-block="${fg.type}">`;
             const fgD1 = fg.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const fgD2 = fg.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             const fgHD1 = fg.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
@@ -1522,28 +1530,38 @@ window.initDraftComparePage = async function () {
             const fundNote = fg.type === 'C'
                 ? ` <span class="fund-note" title="General obligation bonds are loans the state repays over time. Changes here reflect shifts in which capital projects get bond financing — not cuts to the underlying programs.">ℹ bond-financed capital projects</span>`
                 : '';
+            const fgArrowSign = fgDelta > 0 ? '▲' : fgDelta < 0 ? '▼' : '';
+            const fgDynPct = fgD1 !== 0 ? ((fgDelta / Math.abs(fgD1)) * 100) : (fgDelta !== 0 ? 100 : 0);
+            const fgPctStr = fmtPct(fgDynPct).replace(/^\+/, '');
             fundHtml += `<tr class="fund-group-row${isOpen ? ' open' : ''}" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
-                <td class="amount-cell ${fgCls}"><span class="figure-chip">${fmtHtml(fgDelta)}</span></td>
-                <td></td>
+                <td class="amount-cell change-cell ${fgCls}">
+                    <span class="change-main">${fgArrowSign ? `<span class="change-arrow">${fgArrowSign}</span>` : ''}<span class="figure-chip">${fmtHtml(fgDelta)}</span></span>
+                    ${fgArrowSign ? `<span class="change-pct">${fgPctStr}</span>` : ''}
+                </td>
             </tr>`;
 
             for (const r of fg.rows) {
                 const delta = r[d2Key] - r[d1Key];
                 const cls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
                 const dynPct = r[d1Key] !== 0 ? ((delta / Math.abs(r[d1Key])) * 100) : (delta !== 0 ? 100 : 0);
+                const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '';
+                const pctStr = fmtPct(dynPct).replace(/^\+/, '');
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
                     <td class="detail-indent"><strong>${r.program_id || ''}</strong> ${r.program_name || ''}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
-                    <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(delta)}</span></td>
-                    <td class="amount-cell ${cls}">${fmtPct(dynPct)}</td>
+                    <td class="amount-cell change-cell ${cls}">
+                        <span class="change-main">${arrow ? `<span class="change-arrow">${arrow}</span>` : ''}<span class="figure-chip">${fmtHtml(delta)}</span></span>
+                        ${arrow ? `<span class="change-pct">${pctStr}</span>` : ''}
+                    </td>
                 </tr>`;
             }
+            fundHtml += `</tbody>`;
         }
 
         document.getElementById('draft-results').innerHTML = `
@@ -1559,7 +1577,7 @@ window.initDraftComparePage = async function () {
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">${getChangeLabel(sortArrow('change'))}</th>
                 </tr></thead>
-                <tbody>${bodyHtml}</tbody>
+                ${bodyHtml}
             </table>
             <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>`;
 
@@ -1572,9 +1590,8 @@ window.initDraftComparePage = async function () {
                     ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
                     <th class="amount-cell">${getD2Label()}</th>
                     <th class="amount-cell">${getChangeLabel()}</th>
-                    <th class="amount-cell">%</th>
                 </tr></thead>
-                <tbody>${fundHtml}</tbody>
+                ${fundHtml}
             </table>
             <div class="table-export-row"><button class="action-link export-btn" id="export-fund-detail">⬇ Export CSV</button></div>`;
 
@@ -1856,6 +1873,7 @@ window.initDraftComparePage = async function () {
 
             if (filteredProjects.length === 0) continue;
             visibleCount++;
+            bodyRows += `<tbody class="dept-block" data-dept-block="${dept.code}">`;
 
             // Sort by user-selected column. For Gov d1, use the resolved
             // amount (incl. pro-rata fallback) so sort order matches display.
@@ -1926,14 +1944,19 @@ window.initDraftComparePage = async function () {
                     <td class="amount-cell ${cls}"><span class="figure-chip">${fmtHtml(change)}</span> ${badge}</td>
                 </tr>`;
             }
+            bodyRows += `</tbody>`;
         }
 
         let html;
         if (visibleCount === 0) {
             html = `<div class="empty-state"><p>No capital projects match the current filter.</p></div>`;
         } else {
-            const projSortArrow = (col) =>
-                projSortCol === col ? (projSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+            const projSortArrow = (col) => {
+                if (projSortCol === col) {
+                    return `<span class="sort-ind">${projSortDir === 'asc' ? '▲' : '▼'}</span>`;
+                }
+                return `<span class="sort-hint">▲</span>`;
+            };
             const govTh = govActive ? `<th class="sortable amount-cell" data-sort-proj="d1">${projD1Label}${projSortArrow('d1')}</th>` : '';
             const hd1Th = showProjHD1 ? `<th class="sortable amount-cell" data-sort-proj="hd1">HD1${projSortArrow('hd1')}</th>` : '';
             const d2Th = `<th class="sortable amount-cell" data-sort-proj="d2">${projD2Label}${projSortArrow('d2')}</th>`;
@@ -1954,7 +1977,7 @@ window.initDraftComparePage = async function () {
                     ${d2Th}
                     ${changeTh}
                 </tr></thead>
-                <tbody>${bodyRows}</tbody>
+                ${bodyRows}
             </table>`;
         }
 
@@ -2260,6 +2283,7 @@ window.initDraftComparePage = async function () {
         activeProjects = projectsDataFY26;
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
+        document.querySelector('.fy-seg-ctrl')?.setAttribute('data-active', '26');
         updateSummaryCards();
         playNetRefresh();
         render();
@@ -2274,6 +2298,7 @@ window.initDraftComparePage = async function () {
         activeProjects = projectsDataFY27;
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
+        document.querySelector('.fy-seg-ctrl')?.setAttribute('data-active', '27');
         updateSummaryCards();
         playNetRefresh();
         render();
