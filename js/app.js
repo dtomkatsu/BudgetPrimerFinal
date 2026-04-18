@@ -1245,7 +1245,7 @@ window.initDraftComparePage = async function () {
                 deptTransferNote = ` <span class="dept-transfer-note" title="${tooltipEscaped}">↔ ${badgeLabel}</span>`;
             }
 
-            bodyHtml += `<tr class="dept-group-row" data-dept="${dept.code}">
+            bodyHtml += `<tr class="dept-group-row${isOpen ? ' open' : ''}" data-dept="${dept.code}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${programs.length} programs)</span>${deptTransferNote}</td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
@@ -1472,7 +1472,7 @@ window.initDraftComparePage = async function () {
             const fundNote = fg.type === 'C'
                 ? ` <span class="fund-note" title="General obligation bonds are loans the state repays over time. Changes here reflect shifts in which capital projects get bond financing — not cuts to the underlying programs.">ℹ bond-financed capital projects</span>`
                 : '';
-            fundHtml += `<tr class="fund-group-row" data-fund-type="${fg.type}">
+            fundHtml += `<tr class="fund-group-row${isOpen ? ' open' : ''}" data-fund-type="${fg.type}">
                 <td><span class="dept-arrow">${arrow}</span> <strong>${fg.type}</strong> — ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
@@ -1833,7 +1833,7 @@ window.initDraftComparePage = async function () {
             const arrow = isOpen ? '▼' : '▶';
 
             // Dept group row — individual cells matching first table's dept row pattern
-            bodyRows += `<tr class="dept-group-row project-dept-row" data-project-dept="${dept.code}">
+            bodyRows += `<tr class="dept-group-row project-dept-row${isOpen ? ' open' : ''}" data-project-dept="${dept.code}">
                 <td colspan="3"><span class="dept-arrow">${arrow}</span> <strong>${dept.code}</strong> ${dept.name} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
                 <td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(d1Total)}</span></td>
@@ -1985,6 +1985,7 @@ window.initDraftComparePage = async function () {
             const isOpen = expandedProjectPrograms.has(deptCode);
             const arrow = deptRow.querySelector('.dept-arrow');
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            deptRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.project-row[data-project-dept="${deptCode}"]`)
                 .forEach(r => r.classList.toggle('hidden', !isOpen));
         }
@@ -2033,6 +2034,7 @@ window.initDraftComparePage = async function () {
             const arrow = groupRow.querySelector('.dept-arrow');
             const isOpen = expandedDepts.has(dept);
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            groupRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
             });
@@ -2095,6 +2097,7 @@ window.initDraftComparePage = async function () {
             const arrow = fundRow.querySelector('.dept-arrow');
             const isOpen = expandedFundTypes.has(ft);
             if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            fundRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.fund-detail-row[data-fund-type="${ft}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
             });

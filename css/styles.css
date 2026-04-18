@@ -1046,17 +1046,19 @@ th.sortable:hover {
 .dept-group-row td {
     padding-top: 11px;
     padding-bottom: 11px;
-    /* Sticky parent row — sits just below the sticky table header so the
-       dept label stays visible while scrolling through its expanded
-       children. Background must be on the td (not the tr) because
-       position: sticky takes the cell out of normal flow. */
-    position: sticky;
-    top: 47px;
-    z-index: 1;
     background: #f8f9fa;
 }
 .dept-group-row:hover td {
     background: #e9ecef;
+}
+/* Only sticky when expanded — keeps the dept label pinned below the
+   thead while scrolling through its children. Collapsed rows stay in
+   the normal flow so they don't queue up at the top. Background must
+   be on the td because sticky cells leave their row's background behind. */
+.dept-group-row.open td {
+    position: sticky;
+    top: 47px;
+    z-index: 1;
 }
 .dept-arrow {
     display: inline-block;
@@ -1112,13 +1114,15 @@ th.sortable:hover {
 .fund-group-row td {
     padding-top: 11px;
     padding-bottom: 11px;
-    position: sticky;
-    top: 47px;
-    z-index: 1;
     background: #f8f9fa;
 }
 .fund-group-row:hover td {
     background: #e9ecef;
+}
+.fund-group-row.open td {
+    position: sticky;
+    top: 47px;
+    z-index: 1;
 }
 .fund-detail-row.hidden {
     display: none;
