@@ -795,6 +795,143 @@ body {
     white-space: nowrap;
 }
 
+/* Fund-category colour variants — applied via data-fund-cat="<full category name>".
+   Each category gets a muted tint aligned with a shared palette so a glance
+   tells the user General vs. Federal vs. Special etc. Multi-fund chips (no
+   data-fund-cat) fall back to the default purple above. */
+.fund-chip[data-fund-cat="General Funds"] {
+    background: #eaf3ea;
+    border-color: #c7ddc7;
+    color: #2e4a2e;
+}
+.fund-chip[data-fund-cat="Special Funds"] {
+    background: #eef2f9;
+    border-color: #c8d3e5;
+    color: #2d416a;
+}
+.fund-chip[data-fund-cat="Federal Funds"],
+.fund-chip[data-fund-cat="Other Federal Funds"] {
+    background: #fbf1e4;
+    border-color: #e8cfa9;
+    color: #6b4410;
+}
+.fund-chip[data-fund-cat="General Obligation Bond Fund"] {
+    background: #eff4f7;
+    border-color: #c6d4de;
+    color: #304a5c;
+}
+.fund-chip[data-fund-cat="Revenue Bond Funds"] {
+    background: #f4f0ef;
+    border-color: #d8c8c4;
+    color: #5a3f39;
+}
+.fund-chip[data-fund-cat="Revolving Funds"] {
+    background: #f3f1e9;
+    border-color: #d9d2bc;
+    color: #5a4f28;
+}
+.fund-chip[data-fund-cat="Trust Funds"] {
+    background: #f0edf5;
+    border-color: #d4cbe0;
+    color: #433658;
+}
+.fund-chip[data-fund-cat="Interdepartmental Transfers"] {
+    background: #f3eef1;
+    border-color: #dbc9d3;
+    color: #5a3c4c;
+}
+.fund-chip[data-fund-cat="County Funds"] {
+    background: #eef2ef;
+    border-color: #cdd8d0;
+    color: #37493e;
+}
+.fund-chip[data-fund-cat="Private Contributions"],
+.fund-chip[data-fund-cat="Other Funds"] {
+    background: #f1f2f4;
+    border-color: #d3d7dc;
+    color: #3c4450;
+}
+
+/* Department code chip — small monospace badge with the 3-letter dept code.
+   Replaces the old <strong>DEPT</strong> treatment to distinguish the code
+   from the department name that follows it. */
+.dept-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    background: #f1f3f5;
+    border: 1px solid #dde1e5;
+    border-radius: 5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #3a4754;
+    letter-spacing: 0.02em;
+    vertical-align: 1px;
+}
+.project-dept-row .dept-chip,
+.dept-group-row .dept-chip {
+    margin-right: 4px;
+}
+
+/* Inline sparkline — shows Gov → HD1 → SD1 trajectory in program cells.
+   Vertically centered with the surrounding text; muted so it doesn't compete. */
+.row-sparkline {
+    display: inline-block;
+    vertical-align: -4px;
+    margin-left: 8px;
+    opacity: 0.85;
+}
+.row-sparkline:hover {
+    opacity: 1;
+}
+
+/* Stacked bar — composition of programs within a fund group, shown inline
+   in the fund group-header row. Small pill with rounded corners. */
+.stacked-bar-wrap {
+    display: inline-flex;
+    vertical-align: -2px;
+    margin-left: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.08);
+}
+.stacked-bar {
+    display: block;
+}
+
+/* Search highlight — muted yellow tint with slight rounding, no harsh neon.
+   Used when the search input has a query. */
+mark {
+    background: #fff6c2;
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(209, 180, 40, 0.3);
+}
+
+/* Totals row — bold running totals footer that visually separates from data.
+   Uses a heavier top border and subtle tint so the eye naturally lands on it. */
+.totals-block .totals-row td {
+    border-top: 2px solid #cbd2d8;
+    background: #f7f8fa;
+    font-weight: 700;
+    color: #1f2937;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.totals-block .totals-row td:first-child {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8rem;
+    color: #4b5563;
+}
+.totals-block .totals-row .figure-chip {
+    font-weight: 700;
+}
+.totals-block .totals-row .change-pct {
+    font-weight: 600;
+}
+
 /* Clickable Capital Improvement chip that scrolls to the projects section */
 a.section-chip-link {
     text-decoration: none;
@@ -1376,6 +1513,59 @@ th.sortable .sort-hint {
 }
 .transfer-link:hover {
     text-decoration: underline;
+}
+
+/* Paired-dept chip — the unified cross-dept signal replacing .split-note,
+   .dept-transfer-note, and .transfer-badge. Renders next to the program name
+   as a compact "↔ DEPT" pill (or "→" / "←" for directional transfers). */
+.pair-chip {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 500;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-decoration: none;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 5px;
+    vertical-align: 1px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.pair-chip + .pair-chip { margin-left: 3px; }
+.pair-chip-neutral {
+    color: #4a5763;
+    background: #eef1f4;
+    border: 1px solid #d4d9df;
+}
+.pair-chip-neutral:hover {
+    background: #dfe4e9;
+    color: #2b3640;
+}
+.pair-chip-out {       /* dept LOST dollars — moving OUT to sibling */
+    color: #7a2e2e;
+    background: #fcecec;
+    border: 1px solid #f3c5c5;
+}
+.pair-chip-out:hover {
+    background: #f6d6d6;
+    color: #5a1f1f;
+}
+.pair-chip-in {        /* dept GAINED dollars — moving IN from sibling */
+    color: #1f5c35;
+    background: #e7f3eb;
+    border: 1px solid #bfd9c8;
+}
+.pair-chip-in:hover {
+    background: #d4ebdb;
+    color: #0f3f21;
+}
+
+/* Hover-highlight: all rows sharing a program_id pair key glow together */
+.pair-highlight > td {
+    background: #fff8d4 !important;
+    box-shadow: inset 3px 0 0 #e0b000;
+    transition: background 0.15s ease;
 }
 
 /* Inline FY year toggle in the Program column header */
