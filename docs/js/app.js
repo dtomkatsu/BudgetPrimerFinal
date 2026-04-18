@@ -1056,11 +1056,13 @@ window.initDraftComparePage = async function () {
         });
 
         // Build cross-reference map: program_id → Map<deptCode, {d1, d2, delta}>
-        // Always use HD1→SD1 deltas (not the baseline) so reallocation detection is reliable:
-        // the baseline lookup assigns the same value to all dept rows for the same program,
-        // making it impossible to detect which dept gained/lost between drafts.
-        const splitHd1Key = 'amount_' + meta.draft1.toLowerCase(); // always amount_hd1
-        const splitD2Key  = 'amount_' + meta.draft2.toLowerCase(); // always amount_sd1
+        // Uses the active d1Key/d2Key so reallocation detection works correctly
+        // in any comparison mode (Gov→SD1, HD1→SD1, etc.). The baseline lookup
+        // keys on {dept+program+fund+section}, so per-dept baseline values
+        // differ — a placeholder row with no governor entry gets $0, while the
+        // originating dept keeps the full Gov amount. That's exactly what's
+        // needed to detect a legislative split like PSD900 (all in PSD under
+        // Gov, split into AGS placeholder + PSD under HD1/SD1).
         const splitPrograms = new Map();
         for (const r of activeData.comparisons) {
             const pid = r.program_id;
@@ -1070,8 +1072,8 @@ window.initDraftComparePage = async function () {
             const deptMap = splitPrograms.get(pid);
             if (!deptMap.has(dept)) deptMap.set(dept, { d1: 0, d2: 0 });
             const entry = deptMap.get(dept);
-            entry.d1 += r[splitHd1Key] || 0;
-            entry.d2 += r[splitD2Key] || 0;
+            entry.d1 += r[d1Key] || 0;
+            entry.d2 += r[d2Key] || 0;
         }
         // Only keep programs that appear in 2+ departments; compute delta
         for (const [pid, deptMap] of splitPrograms) {
