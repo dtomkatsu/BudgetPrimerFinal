@@ -50,7 +50,32 @@ body {
     color: white;
     padding: 1.5rem 2rem;
     text-align: center;
+    position: relative;
 }
+
+/* "Open ↗" button — only visible when the page is embedded in an
+   iframe. Lets the user pop the tracker out into a full tab. */
+.open-fullpage-btn {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 4px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: background 0.15s ease;
+}
+.open-fullpage-btn:hover {
+    background: rgba(255,255,255,0.26);
+    border-color: rgba(255,255,255,0.55);
+}
+.open-fullpage-btn[hidden] { display: none; }
 
 .app-header h1 {
     margin-bottom: 1rem;
