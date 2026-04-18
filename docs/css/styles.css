@@ -738,6 +738,8 @@ a.section-chip-link:hover {
 /* Dept group rows inside the project table */
 .project-table .project-dept-row { cursor: pointer; user-select: none; }
 .project-table .project-dept-row:hover td { background: #eaf1ee; }
+/* Project-table dept rows use the same sticky behavior as .dept-group-row */
+.project-table .project-dept-row td { background: #f8f9fa; }
 .project-dept-cell {
     padding: 11px 15px !important;
 }
@@ -1038,16 +1040,23 @@ th.sortable:hover {
 /* Department group rows */
 .dept-group-row {
     cursor: pointer;
-    background: #f8f9fa;
     font-weight: 500;
     border-bottom: 1px solid #e0e0e0;
-}
-.dept-group-row:hover {
-    background: #e9ecef;
 }
 .dept-group-row td {
     padding-top: 11px;
     padding-bottom: 11px;
+    /* Sticky parent row — sits just below the sticky table header so the
+       dept label stays visible while scrolling through its expanded
+       children. Background must be on the td (not the tr) because
+       position: sticky takes the cell out of normal flow. */
+    position: sticky;
+    top: 47px;
+    z-index: 1;
+    background: #f8f9fa;
+}
+.dept-group-row:hover td {
+    background: #e9ecef;
 }
 .dept-arrow {
     display: inline-block;
@@ -1097,16 +1106,19 @@ th.sortable:hover {
 }
 .fund-group-row {
     cursor: pointer;
-    background: #f8f9fa;
     font-weight: 500;
     border-bottom: 1px solid #e0e0e0;
-}
-.fund-group-row:hover {
-    background: #e9ecef;
 }
 .fund-group-row td {
     padding-top: 11px;
     padding-bottom: 11px;
+    position: sticky;
+    top: 47px;
+    z-index: 1;
+    background: #f8f9fa;
+}
+.fund-group-row:hover td {
+    background: #e9ecef;
 }
 .fund-detail-row.hidden {
     display: none;
