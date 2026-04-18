@@ -2106,25 +2106,65 @@ window.initDraftComparePage = async function () {
 
     // --- FY toggle ---
 
+    // Capture the topmost expanded parent row currently in the viewport so
+    // we can re-anchor scroll position after the cross-FY re-render. Without
+    // this the user loses their place because row heights / ordering change
+    // between FY26 and FY27. Expanded-state Sets are intentionally NOT reset
+    // on FY toggle — their keys (dept code, program id, fund key, fund type)
+    // are stable across years.
+    const captureFYAnchor = () => {
+        const rows = document.querySelectorAll(
+            '.dept-group-row.open, .project-dept-row.open, .fund-group-row.open');
+        let anchor = null;
+        for (const r of rows) {
+            const top = r.getBoundingClientRect().top;
+            if (top >= 0) { anchor = r; break; }
+        }
+        if (!anchor) return null;
+        const kind = anchor.classList.contains('fund-group-row') ? 'fund'
+                   : anchor.classList.contains('project-dept-row') ? 'proj'
+                   : 'dept';
+        const key = kind === 'fund' ? anchor.dataset.fundType
+                  : kind === 'proj' ? anchor.dataset.projectDept
+                  : anchor.dataset.dept;
+        return { kind, key, offset: anchor.getBoundingClientRect().top };
+    };
+    const restoreFYAnchor = (a) => {
+        if (!a) return;
+        requestAnimationFrame(() => {
+            const sel = a.kind === 'fund' ? `.fund-group-row[data-fund-type="${a.key}"]`
+                      : a.kind === 'proj' ? `.project-dept-row[data-project-dept="${a.key}"]`
+                      :                     `.dept-group-row[data-dept="${a.key}"]`;
+            const el = document.querySelector(sel);
+            if (!el) return;
+            const newTop = el.getBoundingClientRect().top;
+            window.scrollBy(0, newTop - a.offset);
+        });
+    };
+
     document.getElementById('fy-btn-26')?.addEventListener('click', () => {
         if (!draftComparisonData) return;
+        if (activeData === draftComparisonData) return;
+        const anchor = captureFYAnchor();
         activeData = draftComparisonData;
         activeProjects = projectsDataFY26;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedFunds = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-26').classList.add('active');
         document.getElementById('fy-btn-27')?.classList.remove('active');
         updateSummaryCards();
         render();
+        restoreFYAnchor(anchor);
     });
     document.getElementById('fy-btn-27')?.addEventListener('click', () => {
         if (!draftComparisonDataFY27) return;
+        if (activeData === draftComparisonDataFY27) return;
+        const anchor = captureFYAnchor();
         activeData = draftComparisonDataFY27;
         activeProjects = projectsDataFY27;
-        checkedSections = null; checkedFunds = null; expandedDepts = new Set(); expandedFundTypes = new Set(); expandedPrograms = new Set(); expandedFunds = new Set(); expandedProjectPrograms = new Set();
         document.getElementById('fy-btn-27').classList.add('active');
         document.getElementById('fy-btn-26')?.classList.remove('active');
         updateSummaryCards();
         render();
+        restoreFYAnchor(anchor);
     });
 
     // --- Compare timeline: Gov's Request / HD1 / SD1 checkboxes ---
