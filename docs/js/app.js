@@ -767,6 +767,12 @@ window.initDraftComparePage = async function () {
     let sortDir = 'asc';
     let projSortCol = 'change'; // capital projects table sort
     let projSortDir = 'desc';
+    // Frozen order — captured on FY toggle so rows don't reshuffle around the
+    // anchor. Cleared when the user explicitly clicks a sort column header.
+    let frozenDeptOrder = null;        // Array<string> | null — dept codes, main table
+    let frozenProgOrder = null;        // Map<deptCode, Array<program_id>> | null
+    let frozenProjDeptOrder = null;    // Array<string> | null — capital projects table
+    let frozenFundOrder = null;        // Array<string> | null — fund detail table
     let checkedSections = null; // null = all
     let checkedFunds = null;    // null = all
     let expandedDepts = new Set();
@@ -978,6 +984,19 @@ window.initDraftComparePage = async function () {
             return r[sortCol] ?? 0;
         };
         data.sort((a, b) => {
+            if (frozenDeptOrder) {
+                const ra = rankIn(frozenDeptOrder, a.department_code);
+                const rb = rankIn(frozenDeptOrder, b.department_code);
+                if (ra !== rb) return ra - rb;
+            }
+            if (frozenProgOrder && a.department_code === b.department_code) {
+                const ord = frozenProgOrder.get(a.department_code);
+                if (ord && ord.length) {
+                    const ra = rankIn(ord, a.program_id);
+                    const rb = rankIn(ord, b.program_id);
+                    if (ra !== rb) return ra - rb;
+                }
+            }
             const va = resolveSort(a), vb = resolveSort(b);
             if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
             return sortDir === 'asc' ? va - vb : vb - va;
@@ -1046,6 +1065,11 @@ window.initDraftComparePage = async function () {
             d.delta = d.d2 - d.d1;
             return d;
         }).sort((a, b) => {
+            if (frozenDeptOrder) {
+                const ra = rankIn(frozenDeptOrder, a.code);
+                const rb = rankIn(frozenDeptOrder, b.code);
+                if (ra !== rb) return ra - rb;
+            }
             let va, vb;
             if (sortCol === 'program_name') { va = a.code.toLowerCase(); vb = b.code.toLowerCase(); }
             else if (sortCol === 'd1') { va = a.d1; vb = b.d1; }
@@ -1453,6 +1477,11 @@ window.initDraftComparePage = async function () {
             fundTypeMap.get(ft).rows.push(r);
         }
         const fundGroups = [...fundTypeMap.values()].sort((a, b) => {
+            if (frozenFundOrder) {
+                const ra = rankIn(frozenFundOrder, a.type);
+                const rb = rankIn(frozenFundOrder, b.type);
+                if (ra !== rb) return ra - rb;
+            }
             const aTotal = a.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
             const bTotal = b.rows.reduce((s, r) => s + Math.abs(r.change || 0), 0);
             return bTotal - aTotal;
@@ -1770,6 +1799,11 @@ window.initDraftComparePage = async function () {
             const hd1 = d.projects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             return { ...d, _d1: d1, _d2: d2, _hd1: hd1, _delta: d2 - d1 };
         }).sort((a, b) => {
+            if (frozenProjDeptOrder) {
+                const ra = rankIn(frozenProjDeptOrder, a.code);
+                const rb = rankIn(frozenProjDeptOrder, b.code);
+                if (ra !== rb) return ra - rb;
+            }
             const getVal = (d) => {
                 if (projSortCol === 'd1')     return d._d1;
                 if (projSortCol === 'd2')     return d._d2;
@@ -1961,6 +1995,7 @@ window.initDraftComparePage = async function () {
             const col = projTh.dataset.sortProj;
             if (projSortCol === col) { projSortDir = projSortDir === 'asc' ? 'desc' : 'asc'; }
             else { projSortCol = col; projSortDir = (col === 'program' || col === 'project') ? 'asc' : 'desc'; }
+            frozenProjDeptOrder = null;
             renderProjects();
             return;
         }
@@ -2022,6 +2057,8 @@ window.initDraftComparePage = async function () {
             const col = th.dataset.sort;
             if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
             else { sortCol = col; sortDir = col === 'program_name' ? 'asc' : 'desc'; }
+            frozenDeptOrder = null;
+            frozenProgOrder = null;
             render();
             return;
         }
@@ -2112,6 +2149,47 @@ window.initDraftComparePage = async function () {
     // between FY26 and FY27. Expanded-state Sets are intentionally NOT reset
     // on FY toggle — their keys (dept code, program id, fund key, fund type)
     // are stable across years.
+    // Capture current row order from the DOM so we can freeze it across the
+    // FY toggle. Order is preserved until the user explicitly re-sorts by
+    // clicking a column header (see the sort-click handlers below, which
+    // call clearFrozenOrder).
+    const captureFrozenOrder = () => {
+        frozenDeptOrder = Array.from(
+            document.querySelectorAll('#draft-table .dept-group-row[data-dept]')
+        ).map(r => r.dataset.dept);
+        frozenProgOrder = new Map();
+        for (const code of frozenDeptOrder) {
+            const seen = new Set();
+            const order = [];
+            const rows = document.querySelectorAll(
+                `#draft-table .dept-detail-row[data-dept="${code}"]`);
+            for (const r of rows) {
+                const pid = r.querySelector('.detail-indent strong')?.textContent.trim()
+                         || r.querySelector('strong')?.textContent.trim();
+                if (pid && !seen.has(pid)) { seen.add(pid); order.push(pid); }
+            }
+            frozenProgOrder.set(code, order);
+        }
+        frozenProjDeptOrder = Array.from(
+            document.querySelectorAll('.project-table .project-dept-row[data-project-dept]')
+        ).map(r => r.dataset.projectDept);
+        frozenFundOrder = Array.from(
+            document.querySelectorAll('.fund-group-row[data-fund-type]')
+        ).map(r => r.dataset.fundType);
+    };
+    const clearFrozenOrder = () => {
+        frozenDeptOrder = null;
+        frozenProgOrder = null;
+        frozenProjDeptOrder = null;
+        frozenFundOrder = null;
+    };
+    // Comparator helper: rank by position in a frozen order array (missing
+    // entries sink to the end). Returns 0 when equally ranked.
+    const rankIn = (arr, key) => {
+        const i = arr ? arr.indexOf(key) : -1;
+        return i < 0 ? Infinity : i;
+    };
+
     const captureFYAnchor = () => {
         const rows = document.querySelectorAll(
             '.dept-group-row.open, .project-dept-row.open, .fund-group-row.open');
@@ -2146,6 +2224,7 @@ window.initDraftComparePage = async function () {
         if (!draftComparisonData) return;
         if (activeData === draftComparisonData) return;
         const anchor = captureFYAnchor();
+        captureFrozenOrder();
         activeData = draftComparisonData;
         activeProjects = projectsDataFY26;
         document.getElementById('fy-btn-26').classList.add('active');
@@ -2158,6 +2237,7 @@ window.initDraftComparePage = async function () {
         if (!draftComparisonDataFY27) return;
         if (activeData === draftComparisonDataFY27) return;
         const anchor = captureFYAnchor();
+        captureFrozenOrder();
         activeData = draftComparisonDataFY27;
         activeProjects = projectsDataFY27;
         document.getElementById('fy-btn-27').classList.add('active');
