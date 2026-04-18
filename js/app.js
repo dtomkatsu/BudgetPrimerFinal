@@ -1693,6 +1693,9 @@ window.initDraftComparePage = async function () {
             }
             return null;
         };
+        // Note: getD1Amt is used for per-project sorting before the fallback
+        // map is populated, so it falls back to 0 on unmatched projects.
+        // The render loop uses resolveGovAmt() below for the actual display value.
         const getD1Amt = (pr) => govActive ? (getGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
         const getD2Amt = (pr) => sd1Active ? (pr[sd1Key] || 0) : (pr[hd1Key] || 0);
 
@@ -1707,6 +1710,54 @@ window.initDraftComparePage = async function () {
                 }
             }
             return total;
+        };
+
+        // Pro-rata Gov fallback: for projects whose names don't match the
+        // governor's project list (abbreviations, truncation, Section 14 /
+        // worksheet wording differences), distribute the program's Gov total
+        // across unmatched projects proportional to their HD1 amount. This
+        // preserves program totals and surfaces a Gov figure for every row
+        // instead of showing "—" on nearly every project in a program.
+        const govFallback = new Map(); // pr → fallback amount
+        if (govActive && govCipProgTotals.size > 0) {
+            const byProg = new Map();
+            for (const d of deptMap.values()) {
+                for (const pr of d.projects) {
+                    if (!byProg.has(pr.program_id)) byProg.set(pr.program_id, []);
+                    byProg.get(pr.program_id).push(pr);
+                }
+            }
+            for (const [pid, projs] of byProg) {
+                const progTotal = govCipProgTotals.get(pid) || 0;
+                if (progTotal <= 0) continue;
+                let matchedSum = 0;
+                const unmatched = [];
+                for (const pr of projs) {
+                    const m = getGovAmt(pr);
+                    if (m !== null) matchedSum += m;
+                    else unmatched.push(pr);
+                }
+                if (unmatched.length === 0) continue;
+                const leftover = progTotal - matchedSum;
+                if (leftover <= 0) continue;
+                const unmatchedHd1Sum = unmatched.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
+                if (unmatchedHd1Sum > 0) {
+                    for (const pr of unmatched) {
+                        govFallback.set(pr, leftover * ((pr[hd1Key] || 0) / unmatchedHd1Sum));
+                    }
+                } else {
+                    const each = leftover / unmatched.length;
+                    for (const pr of unmatched) govFallback.set(pr, each);
+                }
+            }
+        }
+        // Resolve a project's Gov amount, preferring the exact/fuzzy name match
+        // and falling back to the pro-rata estimate when no name match exists.
+        const resolveGovAmt = (pr) => {
+            const direct = getGovAmt(pr);
+            if (direct !== null) return direct;
+            if (govFallback.has(pr)) return govFallback.get(pr);
+            return null;
         };
 
         // Sort depts by projSortCol using pre-computed aggregate totals
@@ -1751,13 +1802,15 @@ window.initDraftComparePage = async function () {
             if (filteredProjects.length === 0) continue;
             visibleCount++;
 
-            // Sort by user-selected column
+            // Sort by user-selected column. For Gov d1, use the resolved
+            // amount (incl. pro-rata fallback) so sort order matches display.
+            const sortD1 = (pr) => govActive ? (resolveGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
             filteredProjects.sort((a, b) => {
                 const getVal = (pr) => {
-                    if (projSortCol === 'd1')      return getD1Amt(pr);
+                    if (projSortCol === 'd1')      return sortD1(pr);
                     if (projSortCol === 'd2')      return getD2Amt(pr);
                     if (projSortCol === 'hd1')     return pr[hd1Key] || 0;
-                    if (projSortCol === 'change')  return getD2Amt(pr) - getD1Amt(pr);
+                    if (projSortCol === 'change')  return getD2Amt(pr) - sortD1(pr);
                     if (projSortCol === 'program') return (pr.program_id || '').toLowerCase();
                     if (projSortCol === 'project') return (pr.project_name || '').toLowerCase();
                     return Number(pr.project_id) || 0;
@@ -1791,8 +1844,8 @@ window.initDraftComparePage = async function () {
 
             // Individual project rows (hidden until dept expanded)
             for (const pr of filteredProjects) {
-                const govAmt = getGovAmt(pr);
-                const d1Amt = getD1Amt(pr);
+                const govAmt = resolveGovAmt(pr);
+                const d1Amt = govActive ? (govAmt ?? 0) : (pr[hd1Key] || 0);
                 const d2Amt = getD2Amt(pr);
                 const hd1Amt = pr[hd1Key] || 0;
                 const change = d2Amt - d1Amt;
