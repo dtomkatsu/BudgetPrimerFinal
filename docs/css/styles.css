@@ -919,91 +919,84 @@ mark {
     box-shadow: 0 0 0 1px rgba(209, 180, 40, 0.3);
 }
 
-/* === Hybrid Totals Row ===
-   Warm parchment band that contrasts with the cool-grey dept rows above,
-   anchored by a sage top accent (brand tie). The number chips are
-   INVERTED to dark slate so the bottom-line figures pop against the cream
-   background, and the change cell becomes a filled colored pill (green/red)
-   instead of bare text + arrow — giving the row a clear hierarchical
-   "this is the answer" presence without resorting to a heavy dark band. */
+/* === Totals Row — muted hybrid ===
+   A quiet band that separates from the dept rows above without shouting.
+   Soft neutral background, thin sage top accent, all chips share a single
+   slate-grey palette (no saturated green/red pills) — color comes from
+   the digit itself, not the chip, so the delta is emphasized but not
+   billboarded. */
 .totals-block .totals-row td {
-    border-top: 3px solid #6f8e7c;             /* sage accent — brand tie */
-    background: linear-gradient(to bottom, #faf8f3, #f1ede4);  /* warm parchment */
+    border-top: 2px solid #c8d1d9;             /* soft sage-grey rule */
+    background: #f5f5f1;                       /* muted warm neutral */
     color: #1f2937;
     font-weight: 700;
-    padding: 20px 13px;
-    /* 6px white "gap" above the band so it floats off the dept rows */
-    box-shadow: inset 0 6px 0 #ffffff;
+    padding: 16px 13px;
+    /* 4px white "gap" above the band so it floats off the dept rows */
+    box-shadow: inset 0 4px 0 #ffffff;
 }
 .totals-block .totals-row td:first-child {
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
     color: #4b5563;
     border-bottom-left-radius: 8px;
 }
-/* Small sage "Σ" badge on the label cell — quietly reinforces "this is
-   the sum" without being verbose. */
+/* Small "Σ" prefix on the label cell — quiet summation mark, no badge. */
 .totals-block .totals-row td:first-child::before {
     content: 'Σ';
     display: inline-block;
-    margin-right: 10px;
-    padding: 2px 9px 3px;
-    background: #6f8e7c;
-    color: #ffffff;
-    border-radius: 4px;
-    font-size: 0.92rem;
-    font-weight: 800;
+    margin-right: 8px;
+    color: #8aa595;                             /* muted sage */
+    font-size: 1rem;
+    font-weight: 700;
     letter-spacing: 0;
-    vertical-align: 1px;
+    vertical-align: -1px;
     text-transform: none;
     line-height: 1;
 }
 .totals-block .totals-row td:last-child {
     border-bottom-right-radius: 8px;
 }
-/* Inverted figure chip — dark slate ground with light digits. The
-   bottom-line numbers visually pop against the parchment band and read
-   as "the answer" vs. the data rows' light chips above. */
+/* All figure chips: shared muted slate treatment — darker than the data
+   rows' chips so the totals still read as the footer, but nowhere near
+   the saturated fills of the previous iteration. */
 .totals-block .totals-row .figure-chip {
-    background: #1f2937;
-    border-color: #1f2937;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
-    padding: 4px 11px;
+    background: #e9ecf0;
+    border-color: #d5dae0;
+    padding: 3px 10px;
     font-weight: 700;
 }
 .totals-block .totals-row .figure-chip .fmt-num {
-    color: #f9fafb;
-    font-size: 1.05rem;
+    color: #1f2937;
+    font-size: 1rem;
 }
 .totals-block .totals-row .figure-chip .fmt-unit {
-    color: #cbd5e1;
+    color: #6b7d8f;
 }
-/* Change cell: chip turns into a filled green/red pill — the delta is
-   the most important number in the table, so it gets the most chroma. */
+/* Change cell: same chip style, but the digit color carries the sign.
+   Green/red come from the existing .amount-cell.positive/.negative
+   colored-chip rules, so we just tune them for the totals context. */
 .totals-block .totals-row .change-cell.positive .figure-chip {
-    background: #1e7e34;
-    border-color: #1e7e34;
+    background: #eaf3ed;
+    border-color: #c9dfd0;
 }
 .totals-block .totals-row .change-cell.negative .figure-chip {
-    background: #c62828;
-    border-color: #c62828;
+    background: #f4e6e6;
+    border-color: #e3c5c7;
 }
-.totals-block .totals-row .change-cell.positive .figure-chip .fmt-num,
+.totals-block .totals-row .change-cell.positive .figure-chip .fmt-num {
+    color: #1e7e34;
+}
 .totals-block .totals-row .change-cell.negative .figure-chip .fmt-num {
-    color: #ffffff;
-}
-.totals-block .totals-row .change-cell.positive .figure-chip .fmt-unit,
-.totals-block .totals-row .change-cell.negative .figure-chip .fmt-unit {
-    color: rgba(255, 255, 255, 0.88);
+    color: #b1282b;
 }
 .totals-block .totals-row .change-cell .change-arrow {
-    font-size: 1.05rem;
-    margin-right: 4px;
+    font-size: 0.95rem;
+    margin-right: 3px;
 }
 .totals-block .totals-row .change-pct {
-    font-weight: 700;
-    font-size: 0.88rem;
+    font-weight: 600;
+    font-size: 0.82rem;
 }
 
 /* Clickable Capital Improvement chip that scrolls to the projects section */
