@@ -945,60 +945,65 @@ body {
 }
 
 /* Fund-category colour variants — applied via data-fund-cat="<full category name>".
-   Each category gets a muted tint aligned with a shared palette so a glance
-   tells the user General vs. Federal vs. Special etc. Multi-fund chips (no
-   data-fund-cat) fall back to the default purple above. */
+   Documented semantic mapping by source-of-money: each chip's color encodes
+   *where the dollars come from*, so the user can scan the page and learn the
+   rough composition at a glance. Five groups, each with its own hue family:
+
+     • State General  (sage green) — A
+         General Funds: state tax revenue, flexible spending
+     • State Dedicated (teal-sage) — B, T, W
+         State-collected money set aside for a specific purpose
+     • Federal       (warm tan)   — N, P
+         Money from the US government
+     • Borrowed      (slate blue) — C, E
+         State takes on debt (general-obligation or revenue bonds)
+     • Transfers / Other (neutral grey) — U, S, R, X
+         Inter-gov, county, private, miscellaneous
+
+   Multi-fund chips (no data-fund-cat) fall back to the default treatment
+   in .fund-chip above. The mapping is repeated in the Fund Detail tooltip
+   and the reading-guide panel so users can decode it inline. */
+
+/* — State General — */
 .fund-chip[data-fund-cat="General Funds"] {
-    background: #eaf3ea;
-    border-color: #c7ddc7;
-    color: #2e4a2e;
+    background: #e8f0e8;
+    border-color: #c4d8c4;
+    color: #2d4a2d;
 }
-.fund-chip[data-fund-cat="Special Funds"] {
-    background: #eef2f9;
-    border-color: #c8d3e5;
-    color: #2d416a;
+
+/* — State Dedicated — */
+.fund-chip[data-fund-cat="Special Funds"],
+.fund-chip[data-fund-cat="Trust Funds"],
+.fund-chip[data-fund-cat="Revolving Funds"] {
+    background: #e3eef0;
+    border-color: #bcd2d6;
+    color: #2a4a4f;
 }
+
+/* — Federal — */
 .fund-chip[data-fund-cat="Federal Funds"],
 .fund-chip[data-fund-cat="Other Federal Funds"] {
-    background: #fbf1e4;
-    border-color: #e8cfa9;
-    color: #6b4410;
+    background: #f4ebd9;
+    border-color: #dcc59a;
+    color: #6b4818;
 }
-.fund-chip[data-fund-cat="General Obligation Bond Fund"] {
-    background: #eff4f7;
-    border-color: #c6d4de;
-    color: #304a5c;
-}
+
+/* — Borrowed — */
+.fund-chip[data-fund-cat="General Obligation Bond Fund"],
 .fund-chip[data-fund-cat="Revenue Bond Funds"] {
-    background: #f4f0ef;
-    border-color: #d8c8c4;
-    color: #5a3f39;
+    background: #ebeef5;
+    border-color: #c8d0e0;
+    color: #364266;
 }
-.fund-chip[data-fund-cat="Revolving Funds"] {
-    background: #f3f1e9;
-    border-color: #d9d2bc;
-    color: #5a4f28;
-}
-.fund-chip[data-fund-cat="Trust Funds"] {
-    background: #f0edf5;
-    border-color: #d4cbe0;
-    color: #433658;
-}
-.fund-chip[data-fund-cat="Interdepartmental Transfers"] {
-    background: #f3eef1;
-    border-color: #dbc9d3;
-    color: #5a3c4c;
-}
-.fund-chip[data-fund-cat="County Funds"] {
-    background: #eef2ef;
-    border-color: #cdd8d0;
-    color: #37493e;
-}
+
+/* — Transfers & Other — */
+.fund-chip[data-fund-cat="Interdepartmental Transfers"],
+.fund-chip[data-fund-cat="County Funds"],
 .fund-chip[data-fund-cat="Private Contributions"],
 .fund-chip[data-fund-cat="Other Funds"] {
-    background: #f1f2f4;
-    border-color: #d3d7dc;
-    color: #3c4450;
+    background: #ecedf0;
+    border-color: #d2d4dc;
+    color: #3c4452;
 }
 
 /* Department code chip — small monospace badge with the 3-letter dept code.
@@ -1035,28 +1040,48 @@ body {
 }
 
 /* Stacked bar — composition of programs within a fund group, shown inline
-   in the fund group-header row. Includes a kicker caption ("share by
-   program"), the bar itself (taller, with hairline gaps and a sage
-   outline), the leading program's id + percentage as a static annotation,
-   and a hover/focus popover with a full segment legend. */
+   in the fund group-header row. The bar itself (14px, with hairline gaps
+   and a sage outline) sits below a small leader caption that names the
+   largest contributing program (e.g. "Largest: HMS401 53%"). Hover or
+   focus reveals a popover with the full segment legend.
+
+   The previous "SHARE BY PROGRAM" kicker was dropped because it repeated
+   identical text on every fund row — its purpose is now communicated by
+   the bar's visual presence and the leader caption naming the top program. */
 .stacked-bar-wrap {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
     margin-left: 10px;
     padding: 1px 2px;
-    vertical-align: -3px;
+    vertical-align: -8px;
     cursor: default;
     outline: none;
 }
+.stacked-bar-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1;
+}
 .stacked-bar-caption {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6f9184;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #6b7773;
+    letter-spacing: 0.01em;
     white-space: nowrap;
+}
+.stacked-bar-caption-id {
+    font-weight: 700;
+    color: #2c3e35;
+    letter-spacing: 0.02em;
+    margin-left: 1px;
+}
+.stacked-bar-caption-pct {
+    color: #6f9184;
+    font-weight: 600;
+    margin-left: 3px;
 }
 .stacked-bar-track {
     display: inline-flex;
@@ -1068,23 +1093,6 @@ body {
 }
 .stacked-bar {
     display: block;
-}
-.stacked-bar-top {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #4b5d56;
-    white-space: nowrap;
-    letter-spacing: 0.01em;
-}
-.stacked-bar-top-id {
-    font-weight: 700;
-    color: #2c3e35;
-    letter-spacing: 0.02em;
-}
-.stacked-bar-top-pct {
-    color: #6f9184;
-    font-weight: 600;
-    margin-left: 2px;
 }
 
 /* Hover/focus popover legend */
@@ -1218,14 +1226,15 @@ mark {
     /* matched whisper-soft shoulder on the right edge for symmetry */
     box-shadow: inset -3px 0 0 #e3ede7;
 }
-/* Number chips — shared muted slate base; numbers and suffixes split into
-   two-tone typography (number prominent, suffix dimmer) to match the
-   timeline-pill rendering pattern. */
+/* Number chips — shared muted slate base. Padding, unit margin, and unit
+   font-size MATCH the base .figure-chip rule so totals row digits sit at
+   the exact same right anchor as body row digits in every column. Only
+   colors, weight, and number font-size change for emphasis. */
 .totals-block .totals-row .figure-chip {
     background: #e9ecf0;
     border-color: #d5dae0;
-    padding: 3px 10px;
     font-weight: 700;
+    /* padding, min-width inherited from .figure-chip — DO NOT override */
 }
 .totals-block .totals-row .figure-chip .fmt-num {
     color: #1f2937;
@@ -1235,9 +1244,9 @@ mark {
 }
 .totals-block .totals-row .figure-chip .fmt-unit {
     color: #8a9492;
-    font-size: 0.78rem;
     font-weight: 500;
-    margin-left: 1px;
+    /* font-size and margin-left inherited from .figure-chip .fmt-unit so
+       the unit suffix sits at the identical right anchor as body rows */
 }
 /* Change cell: re-skinned to match the net change pill exactly (deep sage
    for positive, warm clay for negative). Same hue, same border family,
@@ -2272,6 +2281,24 @@ th.sortable .sort-hint {
     font-style: italic;
     font-weight: 400;
     line-height: 1.4;
+}
+/* Fund-color reference inside the reading-guide panel. The dt column is
+   widened (6rem) to accommodate multi-letter chip swatches like "B T W"
+   and "U S R X" without wrapping. The dd entries keep the chip colors
+   tight against the prose so the user can map color → meaning at a glance. */
+.reading-guide-panel .rg-funds {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e1eae5;
+}
+.reading-guide-panel .rg-funds-defs {
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.55rem 0.75rem;
+}
+.reading-guide-panel .rg-funds-defs dt .fund-chip {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    padding: 1px 8px;
 }
 /* On narrow viewports the pill sits near the left edge; switch to fixed
    positioning so the panel spans the usable screen width. */

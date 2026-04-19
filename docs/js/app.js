@@ -213,15 +213,17 @@ const stackedBarSvg = (segments, total) => {
     });
     svg += `</svg>`;
 
-    // Top-program annotation: extract program_id (first whitespace-delimited token)
-    // from the largest segment's label. Skip if the leader is the "+N more" rollup.
+    // Leader caption: small label sitting ABOVE the bar identifying the
+    // largest contributing program (program_id + pct). Replaces the previous
+    // "share by program" kicker, which repeated identical text on every fund
+    // row. Skip if the leader is the "+N more" rollup.
     const leader = enriched[0];
-    let topAnnot = '';
+    let leaderCaption = '';
     if (leader && !leader.label.startsWith('+')) {
         const leaderId = (leader.label.split(/\s+/)[0] || '').trim();
         const leaderPct = leader.pct >= 1 ? `${leader.pct.toFixed(0)}%` : `<1%`;
         if (leaderId) {
-            topAnnot = `<span class="stacked-bar-top"><span class="stacked-bar-top-id">${escapeHtml(leaderId)}</span> <span class="stacked-bar-top-pct">${leaderPct}</span></span>`;
+            leaderCaption = `<span class="stacked-bar-caption">Largest: <span class="stacked-bar-caption-id">${escapeHtml(leaderId)}</span> <span class="stacked-bar-caption-pct">${leaderPct}</span></span>`;
         }
     }
 
@@ -242,9 +244,10 @@ const stackedBarSvg = (segments, total) => {
     </div>`;
 
     return `<span class="stacked-bar-wrap" tabindex="0">
-        <span class="stacked-bar-caption">share by program</span>
-        <span class="stacked-bar-track">${svg}</span>
-        ${topAnnot}
+        <span class="stacked-bar-stack">
+            ${leaderCaption}
+            <span class="stacked-bar-track">${svg}</span>
+        </span>
         ${popover}
     </span>`;
 };
@@ -1226,6 +1229,21 @@ window.initDraftComparePage = async function () {
                          </dl>
                          <p class="rg-chips-help">Hover a chip to highlight paired rows; click to jump.</p>
                      </div>
+                     <div class="rg-chips rg-funds">
+                         <p class="rg-chips-title">Fund-chip colors — where the money comes from</p>
+                         <dl class="rg-chips-defs rg-funds-defs">
+                             <dt><span class="fund-chip" data-fund-cat="General Funds" style="pointer-events:none;">A</span></dt>
+                             <dd><strong>State General</strong> — tax revenue, flexible spending</dd>
+                             <dt><span class="fund-chip" data-fund-cat="Special Funds" style="pointer-events:none;">B T W</span></dt>
+                             <dd><strong>State Dedicated</strong> — state-collected money set aside for a specific purpose</dd>
+                             <dt><span class="fund-chip" data-fund-cat="Federal Funds" style="pointer-events:none;">N P</span></dt>
+                             <dd><strong>Federal</strong> — money from the US government</dd>
+                             <dt><span class="fund-chip" data-fund-cat="General Obligation Bond Fund" style="pointer-events:none;">C E</span></dt>
+                             <dd><strong>Borrowed</strong> — state takes on bond debt</dd>
+                             <dt><span class="fund-chip" data-fund-cat="Interdepartmental Transfers" style="pointer-events:none;">U S R X</span></dt>
+                             <dd><strong>Transfers / Other</strong> — inter-agency, county, private, misc</dd>
+                         </dl>
+                     </div>
                  </div>
              </span>`;
         // Re-attach filter/search listeners after re-render
@@ -1756,7 +1774,7 @@ window.initDraftComparePage = async function () {
             <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>`;
 
         document.getElementById('fund-detail-section').innerHTML = `
-            <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="A — General funds for everyday state spending&#10;B — Special funds set aside for specific purposes&#10;C — General obligation bond funds for public projects&#10;E — Revenue bond funds repaid from project earnings&#10;K/L/M/N — Federal aid funds from the U.S. government&#10;S — County funds from county governments&#10;T — Trust funds held for specific long-term purposes">Fund Detail</span></h3>
+            <h3 class="fund-detail-heading"><span class="has-tooltip" data-tooltip="Chip color = where the money comes from:&#10;&#10;● State General — A (general fund tax revenue)&#10;● State Dedicated — B, T, W (state funds set aside for a purpose)&#10;● Federal — N, P (US government money)&#10;● Borrowed — C, E (state takes on bond debt)&#10;● Transfers / Other — U, S, R, X&#10;&#10;Letter codes:&#10;A — General funds for everyday state spending&#10;B — Special funds set aside for specific purposes&#10;C — General obligation bond funds for public projects&#10;E — Revenue bond funds repaid from project earnings&#10;N/P — Federal aid from the U.S. government&#10;S — County funds from county governments&#10;T — Trust funds held for specific long-term purposes&#10;U — Interdepartmental transfers between state agencies&#10;W — Revolving funds replenished by program revenue&#10;R — Private contributions and grants&#10;X — Miscellaneous other funds">Fund Detail</span></h3>
             <table class="data-table" id="fund-detail-table">
                 <thead><tr>
                     <th>Fund / Program</th>
