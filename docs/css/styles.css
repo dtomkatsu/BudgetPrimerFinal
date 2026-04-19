@@ -44,13 +44,65 @@ body {
     box-shadow: var(--shadow);
 }
 
-/* Header Styles */
+/* === Header — Editorial cover treatment ===
+   Layered sage gradient with a low-opacity topographic line pattern,
+   curved bottom edge (SVG sibling), three-tier typographic hierarchy
+   (eyebrow / title / subtitle), and pill-style nav. */
 .app-header {
-    background: var(--primary-color);
-    color: white;
-    padding: 1.5rem 2rem;
+    background:
+        /* Faint topographic contour pattern — sense of place without
+           literal imagery. Inline SVG, ~5% opacity, repeats horizontally. */
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='200' viewBox='0 0 600 200'><g fill='none' stroke='%23ffffff' stroke-width='0.6' stroke-opacity='0.08'><path d='M0,40 Q150,10 300,40 T600,40'/><path d='M0,70 Q150,40 300,70 T600,70'/><path d='M0,100 Q150,70 300,100 T600,100'/><path d='M0,130 Q150,100 300,130 T600,130'/><path d='M0,160 Q150,130 300,160 T600,160'/></g></svg>"),
+        linear-gradient(135deg, #5a7468 0%, #6c8e7f 45%, #7a9a8c 100%);
+    color: #fff;
+    padding: 2.4rem 2rem 4.4rem;        /* extra bottom space for the curve */
     text-align: center;
     position: relative;
+    overflow: hidden;
+}
+.app-header-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+}
+/* Soft curved bottom edge — sits flush against the bottom of the sage
+   band so the white content area peeks through in a shallow arc.
+   Drawn as a sibling SVG with a white fill matching the page below. */
+.app-header-curve {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;                       /* -1 hides anti-aliasing seam */
+    width: 100%;
+    height: 48px;
+    display: block;
+    z-index: 0;
+}
+/* Eyebrow — small, uppercase, letter-spaced. Sets context above the
+   title without competing for attention. */
+.app-header-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 0.85rem;
+}
+/* Subtitle — light, single sentence, breathing room below title. */
+.app-header-subtitle {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0.55rem 0 0;
+    letter-spacing: 0.005em;
+}
+/* Year mark inside the title — same family, color-tinted accent so the
+   editorial date pops without being a separate badge. */
+.app-header-year {
+    color: #f4d99a;                     /* warm sand — ties to the HB300 yellow */
+    font-weight: 500;
+    margin-left: 0.15em;
 }
 
 /* "Open ↗" button — only visible when the page is embedded in an
@@ -78,52 +130,77 @@ body {
 .open-fullpage-btn[hidden] { display: none; }
 
 .app-header h1 {
-    margin-bottom: 1rem;
-    font-weight: 300;
+    margin: 0;
+    font-weight: 350;
+    font-size: clamp(1.85rem, 3.6vw, 2.55rem);
+    letter-spacing: -0.015em;
+    line-height: 1.15;
 }
 
+/* Nav — pill tabs with clear active state, equal weight across tabs.
+   Inactive tabs are ghost outlines; active fills with a slight lift. */
 .main-nav {
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
-    margin-top: 1rem;
+    gap: 0.55rem;
+    margin-top: 1.6rem;
+    flex-wrap: wrap;
 }
 
 .nav-link {
-    color: white;
+    color: rgba(255, 255, 255, 0.92);
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-    font-size: 1.05rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;               /* full pill */
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.06);
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+    font-size: 0.92rem;
     font-weight: 500;
+    letter-spacing: 0.01em;
+    backdrop-filter: blur(2px);
 }
 
-.nav-link:hover, .nav-link.active {
-    background-color: rgba(0, 0, 0, 0.1);
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+.nav-link.active {
+    background: #fff;
+    color: #3d5249;                     /* deep sage on white pill */
+    border-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    font-weight: 600;
 }
 
-.nav-link-stacked {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* Stacked nav variants — inline, single-line for the new pill chrome.
+   Sub-text becomes a faint inline complement instead of a stacked label. */
+.nav-link-stacked,
+.nav-link-hb300 {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
     line-height: 1.2;
 }
 .nav-link-hb300 {
-    color: #ffe082;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1.2;
+    color: #f4d99a;
 }
-.nav-link-hb300:hover, .nav-link-hb300.active {
-    color: #ffe082;
+.nav-link-hb300:hover {
+    color: #fce6b1;
+}
+.nav-link-hb300.active {
+    color: #3d5249;                     /* matches other active pills */
 }
 .nav-sub {
-    font-size: 0.68rem;
-    opacity: 0.8;
+    font-size: 0.7rem;
+    opacity: 0.65;
     font-weight: 400;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
+    font-variant: small-caps;
+}
+.nav-link.active .nav-sub {
+    opacity: 0.7;
+    color: #5a7468;
 }
 
 /* HD1/SD1 links in draft comparison title */
@@ -2717,6 +2794,30 @@ mark.search-highlight {
     margin-left: 0.25rem;
 }
 
+/* ── Compare page hero card ──
+   Wraps the page title + description in a lifted white card that
+   overlaps the header's curved bottom edge for a magazine-cover effect.
+   A sage left accent bar ties the card visually to the header band. */
+.compare-page-hero {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem 1.3rem 1.85rem;
+    margin: -3.2rem 0 1.5rem;            /* negative top → overlap the curve */
+    border: 1px solid rgba(16, 24, 40, 0.06);
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 8px 24px rgba(16, 24, 40, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+/* Sage left accent bar — draws the eye and ties to the header band. */
+.compare-page-hero::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #6c8e7f, #8aa595);
+}
 /* ── Compare page description ── */
 /* .compare-page-eyebrow removed */
 .compare-page-titlerow {
