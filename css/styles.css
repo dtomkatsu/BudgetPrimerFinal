@@ -3115,26 +3115,68 @@ mark.search-highlight {
 /* Amount beneath each timeline dot — chip styling (consistent w/ figure-chip in table) */
 .tl-amt {
     display: inline-block;
-    padding: 3px 12px;
+    padding: 5px 14px;
     background: #f4f6f8;
     border: 1px solid #e5e7eb;
     border-radius: 999px;
-    font-size: 1.01rem;
-    font-weight: 700;
     color: #1a2330;
     text-align: center;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
     white-space: nowrap;
     min-height: 1.6em;          /* reserve a consistent row height */
-    min-width: 3.2em;
-    line-height: 1.25;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    min-width: 3.6em;
+    line-height: 1.2;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+/* Two-tone typography — number is the visual hero, suffix is a quieter
+   trailing letter so the eye lands on the magnitude first. */
+.tl-amt-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+}
+.tl-amt-suffix {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #7a8590;
+    margin-left: 1px;
+    vertical-align: baseline;
 }
 .tl-node.tl-inactive .tl-amt {
     color: #aab5b1;
     background: #f9fafa;
     border-color: #ebeeed;
+}
+.tl-node.tl-inactive .tl-amt-suffix {
+    color: #c1c8c5;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Stage-based emphasis — Gov is the baseline (faintest), HD1 is the
+   intermediate tint, SD1 is the current/most-recent draft and gets
+   the strongest treatment (filled sage, white text). Visually maps
+   the legislative timeline onto the chips themselves. The :not()
+   guard keeps the muted state when a draft is unchecked.
+   ───────────────────────────────────────────────────────────────── */
+#tl-node-gov:not(.tl-inactive) .tl-amt {
+    background: #f4f6f8;
+    border-color: #e0e5e8;
+    color: #2c3a45;
+}
+#tl-node-hd1:not(.tl-inactive) .tl-amt {
+    background: #eef3f0;
+    border-color: #d3e0d8;
+    color: #1f3329;
+}
+#tl-node-sd1:not(.tl-inactive) .tl-amt {
+    background: linear-gradient(135deg, #6c8e7f 0%, #5a7468 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(60, 82, 73, 0.22);
+}
+#tl-node-sd1:not(.tl-inactive) .tl-amt-suffix {
+    color: rgba(255, 255, 255, 0.72);
 }
 
 /* ── Card section sub-headers (inside combined Operating & Capital collapse) ── */
