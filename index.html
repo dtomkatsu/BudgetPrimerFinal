@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="HB1800 Supplemental Budget Tracker - Hawaii State Legislature">
     <title>Hawaiʻi's Budget Changes: 2026 Tracker</title>
-    <link rel="stylesheet" href="css/styles.css?v=83">
+    <link rel="stylesheet" href="css/styles.css?v=84">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -32,15 +32,25 @@
     <div class="app-container">
         <header class="app-header">
             <a id="open-fullpage-btn" class="open-fullpage-btn" href="#" target="_blank" rel="noopener" hidden>Open ↗</a>
-            <h1>Hawaiʻi's Budget Changes: 2026 Tracker</h1>
-            <nav class="main-nav">
-                <a href="#/" class="nav-link nav-link-stacked">HB1800<span class="nav-sub">2026 budget bill</span></a>
-                <!-- Tax calculator tab hidden for now — needs further development before re-enabling
-                <a href="#/tax-calculator" class="nav-link nav-link-calc">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
-                -->
-                <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
-                <a href="#/about" class="nav-link">About</a>
-            </nav>
+            <div class="app-header-inner">
+                <p class="app-header-eyebrow">State of Hawaiʻi · Live Legislative Tracker</p>
+                <h1>Hawaiʻi's Budget Changes <span class="app-header-year">2026</span></h1>
+                <p class="app-header-subtitle">Following the supplemental budget through the 2025–26 session.</p>
+                <nav class="main-nav">
+                    <a href="#/" class="nav-link nav-link-stacked">HB1800<span class="nav-sub">2026 budget bill</span></a>
+                    <!-- Tax calculator tab hidden for now — needs further development before re-enabling
+                    <a href="#/tax-calculator" class="nav-link nav-link-calc">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
+                    -->
+                    <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
+                    <a href="#/about" class="nav-link">About</a>
+                </nav>
+            </div>
+            <!-- Soft curved bottom edge — replaces the hard rectangle. SVG sits
+                 flush against the bottom of the sage band and curves up into a
+                 shallow arc so the content area peeks through. -->
+            <svg class="app-header-curve" viewBox="0 0 1200 48" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,48 L0,18 Q300,0 600,12 T1200,18 L1200,48 Z" fill="#ffffff"/>
+            </svg>
         </header>
 
         <main id="app">

@@ -730,7 +730,8 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <div class="compare-page-titlerow">
+            <div class="compare-page-hero">
+              <div class="compare-page-titlerow">
                 <h2>HB 1800 · Draft Comparison</h2>
                 <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
                     ⓘ How to read this
@@ -746,8 +747,9 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
                     </div>
                 </span>
+              </div>
+              <p class="compare-page-desc">Compare the Governor's request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.</p>
             </div>
-            <p class="compare-page-desc">Compare the Governor's request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.</p>
             <div class="compare-controls-bar">
                 <div class="compare-scope-row">
                     <span class="compare-scope-label">Viewing</span>
