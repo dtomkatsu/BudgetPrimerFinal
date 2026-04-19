@@ -3310,26 +3310,48 @@ mark.search-highlight {
 #draft-cards:empty {
     display: none;
 }
-/* Wrapper for Gov amount row: caret sits to the left of the chip */
+/* Wrapper for Gov amount row: caret container + chip side by side */
 .tl-amt-wrap {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
-/* Expand/collapse caret left of Gov amount */
+/* Distinct container for the expand caret — makes it unmistakably
+   interactive while keeping it compact and out of the way. */
+.tl-expand-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f0f4f2;
+    border: 1px solid #d1ddd8;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+.tl-expand-container:hover {
+    background: #dfeae5;
+    border-color: #a8c0b8;
+}
 .tl-expand-caret {
     background: none;
     border: none;
-    padding: 0 2px;
-    font-size: 0.94rem;
+    padding: 0;
+    font-size: 0.9rem;
     line-height: 1;
-    color: #6b8a7e;
+    color: #5a7468;
     cursor: pointer;
-    transition: color 0.12s;
-    flex-shrink: 0;
+    transition: transform 0.18s ease, color 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.tl-expand-caret:hover {
-    color: #1e4d3a;
+.tl-expand-caret.open {
+    transform: rotate(180deg);
+}
+.tl-expand-container:hover .tl-expand-caret {
+    color: #3d5249;
 }
 
 .hb300-ref-bar {

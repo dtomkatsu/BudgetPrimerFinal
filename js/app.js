@@ -744,7 +744,9 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                             <span class="tl-seg tl-seg-after"></span>
                         </div>
                         <div class="tl-amt-wrap">
-                            <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
+                            <div class="tl-expand-container">
+                                <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
+                            </div>
                             <span class="tl-amt" id="tl-amt-gov"></span>
                         </div>
                         <div class="tl-breakdown" id="tl-bd-gov" hidden></div>
@@ -1041,9 +1043,7 @@ window.initDraftComparePage = async function () {
                 ? '0%'
                 : `${sign}${netPct.toFixed(netPct > -10 && netPct < 10 ? 2 : 1)}%`;
             netAmtEl.innerHTML =
-                `<span class="tl-net-arrow" aria-hidden="true">${arrow}</span>` +
-                `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>` +
-                `<span class="tl-net-pct">${pct}</span>`;
+                `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
         }
         // Sparkline: three dots (Gov / HD1 / SD1) with the last highlighted.
         // Vertically scales to the range of the three totals so visually-tiny
@@ -1064,7 +1064,7 @@ window.initDraftComparePage = async function () {
         }
         // Update expand caret on Gov amount row
         const expandBtn = document.getElementById('tl-expand-btn');
-        if (expandBtn) expandBtn.textContent = showBreakdown ? '▴' : '▾';
+        if (expandBtn) expandBtn.classList.toggle('open', showBreakdown);
 
         // draft-cards is now empty (toggle lives on the Net Change label)
         cardsEl.innerHTML = '';
