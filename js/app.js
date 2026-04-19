@@ -1959,6 +1959,11 @@ window.initDraftComparePage = async function () {
         let bodyRows = '';
         let visibleCount = 0;
         let totalsD1 = 0, totalsD2 = 0, totalsHD1 = 0, totalsProjCount = 0;
+        // For govActive footer: programs may appear under multiple depts (e.g.
+        // BED170 → BED+AGS). Per-dept d1Total uses program-level rollup, so
+        // summing it across depts double-counts cross-dept programs. Track which
+        // programs we've already counted globally to dedupe the footer total.
+        const globalProgsSeenForD1 = new Set();
 
         for (const dept of depts) {
             // Apply search filter per project
@@ -2000,7 +2005,19 @@ window.initDraftComparePage = async function () {
                                       : filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
             const d2Total  = filteredProjects.reduce((s, pr) => s + getD2Amt(pr), 0);
             const hd1Total = filteredProjects.reduce((s, pr) => s + (pr[hd1Key] || 0), 0);
-            totalsD1 += d1Total;
+            // For govActive, dedupe program_id GLOBALLY across depts in the
+            // footer total — three CIP programs (BED170, PSD900, HMS220) own
+            // projects under multiple depts and would otherwise be summed twice.
+            if (govActive) {
+                for (const pr of filteredProjects) {
+                    if (!globalProgsSeenForD1.has(pr.program_id)) {
+                        globalProgsSeenForD1.add(pr.program_id);
+                        totalsD1 += govCipProgTotals.get(pr.program_id) || 0;
+                    }
+                }
+            } else {
+                totalsD1 += d1Total;
+            }
             totalsD2 += d2Total;
             totalsHD1 += hd1Total;
             totalsProjCount += filteredProjects.length;
