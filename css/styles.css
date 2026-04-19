@@ -189,7 +189,7 @@ body {
         color 0.22s ease,
         box-shadow 0.32s ease,
         transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
-    font-size: 1.02rem;
+    font-size: 1.1rem;
     font-weight: 650;
     letter-spacing: 0.005em;
     will-change: transform, background;
@@ -220,13 +220,13 @@ body {
 .nav-link-hb300:hover { color: #ffffff; }
 .nav-link-hb300.active { color: #3d5249; }
 
-/* Sub-label — clearly secondary: smaller, dimmer, lighter weight.
-   Hierarchy comes from contrast, not size. */
+/* Sub-label — secondary but still readable. Hierarchy comes mainly
+   from weight + opacity, not from shrinking the size aggressively. */
 .nav-sub {
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.55);
-    font-weight: 400;
-    letter-spacing: 0.06em;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 450;
+    letter-spacing: 0.05em;
     font-variant: small-caps;
     transition: color 0.22s ease, opacity 0.22s ease;
 }
