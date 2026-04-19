@@ -157,7 +157,7 @@ class Router {
         };
 
         const defaults = {
-            subtitle: 'FY2026–27 · Following the supplemental budget through the 2025–26 session.',
+            subtitle: 'FY2026–27 · Compare the Governor\'s request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.',
             docTitle: 'Hawaiʻi Budget Tracker · HB1800'
         };
 

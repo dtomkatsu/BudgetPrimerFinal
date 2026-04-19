@@ -748,7 +748,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     </div>
                 </span>
               </div>
-              <p class="compare-page-desc">Compare the Governor's request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.</p>
             </div>
             <div class="compare-controls-bar">
                 <div class="compare-scope-row">
