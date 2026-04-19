@@ -988,6 +988,18 @@ window.initDraftComparePage = async function () {
             return `${sign}$${abs.toFixed(0)}`;
         };
 
+        // Two-tone HTML rendering: prominent number + smaller, dimmer
+        // currency suffix (B / M / K). Visual hero is the number itself.
+        const fmtShortHTML = (n) => {
+            const s = fmtShort(n);
+            if (!s) return '';
+            const m = s.match(/^([-−]?\$[0-9.]+)([BMK]?)$/);
+            if (!m) return s;
+            const [, num, suffix] = m;
+            return `<span class="tl-amt-num">${num}</span>` +
+                (suffix ? `<span class="tl-amt-suffix">${suffix}</span>` : '');
+        };
+
         // Update main Total amounts directly under each dot
         [
             { id: 'tl-amt-gov', val: totGov },
@@ -995,7 +1007,7 @@ window.initDraftComparePage = async function () {
             { id: 'tl-amt-sd1', val: totSD1 },
         ].forEach(({ id, val }) => {
             const el = document.getElementById(id);
-            if (el) el.textContent = fmtShort(val);
+            if (el) el.innerHTML = fmtShortHTML(val);
         });
 
         // Populate Operating / Capital breakdown sub-chips (shown only when expanded)
