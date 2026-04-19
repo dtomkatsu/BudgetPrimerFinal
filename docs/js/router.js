@@ -147,7 +147,7 @@ class Router {
     updateHeaderText(path) {
         const configs = {
             '/enacted': {
-                subtitle: 'FY2026–27 · The enacted biennial budget from the 2024–25 session (HB300).',
+                subtitle: 'FY2026 · The enacted biennial budget from the 2024–25 session (HB300).',
                 docTitle: 'Hawaiʻi Budget Tracker · HB300'
             },
             '/about': {
