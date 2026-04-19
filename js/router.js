@@ -157,7 +157,7 @@ class Router {
         };
 
         const defaults = {
-            subtitle: 'FY2026–27 · Compare the Governor\'s request, House Draft 1, and Senate Draft 1 to see what was added, cut, or moved.',
+            subtitle: 'FY2026–27 · Compare the Governor, House, and Senate drafts.',
             docTitle: 'Hawaiʻi Budget Tracker · HB1800'
         };
 

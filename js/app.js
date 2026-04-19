@@ -165,30 +165,88 @@ const sparklineSvg = (values) => {
          + dots + `</svg>`;
 };
 
-// Stacked horizontal bar (SVG) showing top-N programs' share of a group total.
-// `segments` is an array of { label, value } sorted desc. Renders up to 6 and
-// rolls the rest into an "other" slice. Width 90px, height 10px.
+// Stacked horizontal bar showing top-N programs' share of a group total.
+// `segments` is an array of { label, value }. Renders up to 6 segments and
+// rolls the rest into an "other" slice.
+//
+// Returns a full HTML wrapper with:
+//   - inline caption ("share by program")
+//   - stacked bar (14px tall, 1px white gaps between segments, sage outline)
+//   - top-program annotation (largest program's id + percentage)
+//   - hover popover with full segment legend (swatches + names + % + amounts)
 const stackedBarSvg = (segments, total) => {
     if (!total || total <= 0 || !segments.length) return '';
-    const W = 90, H = 10;
+    const W = 90, H = 14, GAP = 1;
     const sorted = [...segments].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     const top = sorted.slice(0, 6);
     const restVal = sorted.slice(6).reduce((s, x) => s + Math.abs(x.value), 0);
+    const restCount = sorted.length - 6;
     const parts = top.map(s => ({ label: s.label, value: Math.abs(s.value) }));
-    if (restVal > 0) parts.push({ label: `+${sorted.length - 6} more`, value: restVal });
+    if (restVal > 0) parts.push({ label: `+${restCount} more program${restCount === 1 ? '' : 's'}`, value: restVal });
     // Muted sage-aligned palette
     const palette = ['#5a7b68', '#7da48d', '#a5bfae', '#c8cfa8', '#c9a87b', '#a68c68', '#cdd3d8'];
+    const sumParts = parts.reduce((s, p) => s + p.value, 0) || 1;
+
+    // Drawable width minus inter-segment gaps
+    const gapTotal = Math.max(0, parts.length - 1) * GAP;
+    const drawableW = Math.max(0, W - gapTotal);
+
+    // Compute per-segment metadata (width, fill, percent of group total)
+    const enriched = parts.map((p, i) => {
+        const pct = (p.value / sumParts) * 100;
+        return {
+            label: p.label,
+            value: p.value,
+            pct,
+            fill: palette[i % palette.length],
+            w: (p.value / sumParts) * drawableW,
+        };
+    });
+
+    // Build SVG with 1px gaps between segments
     let x = 0;
     let svg = `<svg class="stacked-bar" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">`;
-    const sumParts = parts.reduce((s, p) => s + p.value, 0) || 1;
-    parts.forEach((p, i) => {
-        const w = (p.value / sumParts) * W;
-        const fill = palette[i % palette.length];
-        svg += `<rect x="${x.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${H}" fill="${fill}"><title>${escapeHtml(p.label)}: ${fmt(p.value)}</title></rect>`;
-        x += w;
+    enriched.forEach((p, i) => {
+        const tipPct = p.pct >= 1 ? `${p.pct.toFixed(0)}%` : `<1%`;
+        svg += `<rect x="${x.toFixed(1)}" y="0" width="${p.w.toFixed(1)}" height="${H}" fill="${p.fill}"><title>${escapeHtml(p.label)} — ${tipPct} — ${fmt(p.value)}</title></rect>`;
+        x += p.w + GAP;
     });
     svg += `</svg>`;
-    return svg;
+
+    // Top-program annotation: extract program_id (first whitespace-delimited token)
+    // from the largest segment's label. Skip if the leader is the "+N more" rollup.
+    const leader = enriched[0];
+    let topAnnot = '';
+    if (leader && !leader.label.startsWith('+')) {
+        const leaderId = (leader.label.split(/\s+/)[0] || '').trim();
+        const leaderPct = leader.pct >= 1 ? `${leader.pct.toFixed(0)}%` : `<1%`;
+        if (leaderId) {
+            topAnnot = `<span class="stacked-bar-top"><span class="stacked-bar-top-id">${escapeHtml(leaderId)}</span> <span class="stacked-bar-top-pct">${leaderPct}</span></span>`;
+        }
+    }
+
+    // Hover popover legend: swatch + label + % + amount for each segment
+    let legendRows = '';
+    enriched.forEach(p => {
+        const pPct = p.pct >= 1 ? `${p.pct.toFixed(0)}%` : `<1%`;
+        legendRows += `<li class="stacked-bar-legend-row">
+            <span class="legend-swatch" style="background:${p.fill}"></span>
+            <span class="legend-label">${escapeHtml(p.label)}</span>
+            <span class="legend-pct">${pPct}</span>
+            <span class="legend-amt">${fmt(p.value)}</span>
+        </li>`;
+    });
+    const popover = `<div class="stacked-bar-popover" role="tooltip">
+        <div class="stacked-bar-popover-title">Share by program</div>
+        <ul class="stacked-bar-legend">${legendRows}</ul>
+    </div>`;
+
+    return `<span class="stacked-bar-wrap" tabindex="0">
+        <span class="stacked-bar-caption">share by program</span>
+        <span class="stacked-bar-track">${svg}</span>
+        ${topAnnot}
+        ${popover}
+    </span>`;
 };
 
 // Title-case a program/department name while preserving parenthesized acronyms
@@ -1151,14 +1209,23 @@ window.initDraftComparePage = async function () {
                  ⓘ How to read this
                  <div class="reading-guide-panel">
                      <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
-                     <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
-                     <p>Compact chips next to a program name flag cross-department links:<br>
-                     <span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span> — funds for this program moved <em>out</em> of this dept to the linked one.<br>
-                     <span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span> — funds moved <em>into</em> this dept from the linked one.<br>
-                     <span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span> — the program also appears in the linked dept (no clear direction).<br>
-                     Hover a chip to highlight the paired rows; click to jump there.<br>
-                     <span class="data-note" style="pointer-events:none;">⚠</span> — known data anomaly; hover for details.<br>
-                     <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
+                     <p>In the House draft (HD1), capital projects are sometimes listed under <strong>AGS</strong> (Accounting &amp; General Services) as a placeholder. Some programs, like Rental Housing, receive funding from multiple departments (e.g., <strong>HMS</strong> and <strong>BED</strong>).</p>
+                     <div class="rg-chips">
+                         <p class="rg-chips-title">Chips next to a program name</p>
+                         <dl class="rg-chips-defs">
+                             <dt><span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span></dt>
+                             <dd>funds moved <em>out</em> of this dept</dd>
+                             <dt><span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span></dt>
+                             <dd>funds moved <em>into</em> this dept</dd>
+                             <dt><span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span></dt>
+                             <dd>program appears in both depts (no clear direction)</dd>
+                             <dt><span class="data-note" style="pointer-events:none;">⚠</span></dt>
+                             <dd>known data anomaly — hover for details</dd>
+                             <dt><span class="fund-note" style="pointer-events:none;">ℹ bond-financed</span></dt>
+                             <dd>capital projects in the Fund Detail section below</dd>
+                         </dl>
+                         <p class="rg-chips-help">Hover a chip to highlight paired rows; click to jump.</p>
+                     </div>
                  </div>
              </span>`;
         // Re-attach filter/search listeners after re-render
@@ -1564,7 +1631,7 @@ window.initDraftComparePage = async function () {
             const gPct = gD1 !== 0 ? ((gDelta / Math.abs(gD1)) * 100) : (gDelta !== 0 ? 100 : 0);
             const gPctStr = fmtPct(gPct).replace(/^\+/, '');
             bodyHtml += `<tbody class="totals-block"><tr class="totals-row">
-                <td>Total (${depts.length} departments)</td>
+                <td>Total <span class="totals-meta">${depts.length} depts</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gHD1)}</span></td>` : ''}
@@ -1619,7 +1686,7 @@ window.initDraftComparePage = async function () {
             }));
             const fgStackBar = stackedBarSvg(fgStackSegs, fgD2);
             fundHtml += `<tr class="fund-group-row${isOpen ? ' open' : ''}" data-fund-type="${fg.type}">
-                <td><span class="dept-arrow">${arrow}</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` <span class="stacked-bar-wrap" title="Top programs' share of this fund">${fgStackBar}</span>` : ''}</td>
+                <td><span class="dept-arrow">${arrow}</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` ${fgStackBar}` : ''}</td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
@@ -1660,7 +1727,7 @@ window.initDraftComparePage = async function () {
             const fgPct = fgD1 !== 0 ? ((fgDelta / Math.abs(fgD1)) * 100) : (fgDelta !== 0 ? 100 : 0);
             const fgPctStr = fmtPct(fgPct).replace(/^\+/, '');
             fundHtml += `<tbody class="totals-block"><tr class="totals-row">
-                <td>Total (${fundGroups.length} fund types)</td>
+                <td>Total <span class="totals-meta">${fundGroups.length} fund types</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
@@ -2087,7 +2154,7 @@ window.initDraftComparePage = async function () {
             const d1Cell = govActive ? '' : `<td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsD1)}</span></td>`;
             const hd1Cell = showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(totalsHD1)}</span></td>` : '';
             bodyRows += `<tbody class="totals-block"><tr class="totals-row">
-                <td colspan="3">Total (${totalsProjCount} project${totalsProjCount === 1 ? '' : 's'} across ${visibleCount} department${visibleCount === 1 ? '' : 's'})</td>
+                <td colspan="3">Total <span class="totals-meta">${totalsProjCount} project${totalsProjCount === 1 ? '' : 's'} · ${visibleCount} dept${visibleCount === 1 ? '' : 's'}</span></td>
                 <td></td>
                 ${d1Cell}
                 ${govCell}
