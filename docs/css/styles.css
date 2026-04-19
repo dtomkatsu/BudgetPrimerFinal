@@ -2016,8 +2016,8 @@ th.sortable .sort-hint {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 360px;
-    max-width: 460px;
+    min-width: 450px;
+    max-width: 575px;
     background: #fff;
     border: 1px solid #d0dbd5;
     border-left: 4px solid var(--primary-color, #2e7d32);
