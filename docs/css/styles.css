@@ -189,9 +189,9 @@ body {
         color 0.22s ease,
         box-shadow 0.32s ease,
         transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-size: 1.02rem;
+    font-weight: 650;
+    letter-spacing: 0.005em;
     will-change: transform, background;
 }
 
@@ -211,7 +211,7 @@ body {
 .nav-link-hb300 {
     display: inline-flex;
     align-items: baseline;
-    gap: 0.5em;
+    gap: 0.6em;
     line-height: 1.2;
 }
 /* HB300 differentiates by label only — same white text as siblings so
@@ -220,18 +220,20 @@ body {
 .nav-link-hb300:hover { color: #ffffff; }
 .nav-link-hb300.active { color: #3d5249; }
 
+/* Sub-label — clearly secondary: smaller, dimmer, lighter weight.
+   Hierarchy comes from contrast, not size. */
 .nav-sub {
-    font-size: 0.92rem;
-    color: rgba(255, 255, 255, 0.85);
-    font-weight: 500;
-    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 400;
+    letter-spacing: 0.06em;
     font-variant: small-caps;
     transition: color 0.22s ease, opacity 0.22s ease;
 }
 .nav-link.active .nav-sub {
-    color: #6c8e7f;                     /* sage tint, readable on white pill */
+    color: #8aa595;                     /* sage tint, readable on white pill */
     opacity: 1;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 /* HD1/SD1 links in draft comparison title */
