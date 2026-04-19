@@ -602,8 +602,8 @@ body {
    a firm bottom edge + small drop-shadow so it stays visually distinct from the sticky
    dept-group-row that pins immediately below it. */
 .data-table th {
-    background: #f5f7f9;
-    border-bottom: 1px solid rgba(16, 24, 40, 0.14);
+    background: linear-gradient(to bottom, #f7f9fb, #eef2f6);
+    border-bottom: 1px solid rgba(16, 24, 40, 0.12);
     box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
     font-size: 0.82rem;
     font-weight: 600;
@@ -613,6 +613,16 @@ body {
     position: sticky;
     top: 0;
     z-index: 2;                           /* above dept-group-row.open which is z-index 1 */
+}
+/* Round the outer thead corners to echo the white card's 12px radius. The
+   table itself sits inside a card with rounded corners but the table cells
+   are rectangular by default — corner-rounding the first/last th lets the
+   header tint flow into the card's curve instead of meeting it as a hard edge. */
+.data-table thead th:first-child {
+    border-top-left-radius: 8px;
+}
+.data-table thead th:last-child {
+    border-top-right-radius: 8px;
 }
 
 .th-sub {
@@ -909,21 +919,31 @@ mark {
     box-shadow: 0 0 0 1px rgba(209, 180, 40, 0.3);
 }
 
-/* Totals row — bold running totals footer that visually separates from data.
-   Uses a heavier top border and subtle tint so the eye naturally lands on it. */
+/* Totals row — bold running totals footer with strong visual separation
+   from the data above (heavier top border, slightly darker gradient tint),
+   plus rounded outer corners so it sits naturally inside the white card. */
 .totals-block .totals-row td {
-    border-top: 2px solid #cbd2d8;
-    background: #f7f8fa;
+    border-top: 2px solid #b8c0c8;
+    background: linear-gradient(to bottom, #eef1f5, #e3e8ed);
     font-weight: 700;
     color: #1f2937;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 14px;
+    padding-bottom: 14px;
 }
 .totals-block .totals-row td:first-child {
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-size: 0.8rem;
     color: #4b5563;
+    border-bottom-left-radius: 6px;
+}
+.totals-block .totals-row td:last-child {
+    border-bottom-right-radius: 6px;
+}
+/* Margin gap above the totals row to separate from the dept blocks */
+.totals-block .totals-row td {
+    box-shadow: inset 0 4px 0 #ffffff;
+    padding-top: 18px;
 }
 .totals-block .totals-row .figure-chip {
     font-weight: 700;
@@ -980,11 +1000,40 @@ a.section-chip-link:hover {
     padding: 9px 11px;
     vertical-align: top;
 }
-/* Dept group rows inside the project table */
-.project-table .project-dept-row { cursor: pointer; user-select: none; }
-.project-table .project-dept-row:hover td { background: #eaf1ee; }
-/* Project-table dept rows use the same sticky behavior as .dept-group-row */
-.project-table .project-dept-row td { background: #f8f9fa; }
+/* Dept group rows inside the project table — match the chrome of .dept-group-row */
+.project-table .project-dept-row {
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+}
+.project-table .project-dept-row td {
+    background: linear-gradient(to bottom, #fafbfc, #f1f4f7);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+.project-table .project-dept-row td:first-child {
+    box-shadow: inset 3px 0 0 #c8d1d9;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+.project-table .project-dept-row td:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+.project-table .project-dept-row:hover td {
+    background: linear-gradient(to bottom, #f3f6f9, #e7ecf1);
+}
+.project-table .project-dept-row:hover td:first-child {
+    box-shadow: inset 3px 0 0 #8aa595;
+}
+.project-table .project-dept-row.open td {
+    background: linear-gradient(to bottom, #eef3ef, #e2eae4);
+    color: #2a3d33;
+}
+.project-table .project-dept-row.open td:first-child {
+    box-shadow: inset 3px 0 0 #6f8e7c;
+}
 .project-dept-cell {
     padding: 11px 15px !important;
 }
@@ -1305,19 +1354,44 @@ th.sortable .sort-hint {
     transition: opacity 0.15s;
 }
 
-/* Department group rows */
+/* Department group rows — soft warm-grey gradient with a sage accent bar
+   on the left when collapsed, deepening to a stronger sage when open. The
+   gradient adds dimension that flat fills lack; the accent bar gives each
+   dept block a subtle "you are entering a section" cue without shouting. */
 .dept-group-row {
     cursor: pointer;
     font-weight: 500;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(16, 24, 40, 0.08);
 }
 .dept-group-row td {
-    padding-top: 11px;
-    padding-bottom: 11px;
-    background: #f8f9fa;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background: linear-gradient(to bottom, #fafbfc, #f1f4f7);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.dept-group-row td:first-child {
+    box-shadow: inset 3px 0 0 #c8d1d9;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+.dept-group-row td:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 .dept-group-row:hover td {
-    background: #e9ecef;
+    background: linear-gradient(to bottom, #f3f6f9, #e7ecf1);
+}
+.dept-group-row:hover td:first-child {
+    box-shadow: inset 3px 0 0 #8aa595;
+}
+/* When expanded: deeper sage tint + stronger left bar so it reads as the
+   active context for the child rows below it. */
+.dept-group-row.open td {
+    background: linear-gradient(to bottom, #eef3ef, #e2eae4);
+    color: #2a3d33;
+}
+.dept-group-row.open td:first-child {
+    box-shadow: inset 3px 0 0 #6f8e7c;
 }
 /* Only sticky when expanded — keeps the dept label pinned below the
    thead while scrolling through its children. Collapsed rows stay in
@@ -1327,6 +1401,14 @@ th.sortable .sort-hint {
     position: sticky;
     top: 39px;
     z-index: 1;
+}
+/* Visual breathing room between dept blocks: a transparent gap created via
+   negative-bottom border + box-shadow trick. Cleaner than per-tbody
+   margins which break the table layout. */
+.dept-block + .dept-block .dept-group-row td {
+    /* Adds a 6px "white space" gap above each subsequent dept block by
+       pushing the gradient down slightly via padding. */
+    padding-top: 16px;
 }
 .dept-arrow {
     display: inline-block;
@@ -1374,23 +1456,45 @@ th.sortable .sort-hint {
     line-height: 1.7;
     padding: 10px 14px;
 }
+/* Fund group rows — same visual language as dept-group-row for consistency. */
 .fund-group-row {
     cursor: pointer;
     font-weight: 500;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(16, 24, 40, 0.08);
 }
 .fund-group-row td {
-    padding-top: 11px;
-    padding-bottom: 11px;
-    background: #f8f9fa;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background: linear-gradient(to bottom, #fafbfc, #f1f4f7);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.fund-group-row td:first-child {
+    box-shadow: inset 3px 0 0 #c8d1d9;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+.fund-group-row td:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 .fund-group-row:hover td {
-    background: #e9ecef;
+    background: linear-gradient(to bottom, #f3f6f9, #e7ecf1);
+}
+.fund-group-row:hover td:first-child {
+    box-shadow: inset 3px 0 0 #8aa595;
 }
 .fund-group-row.open td {
+    background: linear-gradient(to bottom, #eef3ef, #e2eae4);
+    color: #2a3d33;
     position: sticky;
     top: 39px;
     z-index: 1;
+}
+.fund-group-row.open td:first-child {
+    box-shadow: inset 3px 0 0 #6f8e7c;
+}
+.fund-block + .fund-block .fund-group-row td {
+    padding-top: 16px;
 }
 .fund-detail-row.hidden {
     display: none;
@@ -1561,11 +1665,19 @@ th.sortable .sort-hint {
     color: #0f3f21;
 }
 
-/* Hover-highlight: all rows sharing a program_id pair key glow together */
+/* Hover-highlight: all rows sharing a program_id pair key glow together.
+   Treat the entire row as one continuous tinted band — accent bars only on
+   the outermost cells so it reads as a single seamless highlight (no
+   per-cell vertical "breaks" or left-edge stripes between cells). */
 .pair-highlight > td {
-    background: #fff8d4 !important;
-    box-shadow: inset 3px 0 0 #e0b000;
-    transition: background 0.15s ease;
+    background: #fef7d6 !important;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.pair-highlight > td:first-child {
+    box-shadow: inset 3px 0 0 #d9a800;
+}
+.pair-highlight > td:last-child {
+    box-shadow: inset -3px 0 0 #d9a800;
 }
 
 /* Inline FY year toggle in the Program column header */
