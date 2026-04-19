@@ -94,7 +94,7 @@ body {
     font-size: 0.95rem;
     font-weight: 400;
     color: rgba(255, 255, 255, 0.75);
-    margin: 0.55rem 0 0;
+    margin: 0.85rem 0 0;
     letter-spacing: 0.005em;
 }
 /* Year mark inside the title — refined editorial treatment: thin pipe
@@ -133,30 +133,59 @@ body {
 }
 .open-fullpage-btn[hidden] { display: none; }
 
-/* Diamond Head silhouette mark — small line-chart spark above the title.
-   Sits flush over the headline as a quiet pictographic anchor. */
+/* Stacked-wave mark — three soft swells above the title. Reads as
+   the Pacific without leaning on a specific landmark. Sized as a
+   refined anchor rather than a banner. */
 .app-header-mark {
     display: block;
-    width: 96px;
-    height: 30px;
+    width: 72px;
+    height: 21px;
     margin: 0 auto 0.7rem;
     opacity: 0.95;
 }
 
+/* Editorial serif headline. Newsreader pairs warmth with restraint and
+   gives the masthead a publication feel rather than a web-app one.
+   Falls back gracefully to system serifs if the webfont fails. */
 .app-header h1 {
     margin: 0;
-    font-weight: 350;
-    font-size: clamp(1.85rem, 3.6vw, 2.55rem);
-    letter-spacing: -0.015em;
-    line-height: 1.15;
+    font-family: 'Newsreader', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.85rem);
+    letter-spacing: -0.012em;
+    line-height: 1.04;
 }
-/* "Hawaiʻi" gets a warm ivory tint and slightly heavier weight so the
-   place name sits as a subtle wordmark alongside the function ("Budget
-   Tracker"), without becoming a full color block. */
+/* "Hawaiʻi" gets a warm ivory tint and small caps — architectural
+   wordmark treatment that distinguishes the place name from the
+   function noun ("Budget") without leaning the glyph (italic ʻokina
+   read as drifted punctuation). */
 .app-header-place {
     color: #f4ead5;
-    font-weight: 450;
-    letter-spacing: -0.005em;
+    font-variant: small-caps;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+/* "Tracker" demoted to a small-caps tagline beneath the headline.
+   A short ivory hairline above acts as masthead chrome, locking the
+   tagline into deliberate publication rhythm rather than floating. */
+.app-header-tag {
+    display: block;
+    position: relative;
+    margin-top: 0.4rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+}
+.app-header-tag::before {
+    content: '';
+    display: block;
+    width: 28px;
+    height: 1px;
+    background: rgba(244, 234, 213, 0.40);
+    margin: 0 auto 0.45rem;
 }
 
 /* Nav — segmented-control pattern. The nav strip itself is a darker sage
@@ -1006,17 +1035,138 @@ body {
 }
 
 /* Stacked bar — composition of programs within a fund group, shown inline
-   in the fund group-header row. Small pill with rounded corners. */
+   in the fund group-header row. Includes a kicker caption ("share by
+   program"), the bar itself (taller, with hairline gaps and a sage
+   outline), the leading program's id + percentage as a static annotation,
+   and a hover/focus popover with a full segment legend. */
 .stacked-bar-wrap {
+    position: relative;
     display: inline-flex;
-    vertical-align: -2px;
-    margin-left: 6px;
+    align-items: center;
+    gap: 7px;
+    margin-left: 10px;
+    padding: 1px 2px;
+    vertical-align: -3px;
+    cursor: default;
+    outline: none;
+}
+.stacked-bar-caption {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6f9184;
+    white-space: nowrap;
+}
+.stacked-bar-track {
+    display: inline-flex;
     border-radius: 3px;
     overflow: hidden;
-    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.08);
+    box-shadow: 0 0 0 1px #d8e4dd;
+    background: #ffffff;
+    line-height: 0;
 }
 .stacked-bar {
     display: block;
+}
+.stacked-bar-top {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4b5d56;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+.stacked-bar-top-id {
+    font-weight: 700;
+    color: #2c3e35;
+    letter-spacing: 0.02em;
+}
+.stacked-bar-top-pct {
+    color: #6f9184;
+    font-weight: 600;
+    margin-left: 2px;
+}
+
+/* Hover/focus popover legend */
+.stacked-bar-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+    min-width: 240px;
+    max-width: 320px;
+    padding: 10px 12px 11px;
+    background: #ffffff;
+    border: 1px solid #d8e4dd;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(40, 60, 52, 0.14),
+                0 2px 4px rgba(40, 60, 52, 0.06);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(2px);
+    transition: opacity 120ms ease, visibility 120ms ease, transform 120ms ease;
+    pointer-events: none;
+    font-weight: 400;
+}
+.stacked-bar-wrap:hover .stacked-bar-popover,
+.stacked-bar-wrap:focus-visible .stacked-bar-popover,
+.stacked-bar-wrap:focus-within .stacked-bar-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.stacked-bar-popover-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #6f9184;
+    margin-bottom: 7px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eef2ef;
+}
+.stacked-bar-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.stacked-bar-legend-row {
+    display: grid;
+    grid-template-columns: 10px 1fr auto auto;
+    gap: 6px 10px;
+    align-items: center;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: #2c3e35;
+}
+.legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.10);
+}
+.legend-label {
+    color: #2c3e35;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.legend-pct {
+    color: #6f9184;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.legend-amt {
+    color: #5a6e66;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 /* Search highlight — muted yellow tint with slight rounding, no harsh neon.
@@ -1029,47 +1179,48 @@ mark {
     box-shadow: 0 0 0 1px rgba(209, 180, 40, 0.3);
 }
 
-/* === Totals Row — muted hybrid ===
-   A quiet band that separates from the dept rows above without shouting.
-   Soft neutral background, thin sage top accent, all chips share a single
-   slate-grey palette (no saturated green/red pills) — color comes from
-   the digit itself, not the chip, so the delta is emphasized but not
-   billboarded. */
+/* === Totals Row — sage-aligned summary footer ===
+   Pulled into the same family as the timeline pills, net change pill, and
+   reading-guide pill: soft sage background, sage rule above, sage left
+   accent on the label cell, and positive/negative chips that mirror the
+   net change pill so the table footer and the headline summary read as
+   one consistent component. */
 .totals-block .totals-row td {
-    border-top: 2px solid #c8d1d9;             /* soft sage-grey rule */
-    background: #f5f5f1;                       /* muted warm neutral */
+    border-top: 1px solid #dde7e1;             /* very soft sage rule — divider, not a frame */
+    background: #f1f5f3;                       /* lighter sage tint, gentler contrast against zebra rows */
     color: #1f2937;
     font-weight: 700;
     padding: 16px 13px;
-    /* 4px white "gap" above the band so it floats off the dept rows */
-    box-shadow: inset 0 4px 0 #ffffff;
 }
 .totals-block .totals-row td:first-child {
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     color: #4b5563;
-    border-bottom-left-radius: 8px;
+    /* No left accent bar — its hard vertical edge fights the soft top
+       rule. The uppercase label and tinted background already mark this
+       row as the summary without an additional vertical anchor. */
+    box-shadow: inset 3px 0 0 #e3ede7;          /* whisper-soft sage shoulder; reads as a tint, not an edge */
 }
-/* Small "Σ" prefix on the label cell — quiet summation mark, no badge. */
-.totals-block .totals-row td:first-child::before {
-    content: 'Σ';
-    display: inline-block;
-    margin-right: 8px;
-    color: #8aa595;                             /* muted sage */
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0;
-    vertical-align: -1px;
+/* Count info shown after the "Total" label — smaller, lighter, and reset
+   from the cell's uppercase styling so it reads as supplementary info
+   rather than competing with the primary label. */
+.totals-block .totals-row .totals-meta {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #8a9492;
+    margin-left: 0.55em;
     text-transform: none;
-    line-height: 1;
+    letter-spacing: 0.02em;
+    font-variant: normal;
 }
 .totals-block .totals-row td:last-child {
-    border-bottom-right-radius: 8px;
+    /* matched whisper-soft shoulder on the right edge for symmetry */
+    box-shadow: inset -3px 0 0 #e3ede7;
 }
-/* All figure chips: shared muted slate treatment — darker than the data
-   rows' chips so the totals still read as the footer, but nowhere near
-   the saturated fills of the previous iteration. */
+/* Number chips — shared muted slate base; numbers and suffixes split into
+   two-tone typography (number prominent, suffix dimmer) to match the
+   timeline-pill rendering pattern. */
 .totals-block .totals-row .figure-chip {
     background: #e9ecf0;
     border-color: #d5dae0;
@@ -1078,43 +1229,42 @@ mark {
 }
 .totals-block .totals-row .figure-chip .fmt-num {
     color: #1f2937;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
 }
 .totals-block .totals-row .figure-chip .fmt-unit {
-    color: #6b7d8f;
+    color: #8a9492;
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-left: 1px;
 }
-/* Change cell: same chip style, but the digit color carries the sign.
-   Green/red come from the existing .amount-cell.positive/.negative
-   colored-chip rules, so we just tune them for the totals context. */
+/* Change cell: re-skinned to match the net change pill exactly (deep sage
+   for positive, warm clay for negative). Same hue, same border family,
+   so the totals delta and the headline net pill encode direction
+   identically across the page. */
 .totals-block .totals-row .change-cell.positive .figure-chip {
-    background: #eaf3ed;
-    border-color: #c9dfd0;
+    background: #eaf2ec;
+    border-color: #9fc0ad;
 }
 .totals-block .totals-row .change-cell.negative .figure-chip {
-    background: #f4e6e6;
-    border-color: #e3c5c7;
+    background: #f5ece8;
+    border-color: #d2b1a8;
 }
 .totals-block .totals-row .change-cell.positive .figure-chip .fmt-num {
-    color: #1e7e34;
+    color: #2f6b48;
 }
 .totals-block .totals-row .change-cell.negative .figure-chip .fmt-num {
-    color: #b1282b;
+    color: #8e3f3a;
 }
 .totals-block .totals-row .change-cell .change-arrow {
     font-size: 0.95rem;
     margin-right: 3px;
 }
-/* Keep the pct on the same line as the chip in the totals row so the change
-   cell stays single-height — otherwise the two-line content vertically
-   centers within the row and the chip floats above the single-line chips
-   in the other amount cells (Gov/HD1/SD1), breaking visual alignment. */
+/* Hide the percentage in the totals row — the absolute delta is the
+   anchor for the summary, and the % adds noise without aiding scanning. */
 .totals-block .totals-row .change-pct {
-    display: inline-block;
-    margin: 0 0 0 8px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    opacity: 0.7;
-    vertical-align: middle;
+    display: none;
 }
 /* Force all amount cells (including the change cell's inner content) to
    vertical-align: middle so every chip sits on the same horizontal axis. */
@@ -1157,13 +1307,10 @@ a.section-chip-link:hover {
 .project-table {
     font-size: 0.935rem;
 }
+/* Inherit the standard grey gradient + neutral border from .data-table th
+   for visual consistency with all other tables on the page. Only the
+   compact padding remains project-specific. */
 .project-table thead th {
-    background: #eef4f0;
-    border-bottom: 2px solid var(--primary-color, #2e7d32);
-    font-size: 0.86rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #5a6a75;
     padding: 7px 11px;
 }
 .project-table td {
@@ -1969,34 +2116,41 @@ th.sortable .sort-hint {
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     max-width: 480px;
 }
-/* Compact single-row pill with hover tooltip panel (next to search bar) */
+/* Compact single-row pill with hover tooltip panel (next to search bar).
+   Uses the project's sage palette so it sits in-family with the timeline
+   pills and header chrome rather than reading as a generic info banner. */
 .reading-guide-pill {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    height: 31px;
-    padding: 0 13px;
+    gap: 0.5rem;
+    height: 32px;
+    padding: 0 14px;
     margin-left: auto;
-    background: #f0f7f3;
-    border: 1px solid #c5d5cc;
-    border-radius: 14px;
-    font-size: 0.90rem;
-    color: var(--primary-dark, #2c3e50);
+    background: linear-gradient(180deg, #eaf2ec 0%, #d8e6dd 100%);
+    border: 1px solid #9fc0ad;
+    border-radius: 16px;
+    font-size: 0.92rem;
+    color: #3d5249;
     cursor: help;
     outline: none;
-    transition: background 0.15s, border-color 0.15s;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 1px 3px rgba(60, 82, 73, 0.12);
+    transition: background 0.18s ease, border-color 0.18s ease,
+                box-shadow 0.18s ease, transform 0.18s ease;
 }
 .reading-guide-pill:hover,
 .reading-guide-pill:focus-within {
-    background: #e6f0ea;
-    border-color: var(--primary-color, #2e7d32);
+    background: linear-gradient(180deg, #e0ece4 0%, #cadcd1 100%);
+    border-color: #6f9184;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 2px 6px rgba(60, 82, 73, 0.18);
 }
 .reading-guide-pill .reading-guide-icon {
-    width: 1.16rem;
-    height: 1.16rem;
+    width: 1.2rem;
+    height: 1.2rem;
     font-size: 0.79rem;
-    background: var(--primary-color, #2e7d32);
+    background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
     color: #fff;
     border-radius: 50%;
     display: inline-flex;
@@ -2004,10 +2158,11 @@ th.sortable .sort-hint {
     justify-content: center;
     line-height: 1;
     flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 .reading-guide-pill strong {
     font-weight: 600;
-    font-size: 0.90rem;
+    font-size: 0.92rem;
     white-space: nowrap;
     letter-spacing: 0.01em;
 }
@@ -2034,7 +2189,7 @@ th.sortable .sort-hint {
     visibility: hidden;
     transform: translateY(-4px);
     transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
-    z-index: 100;
+    z-index: 1000;
     pointer-events: none;
     white-space: normal;
 }
@@ -2046,14 +2201,77 @@ th.sortable .sort-hint {
     transform: translateY(0);
     pointer-events: auto;
 }
+/* Typography reset — the parent pill sets font-weight: 600 on its label,
+   which cascades into the panel and makes ALL the panel text render bold.
+   Reset to normal weight; <strong> is reserved for true emphasis. */
+.reading-guide-panel {
+    font-weight: 400;
+}
 .reading-guide-panel p {
-    margin: 0 0 0.55rem;
+    margin: 0 0 0.7rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: #3d4a47;
 }
 .reading-guide-panel p:first-child {
     margin-top: 0;
 }
 .reading-guide-panel p:last-child {
     margin-bottom: 0;
+}
+.reading-guide-panel strong {
+    font-weight: 600;
+    color: #2c3e35;
+    white-space: normal;
+}
+.reading-guide-panel em {
+    font-style: italic;
+    font-weight: 500;
+    color: #6f9184;             /* sage tint for emphasis (in/out direction) */
+}
+/* Chip definitions — clean two-column grid replacing the dense
+   <br>-separated list. Chip on the left, description on the right,
+   so each entry reads as a labeled definition rather than a run-on. */
+.reading-guide-panel .rg-chips {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e1eae5;
+}
+.reading-guide-panel .rg-chips-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6f9184;
+    line-height: 1.2;
+}
+.reading-guide-panel .rg-chips-defs {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 0.75rem;
+    margin: 0;
+    align-items: center;
+}
+.reading-guide-panel .rg-chips-defs dt {
+    margin: 0;
+    text-align: left;
+    white-space: nowrap;
+}
+.reading-guide-panel .rg-chips-defs dd {
+    margin: 0;
+    color: #4a5e57;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    font-weight: 400;
+}
+.reading-guide-panel .rg-chips-help {
+    margin: 0.75rem 0 0;
+    font-size: 0.82rem;
+    color: #7a8590;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.4;
 }
 /* On narrow viewports the pill sits near the left edge; switch to fixed
    positioning so the panel spans the usable screen width. */
@@ -2868,17 +3086,28 @@ mark.search-highlight {
 .compare-page-titlerow .fy-seg-ctrl {
     margin-left: auto;
 }
-/* Compact info icon — overrides pill defaults for the title-area variant */
+/* Title-area variant — sage palette, gentle gradient + lift so the pill
+   reads as an inviting affordance rather than a flat info badge.
+   Sized compactly so it slots beside the search input without crowding. */
 .compare-info-icon.reading-guide-pill {
-    height: 28px;
-    padding: 0 11px;
-    font-size: 0.90rem;
-    font-weight: 500;
-    background: #f5f7f6;
-    border-color: #d0d8d4;
-    color: #5a6e68;
+    height: 30px;
+    padding: 0 13px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    background: linear-gradient(180deg, #eaf2ec 0%, #d6e4dc 100%);
+    border: 1px solid #9fc0ad;
+    color: #3d5249;
     margin-left: 0;
     cursor: help;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 1px 3px rgba(60, 82, 73, 0.12);
+}
+.compare-info-icon.reading-guide-pill:hover,
+.compare-info-icon.reading-guide-pill:focus-within {
+    background: linear-gradient(180deg, #dfeae3 0%, #c8d9d0 100%);
+    border-color: #6f9184;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 2px 6px rgba(60, 82, 73, 0.18);
 }
 .compare-page-desc {
     font-size: 1.09rem;
@@ -3026,7 +3255,7 @@ mark.search-highlight {
 .tl-seg {
     flex: 1;
     height: 2px;
-    background: #b0bbb7;
+    background: #c2cdc7;
     transition: background 0.15s;
 }
 .tl-node:first-child .tl-seg-before,
@@ -3036,9 +3265,9 @@ mark.search-highlight {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #2c3e50;
+    background: #5a7468;
     flex-shrink: 0;
-    border: 2px solid #2c3e50;
+    border: 2px solid #5a7468;
     transition: background 0.15s, border-color 0.15s;
 }
 /* Checkmark on active dots */
@@ -3056,14 +3285,14 @@ mark.search-highlight {
 }
 .tl-node.tl-inactive .tl-dot {
     background: #fff;
-    border-color: #b0bbb7;
+    border-color: #c2cdc7;
 }
 /* Hide checkmark when unchecked */
 .tl-node.tl-inactive .tl-dot::after {
     display: none;
 }
 .tl-node.tl-inactive .tl-seg {
-    background: #dde2e0;
+    background: #e3e8e5;
 }
 .tl-label {
     font-size: 0.98rem;
@@ -3102,7 +3331,7 @@ mark.search-highlight {
 }
 .tl-dot-lbl:hover .tl-dot {
     transform: scale(1.15);
-    box-shadow: 0 0 0 5px rgba(44, 62, 80, 0.12);
+    box-shadow: 0 0 0 5px rgba(60, 82, 73, 0.15);
 }
 .tl-dot-lbl:active .tl-dot {
     transform: scale(0.9);
@@ -3162,15 +3391,16 @@ mark.search-highlight {
 #tl-node-gov:not(.tl-inactive) .tl-amt,
 #tl-node-hd1:not(.tl-inactive) .tl-amt,
 #tl-node-sd1:not(.tl-inactive) .tl-amt {
-    background: linear-gradient(135deg, #6c8e7f 0%, #5a7468 100%);
+    background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(60, 82, 73, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20),
+                0 2px 8px rgba(80, 105, 95, 0.18);
 }
 #tl-node-gov:not(.tl-inactive) .tl-amt-suffix,
 #tl-node-hd1:not(.tl-inactive) .tl-amt-suffix,
 #tl-node-sd1:not(.tl-inactive) .tl-amt-suffix {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.80);
 }
 
 /* ── Card section sub-headers (inside combined Operating & Capital collapse) ── */
@@ -3225,17 +3455,23 @@ mark.search-highlight {
 .tl-net-node.negative .tl-spark-dot { fill: #f2b4ba; }
 .tl-net-node.negative .tl-spark-dot-end { fill: #c62828; }
 
-/* Net chip — same pill shape as Gov/HD1/SD1 chips; color is its only differentiator. */
+/* Net chip — secondary "outlined" treatment that pairs with the solid
+   draft pills. Same shape and padding so they share a family, but the
+   outlined / light-fill style gives the summary value a distinct visual
+   rank. Direction is encoded by hue (deep sage for positive, warm clay
+   for negative) — both stay within the broader sage + earth palette. */
 .tl-net-chip {
     display: inline-flex;
     align-items: baseline;
     gap: 6px;
-    padding: 3px 12px;
-    font-weight: 800;
-    background: #f4f6f8;
-    border: 1px solid #e5e7eb;
+    padding: 5px 14px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    background: #f1f5f2;
+    border: 1.5px solid #c4d2cc;
     border-radius: 999px;
-    color: #555;
+    color: #5a6e66;
+    box-shadow: none;
 }
 .tl-net-arrow {
     font-size: 0.78em;
@@ -3244,14 +3480,14 @@ mark.search-highlight {
     opacity: 0.85;
 }
 .tl-net-node.positive .tl-net-chip {
-    background: rgba(30, 126, 52, 0.10);
-    border-color: rgba(30, 126, 52, 0.22);
-    color: #1e7e34;
+    background: #eaf2ec;
+    border-color: #9fc0ad;
+    color: #2f6b48;
 }
 .tl-net-node.negative .tl-net-chip {
-    background: rgba(198, 40, 40, 0.10);
-    border-color: rgba(198, 40, 40, 0.22);
-    color: #c62828;
+    background: #f5ece8;
+    border-color: #d2b1a8;
+    color: #8e3f3a;
 }
 
 /* Cross-fade on FY toggle — replay animation by toggling .tl-net-refresh. */
