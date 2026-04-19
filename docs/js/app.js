@@ -3253,3 +3253,46 @@ window.initTaxCalculatorPage = async function () {
     recompute();
 };
 
+// ─────────────────────────────────────────────────────────────────────────
+// Stacked-bar popover collision handling
+//
+// The popover defaults to opening ABOVE the bar (`bottom: 100%`). On the
+// first row of any data table, that puts it behind the sticky <thead>. On
+// pointer/focus enter we measure the bar against the nearest sticky thead
+// (or the viewport top) and flip the popover BELOW the bar when needed.
+// ─────────────────────────────────────────────────────────────────────────
+(function setupStackedBarPopoverFlip() {
+    if (window.__stackedBarFlipBound) return;
+    window.__stackedBarFlipBound = true;
+
+    const decideFlip = (wrap) => {
+        const pop = wrap.querySelector('.stacked-bar-popover');
+        if (!pop) return;
+        // Measure popover height even while hidden (visibility:hidden keeps layout).
+        const popH = pop.offsetHeight || 180;
+        const wrapRect = wrap.getBoundingClientRect();
+        // Top-of-content cutoff: bottom edge of nearest sticky thead, else 0.
+        const table = wrap.closest('table');
+        let cutoff = 0;
+        if (table) {
+            const thead = table.querySelector('thead');
+            if (thead) {
+                const tr = thead.getBoundingClientRect();
+                cutoff = tr.bottom;
+            }
+        }
+        const projectedTop = wrapRect.top - 8 - popH;
+        const wouldClip = projectedTop < cutoff + 4;
+        pop.classList.toggle('stacked-bar-popover--below', wouldClip);
+    };
+
+    const handler = (e) => {
+        const wrap = e.target.closest && e.target.closest('.stacked-bar-wrap');
+        if (!wrap) return;
+        decideFlip(wrap);
+    };
+
+    document.addEventListener('pointerenter', handler, true);
+    document.addEventListener('focusin', handler, true);
+})();
+
