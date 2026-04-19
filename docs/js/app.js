@@ -730,25 +730,6 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
-            <div class="compare-page-hero">
-              <div class="compare-page-titlerow">
-                <h2>HB 1800 · Draft Comparison</h2>
-                <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
-                    ⓘ How to read this
-                    <div class="reading-guide-panel">
-                        <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
-                        <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
-                        <p>Compact chips next to a program name flag cross-department links:<br>
-                        <span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span> — funds for this program moved <em>out</em> of this dept to the linked one.<br>
-                        <span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span> — funds moved <em>into</em> this dept from the linked one.<br>
-                        <span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span> — the program also appears in the linked dept (no clear direction).<br>
-                        Hover a chip to highlight the paired rows; click to jump there.<br>
-                        <span class="data-note" style="pointer-events:none;">⚠</span> — known data anomaly; hover for details.<br>
-                        <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
-                    </div>
-                </span>
-              </div>
-            </div>
             <div class="compare-controls-bar">
                 <div class="compare-scope-row">
                     <span class="compare-scope-label">Viewing</span>
@@ -1153,7 +1134,21 @@ window.initDraftComparePage = async function () {
                     <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
                 </select>
              </span>`
-            + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">`;
+            + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">
+             <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
+                 ⓘ How to read this
+                 <div class="reading-guide-panel">
+                     <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
+                     <p><strong>In the House draft (HD1), capital projects are sometimes listed under AGS (Accounting &amp; General Services) as a placeholder.</strong> In addition, some programs, like Rental Housing, receive funding from multiple departments (e.g., HMS and BED).</p>
+                     <p>Compact chips next to a program name flag cross-department links:<br>
+                     <span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span> — funds for this program moved <em>out</em> of this dept to the linked one.<br>
+                     <span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span> — funds moved <em>into</em> this dept from the linked one.<br>
+                     <span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span> — the program also appears in the linked dept (no clear direction).<br>
+                     Hover a chip to highlight the paired rows; click to jump there.<br>
+                     <span class="data-note" style="pointer-events:none;">⚠</span> — known data anomaly; hover for details.<br>
+                     <span class="fund-note" style="pointer-events:none;">ℹ bond-financed capital projects</span> — in the Fund Detail section below.</p>
+                 </div>
+             </span>`;
         // Re-attach filter/search listeners after re-render
         document.getElementById('draft-filter')?.addEventListener('change', render);
         document.getElementById('draft-search')?.addEventListener('input', render);
