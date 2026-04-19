@@ -3132,12 +3132,12 @@ mark.search-highlight {
 /* Two-tone typography — number is the visual hero, suffix is a quieter
    trailing letter so the eye lands on the magnitude first. */
 .tl-amt-num {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: -0.015em;
 }
 .tl-amt-suffix {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: #7a8590;
     margin-left: 1px;
@@ -3159,22 +3159,16 @@ mark.search-highlight {
    the legislative timeline onto the chips themselves. The :not()
    guard keeps the muted state when a draft is unchecked.
    ───────────────────────────────────────────────────────────────── */
-#tl-node-gov:not(.tl-inactive) .tl-amt {
-    background: #f4f6f8;
-    border-color: #e0e5e8;
-    color: #2c3a45;
-}
-#tl-node-hd1:not(.tl-inactive) .tl-amt {
-    background: #eef3f0;
-    border-color: #d3e0d8;
-    color: #1f3329;
-}
+#tl-node-gov:not(.tl-inactive) .tl-amt,
+#tl-node-hd1:not(.tl-inactive) .tl-amt,
 #tl-node-sd1:not(.tl-inactive) .tl-amt {
     background: linear-gradient(135deg, #6c8e7f 0%, #5a7468 100%);
     border-color: transparent;
     color: #ffffff;
     box-shadow: 0 2px 8px rgba(60, 82, 73, 0.22);
 }
+#tl-node-gov:not(.tl-inactive) .tl-amt-suffix,
+#tl-node-hd1:not(.tl-inactive) .tl-amt-suffix,
 #tl-node-sd1:not(.tl-inactive) .tl-amt-suffix {
     color: rgba(255, 255, 255, 0.72);
 }
