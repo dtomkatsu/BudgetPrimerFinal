@@ -147,30 +147,23 @@ class Router {
     updateHeaderText(path) {
         const configs = {
             '/enacted': {
-                year: '2025',
-                subtitle: 'Following the enacted 2024–25 biennial budget (HB300).',
-                docTitle: 'Hawaiʻi Budget Tracker 2025'
+                subtitle: 'FY2026–27 · The enacted biennial budget from the 2024–25 session (HB300).',
+                docTitle: 'Hawaiʻi Budget Tracker · HB300'
             },
             '/about': {
-                year: '2026',
                 subtitle: 'About this tracker.',
                 docTitle: 'About · Hawaiʻi Budget Tracker'
             }
         };
 
-        // Default config for HB1800 pages (/ /drafts /department/* /search etc.)
         const defaults = {
-            year: '2026',
-            subtitle: 'Following the supplemental budget through the 2025–26 session.',
-            docTitle: 'Hawaiʻi Budget Tracker 2026'
+            subtitle: 'FY2026–27 · Following the supplemental budget through the 2025–26 session.',
+            docTitle: 'Hawaiʻi Budget Tracker · HB1800'
         };
 
-        // Match /enacted exactly; /department/:id and everything else gets default
         const cfg = configs[path] || defaults;
 
-        const yearEl = document.querySelector('.app-header-year');
         const subtitleEl = document.querySelector('.app-header-subtitle');
-        if (yearEl) yearEl.textContent = cfg.year;
         if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
         document.title = cfg.docTitle;
     }
