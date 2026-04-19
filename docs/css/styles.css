@@ -994,9 +994,22 @@ mark {
     font-size: 0.95rem;
     margin-right: 3px;
 }
+/* Keep the pct on the same line as the chip in the totals row so the change
+   cell stays single-height — otherwise the two-line content vertically
+   centers within the row and the chip floats above the single-line chips
+   in the other amount cells (Gov/HD1/SD1), breaking visual alignment. */
 .totals-block .totals-row .change-pct {
+    display: inline-block;
+    margin: 0 0 0 8px;
     font-weight: 600;
     font-size: 0.82rem;
+    opacity: 0.7;
+    vertical-align: middle;
+}
+/* Force all amount cells (including the change cell's inner content) to
+   vertical-align: middle so every chip sits on the same horizontal axis. */
+.totals-block .totals-row td {
+    vertical-align: middle;
 }
 
 /* Clickable Capital Improvement chip that scrolls to the projects section */
