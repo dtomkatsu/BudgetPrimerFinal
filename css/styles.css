@@ -133,12 +133,30 @@ body {
 }
 .open-fullpage-btn[hidden] { display: none; }
 
+/* Diamond Head silhouette mark — small line-chart spark above the title.
+   Sits flush over the headline as a quiet pictographic anchor. */
+.app-header-mark {
+    display: block;
+    width: 96px;
+    height: 30px;
+    margin: 0 auto 0.7rem;
+    opacity: 0.95;
+}
+
 .app-header h1 {
     margin: 0;
     font-weight: 350;
     font-size: clamp(1.85rem, 3.6vw, 2.55rem);
     letter-spacing: -0.015em;
     line-height: 1.15;
+}
+/* "Hawaiʻi" gets a warm ivory tint and slightly heavier weight so the
+   place name sits as a subtle wordmark alongside the function ("Budget
+   Tracker"), without becoming a full color block. */
+.app-header-place {
+    color: #f4ead5;
+    font-weight: 450;
+    letter-spacing: -0.005em;
 }
 
 /* Nav — pill tabs with clear active state, equal weight across tabs.
