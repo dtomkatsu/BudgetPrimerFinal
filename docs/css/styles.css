@@ -159,49 +159,50 @@ body {
     letter-spacing: -0.005em;
 }
 
-/* Nav — pill tabs with clear active state, equal weight across tabs.
-   Inactive tabs are ghost outlines; active fills with a slight lift. */
+/* Nav — segmented-control pattern. The nav strip itself is a darker sage
+   chip that hosts the pills, so inactive tabs read clearly without needing
+   their own border/fill, and the active white pill pops as a true
+   "selected segment." */
 .main-nav {
-    display: flex;
-    justify-content: center;
-    gap: 0.55rem;
-    margin-top: 1.6rem;
+    display: inline-flex;
     flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 1.5rem auto 0;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .nav-link {
     color: #ffffff;
     text-decoration: none;
-    padding: 0.6rem 1.25rem;
-    border-radius: 999px;               /* full pill */
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.14);
+    padding: 0.5rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
     /* Smooth crossfade across every property the active state touches.
        Material-style standard easing gives a settling, polished feel. */
     transition:
         background 0.28s cubic-bezier(0.2, 0, 0.2, 1),
         color 0.22s ease,
-        border-color 0.28s cubic-bezier(0.2, 0, 0.2, 1),
         box-shadow 0.32s ease,
         transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
     font-size: 1rem;
     font-weight: 500;
     letter-spacing: 0.01em;
-    backdrop-filter: blur(2px);
     will-change: transform, background;
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.24);
-    border-color: rgba(255, 255, 255, 0.62);
+    background: rgba(255, 255, 255, 0.1);
 }
 .nav-link.active {
     background: #fff;
     color: #3d5249;                     /* deep sage on white pill */
-    border-color: #fff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     font-weight: 600;
-    transform: translateY(-1px);        /* subtle lift gives "toggle" feel */
 }
 
 /* Stacked nav variants — inline, single-line for the new pill chrome.
