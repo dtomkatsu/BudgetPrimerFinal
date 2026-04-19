@@ -1332,7 +1332,10 @@ th.sortable {
 }
 th.sortable:hover {
     color: #1f2937;
-    background: rgba(16, 24, 40, 0.025);
+    /* Must be OPAQUE — th is position:sticky, so a semi-transparent hover
+       background lets the rows scrolling behind it bleed through. Slightly
+       darker variant of the default thead gradient. */
+    background: linear-gradient(to bottom, #eef2f6, #e4e9ee);
 }
 /* Active sort arrow — inline, bold, using the sage accent for consistency */
 th.sortable .sort-ind {
