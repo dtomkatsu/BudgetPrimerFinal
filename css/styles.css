@@ -1100,7 +1100,7 @@ body {
     position: absolute;
     bottom: calc(100% + 8px);
     left: 0;
-    z-index: 50;
+    z-index: 1000;
     min-width: 240px;
     max-width: 320px;
     padding: 10px 12px 11px;
@@ -1115,6 +1115,18 @@ body {
     transition: opacity 120ms ease, visibility 120ms ease, transform 120ms ease;
     pointer-events: none;
     font-weight: 400;
+}
+/* Flip below the bar when the default position would clip the sticky
+   table header. Toggled via JS on pointerenter/focusin. */
+.stacked-bar-popover--below {
+    bottom: auto;
+    top: calc(100% + 8px);
+    transform: translateY(-2px);
+}
+.stacked-bar-wrap:hover .stacked-bar-popover--below,
+.stacked-bar-wrap:focus-visible .stacked-bar-popover--below,
+.stacked-bar-wrap:focus-within .stacked-bar-popover--below {
+    transform: translateY(0);
 }
 .stacked-bar-wrap:hover .stacked-bar-popover,
 .stacked-bar-wrap:focus-visible .stacked-bar-popover,
