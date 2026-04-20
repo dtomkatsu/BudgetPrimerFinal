@@ -1223,7 +1223,7 @@ window.initDraftComparePage = async function () {
              </span>`
             + `<input type="text" id="draft-search" class="search-input search-inline" placeholder="Search..." value="${searchVal.replace(/"/g, '&quot;')}">
              <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
-                 ⓘ How to read this
+                 <svg class="rg-info-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.6" r="0.95" fill="currentColor"/><rect x="7.15" y="6.8" width="1.7" height="5.2" rx="0.6" fill="currentColor"/></svg> How to read this
                  <div class="reading-guide-panel">
                      <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
                      <p>In the House draft (HD1), capital projects are sometimes listed under <strong>AGS</strong> (Accounting &amp; General Services) as a placeholder. Some programs, like Rental Housing, receive funding from multiple departments (e.g., <strong>HMS</strong> and <strong>BED</strong>).</p>
