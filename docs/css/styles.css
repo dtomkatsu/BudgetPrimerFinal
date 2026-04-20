@@ -3289,7 +3289,7 @@ mark.search-highlight {
        Flex spacers absorb the slack on both edges so the dot+totals group
        stays centered. The tl-band uses grid-column: 1 / -1 to span all 7
        so the zebra tint extends edge-to-edge. */
-    grid-template-columns: 1fr minmax(88px, auto) repeat(3, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
+    grid-template-columns: 1fr minmax(min-content, auto) repeat(3, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
