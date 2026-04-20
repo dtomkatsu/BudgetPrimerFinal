@@ -3607,6 +3607,7 @@ mark.search-highlight {
     justify-content: flex-end;
     gap: 0.55rem;
     padding-right: 14px;
+    padding-left: 14px; /* breathing room between band's left edge and text */
     font-size: 0.92rem;
     font-weight: 600;
     color: #3d4a45;
