@@ -3288,11 +3288,15 @@ mark.search-highlight {
     grid-template-columns: minmax(88px, auto) repeat(3, minmax(84px, 108px)) minmax(130px, max-content);
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
-    row-gap: 6px;
+    row-gap: 0;
     padding: 4px 0 0;
     align-items: center;
     justify-content: center;
 }
+/* Explicit vertical spacing between rows 1–3 (row-gap is 0 so that the
+   Op/Cap zebra bands can be contiguous with no transparent stripe). */
+.compare-timeline > [data-row="dots"]   { margin-top: 6px; }
+.compare-timeline > [data-row="totals"] { margin-top: 6px; }
 /* Grid placement driven by data attributes on cell children */
 .compare-timeline > [data-col="gov"] { grid-column: 2; }
 .compare-timeline > [data-col="hd1"] { grid-column: 3; }
@@ -3584,44 +3588,101 @@ mark.search-highlight {
 /* ── Operating / Capital breakdown rows ─────────────────────────────
    Shared "Operating" / "Capital" labels sit in col 1 (left rail). Each
    per-column cell carries just the formatted value. Labels+cells all
-   toggle [hidden] together when the caret is closed. */
+   toggle [hidden] together when the caret is closed.
+
+   Visual treatment:
+   - Category color square before the label (sage = Op, ochre = Cap).
+   - Kicker typography on labels (tiny-caps, letter-spaced).
+   - Dashed separator above the Operating row — signals "breakdown zone".
+   - Faint zebra tint per row (barely perceptible — just groups the numbers).
+   - Ghost pill borders on values (1px soft sage) so they read as data chips
+     without competing with the solid totals pills above. Net column skips
+     the pill so direction color stays punchy. */
 .tl-bd-label {
-    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
     padding-right: 12px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #5c6c68;
-    letter-spacing: 0;
+    color: #4a5a55;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     white-space: nowrap;
     cursor: help;
+    align-self: stretch;
+}
+.tl-bd-label::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #5a7468; /* sage — default for Op */
+    flex-shrink: 0;
+}
+.tl-bd-label[data-row="cap"]::before {
+    background: #b88a4a; /* warm ochre — Cap */
+}
+/* Dotted underline appears on hover as tooltip affordance */
+.tl-bd-label:hover,
+.tl-bd-label:focus {
     text-decoration: underline;
     text-decoration-style: dotted;
     text-decoration-color: #b0bab7;
     text-underline-offset: 3px;
-    align-self: center;
 }
 .tl-bd-label[hidden] { display: none; }
 .tl-bd-cell {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    font-size: 0.95rem;
+    font-weight: 600;
+    font-size: 0.92rem;
     color: #3c4a47;
     letter-spacing: -0.01em;
     white-space: nowrap;
     justify-self: center;
+    padding: 4px 10px;
+    border: 1px solid #dbe2de;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.55);
 }
 .tl-bd-cell[hidden] { display: none; }
+/* Net column skips the ghost pill so direction color dominates */
+.compare-timeline > [data-col="net"].tl-bd-cell {
+    border: none;
+    background: none;
+    padding: 4px 0;
+    font-weight: 700;
+}
 /* Inactive column mutes its breakdown cells */
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
     color: #aab5b1;
+    border-color: #eaeeeb;
 }
 /* Net breakdown cells inherit direction color for emphasis */
 .compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
 .compare-timeline.net-negative [data-col="net"].tl-bd-cell { color: #c62828; }
+
+/* Zebra tints — each cell in the row gets the tint. The row-gap is set
+   to 0 between Op and Cap rows below so the bands feel contiguous. */
+.compare-timeline > [data-row="op"] {
+    background: #f4f7f5;
+}
+.compare-timeline > [data-row="cap"] {
+    background: #faf7f1;
+}
+/* Vertical padding on the Op/Cap rows gives the bands visible height
+   (they'd otherwise collapse to text height alone). Combined with the
+   zebra tint, this creates a clear "breakdown zone" below the totals. */
+.compare-timeline > [data-row="op"]  { padding: 8px 0 6px; }
+.compare-timeline > [data-row="cap"] { padding: 6px 0 8px; }
 
 /* Tooltip override — wider + left-aligned so "each year." isn't orphaned
    and doesn't inherit text-align:right from the kicker styling. */
