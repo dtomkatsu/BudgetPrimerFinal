@@ -3285,7 +3285,11 @@ mark.search-highlight {
    Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
     display: grid;
-    grid-template-columns: minmax(88px, 1fr) repeat(3, minmax(84px, 140px)) minmax(130px, max-content);
+    /* 7 columns: [flex-spacer] [left-rail] [gov] [hd1] [sd1] [net] [flex-spacer]
+       Flex spacers absorb the slack on both edges so the dot+totals group
+       stays centered. The tl-band uses grid-column: 1 / -1 to span all 7
+       so the zebra tint extends edge-to-edge. */
+    grid-template-columns: 1fr minmax(88px, auto) repeat(3, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
@@ -3297,17 +3301,17 @@ mark.search-highlight {
 .compare-timeline > [data-row="dots"]   { margin-top: 6px; }
 .compare-timeline > [data-row="totals"] { margin-top: 6px; }
 /* Grid placement driven by data attributes on cell children */
-.compare-timeline > [data-col="gov"] { grid-column: 2; }
-.compare-timeline > [data-col="hd1"] { grid-column: 3; }
-.compare-timeline > [data-col="sd1"] { grid-column: 4; }
-.compare-timeline > [data-col="net"] { grid-column: 5; }
+.compare-timeline > [data-col="gov"] { grid-column: 3; }
+.compare-timeline > [data-col="hd1"] { grid-column: 4; }
+.compare-timeline > [data-col="sd1"] { grid-column: 5; }
+.compare-timeline > [data-col="net"] { grid-column: 6; }
 .compare-timeline > [data-row="labels"] { grid-row: 1; }
 .compare-timeline > [data-row="dots"]   { grid-row: 2; }
 .compare-timeline > [data-row="totals"] { grid-row: 3; }
 .compare-timeline > [data-row="op"]     { grid-row: 4; }
 .compare-timeline > [data-row="cap"]    { grid-row: 5; }
-/* Left-rail corner cells */
-.compare-timeline > .tl-corner { grid-column: 1; }
+/* Left-rail corner cells — col 2 (col 1 is flex spacer) */
+.compare-timeline > .tl-corner { grid-column: 2; }
 .compare-timeline > .tl-corner-labels { grid-row: 1; }
 .compare-timeline > .tl-corner-dots   { grid-row: 2; }
 .compare-timeline > .tl-corner-caret {
@@ -3665,10 +3669,11 @@ mark.search-highlight {
     justify-self: stretch;
     border-radius: 6px;
 }
-/* Labels need an explicit grid-column (col 1) because auto-placement
-   can't find room in row 4/5 once the band occupies cols 1 through -1. */
-.compare-timeline > .tl-bd-label[data-row="op"]  { grid-column: 1; }
-.compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 1; }
+/* Labels need an explicit grid-column (col 2 — left rail) because
+   auto-placement can't find room in row 4/5 once the band occupies
+   all columns. */
+.compare-timeline > .tl-bd-label[data-row="op"]  { grid-column: 2; }
+.compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 2; }
 .compare-timeline > .tl-band[data-row="op"]  { grid-row: 4; background: #eef3ef; }
 .compare-timeline > .tl-band[data-row="cap"] { grid-row: 5; background: #f6f1e7; }
 .compare-timeline > .tl-band[hidden] { display: none; }
