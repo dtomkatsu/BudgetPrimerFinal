@@ -3590,17 +3590,16 @@ mark.search-highlight {
     text-decoration-color: #b0bab7;
     text-underline-offset: 2px;
 }
-/* Center the tooltip over the tiny label and cap width */
+/* Tooltip anchored left. Override text-align (::after inherits the parent's
+   text-align:right kicker alignment). Wide enough that "each year." sits on
+   the same line as "utilities" — no orphaned word at the end. */
 .tl-bd-lbl.has-tooltip::after {
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     top: calc(100% + 5px);
-    width: 220px;
-    font-size: 0.77rem;
+    width: 290px;
+    font-size: 0.8rem;
     line-height: 1.45;
-}
-.tl-bd-lbl.has-tooltip:hover::after {
-    transform: translateX(-50%);
+    text-align: left;
 }
 
 /* ── draft-cards: empty now, collapse it ── */
