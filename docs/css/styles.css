@@ -3277,12 +3277,13 @@ mark.search-highlight {
    Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
     display: grid;
-    grid-template-columns: minmax(88px, auto) repeat(3, minmax(100px, 1fr)) minmax(130px, 1fr);
+    grid-template-columns: minmax(88px, auto) repeat(3, minmax(84px, 108px)) minmax(130px, max-content);
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
     row-gap: 6px;
     padding: 4px 0 0;
     align-items: center;
+    justify-content: center;
 }
 /* Grid placement driven by data attributes on cell children */
 .compare-timeline > [data-col="gov"] { grid-column: 2; }
@@ -3306,7 +3307,7 @@ mark.search-highlight {
     padding-right: 10px;
 }
 /* Small left-margin on the Net column to separate it visually from SD1 */
-.compare-timeline > [data-col="net"] { margin-left: 18px; }
+.compare-timeline > [data-col="net"] { margin-left: 4px; }
 /* Dots row */
 .tl-dot-row {
     display: flex;
