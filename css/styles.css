@@ -3270,26 +3270,50 @@ mark.search-highlight {
     display: none;
 }
 
-/* ── Compare timeline (Gov's Request → HD1 → SD1) ── */
+/* ── Compare timeline (Gov's Request → HD1 → SD1 → Net Change) ──
+   Five-column CSS grid. Col 1 is a left rail for the expand caret and
+   the Operating/Capital row labels; cols 2–5 are Gov/HD1/SD1/Net. Rows
+   are: labels → dots → totals → operating breakdown → capital breakdown.
+   Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
+    display: grid;
+    grid-template-columns: minmax(88px, auto) repeat(3, minmax(100px, 1fr)) minmax(130px, 1fr);
+    grid-template-rows: auto auto auto auto auto;
+    column-gap: 0;
+    row-gap: 6px;
     padding: 4px 0 0;
-}
-.tl-node {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 7px;
-    min-width: 115px;
-    justify-content: flex-end; /* align dot rows to the same baseline */
 }
+/* Grid placement driven by data attributes on cell children */
+.compare-timeline > [data-col="gov"] { grid-column: 2; }
+.compare-timeline > [data-col="hd1"] { grid-column: 3; }
+.compare-timeline > [data-col="sd1"] { grid-column: 4; }
+.compare-timeline > [data-col="net"] { grid-column: 5; }
+.compare-timeline > [data-row="labels"] { grid-row: 1; }
+.compare-timeline > [data-row="dots"]   { grid-row: 2; }
+.compare-timeline > [data-row="totals"] { grid-row: 3; }
+.compare-timeline > [data-row="op"]     { grid-row: 4; }
+.compare-timeline > [data-row="cap"]    { grid-row: 5; }
+/* Left-rail corner cells */
+.compare-timeline > .tl-corner { grid-column: 1; }
+.compare-timeline > .tl-corner-labels { grid-row: 1; }
+.compare-timeline > .tl-corner-dots   { grid-row: 2; }
+.compare-timeline > .tl-corner-caret {
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+}
+/* Small left-margin on the Net column to separate it visually from SD1 */
+.compare-timeline > [data-col="net"] { margin-left: 18px; }
+/* Dots row */
 .tl-dot-row {
     display: flex;
     align-items: center;
     width: 100%;
     height: 23px;
+    justify-content: center;
 }
 .tl-seg {
     flex: 1;
@@ -3297,8 +3321,9 @@ mark.search-highlight {
     background: #c2cdc7;
     transition: background 0.15s;
 }
-.tl-node:first-child .tl-seg-before,
-.tl-node:last-child  .tl-seg-after  { visibility: hidden; }
+/* First column hides seg-before; SD1 hides seg-after (no line into Net) */
+.compare-timeline > [data-col="gov"] .tl-seg-before { visibility: hidden; }
+.compare-timeline > [data-col="sd1"] .tl-seg-after  { visibility: hidden; }
 .tl-dot {
     position: relative;
     width: 22px;
@@ -3322,17 +3347,6 @@ mark.search-highlight {
     color: #fff;
     line-height: 1;
 }
-.tl-node.tl-inactive .tl-dot {
-    background: #fff;
-    border-color: #c2cdc7;
-}
-/* Hide checkmark when unchecked */
-.tl-node.tl-inactive .tl-dot::after {
-    display: none;
-}
-.tl-node.tl-inactive .tl-seg {
-    background: #e3e8e5;
-}
 .tl-label {
     font-size: 0.98rem;
     font-weight: 600;
@@ -3341,12 +3355,32 @@ mark.search-highlight {
     line-height: 1.25;
     transition: color 0.15s, text-decoration 0.15s;
     white-space: nowrap;
-    min-height: 2.5em; /* reserve space for 2-line labels so dots align */
+    min-height: 2.5em;
     display: flex;
     align-items: flex-end;
     justify-content: center;
 }
-.tl-node.tl-inactive .tl-label {
+/* Inactive state — col-inactive class on .compare-timeline cascades to
+   every cell with the matching data-col attribute. */
+.compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot,
+.compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot,
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot {
+    background: #fff;
+    border-color: #c2cdc7;
+}
+.compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot::after,
+.compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot::after,
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot::after {
+    display: none;
+}
+.compare-timeline.col-gov-inactive [data-col="gov"] .tl-seg,
+.compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-seg,
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-seg {
+    background: #e3e8e5;
+}
+.compare-timeline.col-gov-inactive [data-col="gov"].tl-label,
+.compare-timeline.col-hd1-inactive [data-col="hd1"].tl-label,
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-label {
     color: #aab5b1;
     text-decoration: line-through;
 }
@@ -3376,7 +3410,9 @@ mark.search-highlight {
     transform: scale(0.9);
 }
 /* Inactive (unchecked) hover — show a green tint as affordance to re-enable */
-.tl-node.tl-inactive .tl-dot-lbl:hover .tl-dot {
+.compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot-lbl:hover .tl-dot,
+.compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot-lbl:hover .tl-dot,
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot-lbl:hover .tl-dot {
     box-shadow: 0 0 0 4px rgba(30, 126, 52, 0.15);
     border-color: #5aaa75;
 }
@@ -3396,6 +3432,7 @@ mark.search-highlight {
     min-width: 3.6em;
     line-height: 1.2;
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    justify-self: center;
 }
 /* Two-tone typography — number is the visual hero, suffix is a quieter
    trailing letter so the eye lands on the magnitude first. */
@@ -3411,34 +3448,34 @@ mark.search-highlight {
     margin-left: 1px;
     vertical-align: baseline;
 }
-.tl-node.tl-inactive .tl-amt {
+/* Inactive chip state — muted, no gradient */
+.compare-timeline.col-gov-inactive [data-col="gov"].tl-amt,
+.compare-timeline.col-hd1-inactive [data-col="hd1"].tl-amt,
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-amt {
     color: #aab5b1;
     background: #f9fafa;
     border-color: #ebeeed;
 }
-.tl-node.tl-inactive .tl-amt-suffix {
+.compare-timeline.col-gov-inactive [data-col="gov"] .tl-amt-suffix,
+.compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-amt-suffix,
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-amt-suffix {
     color: #c1c8c5;
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Stage-based emphasis — Gov is the baseline (faintest), HD1 is the
-   intermediate tint, SD1 is the current/most-recent draft and gets
-   the strongest treatment (filled sage, white text). Visually maps
-   the legislative timeline onto the chips themselves. The :not()
-   guard keeps the muted state when a draft is unchecked.
-   ───────────────────────────────────────────────────────────────── */
-#tl-node-gov:not(.tl-inactive) .tl-amt,
-#tl-node-hd1:not(.tl-inactive) .tl-amt,
-#tl-node-sd1:not(.tl-inactive) .tl-amt {
+/* Stage-based emphasis — Gov / HD1 / SD1 get the filled sage chip when
+   active. Visually maps the legislative timeline onto the chips. */
+.compare-timeline:not(.col-gov-inactive) [data-col="gov"].tl-amt,
+.compare-timeline:not(.col-hd1-inactive) [data-col="hd1"].tl-amt,
+.compare-timeline:not(.col-sd1-inactive) [data-col="sd1"].tl-amt {
     background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
     border-color: transparent;
     color: #ffffff;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20),
                 0 2px 8px rgba(80, 105, 95, 0.18);
 }
-#tl-node-gov:not(.tl-inactive) .tl-amt-suffix,
-#tl-node-hd1:not(.tl-inactive) .tl-amt-suffix,
-#tl-node-sd1:not(.tl-inactive) .tl-amt-suffix {
+.compare-timeline:not(.col-gov-inactive) [data-col="gov"] .tl-amt-suffix,
+.compare-timeline:not(.col-hd1-inactive) [data-col="hd1"] .tl-amt-suffix,
+.compare-timeline:not(.col-sd1-inactive) [data-col="sd1"] .tl-amt-suffix {
     color: rgba(255, 255, 255, 0.80);
 }
 
@@ -3456,22 +3493,13 @@ mark.search-highlight {
     margin-top: 0;
     padding-top: 0.1rem;
 }
-/* ── Net Change node — 4th timeline node, derived from SD1 ── */
-.tl-net-node {
-    min-width: 145px;
-}
-/* No stub line extending right from SD1 into the equals glyph */
-#tl-node-sd1 .tl-seg-after { visibility: hidden; }
-
-/* Restore the small right-margin gap between SD1 and Net Change */
-.tl-net-node { margin-left: 21px; }
-
-/* Tiny sparkline: Gov → HD1 → SD1, last dot highlighted */
+/* ── Net Change column — 4th slot, derived from SD1 ── */
+/* Sparkline: Gov → HD1 → SD1, last dot highlighted */
 .tl-net-spark-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 23px; /* matches .tl-dot-row height exactly, so chip baseline aligns */
+    height: 23px;
 }
 .tl-net-spark {
     width: 60px;
@@ -3487,18 +3515,16 @@ mark.search-highlight {
 }
 .tl-spark-dot { fill: #c9d1cd; }
 .tl-spark-dot-end { fill: #7a8a85; }
-.tl-net-node.positive .tl-spark-line { stroke: #a5d6a7; }
-.tl-net-node.positive .tl-spark-dot { fill: #a5d6a7; }
-.tl-net-node.positive .tl-spark-dot-end { fill: #1e7e34; }
-.tl-net-node.negative .tl-spark-line { stroke: #f2b4ba; }
-.tl-net-node.negative .tl-spark-dot { fill: #f2b4ba; }
-.tl-net-node.negative .tl-spark-dot-end { fill: #c62828; }
+/* Net direction drives sparkline + chip hue; class lives on .compare-timeline */
+.compare-timeline.net-positive [data-col="net"] .tl-spark-line { stroke: #a5d6a7; }
+.compare-timeline.net-positive [data-col="net"] .tl-spark-dot { fill: #a5d6a7; }
+.compare-timeline.net-positive [data-col="net"] .tl-spark-dot-end { fill: #1e7e34; }
+.compare-timeline.net-negative [data-col="net"] .tl-spark-line { stroke: #f2b4ba; }
+.compare-timeline.net-negative [data-col="net"] .tl-spark-dot { fill: #f2b4ba; }
+.compare-timeline.net-negative [data-col="net"] .tl-spark-dot-end { fill: #c62828; }
 
-/* Net chip — secondary "outlined" treatment that pairs with the solid
-   draft pills. Same shape and padding so they share a family, but the
-   outlined / light-fill style gives the summary value a distinct visual
-   rank. Direction is encoded by hue (deep sage for positive, warm clay
-   for negative) — both stay within the broader sage + earth palette. */
+/* Net chip — outlined treatment; distinct visual rank vs. the solid
+   draft pills. Direction encoded by hue (sage positive / clay negative). */
 .tl-net-chip {
     display: inline-flex;
     align-items: baseline;
@@ -3518,24 +3544,24 @@ mark.search-highlight {
     transform: translateY(-1px);
     opacity: 0.85;
 }
-.tl-net-node.positive .tl-net-chip {
+.compare-timeline.net-positive [data-col="net"].tl-net-chip {
     background: #eaf2ec;
     border-color: #9fc0ad;
     color: #2f6b48;
 }
-.tl-net-node.negative .tl-net-chip {
+.compare-timeline.net-negative [data-col="net"].tl-net-chip {
     background: #f5ece8;
     border-color: #d2b1a8;
     color: #8e3f3a;
 }
 
-/* Cross-fade on FY toggle — replay animation by toggling .tl-net-refresh. */
+/* Cross-fade on FY toggle — replay via toggling .net-refresh on .compare-timeline. */
 @keyframes tl-net-refresh {
     0%   { opacity: 0.25; transform: translateY(1px); }
     100% { opacity: 1;    transform: translateY(0);   }
 }
-.tl-net-refresh .tl-net-spark,
-.tl-net-refresh .tl-net-chip {
+.compare-timeline.net-refresh [data-col="net"].tl-net-spark-row,
+.compare-timeline.net-refresh [data-col="net"].tl-net-chip {
     animation: tl-net-refresh 220ms ease;
 }
 /* Percentage, shown inline after the dollar amount inside the chip */
@@ -3546,54 +3572,51 @@ mark.search-highlight {
     letter-spacing: 0;
 }
 
-/* ── Op / Cap breakdown sub-chips (hidden unless "More" is clicked) ── */
-.tl-breakdown {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    align-items: center;
-    margin-top: 5px;
-}
-.tl-breakdown[hidden] { display: none; }
-.tl-bd-row {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #3c4a47;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    line-height: 1.35;
-}
-.tl-bd-lbl {
-    display: inline-block;
-    font-size: 0.69rem;
-    font-weight: 700;
-    color: #8a9492;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-right: 6px;
-    min-width: 1.8em;
+/* ── Operating / Capital breakdown rows ─────────────────────────────
+   Shared "Operating" / "Capital" labels sit in col 1 (left rail). Each
+   per-column cell carries just the formatted value. Labels+cells all
+   toggle [hidden] together when the caret is closed. */
+.tl-bd-label {
     text-align: right;
-}
-.tl-node.tl-inactive .tl-bd-row  { color: #aab5b1; }
-.tl-node.tl-inactive .tl-bd-lbl  { color: #c0c8c5; }
-/* Net-node breakdown inherits direction color for emphasis */
-.tl-net-node.positive .tl-bd-row { color: #1e7e34; }
-.tl-net-node.negative .tl-bd-row { color: #c62828; }
-
-/* ── Op / Cap label tooltips ── */
-/* Subtle dotted underline signals the label is hoverable */
-.tl-bd-lbl.has-tooltip {
+    padding-right: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5c6c68;
+    letter-spacing: 0;
+    white-space: nowrap;
     cursor: help;
     text-decoration: underline;
     text-decoration-style: dotted;
     text-decoration-color: #b0bab7;
-    text-underline-offset: 2px;
+    text-underline-offset: 3px;
+    align-self: center;
 }
-/* Tooltip anchored left. Override text-align (::after inherits the parent's
-   text-align:right kicker alignment). Wide enough that "each year." sits on
-   the same line as "utilities" — no orphaned word at the end. */
-.tl-bd-lbl.has-tooltip::after {
+.tl-bd-label[hidden] { display: none; }
+.tl-bd-cell {
+    display: inline-block;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #3c4a47;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    justify-self: center;
+}
+.tl-bd-cell[hidden] { display: none; }
+/* Inactive column mutes its breakdown cells */
+.compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell,
+.compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell,
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
+    color: #aab5b1;
+}
+/* Net breakdown cells inherit direction color for emphasis */
+.compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
+.compare-timeline.net-negative [data-col="net"].tl-bd-cell { color: #c62828; }
+
+/* Tooltip override — wider + left-aligned so "each year." isn't orphaned
+   and doesn't inherit text-align:right from the kicker styling. */
+.tl-bd-label.has-tooltip::after {
     left: 0;
     top: calc(100% + 5px);
     width: 290px;
@@ -3606,48 +3629,32 @@ mark.search-highlight {
 #draft-cards:empty {
     display: none;
 }
-/* Wrapper for Gov amount row: caret container + chip side by side */
-.tl-amt-wrap {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-/* Distinct container for the expand caret — makes it unmistakably
-   interactive while keeping it compact and out of the way. */
-.tl-expand-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Expand caret — sits in the left rail at the totals row. Circular
+   button signals interactivity; rotates 180° when the breakdown is open. */
+.tl-expand-caret {
     width: 26px;
     height: 26px;
     border-radius: 50%;
     background: #f0f4f2;
     border: 1px solid #d1ddd8;
-    flex-shrink: 0;
-    transition: background 0.15s, border-color 0.15s;
-}
-.tl-expand-container:hover {
-    background: #dfeae5;
-    border-color: #a8c0b8;
-}
-.tl-expand-caret {
-    background: none;
-    border: none;
     padding: 0;
     font-size: 0.9rem;
     line-height: 1;
     color: #5a7468;
     cursor: pointer;
-    transition: transform 0.18s ease, color 0.12s;
-    display: flex;
+    flex-shrink: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.18s ease, color 0.12s;
+}
+.tl-expand-caret:hover {
+    background: #dfeae5;
+    border-color: #a8c0b8;
+    color: #3d5249;
 }
 .tl-expand-caret.open {
     transform: rotate(180deg);
-}
-.tl-expand-container:hover .tl-expand-caret {
-    color: #3d5249;
 }
 
 .hb300-ref-bar {

@@ -797,53 +797,61 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     ${fyToggle}
                 </div>
                 <div class="compare-timeline" id="compare-timeline">
-                    <div class="tl-node" id="tl-node-gov">
-                        <span class="tl-label">Gov.</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
-                            <span class="tl-seg tl-seg-after"></span>
-                        </div>
-                        <div class="tl-amt-wrap">
-                            <div class="tl-expand-container">
-                                <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
-                            </div>
-                            <span class="tl-amt" id="tl-amt-gov"></span>
-                        </div>
-                        <div class="tl-breakdown" id="tl-bd-gov" hidden></div>
-                        <input type="checkbox" class="tl-cb" id="tl-gov" checked>
+                    <!-- Row 1: column labels -->
+                    <div class="tl-corner tl-corner-labels"></div>
+                    <span class="tl-label" data-col="gov" data-row="labels">Gov.</span>
+                    <span class="tl-label" data-col="hd1" data-row="labels">HD1</span>
+                    <span class="tl-label" data-col="sd1" data-row="labels">SD1</span>
+                    <span class="tl-label" data-col="net" data-row="labels">Net Change</span>
+
+                    <!-- Row 2: dots and sparkline -->
+                    <div class="tl-corner tl-corner-dots"></div>
+                    <div class="tl-dot-row" data-col="gov" data-row="dots">
+                        <span class="tl-seg tl-seg-before"></span>
+                        <label class="tl-dot-lbl" for="tl-gov"><span class="tl-dot"></span></label>
+                        <span class="tl-seg tl-seg-after"></span>
                     </div>
-                    <div class="tl-node" id="tl-node-hd1">
-                        <span class="tl-label">HD1</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <label class="tl-dot-lbl" for="tl-hd1"><span class="tl-dot"></span></label>
-                            <span class="tl-seg tl-seg-after"></span>
-                        </div>
-                        <span class="tl-amt" id="tl-amt-hd1"></span>
-                        <div class="tl-breakdown" id="tl-bd-hd1" hidden></div>
-                        <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
+                    <div class="tl-dot-row" data-col="hd1" data-row="dots">
+                        <span class="tl-seg tl-seg-before"></span>
+                        <label class="tl-dot-lbl" for="tl-hd1"><span class="tl-dot"></span></label>
+                        <span class="tl-seg tl-seg-after"></span>
                     </div>
-                    <div class="tl-node" id="tl-node-sd1">
-                        <span class="tl-label">SD1</span>
-                        <div class="tl-dot-row">
-                            <span class="tl-seg tl-seg-before"></span>
-                            <label class="tl-dot-lbl" for="tl-sd1"><span class="tl-dot"></span></label>
-                            <span class="tl-seg tl-seg-after"></span>
-                        </div>
-                        <span class="tl-amt" id="tl-amt-sd1"></span>
-                        <div class="tl-breakdown" id="tl-bd-sd1" hidden></div>
-                        <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
+                    <div class="tl-dot-row" data-col="sd1" data-row="dots">
+                        <span class="tl-seg tl-seg-before"></span>
+                        <label class="tl-dot-lbl" for="tl-sd1"><span class="tl-dot"></span></label>
+                        <span class="tl-seg tl-seg-after"></span>
                     </div>
-                    <!-- Net change node — 4th timeline node (derived, visually separated) -->
-                    <div class="tl-node tl-net-node" id="tl-node-net">
-                        <span class="tl-label">Net Change</span>
-                        <div class="tl-net-spark-row">
-                            <svg class="tl-net-spark" id="tl-net-spark" viewBox="0 0 60 20" aria-hidden="true"></svg>
-                        </div>
-                        <span class="tl-amt tl-net-chip" id="tl-amt-net"></span>
-                        <div class="tl-breakdown" id="tl-bd-net" hidden></div>
+                    <div class="tl-net-spark-row" data-col="net" data-row="dots">
+                        <svg class="tl-net-spark" id="tl-net-spark" viewBox="0 0 60 20" aria-hidden="true"></svg>
                     </div>
+
+                    <!-- Row 3: total amounts; caret sits in the left rail -->
+                    <div class="tl-corner tl-corner-caret">
+                        <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
+                    </div>
+                    <span class="tl-amt" id="tl-amt-gov" data-col="gov" data-row="totals"></span>
+                    <span class="tl-amt" id="tl-amt-hd1" data-col="hd1" data-row="totals"></span>
+                    <span class="tl-amt" id="tl-amt-sd1" data-col="sd1" data-row="totals"></span>
+                    <span class="tl-amt tl-net-chip" id="tl-amt-net" data-col="net" data-row="totals"></span>
+
+                    <!-- Row 4: Operating breakdown (toggled) -->
+                    <div class="tl-bd-label has-tooltip" data-row="op" data-tooltip="The operating budget pays for the state&rsquo;s ongoing, day-to-day services like salaries, programs, and utilities each year." hidden>Operating</div>
+                    <span class="tl-bd-cell" id="tl-bd-op-gov" data-col="gov" data-row="op" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-op-hd1" data-col="hd1" data-row="op" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-op-sd1" data-col="sd1" data-row="op" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-op-net" data-col="net" data-row="op" hidden></span>
+
+                    <!-- Row 5: Capital breakdown (toggled) -->
+                    <div class="tl-bd-label has-tooltip" data-row="cap" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities." hidden>Capital</div>
+                    <span class="tl-bd-cell" id="tl-bd-cap-gov" data-col="gov" data-row="cap" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-cap-hd1" data-col="hd1" data-row="cap" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-cap-sd1" data-col="sd1" data-row="cap" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-cap-net" data-col="net" data-row="cap" hidden></span>
+
+                    <!-- Hidden checkboxes (state toggles; labels for these are the dots above) -->
+                    <input type="checkbox" class="tl-cb" id="tl-gov" checked>
+                    <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
+                    <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
                 </div>
             </div>
 
@@ -1073,27 +1081,33 @@ window.initDraftComparePage = async function () {
             if (el) el.innerHTML = fmtShortHTML(val);
         });
 
-        // Populate Operating / Capital breakdown sub-chips (shown only when expanded)
+        // Populate per-cell Operating / Capital breakdown values (grid layout).
+        // IDs follow the pattern tl-bd-{op|cap}-{gov|hd1|sd1|net}.
         const signed = (n) => (n > 0 ? '+' : '') + fmtShort(n);
-        const bd = [
-            { id: 'tl-bd-gov', opV: op.baseline,        capV: cap.baseline,        isNet: false },
-            { id: 'tl-bd-hd1', opV: op.hd1,             capV: cap.hd1,             isNet: false },
-            { id: 'tl-bd-sd1', opV: op.d2,              capV: cap.d2,              isNet: false },
-            { id: 'tl-bd-net', opV: op.d2 - op.d1,      capV: cap.d2 - cap.d1,     isNet: true  },
+        const cells = [
+            { col: 'gov', opV: op.baseline,         capV: cap.baseline,         fmt: fmtShort },
+            { col: 'hd1', opV: op.hd1,              capV: cap.hd1,              fmt: fmtShort },
+            { col: 'sd1', opV: op.d2,               capV: cap.d2,               fmt: fmtShort },
+            { col: 'net', opV: op.d2 - op.d1,       capV: cap.d2 - cap.d1,      fmt: signed   },
         ];
-        bd.forEach(({ id, opV, capV, isNet }) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const fmt = isNet ? signed : fmtShort;
-            el.innerHTML =
-                `<span class="tl-bd-row"><span class="tl-bd-lbl has-tooltip" data-tooltip="The operating budget pays for the state\u2019s ongoing, day-to-day services like salaries, programs, and utilities each year.">Op</span>${fmt(opV)}</span>` +
-                `<span class="tl-bd-row"><span class="tl-bd-lbl has-tooltip" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities.">Cap</span>${fmt(capV)}</span>`;
+        cells.forEach(({ col, opV, capV, fmt }) => {
+            const opEl  = document.getElementById(`tl-bd-op-${col}`);
+            const capEl = document.getElementById(`tl-bd-cap-${col}`);
+            if (opEl)  opEl.textContent  = fmt(opV);
+            if (capEl) capEl.textContent = fmt(capV);
+        });
+        // Toggle visibility of every breakdown cell + the two row labels.
+        document.querySelectorAll('.compare-timeline [data-row="op"], .compare-timeline [data-row="cap"]').forEach(el => {
             el.hidden = !showBreakdown;
         });
 
-        // Update the 4th Net Change timeline node
-        const netNode  = document.getElementById('tl-node-net');
-        if (netNode) netNode.className = `tl-node tl-net-node ${netCls}`;
+        // Net-direction state — lives on .compare-timeline and cascades
+        // to all [data-col="net"] cells (sparkline + chip + breakdown).
+        const tlCmp = document.getElementById('compare-timeline');
+        if (tlCmp) {
+            tlCmp.classList.toggle('net-positive', netCls === 'positive');
+            tlCmp.classList.toggle('net-negative', netCls === 'negative');
+        }
         // Inline arrow + amount + percentage inside a single chip.
         // The arrow replaces the old circle-in-dot-row marker.
         const netAmtEl  = document.getElementById('tl-amt-net');
@@ -2533,11 +2547,11 @@ window.initDraftComparePage = async function () {
     // Replay the refresh animation on the Net Change node so the user gets a
     // soft cross-fade confirming the FY swap updated the headline.
     const playNetRefresh = () => {
-        const node = document.getElementById('tl-node-net');
-        if (!node) return;
-        node.classList.remove('tl-net-refresh');
-        void node.offsetWidth; // force reflow so re-adding the class restarts the animation
-        node.classList.add('tl-net-refresh');
+        const tl = document.getElementById('compare-timeline');
+        if (!tl) return;
+        tl.classList.remove('net-refresh');
+        void tl.offsetWidth; // force reflow so re-adding the class restarts the animation
+        tl.classList.add('net-refresh');
     };
 
     const restoreFYAnchor = (a) => {
@@ -2601,12 +2615,16 @@ window.initDraftComparePage = async function () {
             cb.disabled = nodeActive && activeCount <= 2;
         });
 
-        // Reflect inactive state visually on each node
-        ['gov', 'hd1', 'sd1'].forEach(node => {
-            const el = document.getElementById(`tl-node-${node}`);
-            const cb = document.getElementById(`tl-${node}`);
-            if (el) el.classList.toggle('tl-inactive', !(cb?.checked));
-        });
+        // Reflect inactive state on the timeline container (keyed per-column);
+        // CSS drives the visual change by selecting cells that carry the matching
+        // data-col attribute.
+        const tl = document.getElementById('compare-timeline');
+        if (tl) {
+            ['gov', 'hd1', 'sd1'].forEach(node => {
+                const cb = document.getElementById(`tl-${node}`);
+                tl.classList.toggle(`col-${node}-inactive`, !(cb?.checked));
+            });
+        }
 
         updateSummaryCards();
         render();
