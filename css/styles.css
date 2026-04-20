@@ -3581,6 +3581,28 @@ mark.search-highlight {
 .tl-net-node.positive .tl-bd-row { color: #1e7e34; }
 .tl-net-node.negative .tl-bd-row { color: #c62828; }
 
+/* ── Op / Cap label tooltips ── */
+/* Subtle dotted underline signals the label is hoverable */
+.tl-bd-lbl.has-tooltip {
+    cursor: help;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: #b0bab7;
+    text-underline-offset: 2px;
+}
+/* Center the tooltip over the tiny label and cap width */
+.tl-bd-lbl.has-tooltip::after {
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(100% + 5px);
+    width: 220px;
+    font-size: 0.77rem;
+    line-height: 1.45;
+}
+.tl-bd-lbl.has-tooltip:hover::after {
+    transform: translateX(-50%);
+}
+
 /* ── draft-cards: empty now, collapse it ── */
 #draft-cards:empty {
     display: none;
