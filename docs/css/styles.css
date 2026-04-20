@@ -3638,8 +3638,15 @@ mark.search-highlight {
 /* Values: clean tabular numerals — no pill chip. The band tint already
    groups them into a zone; adding a second outlined chip on top of the
    tint created a noisy double-layer look. Keep the typography crisp
-   and let the band do the visual grouping. */
+   and let the band do the visual grouping.
+
+   IMPORTANT: justify-self/align-self must be stretch (default) so the
+   tinted background fills the full grid track. Center the text itself
+   via flexbox/text-align, not via self-alignment shrinking. */
 .tl-bd-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     font-variant-numeric: tabular-nums;
     font-weight: 700;
@@ -3647,8 +3654,6 @@ mark.search-highlight {
     color: #2e3a36;
     letter-spacing: -0.01em;
     white-space: nowrap;
-    justify-self: center;
-    align-self: center;
 }
 .tl-bd-cell[hidden] { display: none; }
 /* Inactive column mutes its breakdown cells */
@@ -3661,21 +3666,43 @@ mark.search-highlight {
 .compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
 .compare-timeline.net-negative [data-col="net"].tl-bd-cell { color: #c62828; }
 
-/* Zebra tints — each cell in the row gets the tint. The row-gap is set
-   to 0 between Op and Cap rows below so the bands feel contiguous. */
-.compare-timeline > [data-row="op"] {
-    background: #eef3ef;
+/* Zebra bands — .tl-band is a dedicated grid item that spans all
+   columns (grid-column: 1 / -1) and paints the tint as one continuous
+   rectangle. Values + labels sit ABOVE the band via z-index. This is
+   the only reliable way to get full-width bands when individual cells
+   have varying widths and the grid uses justify-content: center. */
+.compare-timeline > .tl-band {
+    grid-column: 1 / -1;
+    z-index: 0;
+    align-self: stretch;
+    justify-self: stretch;
+    border-radius: 6px;
 }
+/* Labels need an explicit grid-column (col 1) because auto-placement
+   can't find room in row 4/5 once the band occupies cols 1 through -1. */
+.compare-timeline > .tl-bd-label[data-row="op"]  { grid-column: 1; }
+.compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 1; }
+.compare-timeline > .tl-band[data-row="op"]  { grid-row: 4; background: #eef3ef; }
+.compare-timeline > .tl-band[data-row="cap"] { grid-row: 5; background: #f6f1e7; }
+.compare-timeline > .tl-band[hidden] { display: none; }
+
+/* Values + labels need position so z-index stacks them above the band. */
+.compare-timeline > [data-row="op"],
 .compare-timeline > [data-row="cap"] {
-    background: #f6f1e7;
+    position: relative;
+    z-index: 1;
 }
-/* Generous vertical padding on the Op/Cap rows gives the bands real
-   presence and breathing room around the numerals. */
-.compare-timeline > [data-row="op"]  { padding: 11px 0 9px; }
-.compare-timeline > [data-row="cap"] { padding: 9px 0 11px; }
+/* Generous vertical padding on each Op/Cap cell gives the bands real
+   presence and breathing room around the numerals. Since the band is
+   a grid item itself, it takes its height from the row, which in turn
+   is sized by its children — so padding on the cells determines the
+   band height. */
+.compare-timeline > [data-row="op"]  { padding-top: 11px; padding-bottom: 9px; }
+.compare-timeline > [data-row="cap"] { padding-top: 9px;  padding-bottom: 11px; }
 /* Small gap above the first band so it doesn't crash into the totals
-   pills. Because row-gap is 0 globally, use margin on the row. */
-.compare-timeline > [data-row="op"]  { margin-top: 8px; }
+   pills. Because row-gap is 0 globally, use margin on all row-4 items
+   (including the .tl-band). */
+.compare-timeline > [data-row="op"] { margin-top: 8px; }
 
 /* Tooltip override — wider + left-aligned so "each year." isn't orphaned
    and doesn't inherit text-align:right from the kicker styling. */
