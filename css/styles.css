@@ -3613,18 +3613,6 @@ mark.search-highlight {
     cursor: help;
     align-self: stretch;
 }
-.tl-bd-label::before {
-    content: '';
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 2px;
-    background: #5a7468; /* sage — default for Op */
-    flex-shrink: 0;
-}
-.tl-bd-label[data-row="cap"]::before {
-    background: #b88a4a; /* warm ochre — Cap */
-}
 /* Dotted underline appears on hover as tooltip affordance */
 .tl-bd-label:hover,
 .tl-bd-label:focus {
@@ -3691,6 +3679,11 @@ mark.search-highlight {
 .compare-timeline > [data-row="cap"] {
     position: relative;
     z-index: 1;
+}
+/* Labels get a higher z-index so their tooltip pseudo-element paints
+   above peer cells/bands that share z-index: 1 (later DOM order wins). */
+.compare-timeline > .tl-bd-label {
+    z-index: 10;
 }
 /* Generous vertical padding on each Op/Cap cell gives the bands real
    presence and breathing room around the numerals. Since the band is
