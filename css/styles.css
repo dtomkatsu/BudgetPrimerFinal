@@ -3285,7 +3285,7 @@ mark.search-highlight {
    Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
     display: grid;
-    grid-template-columns: minmax(88px, auto) repeat(3, minmax(84px, 108px)) minmax(130px, max-content);
+    grid-template-columns: minmax(88px, auto) repeat(3, minmax(84px, 140px)) minmax(130px, max-content);
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
