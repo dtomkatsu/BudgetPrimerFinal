@@ -3602,12 +3602,12 @@ mark.search-highlight {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding-right: 12px;
-    font-size: 0.85rem;
+    gap: 0.55rem;
+    padding-right: 14px;
+    font-size: 0.92rem;
     font-weight: 600;
-    color: #4a5a55;
-    letter-spacing: 0.06em;
+    color: #3d4a45;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
     cursor: help;
@@ -3616,8 +3616,8 @@ mark.search-highlight {
 .tl-bd-label::before {
     content: '';
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 2px;
     background: #5a7468; /* sage — default for Op */
     flex-shrink: 0;
@@ -3634,37 +3634,28 @@ mark.search-highlight {
     text-underline-offset: 3px;
 }
 .tl-bd-label[hidden] { display: none; }
+
+/* Values: clean tabular numerals — no pill chip. The band tint already
+   groups them into a zone; adding a second outlined chip on top of the
+   tint created a noisy double-layer look. Keep the typography crisp
+   and let the band do the visual grouping. */
 .tl-bd-cell {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    font-size: 0.92rem;
-    color: #3c4a47;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #2e3a36;
     letter-spacing: -0.01em;
     white-space: nowrap;
     justify-self: center;
-    padding: 4px 10px;
-    border: 1px solid #dbe2de;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.55);
+    align-self: center;
 }
 .tl-bd-cell[hidden] { display: none; }
-/* Net column skips the ghost pill so direction color dominates */
-.compare-timeline > [data-col="net"].tl-bd-cell {
-    border: none;
-    background: none;
-    padding: 4px 0;
-    font-weight: 700;
-}
 /* Inactive column mutes its breakdown cells */
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
     color: #aab5b1;
-    border-color: #eaeeeb;
 }
 /* Net breakdown cells inherit direction color for emphasis */
 .compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
@@ -3673,16 +3664,18 @@ mark.search-highlight {
 /* Zebra tints — each cell in the row gets the tint. The row-gap is set
    to 0 between Op and Cap rows below so the bands feel contiguous. */
 .compare-timeline > [data-row="op"] {
-    background: #f4f7f5;
+    background: #eef3ef;
 }
 .compare-timeline > [data-row="cap"] {
-    background: #faf7f1;
+    background: #f6f1e7;
 }
-/* Vertical padding on the Op/Cap rows gives the bands visible height
-   (they'd otherwise collapse to text height alone). Combined with the
-   zebra tint, this creates a clear "breakdown zone" below the totals. */
-.compare-timeline > [data-row="op"]  { padding: 8px 0 6px; }
-.compare-timeline > [data-row="cap"] { padding: 6px 0 8px; }
+/* Generous vertical padding on the Op/Cap rows gives the bands real
+   presence and breathing room around the numerals. */
+.compare-timeline > [data-row="op"]  { padding: 11px 0 9px; }
+.compare-timeline > [data-row="cap"] { padding: 9px 0 11px; }
+/* Small gap above the first band so it doesn't crash into the totals
+   pills. Because row-gap is 0 globally, use margin on the row. */
+.compare-timeline > [data-row="op"]  { margin-top: 8px; }
 
 /* Tooltip override — wider + left-aligned so "each year." isn't orphaned
    and doesn't inherit text-align:right from the kicker styling. */
