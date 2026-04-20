@@ -3657,13 +3657,36 @@ mark.search-highlight {
 .compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
 .compare-timeline.net-negative [data-col="net"].tl-bd-cell { color: #c62828; }
 
-/* Zebra bands — .tl-band is a dedicated grid item that spans all
-   columns (grid-column: 1 / -1) and paints the tint as one continuous
-   rectangle. Values + labels sit ABOVE the band via z-index. This is
-   the only reliable way to get full-width bands when individual cells
-   have varying widths and the grid uses justify-content: center. */
+/* Hairline column dividers between number cells in the breakdown rows.
+   Rule appears between Gov/HD1, HD1/SD1, SD1/Net — never between the
+   label column and Gov (label reads as a row heading, not a column).
+   box-shadow inset avoids taking up layout space. Tint-matched colors:
+   soft sage on the Op band, soft cream on the Cap band. */
+.compare-timeline > [data-row="op"][data-col="hd1"],
+.compare-timeline > [data-row="op"][data-col="sd1"],
+.compare-timeline > [data-row="op"][data-col="net"] {
+    box-shadow: inset 1px 0 0 #d9e1dd;
+}
+.compare-timeline > [data-row="cap"][data-col="hd1"],
+.compare-timeline > [data-row="cap"][data-col="sd1"],
+.compare-timeline > [data-row="cap"][data-col="net"] {
+    box-shadow: inset 1px 0 0 #e6dfcf;
+}
+/* Remove the 4px left-margin on Net only in breakdown rows, so the
+   divider rule sits cleanly adjacent to SD1 with no gap. Totals row
+   keeps the margin (visual separation for the Net chip). */
+.compare-timeline > [data-row="op"][data-col="net"],
+.compare-timeline > [data-row="cap"][data-col="net"] {
+    margin-left: 0;
+}
+
+/* Zebra bands — .tl-band is a dedicated grid item spanning the label
+   column through the Net column only (grid-column: 2 / -2 excludes
+   the 1fr flex spacers on both edges). The tint paints as one
+   continuous rectangle behind the label + numbers. Values + labels
+   sit ABOVE the band via z-index. */
 .compare-timeline > .tl-band {
-    grid-column: 1 / -1;
+    grid-column: 2 / -2;
     z-index: 0;
     align-self: stretch;
     justify-self: stretch;
