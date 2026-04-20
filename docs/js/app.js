@@ -1086,8 +1086,8 @@ window.initDraftComparePage = async function () {
             if (!el) return;
             const fmt = isNet ? signed : fmtShort;
             el.innerHTML =
-                `<span class="tl-bd-row"><span class="tl-bd-lbl">Op</span>${fmt(opV)}</span>` +
-                `<span class="tl-bd-row"><span class="tl-bd-lbl">Cap</span>${fmt(capV)}</span>`;
+                `<span class="tl-bd-row"><span class="tl-bd-lbl has-tooltip" data-tooltip="The operating budget pays for the state\u2019s ongoing, day-to-day services like salaries, programs, and utilities each year.">Op</span>${fmt(opV)}</span>` +
+                `<span class="tl-bd-row"><span class="tl-bd-lbl has-tooltip" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities.">Cap</span>${fmt(capV)}</span>`;
             el.hidden = !showBreakdown;
         });
 
