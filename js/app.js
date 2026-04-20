@@ -834,7 +834,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-amt" id="tl-amt-sd1" data-col="sd1" data-row="totals"></span>
                     <span class="tl-amt tl-net-chip" id="tl-amt-net" data-col="net" data-row="totals"></span>
 
-                    <!-- Row 4: Operating breakdown (toggled) -->
+                    <!-- Row 4: Operating breakdown (toggled).
+                         The .tl-band spans all 5 columns and paints the
+                         zebra tint as one continuous rectangle regardless
+                         of per-cell width. Values sit above it via z-index. -->
+                    <div class="tl-band" data-row="op" hidden></div>
                     <div class="tl-bd-label has-tooltip" data-row="op" data-tooltip="The operating budget pays for the state&rsquo;s ongoing, day-to-day services like salaries, programs, and utilities each year." hidden>Operating</div>
                     <span class="tl-bd-cell" id="tl-bd-op-gov" data-col="gov" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-hd1" data-col="hd1" data-row="op" hidden></span>
@@ -842,6 +846,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-bd-cell" id="tl-bd-op-net" data-col="net" data-row="op" hidden></span>
 
                     <!-- Row 5: Capital breakdown (toggled) -->
+                    <div class="tl-band" data-row="cap" hidden></div>
                     <div class="tl-bd-label has-tooltip" data-row="cap" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities." hidden>Capital</div>
                     <span class="tl-bd-cell" id="tl-bd-cap-gov" data-col="gov" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-hd1" data-col="hd1" data-row="cap" hidden></span>
