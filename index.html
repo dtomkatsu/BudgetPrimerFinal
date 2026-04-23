@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=131">
+    <link rel="stylesheet" href="css/styles.css?v=132">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -68,6 +68,9 @@
                     <a href="#/tax-calculator" class="nav-link nav-link-calc">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
                     -->
                     <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
+                    <!-- History tab hidden for now — needs further review before re-enabling
+                    <a href="#/history" class="nav-link nav-link-stacked">History<span class="nav-sub">10 years, inflation-adjusted</span></a>
+                    -->
                     <a href="#/about" class="nav-link">About</a>
                 </nav>
             </div>
@@ -94,8 +97,8 @@
     </div>
 
     <!-- Load app and router scripts -->
-    <script src="js/app.js?v=143"></script>
-    <script src="js/router.js?v=13"></script>
+    <script src="js/app.js?v=144"></script>
+    <script src="js/router.js?v=14"></script>
     
     <script>
         // Show "Open ↗" button only when this page is embedded inside an
@@ -160,6 +163,11 @@
                     path: '/tax-calculator',
                     component: taxCalculatorPage,
                     init: initTaxCalculatorPage
+                },
+                {
+                    path: '/history',
+                    component: historicalTrendsPage,
+                    init: initHistoricalTrendsPage
                 },
                 {
                     path: '/about',

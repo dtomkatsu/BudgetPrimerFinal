@@ -40,7 +40,10 @@ class Router {
             if (window.loadProjects) {
                 loadPromises.push(window.loadProjects());
             }
-            
+            if (window.loadHistoricalTrends) {
+                loadPromises.push(window.loadHistoricalTrends());
+            }
+
             // Wait for both to complete
             await Promise.all(loadPromises);
             
@@ -149,6 +152,10 @@ class Router {
             '/enacted': {
                 subtitle: 'FY2026 · The budget passed by the legislature and signed by the Governor in 2025 (HB300).',
                 docTitle: 'Hawaiʻi Budget Tracker · HB300'
+            },
+            '/history': {
+                subtitle: 'Ten years of biennial budget acts, with inflation-adjusted comparisons.',
+                docTitle: 'History · Hawaiʻi Budget Tracker'
             },
             '/about': {
                 subtitle: 'About this tracker.',

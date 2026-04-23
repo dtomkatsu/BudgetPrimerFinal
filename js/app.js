@@ -10,6 +10,7 @@ let draftComparisonDataFY27 = null; // FY2027 comparison
 let projectsDataFY26 = null;        // Section 14 CIP projects FY26
 let projectsDataFY27 = null;        // Section 14 CIP projects FY27
 let governorProjectsData = null;    // Governor's supplemental capital projects (S78)
+let historicalTrendsData = null;    // 10-year history of biennial budget acts
 
 // ---------------------------------------------------------------------------
 // Data loading
@@ -76,6 +77,20 @@ window.loadGovernorRequest = async function () {
     } catch (e) {
         console.error('Error loading Governor request:', e);
         return [];
+    }
+};
+
+window.loadHistoricalTrends = async function () {
+    try {
+        const response = await fetch('./js/historical_trends.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        historicalTrendsData = await response.json();
+        console.log(`Loaded historical trends: ${historicalTrendsData.totals_by_fy.length} FYs, ` +
+                    `${historicalTrendsData.by_department.length} depts`);
+        return historicalTrendsData;
+    } catch (e) {
+        console.error('Error loading historical trends:', e);
+        return null;
     }
 };
 
@@ -659,6 +674,426 @@ window.initComparePage = async function () {
     });
 
     render();
+};
+
+// ---------------------------------------------------------------------------
+// Historical Trends — 10 years of biennial budget acts, inflation-adjusted
+// ---------------------------------------------------------------------------
+
+window.historicalTrendsPage = async function () {
+    if (!historicalTrendsData) {
+        return `
+            <section class="historical-page">
+                <div class="error-message">
+                    <h2>Historical data unavailable</h2>
+                    <p>The <code>historical_trends.json</code> file could not be loaded. Try refreshing the page.</p>
+                </div>
+            </section>`;
+    }
+
+    const meta = historicalTrendsData.metadata;
+    const totals = historicalTrendsData.totals_by_fy;
+    const fyMin = meta.fy_range[0];
+    const fyMax = meta.fy_range[1];
+    const baseFy = meta.base_fy;
+    const projected = (meta.projected_fys || []);
+    const projectedNote = projected.length
+        ? `<span class="hist-meta-note">FY${projected.join(', FY')} CPI projected from recent trend.</span>`
+        : '';
+    const billNotesHtml = (meta.bill_notes || []).map(n =>
+        `<li><strong>${n.session}:</strong> ${n.note}</li>`
+    ).join('');
+
+    // Six act cards, chronological
+    const actCardsHtml = meta.acts.map(a => `
+        <a class="hist-act-card" href="${a.source_url}" target="_blank" rel="noopener" title="${a.act}">
+            <span class="hist-act-year">${a.session}</span>
+            <span class="hist-act-bill">${a.bill}</span>
+            <span class="hist-act-fy">FY${a.fy_covered[0]}–${String(a.fy_covered[1]).slice(-2)}</span>
+        </a>`).join('');
+
+    return `
+        <section class="historical-page">
+            <header class="hist-hero">
+                <h2>10 Years of Hawaiʻi's Budget</h2>
+                <p class="hist-lead">
+                    Six biennial appropriations acts, FY${fyMin}–FY${fyMax}.
+                    Toggle <strong>Real (FY${baseFy} $)</strong> to see budget growth net of inflation.
+                </p>
+                <div class="hist-meta">
+                    <span><strong>Source:</strong> ${meta.acts.length} biennial acts (CD1, as passed by the Legislature)</span>
+                    <span><strong>Inflation index:</strong> ${meta.cpi_source}</span>
+                    ${projectedNote}
+                </div>
+            </header>
+
+            <div class="hist-acts">
+                ${actCardsHtml}
+            </div>
+
+            <div class="hist-controls">
+                <div class="hist-toggle" role="tablist" aria-label="Display mode">
+                    <button id="hist-mode-nominal" class="hist-toggle-btn active" data-mode="nominal" type="button">Nominal $</button>
+                    <button id="hist-mode-real" class="hist-toggle-btn" data-mode="real" type="button">Real (FY${baseFy} $)</button>
+                </div>
+                <button id="hist-export-btn" class="hist-export-btn" type="button">Export CSV</button>
+            </div>
+
+            <div class="hist-section">
+                <h3>Total Appropriations by Fiscal Year</h3>
+                <p class="hist-section-sub">Operating + Capital Improvement combined.</p>
+                <div class="hist-chart-wrap">
+                    <canvas id="hist-totals-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="hist-section">
+                <h3>Composition by Fund Source</h3>
+                <p class="hist-section-sub">General Fund vs Special, Federal, Bonds, and other sources.</p>
+                <div class="hist-chart-wrap">
+                    <canvas id="hist-funds-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="hist-section">
+                <h3>By Department</h3>
+                <p class="hist-section-sub">Pick a department to see its 10-year trajectory.</p>
+                <div class="hist-dept-controls">
+                    <label for="hist-dept-select">Department:</label>
+                    <select id="hist-dept-select"></select>
+                </div>
+                <div class="hist-chart-wrap">
+                    <canvas id="hist-dept-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="hist-section">
+                <h3>Year-by-Year Detail</h3>
+                <p class="hist-section-sub">Nominal and real-dollar totals with year-over-year change in real dollars.</p>
+                <div class="hist-table-wrap">
+                    <table class="hist-table">
+                        <thead>
+                            <tr>
+                                <th>Fiscal Year</th>
+                                <th class="num">Operating</th>
+                                <th class="num">Capital</th>
+                                <th class="num">Total (nominal)</th>
+                                <th class="num">Total (real, FY${baseFy} $)</th>
+                                <th class="num">YoY (real)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hist-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            ${billNotesHtml ? `
+            <div class="hist-section hist-notes">
+                <h4>Coverage notes</h4>
+                <ul>${billNotesHtml}</ul>
+                <p class="hist-footnote">${meta.notes}</p>
+            </div>` : `
+            <p class="hist-footnote">${meta.notes}</p>`}
+        </section>`;
+};
+
+window.initHistoricalTrendsPage = async function () {
+    if (!historicalTrendsData) return;
+
+    const data = historicalTrendsData;
+    const totals = data.totals_by_fy;
+    const baseFy = data.metadata.base_fy;
+    const fyLabels = totals.map(t => `FY${t.fy}`);
+    const fys = totals.map(t => t.fy);
+
+    let mode = 'nominal';        // 'nominal' | 'real'
+    let selectedDept = (data.by_department[0] || {}).dept_code || '';
+
+    let totalsChart = null;
+    let fundsChart = null;
+    let deptChart = null;
+
+    // Helpers: pull series data based on current mode
+    const pickAmount = (entry) => mode === 'real' ? entry.real : entry.nominal;
+    const totalKey = () => mode === 'real' ? 'total_real' : 'total_nominal';
+    const opKey = () => mode === 'real' ? 'operating_real' : 'operating_nominal';
+    const capKey = () => mode === 'real' ? 'capital_real' : 'capital_nominal';
+
+    const fmtBillions = (v) => `$${(v / 1e9).toFixed(2)}B`;
+
+    // Soft palette consistent with the rest of the dashboard
+    const palette = [
+        '#5a7b68', '#a08e58', '#7d97a3', '#b07560', '#8b6c8e',
+        '#6f8d70', '#c2924a', '#5e7d96', '#a87575', '#8b8158',
+        '#789689', '#a39378', '#7e93a8', '#b58472', '#928298',
+    ];
+
+    // ─── Totals chart (line) ───────────────────────────────────────────
+    const renderTotalsChart = () => {
+        const canvas = document.getElementById('hist-totals-chart');
+        if (!canvas) return;
+        if (totalsChart) totalsChart.destroy();
+
+        totalsChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: fyLabels,
+                datasets: [
+                    {
+                        label: 'Operating',
+                        data: totals.map(t => t[opKey()]),
+                        borderColor: '#5a7b68',
+                        backgroundColor: 'rgba(90, 123, 104, 0.15)',
+                        tension: 0.25,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    },
+                    {
+                        label: 'Capital Improvement',
+                        data: totals.map(t => t[capKey()]),
+                        borderColor: '#a08e58',
+                        backgroundColor: 'rgba(160, 142, 88, 0.15)',
+                        tension: 0.25,
+                        fill: false,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    },
+                    {
+                        label: 'Total',
+                        data: totals.map(t => t[totalKey()]),
+                        borderColor: '#3d4a45',
+                        backgroundColor: 'rgba(61, 74, 69, 0.10)',
+                        tension: 0.25,
+                        fill: false,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        borderDash: [],
+                    },
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtBillions(ctx.parsed.y)}`,
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (v) => `$${(v / 1e9).toFixed(0)}B` },
+                        title: { display: true, text: mode === 'real' ? `Constant FY${baseFy} dollars` : 'Nominal dollars' },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+    };
+
+    // ─── Funds chart (stacked bar, top 6 fund categories) ──────────────
+    const renderFundsChart = () => {
+        const canvas = document.getElementById('hist-funds-chart');
+        if (!canvas) return;
+        if (fundsChart) fundsChart.destroy();
+
+        const TOP_N = 6;
+        const top = data.by_fund_category.slice(0, TOP_N);
+        const rest = data.by_fund_category.slice(TOP_N);
+
+        const datasets = top.map((f, i) => ({
+            label: f.fund_category,
+            data: fys.map(fy => {
+                const e = f.series.find(s => s.fy === fy);
+                return e ? pickAmount(e) : 0;
+            }),
+            backgroundColor: palette[i % palette.length],
+            borderWidth: 0,
+        }));
+
+        if (rest.length) {
+            const otherData = fys.map(fy => {
+                let sum = 0;
+                for (const f of rest) {
+                    const e = f.series.find(s => s.fy === fy);
+                    if (e) sum += pickAmount(e);
+                }
+                return sum;
+            });
+            if (otherData.some(v => v > 0)) {
+                datasets.push({
+                    label: 'Other',
+                    data: otherData,
+                    backgroundColor: '#c8c8c8',
+                    borderWidth: 0,
+                });
+            }
+        }
+
+        fundsChart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels: fyLabels, datasets },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtBillions(ctx.parsed.y)}`,
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: { callback: (v) => `$${(v / 1e9).toFixed(0)}B` },
+                    },
+                },
+            },
+        });
+    };
+
+    // ─── Department chart (line) ───────────────────────────────────────
+    const renderDeptChart = () => {
+        const canvas = document.getElementById('hist-dept-chart');
+        if (!canvas) return;
+        if (deptChart) deptChart.destroy();
+
+        const dept = data.by_department.find(d => d.dept_code === selectedDept);
+        if (!dept) return;
+        const seriesByFy = new Map(dept.series.map(s => [s.fy, s]));
+        const dataPts = fys.map(fy => {
+            const e = seriesByFy.get(fy);
+            return e ? pickAmount(e) : null;
+        });
+
+        deptChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: fyLabels,
+                datasets: [{
+                    label: `${dept.dept_code} — ${dept.dept_name}`,
+                    data: dataPts,
+                    borderColor: '#5a7b68',
+                    backgroundColor: 'rgba(90, 123, 104, 0.18)',
+                    tension: 0.25,
+                    fill: true,
+                    borderWidth: 2.5,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    spanGaps: false,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => fmtBillions(ctx.parsed.y),
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (v) => `$${(v / 1e9).toFixed(2)}B` },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+    };
+
+    // ─── Detail table ─────────────────────────────────────────────────
+    const renderTable = () => {
+        const tbody = document.getElementById('hist-table-body');
+        if (!tbody) return;
+        const rows = totals.map((t, i) => {
+            const prevReal = i > 0 ? totals[i - 1].total_real : null;
+            const yoyReal = prevReal ? (t.total_real - prevReal) / prevReal * 100 : null;
+            const yoyCls = yoyReal == null ? '' : (yoyReal > 0 ? 'positive' : yoyReal < 0 ? 'negative' : '');
+            const yoyTxt = yoyReal == null ? '—' : `${yoyReal > 0 ? '+' : ''}${yoyReal.toFixed(1)}%`;
+            return `
+                <tr>
+                    <td>FY${t.fy}</td>
+                    <td class="num">${fmtBillions(t.operating_nominal)}</td>
+                    <td class="num">${fmtBillions(t.capital_nominal)}</td>
+                    <td class="num">${fmtBillions(t.total_nominal)}</td>
+                    <td class="num">${fmtBillions(t.total_real)}</td>
+                    <td class="num ${yoyCls}">${yoyTxt}</td>
+                </tr>`;
+        }).join('');
+        tbody.innerHTML = rows;
+    };
+
+    // Populate department selector
+    const sel = document.getElementById('hist-dept-select');
+    if (sel) {
+        sel.innerHTML = data.by_department.map(d =>
+            `<option value="${d.dept_code}">${d.dept_code} — ${d.dept_name}</option>`
+        ).join('');
+        sel.value = selectedDept;
+        sel.addEventListener('change', () => {
+            selectedDept = sel.value;
+            renderDeptChart();
+        });
+    }
+
+    // Mode toggle
+    const renderAll = () => {
+        renderTotalsChart();
+        renderFundsChart();
+        renderDeptChart();
+    };
+    document.querySelectorAll('.hist-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const newMode = btn.dataset.mode;
+            if (newMode === mode) return;
+            mode = newMode;
+            document.querySelectorAll('.hist-toggle-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.mode === mode)
+            );
+            renderAll();
+        });
+    });
+
+    // CSV export
+    const exportBtn = document.getElementById('hist-export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            const rows = totals.map(t => ({
+                fiscal_year: t.fy,
+                operating_nominal: Math.round(t.operating_nominal),
+                operating_real: Math.round(t.operating_real),
+                capital_nominal: Math.round(t.capital_nominal),
+                capital_real: Math.round(t.capital_real),
+                total_nominal: Math.round(t.total_nominal),
+                total_real: Math.round(t.total_real),
+                deflator: t.deflator,
+            }));
+            downloadCSV(rows, `hawaii_budget_history_FY${fys[0]}-FY${fys[fys.length - 1]}.csv`);
+        });
+    }
+
+    renderAll();
+    renderTable();
 };
 
 // ---------------------------------------------------------------------------
