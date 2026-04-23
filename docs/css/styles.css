@@ -3870,11 +3870,27 @@ mark.search-highlight {
     font-size: 1rem;
     font-weight: 700;
     color: #2f3a36;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
 }
 .hist-act-fy {
     font-size: 0.78rem;
     color: #6f7572;
     letter-spacing: 0.02em;
+}
+/* Small badge for multi-bill sessions (e.g. 2019 HB2 = Operating, HB1259 = CIP) */
+.hist-act-scope {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6f7572;
+    background: #efeadd;
+    border: 1px solid #d9d0b4;
+    border-radius: 3px;
+    padding: 0.08rem 0.32rem;
+    line-height: 1;
 }
 
 .hist-controls {

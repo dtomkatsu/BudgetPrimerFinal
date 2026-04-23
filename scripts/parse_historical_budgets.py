@@ -30,6 +30,7 @@ from budgetprimer.historical import (  # noqa: E402
     HISTORICAL_BIENNIAL_BILLS,
     iter_biennial_bills,
 )
+from budgetprimer.models import BudgetSection  # noqa: E402
 
 HISTORICAL_RAW_DIR = PROJECT_ROOT / "data" / "raw" / "historical"
 DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "processed" / "historical_allocations.csv"
@@ -43,22 +44,26 @@ logger = logging.getLogger("parse_historical_budgets")
 logger.setLevel(logging.INFO)
 
 
-def parse_one_year(session_year: int, info: dict) -> pd.DataFrame:
-    """Parse a single year's CD1 bill, returning a DataFrame of allocations
-    tagged with session_year/bill_number/act_number.
+def parse_one_bill(session_year: int, bill_info: dict,
+                   expected_fys: tuple[int, int]) -> pd.DataFrame:
+    """Parse a single bill's CD1 text, returning a DataFrame of allocations.
+
+    Tags each row with session_year, bill_number, act_number, and scope so
+    the combined CSV can be filtered by any of them.
     """
-    bill = info["bill"]
-    expected_fys = info["fy_covered"]
+    bill = bill_info["number"]
+    scope = bill_info.get("scope", "combined")
     txt_path = HISTORICAL_RAW_DIR / str(session_year) / f"{bill}_CD1_.txt"
 
     if not txt_path.exists():
         raise FileNotFoundError(
-            f"Missing parsed text for session {session_year}: {txt_path}\n"
+            f"Missing parsed text for session {session_year}/{bill}: {txt_path}\n"
             f"Run scripts/download_historical_bills.py first."
         )
 
     logger.info(
-        f"[{session_year}] parsing {bill} CD1  ({txt_path.stat().st_size:,} bytes)"
+        f"[{session_year}] parsing {bill} CD1 (scope={scope}, "
+        f"{txt_path.stat().st_size:,} bytes)"
     )
     # The parser's column 1 → fy1, column 2 → fy2.  Pass the actual fiscal
     # years for this bill so allocations are tagged correctly across history
@@ -67,13 +72,30 @@ def parse_one_year(session_year: int, info: dict) -> pd.DataFrame:
     parser = FastBudgetParser(fy1=fy1, fy2=fy2)
     allocations = parser.parse(str(txt_path))
     if not allocations:
-        logger.warning(f"[{session_year}] parser returned 0 allocations")
+        logger.warning(f"[{session_year}/{bill}] parser returned 0 allocations")
         return pd.DataFrame()
 
     df = pd.DataFrame([a.to_dict() for a in allocations])
+
+    # For scope-specific bills (e.g. 2019 HB1259 = capital-only), filter to
+    # the declared scope.  This protects against the parser accidentally
+    # picking up stray operating-looking lines in a CIP bill or vice versa.
+    if scope == "operating":
+        df = df[df["section"] == BudgetSection.OPERATING.value].copy()
+    elif scope == "capital":
+        df = df[df["section"] == BudgetSection.CAPITAL_IMPROVEMENT.value].copy()
+    # scope == "combined" → keep everything
+
+    if df.empty:
+        logger.warning(
+            f"[{session_year}/{bill}] no rows after scope={scope} filter"
+        )
+        return df
+
     df["session_year"] = session_year
     df["bill_number"] = bill
-    df["act_number"] = info["act"]
+    df["act_number"] = bill_info["act"]
+    df["bill_scope"] = scope
 
     # Sanity-check: parsed FYs should match expected_fys
     parsed_fys = sorted(int(y) for y in df["fiscal_year"].unique() if y)
@@ -81,15 +103,15 @@ def parse_one_year(session_year: int, info: dict) -> pd.DataFrame:
     parsed_set = set(parsed_fys)
     if parsed_set != expected_set:
         logger.warning(
-            f"[{session_year}] FY mismatch: expected {sorted(expected_set)}, "
+            f"[{session_year}/{bill}] FY mismatch: expected {sorted(expected_set)}, "
             f"parsed {sorted(parsed_set)}"
         )
 
-    # Per-year summary
+    # Per-bill summary
     n = len(df)
     by_fy = df.groupby("fiscal_year")["amount"].sum()
     by_section = df.groupby(["fiscal_year", "section"])["amount"].sum()
-    logger.info(f"[{session_year}] {n:,} allocations")
+    logger.info(f"[{session_year}/{bill}] {n:,} allocations")
     for fy in sorted(by_fy.index):
         total = by_fy[fy] / 1e9
         logger.info(f"  FY{int(fy)} total = ${total:,.2f}B")
@@ -101,6 +123,22 @@ def parse_one_year(session_year: int, info: dict) -> pd.DataFrame:
                 pass
 
     return df
+
+
+def parse_one_session(session_year: int, info: dict) -> pd.DataFrame:
+    """Parse every bill in a session and concatenate into one DataFrame.
+
+    Most sessions have a single bill, but some (e.g. 2019) split operating
+    and capital across two bills — both need to be parsed and merged.
+    """
+    frames: list[pd.DataFrame] = []
+    for bill_info in info["bills"]:
+        df = parse_one_bill(session_year, bill_info, info["fy_covered"])
+        if not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True)
 
 
 def main() -> int:
@@ -145,7 +183,7 @@ def main() -> int:
     frames: list[pd.DataFrame] = []
     for session_year, info in targets:
         try:
-            df = parse_one_year(session_year, info)
+            df = parse_one_session(session_year, info)
         except Exception as e:
             logger.error(f"[{session_year}] FAILED: {e}", exc_info=True)
             continue
@@ -171,16 +209,19 @@ def main() -> int:
         f"{args.output.relative_to(PROJECT_ROOT)}"
     )
 
-    # Compact per-year summary at the end
+    # Compact per-session summary at the end (one line per bill for
+    # multi-bill sessions so the CIP split is visible).
     print()
-    print(f"{'Session':<8} {'Bill':<8} {'Rows':>8}  Per-FY Totals (B$)")
-    print("-" * 78)
+    print(f"{'Session':<8} {'Bill':<10} {'Scope':<10} {'Rows':>8}  Per-FY Totals (B$)")
+    print("-" * 90)
     for sy in sorted(combined["session_year"].unique()):
-        sub = combined[combined["session_year"] == sy]
-        bill = sub["bill_number"].iloc[0]
-        per_fy = sub.groupby("fiscal_year")["amount"].sum() / 1e9
-        fy_str = "  ".join(f"FY{int(fy)}=${v:,.2f}B" for fy, v in per_fy.items())
-        print(f"{sy:<8} {bill:<8} {len(sub):>8,}  {fy_str}")
+        sub_session = combined[combined["session_year"] == sy]
+        for bill in sub_session["bill_number"].unique():
+            sub = sub_session[sub_session["bill_number"] == bill]
+            scope = sub["bill_scope"].iloc[0] if "bill_scope" in sub.columns else "-"
+            per_fy = sub.groupby("fiscal_year")["amount"].sum() / 1e9
+            fy_str = "  ".join(f"FY{int(fy)}=${v:,.2f}B" for fy, v in per_fy.items())
+            print(f"{sy:<8} {bill:<10} {scope:<10} {len(sub):>8,}  {fy_str}")
 
     return 0
 

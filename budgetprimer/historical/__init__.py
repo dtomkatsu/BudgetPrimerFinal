@@ -10,13 +10,17 @@ Phase 1 covers the six biennial budget acts from 2015 through 2025.
 from .year_bill_table import (
     HISTORICAL_BIENNIAL_BILLS,
     iter_biennial_bills,
+    iter_all_bills,
     get_bill_for_session,
     fiscal_years_covered,
+    primary_bill_label,
 )
 
 __all__ = [
     "HISTORICAL_BIENNIAL_BILLS",
     "iter_biennial_bills",
+    "iter_all_bills",
     "get_bill_for_session",
     "fiscal_years_covered",
+    "primary_bill_label",
 ]

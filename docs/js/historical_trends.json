@@ -10,6 +10,7 @@
         "session": 2015,
         "bill": "HB500",
         "act": "Act 119, SLH 2015",
+        "scope": "combined",
         "fy_covered": [
           2016,
           2017
@@ -20,6 +21,7 @@
         "session": 2017,
         "bill": "HB100",
         "act": "Act 049, SLH 2017",
+        "scope": "combined",
         "fy_covered": [
           2018,
           2019
@@ -30,6 +32,7 @@
         "session": 2019,
         "bill": "HB2",
         "act": "Act 005, SLH 2019",
+        "scope": "operating",
         "fy_covered": [
           2020,
           2021
@@ -37,9 +40,21 @@
         "source_url": "https://data.capitol.hawaii.gov/sessions/session2019/bills/HB2_CD1_.HTM"
       },
       {
+        "session": 2019,
+        "bill": "HB1259",
+        "act": "Act 042, SLH 2019",
+        "scope": "capital",
+        "fy_covered": [
+          2020,
+          2021
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2019/bills/HB1259_CD1_.HTM"
+      },
+      {
         "session": 2021,
         "bill": "HB200",
         "act": "Act 088, SLH 2021",
+        "scope": "combined",
         "fy_covered": [
           2022,
           2023
@@ -50,6 +65,7 @@
         "session": 2023,
         "bill": "HB300",
         "act": "Act 164, SLH 2023",
+        "scope": "combined",
         "fy_covered": [
           2024,
           2025
@@ -60,6 +76,7 @@
         "session": 2025,
         "bill": "HB300",
         "act": "Act 250, SLH 2025",
+        "scope": "combined",
         "fy_covered": [
           2026,
           2027
@@ -75,10 +92,10 @@
     "bill_notes": [
       {
         "session": 2019,
-        "note": "HB2 contains no Capital Improvement appropriations. The CIP for this biennium was passed in a separate bill not included here."
+        "note": "The 2019 biennial budget was enacted as two bills: HB2 and HB1259. Totals here combine both."
       }
     ],
-    "generated": "2026-04-22T19:42:56",
+    "generated": "2026-04-22T21:13:08",
     "notes": "Figures reflect CD1 (legislatively-passed) totals. Line-item vetoes are not netted out."
   },
   "totals_by_fy": [
@@ -126,20 +143,20 @@
       "fy": 2020,
       "operating_nominal": 15353151040.0,
       "operating_real": 19226751047.0,
-      "capital_nominal": 0.0,
-      "capital_real": 0.0,
-      "total_nominal": 15353151040.0,
-      "total_real": 19226751047.0,
+      "capital_nominal": 2325781000.0,
+      "capital_real": 2912575546.0,
+      "total_nominal": 17678932040.0,
+      "total_real": 22139326594.0,
       "deflator": 1.2523
     },
     {
       "fy": 2021,
       "operating_nominal": 15543655581.0,
       "operating_real": 18946161788.0,
-      "capital_nominal": 0.0,
-      "capital_real": 0.0,
-      "total_nominal": 15543655581.0,
-      "total_real": 18946161788.0,
+      "capital_nominal": 1156258000.0,
+      "capital_real": 1409362876.0,
+      "total_nominal": 16699913581.0,
+      "total_real": 20355524664.0,
       "deflator": 1.2189
     },
     {
@@ -230,8 +247,8 @@
         },
         {
           "fy": 2020,
-          "nominal": 3599978998.0,
-          "real": 4508253699.0
+          "nominal": 3619978998.0,
+          "real": 4533299699.0
         },
         {
           "fy": 2021,
@@ -362,13 +379,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 2241757363.0,
-          "real": 2807352746.0
+          "nominal": 2818015363.0,
+          "real": 3529000639.0
         },
         {
           "fy": 2021,
-          "nominal": 2276365565.0,
-          "real": 2774661987.0
+          "nominal": 2485765565.0,
+          "real": 3029899647.0
         },
         {
           "fy": 2022,
@@ -428,13 +445,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 1146141946.0,
-          "real": 1435313559.0
+          "nominal": 2299866946.0,
+          "real": 2880123376.0
         },
         {
           "fy": 2021,
-          "nominal": 1181927148.0,
-          "real": 1440651001.0
+          "nominal": 1848381148.0,
+          "real": 2252991781.0
         },
         {
           "fy": 2022,
@@ -494,13 +511,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 1842938306.0,
-          "real": 2307911641.0
+          "nominal": 1901183306.0,
+          "real": 2380851854.0
         },
         {
           "fy": 2021,
-          "nominal": 1766079349.0,
-          "real": 2152674118.0
+          "nominal": 1821824349.0,
+          "real": 2220621699.0
         },
         {
           "fy": 2022,
@@ -560,13 +577,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 1218073197.0,
-          "real": 1525393065.0
+          "nominal": 1454594197.0,
+          "real": 1821588313.0
         },
         {
           "fy": 2021,
-          "nominal": 1227943785.0,
-          "real": 1496740680.0
+          "nominal": 1321243785.0,
+          "real": 1610464050.0
         },
         {
           "fy": 2022,
@@ -692,13 +709,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 278363838.0,
-          "real": 348595034.0
+          "nominal": 335588838.0,
+          "real": 420257902.0
         },
         {
           "fy": 2021,
-          "nominal": 278321733.0,
-          "real": 339246360.0
+          "nominal": 303321733.0,
+          "real": 369718860.0
         },
         {
           "fy": 2022,
@@ -758,13 +775,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 196691934.0,
-          "real": 246317309.0
+          "nominal": 303687934.0,
+          "real": 380308400.0
         },
         {
           "fy": 2021,
-          "nominal": 193101607.0,
-          "real": 235371549.0
+          "nominal": 240958607.0,
+          "real": 293704446.0
         },
         {
           "fy": 2022,
@@ -824,13 +841,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 294854090.0,
-          "real": 369245777.0
+          "nominal": 297854090.0,
+          "real": 373002677.0
         },
         {
           "fy": 2021,
-          "nominal": 295527876.0,
-          "real": 360218928.0
+          "nominal": 298527876.0,
+          "real": 363875628.0
         },
         {
           "fy": 2022,
@@ -890,13 +907,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 166454870.0,
-          "real": 208451434.0
+          "nominal": 193634870.0,
+          "real": 242488948.0
         },
         {
           "fy": 2021,
-          "nominal": 163919082.0,
-          "real": 199800969.0
+          "nominal": 194961082.0,
+          "real": 237638063.0
         },
         {
           "fy": 2022,
@@ -1022,13 +1039,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 110067811.0,
-          "real": 137837920.0
+          "nominal": 116013811.0,
+          "real": 145284096.0
         },
         {
           "fy": 2021,
-          "nominal": 109540645.0,
-          "real": 133519092.0
+          "nominal": 111240645.0,
+          "real": 135591222.0
         },
         {
           "fy": 2022,
@@ -1180,13 +1197,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 47132135.0,
-          "real": 59023573.0
+          "nominal": 70832135.0,
+          "real": 88703083.0
         },
         {
           "fy": 2021,
-          "nominal": 47185162.0,
-          "real": 57513994.0
+          "nominal": 56485162.0,
+          "real": 68849764.0
         },
         {
           "fy": 2022,
@@ -1235,6 +1252,11 @@
           "real": 7959027.0
         },
         {
+          "fy": 2020,
+          "nominal": 1345000.0,
+          "real": 1684344.0
+        },
+        {
           "fy": 2022,
           "nominal": 7000000.0,
           "real": 8074500.0
@@ -1277,8 +1299,8 @@
         },
         {
           "fy": 2020,
-          "nominal": 50521830.0,
-          "real": 63268488.0
+          "nominal": 76521830.0,
+          "real": 95828288.0
         },
         {
           "fy": 2021,
@@ -1469,6 +1491,16 @@
           "real": 4643539.0
         },
         {
+          "fy": 2020,
+          "nominal": 5400000.0,
+          "real": 6762420.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 11900000.0,
+          "real": 14504910.0
+        },
+        {
           "fy": 2022,
           "nominal": 19700000.0,
           "real": 22723950.0
@@ -1510,6 +1542,11 @@
           "real": 1990088.0
         },
         {
+          "fy": 2020,
+          "nominal": 9000000.0,
+          "real": 11270700.0
+        },
+        {
           "fy": 2022,
           "nominal": 2500000.0,
           "real": 2883750.0
@@ -1539,6 +1576,16 @@
           "fy": 2017,
           "nominal": 2000.0,
           "real": 2739.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 15240000.0,
+          "real": 19085052.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 1560000.0,
+          "real": 1901484.0
         },
         {
           "fy": 2022,
@@ -1947,13 +1994,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 3349065480.0,
-          "real": 4194034701.0
+          "nominal": 3356743480.0,
+          "real": 4203649860.0
         },
         {
           "fy": 2021,
-          "nominal": 3402399439.0,
-          "real": 4147184676.0
+          "nominal": 3412481439.0,
+          "real": 4159473626.0
         },
         {
           "fy": 2022,
@@ -2012,13 +2059,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 2871472038.0,
-          "real": 3595944433.0
+          "nominal": 2997339038.0,
+          "real": 3753567677.0
         },
         {
           "fy": 2021,
-          "nominal": 2824919164.0,
-          "real": 3443293969.0
+          "nominal": 2903589164.0,
+          "real": 3539184832.0
         },
         {
           "fy": 2022,
@@ -2074,6 +2121,16 @@
           "fy": 2019,
           "nominal": 270966045.0,
           "real": 347242987.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1001841000.0,
+          "real": 1254605484.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 610158000.0,
+          "real": 743721586.0
         },
         {
           "fy": 2022,
@@ -2196,6 +2253,16 @@
           "real": 63702122.0
         },
         {
+          "fy": 2020,
+          "nominal": 1018811000.0,
+          "real": 1275857015.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 439275000.0,
+          "real": 535432298.0
+        },
+        {
           "fy": 2022,
           "nominal": 984796000.0,
           "real": 1135962186.0
@@ -2257,8 +2324,8 @@
         },
         {
           "fy": 2021,
-          "nominal": 429906504.0,
-          "real": 524013038.0
+          "nominal": 433906504.0,
+          "real": 528888638.0
         },
         {
           "fy": 2022,
@@ -2317,13 +2384,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 217492670.0,
-          "real": 272366071.0
+          "nominal": 296338670.0,
+          "real": 371104916.0
         },
         {
           "fy": 2021,
-          "nominal": 197041566.0,
-          "real": 240173965.0
+          "nominal": 205772566.0,
+          "real": 250816181.0
         },
         {
           "fy": 2022,
@@ -2462,13 +2529,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 2209721.0,
-          "real": 2767234.0
+          "nominal": 5919721.0,
+          "real": 7413267.0
         },
         {
           "fy": 2021,
-          "nominal": 2209721.0,
-          "real": 2693429.0
+          "nominal": 4369721.0,
+          "real": 5326253.0
         },
         {
           "fy": 2022,
@@ -2522,13 +2589,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 904067.0,
-          "real": 1132163.0
+          "nominal": 5182067.0,
+          "real": 6489503.0
         },
         {
           "fy": 2021,
-          "nominal": 904067.0,
-          "real": 1101967.0
+          "nominal": 3936067.0,
+          "real": 4797672.0
         },
         {
           "fy": 2022,
@@ -2587,13 +2654,13 @@
         },
         {
           "fy": 2020,
-          "nominal": 20427078.0,
-          "real": 25580830.0
+          "nominal": 101177078.0,
+          "real": 126704055.0
         },
         {
           "fy": 2021,
-          "nominal": 18679890.0,
-          "real": 22768918.0
+          "nominal": 18829890.0,
+          "real": 22951753.0
         },
         {
           "fy": 2022,
@@ -2630,6 +2697,11 @@
     {
       "fund_category": "General Obligation Bond Fund with Debt Service Cost to be Paid from Special Funds",
       "series": [
+        {
+          "fy": 2020,
+          "nominal": 4000000.0,
+          "real": 5009200.0
+        },
         {
           "fy": 2022,
           "nominal": 7300000.0,

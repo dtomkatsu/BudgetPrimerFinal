@@ -208,34 +208,39 @@ def main() -> int:
     by_dept = build_by_department(df, deflators)
     by_fund = build_by_fund_category(df, deflators)
 
-    # Build acts metadata in chronological order
+    # Build acts metadata in chronological order.  Each session may have
+    # ONE or MORE bills (e.g. 2019 split operating → HB2 and capital →
+    # HB1259).  Emit one entry per bill so the UI can list them all.
     acts = []
     for sy in sorted(HISTORICAL_BIENNIAL_BILLS):
         info = HISTORICAL_BIENNIAL_BILLS[sy]
-        acts.append({
-            "session": sy,
-            "bill": info["bill"],
-            "act": info["act"],
-            "fy_covered": list(info["fy_covered"]),
-            "source_url": (
-                f"https://data.capitol.hawaii.gov/sessions/session{sy}"
-                f"/bills/{info['bill']}_CD1_.HTM"
-            ),
-        })
+        for bill_info in info["bills"]:
+            acts.append({
+                "session": sy,
+                "bill": bill_info["number"],
+                "act": bill_info["act"],
+                "scope": bill_info.get("scope", "combined"),
+                "fy_covered": list(info["fy_covered"]),
+                "source_url": (
+                    f"https://data.capitol.hawaii.gov/sessions/session{sy}"
+                    f"/bills/{bill_info['number']}_CD1_.HTM"
+                ),
+            })
 
-    # Per-bill notes (catches data quirks like 2019 HB2 being operating-only)
+    # Per-session notes for any anomalies the UI should surface.  Today the
+    # only surviving quirk is that the 2019 biennium was enacted as TWO
+    # bills (HB2 operating + HB1259 capital) rather than one omnibus — the
+    # chart totals are still complete, but the footnote explains the split.
     bill_notes: list[dict] = []
     for sy in sorted(HISTORICAL_BIENNIAL_BILLS):
-        sub = df[df["session_year"] == sy]
-        op_total = sub[sub["section"] == "Operating"]["amount"].sum()
-        cap_total = sub[sub["section"] == "Capital Improvement"]["amount"].sum()
-        if cap_total == 0 and op_total > 0:
+        info = HISTORICAL_BIENNIAL_BILLS[sy]
+        if len(info["bills"]) > 1:
+            names = " and ".join(b["number"] for b in info["bills"])
             bill_notes.append({
                 "session": sy,
                 "note": (
-                    f"{HISTORICAL_BIENNIAL_BILLS[sy]['bill']} contains no "
-                    f"Capital Improvement appropriations. The CIP for this "
-                    f"biennium was passed in a separate bill not included here."
+                    f"The {sy} biennial budget was enacted as two bills: "
+                    f"{names}. Totals here combine both."
                 ),
             })
 

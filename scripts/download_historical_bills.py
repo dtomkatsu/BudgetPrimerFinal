@@ -38,6 +38,7 @@ from scripts.download_bill import htm_to_text  # noqa: E402
 from budgetprimer.historical import (  # noqa: E402
     HISTORICAL_BIENNIAL_BILLS,
     iter_biennial_bills,
+    iter_all_bills,
 )
 
 HISTORICAL_DIR = PROJECT_ROOT / "data" / "raw" / "historical"
@@ -172,7 +173,9 @@ def _write_metadata(results: list[dict]) -> None:
     existing.setdefault("downloads", {})
     for r in results:
         if r.get("status") == "ok":
-            key = str(r["session_year"])
+            # Key by "{year}/{bill}" so multi-bill sessions (e.g. 2019 HB2
+            # + HB1259) each get their own entry rather than overwriting.
+            key = f"{r['session_year']}/{r['bill']}"
             existing["downloads"][key] = r
 
     existing["last_run"] = datetime.now().isoformat(timespec="seconds")
@@ -184,18 +187,20 @@ def list_downloaded() -> None:
     if not HISTORICAL_DIR.exists():
         print("No historical downloads yet.")
         return
-    print(f"{'Year':<6} {'Bill':<8} {'Act':<25} HTM      TXT      Status")
-    print("-" * 78)
-    for session_year, info in iter_biennial_bills():
-        bill = info["bill"]
-        act = info["act"]
+    print(f"{'Year':<6} {'Bill':<8} {'Scope':<10} {'Act':<25} HTM      TXT      Status")
+    print("-" * 90)
+    for session_year, bill_info in iter_all_bills():
+        bill = bill_info["number"]
+        act = bill_info["act"]
+        scope = bill_info.get("scope", "combined")
         htm = HISTORICAL_DIR / str(session_year) / f"{bill}_CD1_.HTM"
         txt = HISTORICAL_DIR / str(session_year) / f"{bill}_CD1_.txt"
         htm_status = f"{htm.stat().st_size:,}B" if htm.exists() else "—"
         txt_status = f"{txt.stat().st_size:,}B" if txt.exists() else "—"
         present = "✓" if (htm.exists() and txt.exists()) else "—"
         print(
-            f"{session_year:<6} {bill:<8} {act:<25} {htm_status:<8} {txt_status:<8} {present}"
+            f"{session_year:<6} {bill:<8} {scope:<10} {act:<25} "
+            f"{htm_status:<8} {txt_status:<8} {present}"
         )
 
 
@@ -230,6 +235,8 @@ def main() -> int:
         list_downloaded()
         return 0
 
+    # Build the flat list of (session_year, bill_info) targets.  Multi-bill
+    # sessions (e.g. 2019 HB2 + HB1259) expand to one download per bill.
     if args.year:
         years = sorted(set(args.year))
         unknown = [y for y in years if y not in HISTORICAL_BIENNIAL_BILLS]
@@ -239,9 +246,13 @@ def main() -> int:
                 f"Known years: {sorted(HISTORICAL_BIENNIAL_BILLS)}"
             )
             return 1
-        targets = [(y, HISTORICAL_BIENNIAL_BILLS[y]) for y in years]
+        targets = [
+            (sy, bill)
+            for sy, bill in iter_all_bills()
+            if sy in years
+        ]
     else:
-        targets = list(iter_biennial_bills())
+        targets = list(iter_all_bills())
 
     print(
         f"Downloading {len(targets)} biennial budget bill(s) from "
@@ -249,10 +260,12 @@ def main() -> int:
     )
     results: list[dict] = []
     n_ok = n_skipped = n_failed = 0
-    for i, (session_year, info) in enumerate(targets):
+    for i, (session_year, bill_info) in enumerate(targets):
         if i > 0:
             time.sleep(INTER_REQUEST_SLEEP_SEC)
-        r = download_year(session_year, info["bill"], force=args.force)
+        r = download_year(session_year, bill_info["number"], force=args.force)
+        r["scope"] = bill_info.get("scope", "combined")
+        r["act"] = bill_info["act"]
         results.append(r)
         status = r.get("status", "?")
         if status == "ok":
