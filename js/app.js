@@ -704,24 +704,36 @@ window.historicalTrendsPage = async function () {
         `<li><strong>${n.session}:</strong> ${n.note}</li>`
     ).join('');
 
-    // Six act cards, chronological
-    const actCardsHtml = meta.acts.map(a => `
+    // Act cards, chronological.  Most sessions contribute one card; 2019
+    // contributes two (HB2 operating + HB1259 capital) since the biennium
+    // was enacted as two separate bills.
+    const uniqueSessions = new Set(meta.acts.map(a => a.session)).size;
+    const scopeLabel = (scope) => {
+        if (scope === 'operating') return 'Operating';
+        if (scope === 'capital')   return 'CIP';
+        return '';  // combined — no badge
+    };
+    const actCardsHtml = meta.acts.map(a => {
+        const badge = scopeLabel(a.scope);
+        const badgeHtml = badge ? `<span class="hist-act-scope">${badge}</span>` : '';
+        return `
         <a class="hist-act-card" href="${a.source_url}" target="_blank" rel="noopener" title="${a.act}">
             <span class="hist-act-year">${a.session}</span>
-            <span class="hist-act-bill">${a.bill}</span>
+            <span class="hist-act-bill">${a.bill}${badgeHtml}</span>
             <span class="hist-act-fy">FY${a.fy_covered[0]}–${String(a.fy_covered[1]).slice(-2)}</span>
-        </a>`).join('');
+        </a>`;
+    }).join('');
 
     return `
         <section class="historical-page">
             <header class="hist-hero">
                 <h2>10 Years of Hawaiʻi's Budget</h2>
                 <p class="hist-lead">
-                    Six biennial appropriations acts, FY${fyMin}–FY${fyMax}.
+                    ${uniqueSessions} biennial appropriations, FY${fyMin}–FY${fyMax}.
                     Toggle <strong>Real (FY${baseFy} $)</strong> to see budget growth net of inflation.
                 </p>
                 <div class="hist-meta">
-                    <span><strong>Source:</strong> ${meta.acts.length} biennial acts (CD1, as passed by the Legislature)</span>
+                    <span><strong>Source:</strong> ${meta.acts.length} acts across ${uniqueSessions} biennia (CD1, as passed by the Legislature)</span>
                     <span><strong>Inflation index:</strong> ${meta.cpi_source}</span>
                     ${projectedNote}
                 </div>
