@@ -1,0 +1,2651 @@
+{
+  "metadata": {
+    "base_fy": 2026,
+    "fy_range": [
+      2016,
+      2027
+    ],
+    "acts": [
+      {
+        "session": 2015,
+        "bill": "HB500",
+        "act": "Act 119, SLH 2015",
+        "fy_covered": [
+          2016,
+          2017
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2015/bills/HB500_CD1_.HTM"
+      },
+      {
+        "session": 2017,
+        "bill": "HB100",
+        "act": "Act 049, SLH 2017",
+        "fy_covered": [
+          2018,
+          2019
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2017/bills/HB100_CD1_.HTM"
+      },
+      {
+        "session": 2019,
+        "bill": "HB2",
+        "act": "Act 005, SLH 2019",
+        "fy_covered": [
+          2020,
+          2021
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2019/bills/HB2_CD1_.HTM"
+      },
+      {
+        "session": 2021,
+        "bill": "HB200",
+        "act": "Act 088, SLH 2021",
+        "fy_covered": [
+          2022,
+          2023
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2021/bills/HB200_CD1_.HTM"
+      },
+      {
+        "session": 2023,
+        "bill": "HB300",
+        "act": "Act 164, SLH 2023",
+        "fy_covered": [
+          2024,
+          2025
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2023/bills/HB300_CD1_.HTM"
+      },
+      {
+        "session": 2025,
+        "bill": "HB300",
+        "act": "Act 250, SLH 2025",
+        "fy_covered": [
+          2026,
+          2027
+        ],
+        "source_url": "https://data.capitol.hawaii.gov/sessions/session2025/bills/HB300_CD1_.HTM"
+      }
+    ],
+    "cpi_source": "BLS CUURS49ASA0 (Urban Honolulu CPI-U, all items, NSA)",
+    "cpi_fetched": "2026-04-22T19:41:42",
+    "projected_fys": [
+      2027
+    ],
+    "bill_notes": [
+      {
+        "session": 2019,
+        "note": "HB2 contains no Capital Improvement appropriations. The CIP for this biennium was passed in a separate bill not included here."
+      }
+    ],
+    "generated": "2026-04-22T19:42:56",
+    "notes": "Figures reflect CD1 (legislatively-passed) totals. Line-item vetoes are not netted out."
+  },
+  "totals_by_fy": [
+    {
+      "fy": 2016,
+      "operating_nominal": 13015729217.0,
+      "operating_real": 18240242925.0,
+      "capital_nominal": 1650381015.0,
+      "capital_real": 2312843954.0,
+      "total_nominal": 14666110232.0,
+      "total_real": 20553086879.0,
+      "deflator": 1.4014
+    },
+    {
+      "fy": 2017,
+      "operating_nominal": 13443084847.0,
+      "operating_real": 18407616081.0,
+      "capital_nominal": 767803764.0,
+      "capital_real": 1051353694.0,
+      "total_nominal": 14210888611.0,
+      "total_real": 19458969775.0,
+      "deflator": 1.3693
+    },
+    {
+      "fy": 2018,
+      "operating_nominal": 14103622414.0,
+      "operating_real": 18692941148.0,
+      "capital_nominal": 2294419413.0,
+      "capital_real": 3041023490.0,
+      "total_nominal": 16398041827.0,
+      "total_real": 21733964638.0,
+      "deflator": 1.3254
+    },
+    {
+      "fy": 2019,
+      "operating_nominal": 14308859860.0,
+      "operating_real": 18336803911.0,
+      "capital_nominal": 695713251.0,
+      "capital_real": 891556531.0,
+      "total_nominal": 15004573111.0,
+      "total_real": 19228360442.0,
+      "deflator": 1.2815
+    },
+    {
+      "fy": 2020,
+      "operating_nominal": 15353151040.0,
+      "operating_real": 19226751047.0,
+      "capital_nominal": 0.0,
+      "capital_real": 0.0,
+      "total_nominal": 15353151040.0,
+      "total_real": 19226751047.0,
+      "deflator": 1.2523
+    },
+    {
+      "fy": 2021,
+      "operating_nominal": 15543655581.0,
+      "operating_real": 18946161788.0,
+      "capital_nominal": 0.0,
+      "capital_real": 0.0,
+      "total_nominal": 15543655581.0,
+      "total_real": 18946161788.0,
+      "deflator": 1.2189
+    },
+    {
+      "fy": 2022,
+      "operating_nominal": 15875914734.0,
+      "operating_real": 18312867646.0,
+      "capital_nominal": 1756366000.0,
+      "capital_real": 2025968181.0,
+      "total_nominal": 17632280734.0,
+      "total_real": 20338835827.0,
+      "deflator": 1.1535
+    },
+    {
+      "fy": 2023,
+      "operating_nominal": 15261635479.0,
+      "operating_real": 16703860032.0,
+      "capital_nominal": 929231000.0,
+      "capital_real": 1017043330.0,
+      "total_nominal": 16190866479.0,
+      "total_real": 17720903361.0,
+      "deflator": 1.0945
+    },
+    {
+      "fy": 2024,
+      "operating_nominal": 19586585892.0,
+      "operating_real": 20734359825.0,
+      "capital_nominal": 2935198173.0,
+      "capital_real": 3107200786.0,
+      "total_nominal": 22521784065.0,
+      "total_real": 23841560611.0,
+      "deflator": 1.0586
+    },
+    {
+      "fy": 2025,
+      "operating_nominal": 18751616899.0,
+      "operating_real": 19229783130.0,
+      "capital_nominal": 1354713397.0,
+      "capital_real": 1389258589.0,
+      "total_nominal": 20106330296.0,
+      "total_real": 20619041719.0,
+      "deflator": 1.0255
+    },
+    {
+      "fy": 2026,
+      "operating_nominal": 19974031624.0,
+      "operating_real": 19974031624.0,
+      "capital_nominal": 3381940582.0,
+      "capital_real": 3381940582.0,
+      "total_nominal": 23355972206.0,
+      "total_real": 23355972206.0,
+      "deflator": 1.0
+    },
+    {
+      "fy": 2027,
+      "operating_nominal": 19792131073.0,
+      "operating_real": 19204304780.0,
+      "capital_nominal": 2332623079.0,
+      "capital_real": 2263344174.0,
+      "total_nominal": 22124754152.0,
+      "total_real": 21467648954.0,
+      "deflator": 0.9703
+    }
+  ],
+  "by_department": [
+    {
+      "dept_code": "HMS",
+      "dept_name": "Department of Human Services",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 3037391697.0,
+          "real": 4256600724.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 3133813574.0,
+          "real": 4291130927.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 3480427940.0,
+          "real": 4612959192.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 3586947888.0,
+          "real": 4596673718.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 3599978998.0,
+          "real": 4508253699.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 3656564623.0,
+          "real": 4456986619.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 3742848530.0,
+          "real": 4317375779.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 3733064106.0,
+          "real": 4085838664.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 4200341827.0,
+          "real": 4446481858.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 4229305335.0,
+          "real": 4337152621.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4804476375.0,
+          "real": 4804476375.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4774792596.0,
+          "real": 4632981256.0
+        }
+      ]
+    },
+    {
+      "dept_code": "BUF",
+      "dept_name": "Department of Budget and Finance",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 2354734776.0,
+          "real": 3299925315.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2554011932.0,
+          "real": 3497208538.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2636310187.0,
+          "real": 3494165522.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 2858486587.0,
+          "real": 3663150561.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 3464670353.0,
+          "real": 4338806683.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 3601413608.0,
+          "real": 4389763047.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 3295029241.0,
+          "real": 3800816229.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 3364759310.0,
+          "real": 3682729065.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 4768088452.0,
+          "real": 5047498435.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 4801076034.0,
+          "real": 4923503473.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4349371728.0,
+          "real": 4349371728.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4435497528.0,
+          "real": 4303763251.0
+        }
+      ]
+    },
+    {
+      "dept_code": "EDN",
+      "dept_name": "Department of Education",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 2345369453.0,
+          "real": 3286800751.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2137132683.0,
+          "real": 2926375783.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2569769330.0,
+          "real": 3405972270.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 2129924401.0,
+          "real": 2729498120.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 2241757363.0,
+          "real": 2807352746.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 2276365565.0,
+          "real": 2774661987.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 2656430233.0,
+          "real": 3064192274.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 2259219936.0,
+          "real": 2472716220.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 3335747276.0,
+          "real": 3531222066.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 2912615297.0,
+          "real": 2986886987.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 3494336138.0,
+          "real": 3494336138.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 3308849486.0,
+          "real": 3210576656.0
+        }
+      ]
+    },
+    {
+      "dept_code": "TRN",
+      "dept_name": "Department of Transportation",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1812059735.0,
+          "real": 2539420513.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1414387775.0,
+          "real": 1936721180.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2204582787.0,
+          "real": 2921954026.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 1592115430.0,
+          "real": 2040295924.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1146141946.0,
+          "real": 1435313559.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 1181927148.0,
+          "real": 1440651001.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 1700330484.0,
+          "real": 1961331213.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 1752720532.0,
+          "real": 1918352622.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 2804483695.0,
+          "real": 2968826440.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 1936993467.0,
+          "real": 1986386800.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 3428173344.0,
+          "real": 3428173344.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 3257838065.0,
+          "real": 3161080274.0
+        }
+      ]
+    },
+    {
+      "dept_code": "HTH",
+      "dept_name": "Department of Health",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1698116865.0,
+          "real": 2379740975.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1685592613.0,
+          "real": 2308081965.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 1884715220.0,
+          "real": 2498001553.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 1740156316.0,
+          "real": 2230010319.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1842938306.0,
+          "real": 2307911641.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 1766079349.0,
+          "real": 2152674118.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 1861264606.0,
+          "real": 2146968723.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 1832542888.0,
+          "real": 2005718191.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 2199647160.0,
+          "real": 2328546484.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 2211017821.0,
+          "real": 2267398775.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 2346803728.0,
+          "real": 2346803728.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 2351293895.0,
+          "real": 2281460466.0
+        }
+      ]
+    },
+    {
+      "dept_code": "UOH",
+      "dept_name": "University of Hawaii",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1209945687.0,
+          "real": 1695617886.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1117770790.0,
+          "real": 1530563543.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 1319689632.0,
+          "real": 1749116638.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 1185740862.0,
+          "real": 1519526915.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1218073197.0,
+          "real": 1525393065.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 1227943785.0,
+          "real": 1496740680.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 1443734150.0,
+          "real": 1665347342.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 1311878255.0,
+          "real": 1435850750.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 1524767256.0,
+          "real": 1614118617.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 1509847841.0,
+          "real": 1548348961.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 1573335440.0,
+          "real": 1573335440.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 1431487301.0,
+          "real": 1388972128.0
+        }
+      ]
+    },
+    {
+      "dept_code": "LBR",
+      "dept_name": "Department of Labor and Industrial Relations",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 477210944.0,
+          "real": 668763417.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 466890278.0,
+          "real": 639312858.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 476375585.0,
+          "real": 631388200.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 473439354.0,
+          "real": 606712532.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 475497170.0,
+          "real": 595465106.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 473460549.0,
+          "real": 577101063.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 1245391407.0,
+          "real": 1436558988.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 515230191.0,
+          "real": 563919444.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 560806587.0,
+          "real": 593669853.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 450269243.0,
+          "real": 461751109.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 483826077.0,
+          "real": 483826077.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 463199718.0,
+          "real": 449442686.0
+        }
+      ]
+    },
+    {
+      "dept_code": "BED",
+      "dept_name": "Department of Business, Economic Development, and Tourism",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 402274654.0,
+          "real": 563747700.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 354839874.0,
+          "real": 485882239.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 333173527.0,
+          "real": 441588193.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 270315915.0,
+          "real": 346409845.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 278363838.0,
+          "real": 348595034.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 278321733.0,
+          "real": 339246360.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 202685996.0,
+          "real": 233798296.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 205659598.0,
+          "real": 225094430.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 929563122.0,
+          "real": 984035521.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 415478500.0,
+          "real": 426073202.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 659115173.0,
+          "real": 659115173.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 441362996.0,
+          "real": 428254515.0
+        }
+      ]
+    },
+    {
+      "dept_code": "AGS",
+      "dept_name": "Department of Accounting and General Services",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 285940386.0,
+          "real": 400716857.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 266395776.0,
+          "real": 364775736.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 373353125.0,
+          "real": 494842232.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 218078737.0,
+          "real": 279467901.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 196691934.0,
+          "real": 246317309.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 193101607.0,
+          "real": 235371549.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 364137966.0,
+          "real": 420033144.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 227964602.0,
+          "real": 249507257.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 490214874.0,
+          "real": 518941466.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 365658885.0,
+          "real": 374983187.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 476972058.0,
+          "real": 476972058.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 329713607.0,
+          "real": 319921113.0
+        }
+      ]
+    },
+    {
+      "dept_code": "PSD",
+      "dept_name": "Department of Corrections and Rehabilitation",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 265482731.0,
+          "real": 372047499.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 269663561.0,
+          "real": 369250314.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 280967385.0,
+          "real": 372394172.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 275543425.0,
+          "real": 353108899.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 294854090.0,
+          "real": 369245777.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 295527876.0,
+          "real": 360218928.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 297540439.0,
+          "real": 343212896.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 287106995.0,
+          "real": 314238606.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 332092737.0,
+          "real": 351553371.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 337747244.0,
+          "real": 346359799.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 330449082.0,
+          "real": 330449082.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 319712288.0,
+          "real": 310216833.0
+        }
+      ]
+    },
+    {
+      "dept_code": "LNR",
+      "dept_name": "Department of Land and Natural Resources",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 165241947.0,
+          "real": 231570065.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 141936686.0,
+          "real": 194353904.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 215376064.0,
+          "real": 285459435.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 161424470.0,
+          "real": 206865458.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 166454870.0,
+          "real": 208451434.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 163919082.0,
+          "real": 199800969.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 248454209.0,
+          "real": 286591930.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 173705356.0,
+          "real": 190120512.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 527664998.0,
+          "real": 558586167.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 273764138.0,
+          "real": 280745124.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 400687800.0,
+          "real": 400687800.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 298627192.0,
+          "real": 289757964.0
+        }
+      ]
+    },
+    {
+      "dept_code": "ATG",
+      "dept_name": "Department of the Attorney General",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 80577375.0,
+          "real": 112921133.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 81250993.0,
+          "real": 111256985.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 103647780.0,
+          "real": 137374768.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 98032256.0,
+          "real": 125628336.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 103000417.0,
+          "real": 128987422.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 102428017.0,
+          "real": 124849510.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 102285053.0,
+          "real": 117985809.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 102293109.0,
+          "real": 111959808.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 124947791.0,
+          "real": 132269732.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 118308376.0,
+          "real": 121325240.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 135475160.0,
+          "real": 135475160.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 133721369.0,
+          "real": 129749844.0
+        }
+      ]
+    },
+    {
+      "dept_code": "DEF",
+      "dept_name": "Department of Defense",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 122903794.0,
+          "real": 172237377.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 209694040.0,
+          "real": 287134049.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 148762167.0,
+          "real": 197169376.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 146440016.0,
+          "real": 187662881.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 110067811.0,
+          "real": 137837920.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 109540645.0,
+          "real": 133519092.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 105170791.0,
+          "real": 121314507.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 106680791.0,
+          "real": 116762126.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 156644077.0,
+          "real": 165823420.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 131596144.0,
+          "real": 134951846.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 219370364.0,
+          "real": 219370364.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 113164375.0,
+          "real": 109803393.0
+        }
+      ]
+    },
+    {
+      "dept_code": "CCA",
+      "dept_name": "Department of Commerce and Consumer Affairs",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 78193107.0,
+          "real": 109579820.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 77079103.0,
+          "real": 105544416.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 82281351.0,
+          "real": 109055703.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 81731874.0,
+          "real": 104739397.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 48579208.0,
+          "real": 60835742.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 49764208.0,
+          "real": 60657593.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 93821564.0,
+          "real": 108223174.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 90997564.0,
+          "real": 99596834.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 108044694.0,
+          "real": 114376113.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 109944699.0,
+          "real": 112748289.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 119071633.0,
+          "real": 119071633.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 106090779.0,
+          "real": 102939883.0
+        }
+      ]
+    },
+    {
+      "dept_code": "LAW",
+      "dept_name": "Department of Law Enforcement",
+      "series": [
+        {
+          "fy": 2024,
+          "nominal": 92819245.0,
+          "real": 98258453.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 65238306.0,
+          "real": 66901883.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 104679615.0,
+          "real": 104679615.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 98243046.0,
+          "real": 95325228.0
+        }
+      ]
+    },
+    {
+      "dept_code": "AGR",
+      "dept_name": "Department of Agriculture and Biosecurity",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 63355467.0,
+          "real": 88786351.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 49094209.0,
+          "real": 67224700.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 103946950.0,
+          "real": 137771288.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 51907866.0,
+          "real": 66519930.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 47132135.0,
+          "real": 59023573.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 47185162.0,
+          "real": 57513994.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 57250942.0,
+          "real": 66038962.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 49185548.0,
+          "real": 53833582.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 94191353.0,
+          "real": 99710966.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 57640628.0,
+          "real": 59110464.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 80714926.0,
+          "real": 80714926.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 71650676.0,
+          "real": 69522651.0
+        }
+      ]
+    },
+    {
+      "dept_code": "COM",
+      "dept_name": "County of Maui",
+      "series": [
+        {
+          "fy": 2017,
+          "nominal": 2000000.0,
+          "real": 2738600.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 6005000.0,
+          "real": 7959027.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 7000000.0,
+          "real": 8074500.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 40000000.0,
+          "real": 43780000.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 69535750.0,
+          "real": 73610545.0
+        }
+      ]
+    },
+    {
+      "dept_code": "HHL",
+      "dept_name": "Department of Hawaiian Home Lands",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 80091732.0,
+          "real": 112240553.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 79790277.0,
+          "real": 109256826.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 111258700.0,
+          "real": 147462281.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 74919500.0,
+          "real": 96009339.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 50521830.0,
+          "real": 63268488.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 50528050.0,
+          "real": 61588640.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 106635438.0,
+          "real": 123003978.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 78635438.0,
+          "real": 86066487.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 85331961.0,
+          "real": 90332414.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 85699870.0,
+          "real": 87885217.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 185179472.0,
+          "real": 185179472.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 68167008.0,
+          "real": 66142448.0
+        }
+      ]
+    },
+    {
+      "dept_code": "TAX",
+      "dept_name": "Department of Taxation",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 29686027.0,
+          "real": 41601998.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 29890893.0,
+          "real": 40929600.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 28866369.0,
+          "real": 38259485.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 28240869.0,
+          "real": 36190674.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 36687491.0,
+          "real": 45943745.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 37847491.0,
+          "real": 46132307.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 28629744.0,
+          "real": 33024410.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 28629744.0,
+          "real": 31335255.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 44993119.0,
+          "real": 47629716.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 42029076.0,
+          "real": 43100817.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 43315613.0,
+          "real": 43315613.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 44665709.0,
+          "real": 43339137.0
+        }
+      ]
+    },
+    {
+      "dept_code": "HRD",
+      "dept_name": "Department of Human Resources Development",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 21834643.0,
+          "real": 30599069.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 22043991.0,
+          "real": 30184837.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 25289778.0,
+          "real": 33519072.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 25438698.0,
+          "real": 32599691.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 26206625.0,
+          "real": 32818556.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 26203625.0,
+          "real": 31939599.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 26032612.0,
+          "real": 30028618.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 26085187.0,
+          "real": 28550237.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 36882596.0,
+          "real": 39043916.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 32006487.0,
+          "real": 32822652.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 37052068.0,
+          "real": 37052068.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 36278606.0,
+          "real": 35201131.0
+        }
+      ]
+    },
+    {
+      "dept_code": "COK",
+      "dept_name": "County of Kauai",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 119070670.0,
+          "real": 166865637.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 107559170.0,
+          "real": 147280771.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 3503500.0,
+          "real": 4643539.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 19700000.0,
+          "real": 22723950.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 16003875.0,
+          "real": 16941702.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 12000900.0,
+          "real": 12306923.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 59295375.0,
+          "real": 59295375.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 33282375.0,
+          "real": 32293888.0
+        }
+      ]
+    },
+    {
+      "dept_code": "CCH",
+      "dept_name": "City and County of Honolulu",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 4002000.0,
+          "real": 5608403.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 1501500.0,
+          "real": 1990088.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 2500000.0,
+          "real": 2883750.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 11010500.0,
+          "real": 11655715.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 10002000.0,
+          "real": 10002000.0
+        }
+      ]
+    },
+    {
+      "dept_code": "COH",
+      "dept_name": "County of Hawaii",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 552550.0,
+          "real": 774344.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2000.0,
+          "real": 2739.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 18000000.0,
+          "real": 20763000.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 7003500.0,
+          "real": 7003500.0
+        }
+      ]
+    },
+    {
+      "dept_code": "GOV",
+      "dept_name": "Office of the Governor",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 4061495.0,
+          "real": 5691779.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 3609054.0,
+          "real": 4941878.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 3462635.0,
+          "real": 4589376.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 3462635.0,
+          "real": 4437367.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 3613903.0,
+          "real": 4525691.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 3613903.0,
+          "real": 4404986.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 3551536.0,
+          "real": 4096697.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 3551536.0,
+          "real": 3887156.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 5341153.0,
+          "real": 5654145.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 5426774.0,
+          "real": 5565157.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4701872.0,
+          "real": 4701872.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4551872.0,
+          "real": 4416681.0
+        }
+      ]
+    },
+    {
+      "dept_code": "SUB",
+      "dept_name": "Subsidies",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 4490244.0,
+          "real": 6292628.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 4490244.0,
+          "real": 6148491.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 942000.0,
+          "real": 1248527.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 942000.0,
+          "real": 1207173.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 942000.0,
+          "real": 1179667.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 942000.0,
+          "real": 1148204.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 2900000.0,
+          "real": 3345150.0
+        }
+      ]
+    },
+    {
+      "dept_code": "LTG",
+      "dept_name": "Office of the Lieutenant Governor",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1596179.0,
+          "real": 2236885.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1626296.0,
+          "real": 2226887.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 1061626.0,
+          "real": 1407079.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 1061626.0,
+          "real": 1360474.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 977555.0,
+          "real": 1224192.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 977555.0,
+          "real": 1191542.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 955793.0,
+          "real": 1102507.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 955793.0,
+          "real": 1046115.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 2619967.0,
+          "real": 2773497.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 2665231.0,
+          "real": 2733194.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 2563665.0,
+          "real": 2563665.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 2563665.0,
+          "real": 2487524.0
+        }
+      ]
+    },
+    {
+      "dept_code": "CONSTRUCTION",
+      "dept_name": "CONSTRUCTION",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1677420.0,
+          "real": 2350736.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 283914.0,
+          "real": 388763.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2368886.0,
+          "real": 3139722.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 161045.0,
+          "real": 206379.0
+        }
+      ]
+    },
+    {
+      "dept_code": "DESIGN",
+      "dept_name": "DESIGN",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 153756.0,
+          "real": 215474.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 13406.0,
+          "real": 18357.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 241937.0,
+          "real": 320663.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 29700.0,
+          "real": 38061.0
+        }
+      ]
+    },
+    {
+      "dept_code": "PLANS",
+      "dept_name": "PLANS",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 30670.0,
+          "real": 42981.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 22998.0,
+          "real": 31491.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 66347.0,
+          "real": 87936.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 27619.0,
+          "real": 35394.0
+        }
+      ]
+    },
+    {
+      "dept_code": "EQUIPMENT",
+      "dept_name": "EQUIPMENT",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 8074.0,
+          "real": 11315.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 476.0,
+          "real": 652.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 13091.0,
+          "real": 17351.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 3917.0,
+          "real": 5020.0
+        }
+      ]
+    },
+    {
+      "dept_code": "LAND",
+      "dept_name": "LAND",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 56154.0,
+          "real": 78694.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2005.0,
+          "real": 2745.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 81428.0,
+          "real": 107925.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 105.0,
+          "real": 135.0
+        }
+      ]
+    }
+  ],
+  "by_fund_category": [
+    {
+      "fund_category": "General Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 6614005465.0,
+          "real": 9268867259.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 6864299492.0,
+          "real": 9399285294.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 7258942770.0,
+          "real": 9621002747.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 7432391405.0,
+          "real": 9524609586.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 7925622466.0,
+          "real": 9925257014.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 8141445737.0,
+          "real": 9923608209.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 7424917404.0,
+          "real": 8564642226.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 7501192761.0,
+          "real": 8210055477.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 11675872812.0,
+          "real": 12360078959.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 10684085530.0,
+          "real": 10956529711.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 10593637391.0,
+          "real": 10593637391.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 10637871235.0,
+          "real": 10321926459.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Special Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 3199404202.0,
+          "real": 4483645049.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 3200461100.0,
+          "real": 4382391384.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2909328942.0,
+          "real": 3856024580.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 2936431647.0,
+          "real": 3763037156.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 3349065480.0,
+          "real": 4194034701.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 3402399439.0,
+          "real": 4147184676.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 3221763173.0,
+          "real": 3716303820.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 3293363848.0,
+          "real": 3604586732.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 3594447185.0,
+          "real": 3805081790.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 3642800271.0,
+          "real": 3735691678.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4386836030.0,
+          "real": 4386836030.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4306002942.0,
+          "real": 4178114655.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Federal Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 2554632723.0,
+          "real": 3580062298.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2714481604.0,
+          "real": 3716939660.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 3128868445.0,
+          "real": 4147002237.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 3038008291.0,
+          "real": 3893207625.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 2871472038.0,
+          "real": 3595944433.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 2824919164.0,
+          "real": 3443293969.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 3154471715.0,
+          "real": 3638683123.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 3104972956.0,
+          "real": 3398392900.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 3617883400.0,
+          "real": 3829891367.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 3484984089.0,
+          "real": 3573851183.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4313164273.0,
+          "real": 4313164273.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4166641392.0,
+          "real": 4042892143.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Revenue Bond Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 676403138.0,
+          "real": 947911358.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 281186455.0,
+          "real": 385028613.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 795318196.0,
+          "real": 1054114737.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 270966045.0,
+          "real": 347242987.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 343885000.0,
+          "real": 396671348.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 430211000.0,
+          "real": 470865940.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 1009782685.0,
+          "real": 1068955950.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 343363509.0,
+          "real": 352119278.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 755597702.0,
+          "real": 755597702.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 992646866.0,
+          "real": 963165254.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Revolving Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 448516011.0,
+          "real": 628550338.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 446565221.0,
+          "real": 611481757.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 444667505.0,
+          "real": 589362311.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 446796181.0,
+          "real": 572569306.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 443698355.0,
+          "real": 555643450.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 443858122.0,
+          "real": 541018665.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 511441034.0,
+          "real": 589947233.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 511607962.0,
+          "real": 559954914.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 561220607.0,
+          "real": 594108135.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 557925299.0,
+          "real": 572152394.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 591518464.0,
+          "real": 591518464.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 577783900.0,
+          "real": 560623718.0
+        }
+      ]
+    },
+    {
+      "fund_category": "General Obligation Bond Fund",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 719744648.0,
+          "real": 1008650150.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 246792876.0,
+          "real": 337933485.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 1031751840.0,
+          "real": 1367483889.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 49709030.0,
+          "real": 63702122.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 984796000.0,
+          "real": 1135962186.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 294105000.0,
+          "real": 321897922.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 888324954.0,
+          "real": 940380796.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 339218880.0,
+          "real": 347868961.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 1462868438.0,
+          "real": 1462868438.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 456727397.0,
+          "real": 443162593.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Trust Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 142040426.0,
+          "real": 199055453.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 148983446.0,
+          "real": 204003033.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 431780888.0,
+          "real": 572282389.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 433263524.0,
+          "real": 555227206.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 439614337.0,
+          "real": 550529034.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 429906504.0,
+          "real": 524013038.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 433944641.0,
+          "real": 500555143.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 433944641.0,
+          "real": 474952410.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 476371973.0,
+          "real": 504287371.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 423675825.0,
+          "real": 434479559.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 429002313.0,
+          "real": 429002313.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 429146032.0,
+          "real": 416400395.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Other Federal Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 192167781.0,
+          "real": 269303928.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 188732116.0,
+          "real": 258430886.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 249742738.0,
+          "real": 331009025.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 238227940.0,
+          "real": 305289105.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 217492670.0,
+          "real": 272366071.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 197041566.0,
+          "real": 240173965.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 223816643.0,
+          "real": 258172498.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 204818370.0,
+          "real": 224173706.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 475528341.0,
+          "real": 503394302.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 516198118.0,
+          "real": 529361170.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 364150907.0,
+          "real": 364150907.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 406284097.0,
+          "real": 394217459.0
+        }
+      ]
+    },
+    {
+      "fund_category": "American Rescue Plan Funds",
+      "series": [
+        {
+          "fy": 2022,
+          "nominal": 1144124939.0,
+          "real": 1319748117.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 286935756.0,
+          "real": 314051185.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Interdepartmental Transfers",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 87333736.0,
+          "real": 122389498.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 87320264.0,
+          "real": 119567637.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 102080623.0,
+          "real": 135297658.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 102100099.0,
+          "real": 130841277.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 82644828.0,
+          "real": 103496118.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 82291371.0,
+          "real": 100304952.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 79165797.0,
+          "real": 91317747.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 79165797.0,
+          "real": 86646965.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 84561595.0,
+          "real": 89516904.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 91564699.0,
+          "real": 93899599.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 99787264.0,
+          "real": 99787264.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 99787264.0,
+          "real": 96823582.0
+        }
+      ]
+    },
+    {
+      "fund_category": "County Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 2209721.0,
+          "real": 3096703.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 209721.0,
+          "real": 287171.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 3209721.0,
+          "real": 4254164.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 2209721.0,
+          "real": 2831757.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 2209721.0,
+          "real": 2767234.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 2209721.0,
+          "real": 2693429.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 24187802.0,
+          "real": 27900630.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 22937802.0,
+          "real": 25105424.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 40984721.0,
+          "real": 43386426.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 209721.0,
+          "real": 215069.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 26200000.0,
+          "real": 26200000.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Private Contributions",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 433067.0,
+          "real": 606900.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 2183067.0,
+          "real": 2989274.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 5738352.0,
+          "real": 7605612.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 10398510.0,
+          "real": 13325691.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 904067.0,
+          "real": 1132163.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 904067.0,
+          "real": 1101967.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 935067.0,
+          "real": 1078600.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 5935067.0,
+          "real": 6495931.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 923067.0,
+          "real": 977159.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 931067.0,
+          "real": 954809.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 935067.0,
+          "real": 935067.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 25935067.0,
+          "real": 25164796.0
+        }
+      ]
+    },
+    {
+      "fund_category": "Other Funds",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 29219314.0,
+          "real": 40947947.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 29673249.0,
+          "real": 40631580.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 36611807.0,
+          "real": 48525289.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 44070718.0,
+          "real": 56476625.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 20427078.0,
+          "real": 25580830.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 18679890.0,
+          "real": 22768918.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 77531519.0,
+          "real": 89432607.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 19175519.0,
+          "real": 20987606.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 85972825.0,
+          "real": 91010833.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 21373288.0,
+          "real": 21918307.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 332274357.0,
+          "real": 332274357.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 25927960.0,
+          "real": 25157900.0
+        }
+      ]
+    },
+    {
+      "fund_category": "General Obligation Bond Fund with Debt Service Cost to be Paid from Special Funds",
+      "series": [
+        {
+          "fy": 2022,
+          "nominal": 7300000.0,
+          "real": 8420550.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 2500000.0,
+          "real": 2736250.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 9909900.0,
+          "real": 10490620.0
+        }
+      ]
+    }
+  ]
+}

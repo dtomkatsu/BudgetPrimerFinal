@@ -1,0 +1,274 @@
+#!/usr/bin/env python3
+"""Generate the docs/js/historical_trends.json data file consumed by the SPA.
+
+Joins the parsed historical allocations × CPI deflators and produces the
+single JSON file the new "History" tab loads.
+
+Inputs (default paths):
+  data/processed/historical_allocations.csv  (from parse_historical_budgets.py)
+  data/processed/cpi_honolulu.json           (from fetch_cpi.py)
+
+Output:
+  docs/js/historical_trends.json
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import logging
+import sys
+from datetime import datetime
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+import pandas as pd  # noqa: E402
+
+from budgetprimer.historical import HISTORICAL_BIENNIAL_BILLS  # noqa: E402
+from budgetprimer.parsers.fast_parser import DEPARTMENT_NAMES  # noqa: E402
+
+DEFAULT_ALLOCATIONS = PROJECT_ROOT / "data" / "processed" / "historical_allocations.csv"
+DEFAULT_CPI = PROJECT_ROOT / "data" / "processed" / "cpi_honolulu.json"
+DEFAULT_OUTPUT = PROJECT_ROOT / "docs" / "js" / "historical_trends.json"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s %(message)s",
+)
+logger = logging.getLogger("generate_historical_spa_report")
+
+
+# ---------------------------------------------------------------------------
+# CPI deflator helpers (with projection for missing future FYs)
+# ---------------------------------------------------------------------------
+
+def project_missing_deflators(deflators: dict[str, float],
+                              required_fys: list[int]) -> tuple[dict[str, float], set[int]]:
+    """Extend the deflator series to cover all required FYs.
+
+    For any FY beyond the latest available, project linearly using the 3-year
+    average year-over-year inflation rate.  Returns (extended, projected_set).
+    """
+    have = {int(k): v for k, v in deflators.items()}
+    if not have:
+        return deflators, set()
+
+    sorted_fys = sorted(have)
+    latest = sorted_fys[-1]
+    # Average annual inflation = geometric mean of last 3 deflator ratios
+    # (deflator goes DOWN over time as we approach base year)
+    if len(sorted_fys) >= 4:
+        ratios = [
+            have[sorted_fys[i - 1]] / have[sorted_fys[i]]
+            for i in range(-3, 0)
+        ]
+        avg_inflation = sum(ratios) / len(ratios)  # ~1.025 means ~2.5% annual
+    else:
+        avg_inflation = 1.025  # safe default
+
+    projected: set[int] = set()
+    for fy in sorted(set(required_fys)):
+        if fy in have:
+            continue
+        if fy > latest:
+            # Each year past latest, deflator divides by avg_inflation
+            steps = fy - latest
+            new_d = have[latest] / (avg_inflation ** steps)
+            have[fy] = round(new_d, 4)
+            projected.add(fy)
+
+    return {str(k): v for k, v in sorted(have.items())}, projected
+
+
+# ---------------------------------------------------------------------------
+# Aggregations
+# ---------------------------------------------------------------------------
+
+def build_totals_by_fy(df: pd.DataFrame, deflators: dict[str, float]) -> list[dict]:
+    """Sum operating + capital totals per fiscal year, with real-dollar conversion."""
+    rows: list[dict] = []
+    for fy in sorted(df["fiscal_year"].unique()):
+        sub = df[df["fiscal_year"] == fy]
+        op = sub[sub["section"] == "Operating"]["amount"].sum()
+        cap = sub[sub["section"] == "Capital Improvement"]["amount"].sum()
+        total = op + cap
+        d = float(deflators.get(str(int(fy)), 1.0))
+        rows.append({
+            "fy": int(fy),
+            "operating_nominal": round(op, 0),
+            "operating_real": round(op * d, 0),
+            "capital_nominal": round(cap, 0),
+            "capital_real": round(cap * d, 0),
+            "total_nominal": round(total, 0),
+            "total_real": round(total * d, 0),
+            "deflator": d,
+        })
+    return rows
+
+
+def build_by_department(df: pd.DataFrame, deflators: dict[str, float]) -> list[dict]:
+    """For each department, total appropriation per FY (nominal + real)."""
+    out: list[dict] = []
+    by_dept = (
+        df.groupby(["department_code", "fiscal_year"])["amount"]
+        .sum()
+        .reset_index()
+    )
+    for dept_code, sub in by_dept.groupby("department_code"):
+        dept_name = DEPARTMENT_NAMES.get(dept_code, dept_code)
+        series = []
+        for _, row in sub.sort_values("fiscal_year").iterrows():
+            fy = int(row["fiscal_year"])
+            amt = float(row["amount"])
+            d = float(deflators.get(str(fy), 1.0))
+            series.append({
+                "fy": fy,
+                "nominal": round(amt, 0),
+                "real": round(amt * d, 0),
+            })
+        out.append({
+            "dept_code": dept_code,
+            "dept_name": dept_name,
+            "series": series,
+        })
+    # Sort departments by their most-recent-FY total (descending) for consistent UI ordering
+    def latest_total(d: dict) -> float:
+        return d["series"][-1]["nominal"] if d["series"] else 0
+    out.sort(key=latest_total, reverse=True)
+    return out
+
+
+def build_by_fund_category(df: pd.DataFrame, deflators: dict[str, float]) -> list[dict]:
+    """Per-fund-category totals over time (General, Federal, Special, etc.)."""
+    out: list[dict] = []
+    by_fund = (
+        df.groupby(["fund_category", "fiscal_year"])["amount"]
+        .sum()
+        .reset_index()
+    )
+    for fund_cat, sub in by_fund.groupby("fund_category"):
+        series = []
+        for _, row in sub.sort_values("fiscal_year").iterrows():
+            fy = int(row["fiscal_year"])
+            amt = float(row["amount"])
+            d = float(deflators.get(str(fy), 1.0))
+            series.append({
+                "fy": fy,
+                "nominal": round(amt, 0),
+                "real": round(amt * d, 0),
+            })
+        out.append({
+            "fund_category": fund_cat,
+            "series": series,
+        })
+    # Sort by most-recent-FY total (descending)
+    def latest_total(d: dict) -> float:
+        return d["series"][-1]["nominal"] if d["series"] else 0
+    out.sort(key=latest_total, reverse=True)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description="Generate docs/js/historical_trends.json from parsed CSV + CPI."
+    )
+    ap.add_argument("--allocations", type=Path, default=DEFAULT_ALLOCATIONS)
+    ap.add_argument("--cpi", type=Path, default=DEFAULT_CPI)
+    ap.add_argument("--output", "-o", type=Path, default=DEFAULT_OUTPUT)
+    args = ap.parse_args()
+
+    if not args.allocations.exists():
+        logger.error(f"Missing allocations CSV: {args.allocations}")
+        logger.error("Run scripts/parse_historical_budgets.py first.")
+        return 1
+    if not args.cpi.exists():
+        logger.error(f"Missing CPI JSON: {args.cpi}")
+        logger.error("Run scripts/fetch_cpi.py first.")
+        return 1
+
+    df = pd.read_csv(args.allocations)
+    cpi = json.loads(args.cpi.read_text())
+    base_fy = int(cpi["base_fy"])
+
+    # Project deflators forward to cover any FY in our data
+    required_fys = sorted(int(fy) for fy in df["fiscal_year"].unique())
+    deflators, projected = project_missing_deflators(cpi["deflators"], required_fys)
+    if projected:
+        logger.warning(
+            f"Projected deflators (based on recent inflation trend): {sorted(projected)}"
+        )
+
+    # Build aggregations
+    totals = build_totals_by_fy(df, deflators)
+    by_dept = build_by_department(df, deflators)
+    by_fund = build_by_fund_category(df, deflators)
+
+    # Build acts metadata in chronological order
+    acts = []
+    for sy in sorted(HISTORICAL_BIENNIAL_BILLS):
+        info = HISTORICAL_BIENNIAL_BILLS[sy]
+        acts.append({
+            "session": sy,
+            "bill": info["bill"],
+            "act": info["act"],
+            "fy_covered": list(info["fy_covered"]),
+            "source_url": (
+                f"https://data.capitol.hawaii.gov/sessions/session{sy}"
+                f"/bills/{info['bill']}_CD1_.HTM"
+            ),
+        })
+
+    # Per-bill notes (catches data quirks like 2019 HB2 being operating-only)
+    bill_notes: list[dict] = []
+    for sy in sorted(HISTORICAL_BIENNIAL_BILLS):
+        sub = df[df["session_year"] == sy]
+        op_total = sub[sub["section"] == "Operating"]["amount"].sum()
+        cap_total = sub[sub["section"] == "Capital Improvement"]["amount"].sum()
+        if cap_total == 0 and op_total > 0:
+            bill_notes.append({
+                "session": sy,
+                "note": (
+                    f"{HISTORICAL_BIENNIAL_BILLS[sy]['bill']} contains no "
+                    f"Capital Improvement appropriations. The CIP for this "
+                    f"biennium was passed in a separate bill not included here."
+                ),
+            })
+
+    output = {
+        "metadata": {
+            "base_fy": base_fy,
+            "fy_range": [min(required_fys), max(required_fys)],
+            "acts": acts,
+            "cpi_source": cpi.get("source", "BLS Honolulu CPI-U"),
+            "cpi_fetched": cpi.get("fetched"),
+            "projected_fys": sorted(projected),
+            "bill_notes": bill_notes,
+            "generated": datetime.now().isoformat(timespec="seconds"),
+            "notes": (
+                "Figures reflect CD1 (legislatively-passed) totals. "
+                "Line-item vetoes are not netted out."
+            ),
+        },
+        "totals_by_fy": totals,
+        "by_department": by_dept,
+        "by_fund_category": by_fund,
+    }
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(output, indent=2) + "\n")
+    size_kb = args.output.stat().st_size / 1024
+    logger.info(f"Wrote {args.output.relative_to(PROJECT_ROOT)} ({size_kb:.1f} KB)")
+    logger.info(f"  fy_range: {output['metadata']['fy_range']}")
+    logger.info(f"  base_fy: {base_fy}")
+    logger.info(f"  acts: {len(acts)}, departments: {len(by_dept)}, funds: {len(by_fund)}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

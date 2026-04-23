@@ -3794,3 +3794,248 @@ mark.search-highlight {
     color: #333;
     white-space: nowrap;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Historical Trends tab — 10-year biennial budget comparison
+   ───────────────────────────────────────────────────────────────────────── */
+.historical-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+}
+
+.hist-hero {
+    padding: 1.25rem 0 0.75rem;
+    border-bottom: 1px solid #e3e7e5;
+    margin-bottom: 1.5rem;
+}
+.hist-hero h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.7rem;
+    color: #2f3a36;
+}
+.hist-lead {
+    font-size: 1.05rem;
+    color: #444;
+    margin: 0 0 0.75rem;
+    line-height: 1.5;
+}
+.hist-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    font-size: 0.9rem;
+    color: #5a6260;
+}
+.hist-meta strong {
+    color: #2f3a36;
+    font-weight: 600;
+}
+.hist-meta-note {
+    color: #8a6b3a;
+    font-style: italic;
+}
+
+.hist-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+}
+.hist-act-card {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding: 0.55rem 0.85rem;
+    background: #f5f3ed;
+    border: 1px solid #d9d3c1;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #3d4a45;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    min-width: 92px;
+}
+.hist-act-card:hover {
+    background: #efeadd;
+    border-color: #c2b89c;
+    transform: translateY(-1px);
+}
+.hist-act-year {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #5a7b68;
+}
+.hist-act-bill {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2f3a36;
+}
+.hist-act-fy {
+    font-size: 0.78rem;
+    color: #6f7572;
+    letter-spacing: 0.02em;
+}
+
+.hist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.hist-toggle {
+    display: inline-flex;
+    border: 1px solid #c8cdca;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+.hist-toggle-btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    background: #fff;
+    border: none;
+    border-right: 1px solid #c8cdca;
+    color: #4a5552;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.hist-toggle-btn:last-child {
+    border-right: none;
+}
+.hist-toggle-btn:hover {
+    background: #f1f5f3;
+}
+.hist-toggle-btn.active {
+    background: #5a7b68;
+    color: #fff;
+    font-weight: 600;
+}
+.hist-export-btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    background: #fff;
+    border: 1px solid #c8cdca;
+    border-radius: 6px;
+    color: #4a5552;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.hist-export-btn:hover {
+    background: #f1f5f3;
+    border-color: #5a7b68;
+    color: #2f3a36;
+}
+
+.hist-section {
+    margin-top: 2rem;
+}
+.hist-section h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.2rem;
+    color: #2f3a36;
+}
+.hist-section h4 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    color: #2f3a36;
+}
+.hist-section-sub {
+    margin: 0 0 0.85rem;
+    font-size: 0.92rem;
+    color: #6a7370;
+}
+.hist-chart-wrap {
+    position: relative;
+    height: 360px;
+    background: #fcfdfc;
+    border: 1px solid #e6ebe8;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+.hist-dept-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+#hist-dept-select {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.95rem;
+    border: 1px solid #c8cdca;
+    border-radius: 5px;
+    background: #fff;
+    color: #2f3a36;
+    min-width: 320px;
+    max-width: 100%;
+}
+
+.hist-table-wrap {
+    overflow-x: auto;
+    border: 1px solid #e6ebe8;
+    border-radius: 8px;
+}
+.hist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+.hist-table thead {
+    background: #f5f7f5;
+}
+.hist-table th {
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #3d4a45;
+    border-bottom: 1px solid #d9e1dd;
+    white-space: nowrap;
+}
+.hist-table th.num,
+.hist-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.hist-table tbody tr:nth-child(even) {
+    background: #fafbfa;
+}
+.hist-table td {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid #eef1ef;
+    color: #2f3a36;
+}
+.hist-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.hist-table .positive { color: #2f7a5a; }
+.hist-table .negative { color: #a04545; }
+
+.hist-notes {
+    background: #f9f7f1;
+    border: 1px solid #e2dcc8;
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.92rem;
+    color: #4a4232;
+}
+.hist-notes ul {
+    margin: 0.4rem 0 0.6rem;
+    padding-left: 1.25rem;
+}
+.hist-footnote {
+    font-size: 0.85rem;
+    color: #6a7370;
+    margin: 0.5rem 0 0;
+    font-style: italic;
+}
+
+@media (max-width: 720px) {
+    .hist-chart-wrap { height: 280px; }
+    .hist-meta { gap: 0.5rem; flex-direction: column; }
+    .hist-controls { flex-direction: column; align-items: stretch; }
+    .hist-export-btn { width: 100%; }
+    #hist-dept-select { min-width: 0; width: 100%; }
+}
