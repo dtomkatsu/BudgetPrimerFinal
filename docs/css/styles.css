@@ -2457,6 +2457,11 @@ th.sortable .sort-hint {
 .prog-purpose-tip::after {
     width: 340px;
     max-width: min(340px, 90vw);
+    /* `pre-line` honors the `\n` between bulleted "To [verb]…" goals
+       that purposeTooltipAttrs() injects for multi-objective programs.
+       For single-objective programs the absent newlines just render as
+       a normal wrapped paragraph. */
+    white-space: pre-line;
     z-index: 50;
 }
 
@@ -2482,6 +2487,12 @@ th.sortable .sort-hint {
     max-width: min(360px, 90vw);
     white-space: pre-line;
     z-index: 50;
+    /* Change cell is the rightmost column on the HB1800 tab; the
+       default `left: 0` from .has-tooltip::after pushes the 360px card
+       past the viewport edge.  Anchor to the right edge of the cell so
+       it grows leftward into the table area instead. */
+    left: auto;
+    right: 0;
 }
 /* Subtle dotted underline on the change-cell number when a reason
    exists, mirroring the program-id affordance. */

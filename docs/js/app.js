@@ -1231,9 +1231,24 @@ function purposeTooltipAttrs(programId) {
     const key = String(programId || '').replace(/\s+/g, '');
     const rec = programPurposesData[key];
     if (!rec || !rec.objective) return '';
-    const safe = rec.objective
+    let text = rec.objective;
+    // Many objectives are written as a stack of "To [verb]…" sentences
+    // (e.g. PSD402: "To protect society… To provide for the basic needs…
+    // To facilitate participation…").  Render those as a bulleted list
+    // so the reader can scan the goals instead of slogging through a
+    // wall of text.  CSS `white-space: pre-line` on the tooltip honors
+    // the `\n` separators we inject here.
+    const toCount = (text.match(/(?:^|\.\s+)To\s+[a-z]/g) || []).length;
+    if (toCount >= 2) {
+        const parts = text.split(/\.\s+(?=To\b)/);
+        text = parts.map((p, i) =>
+            i < parts.length - 1 ? p.trim() + '.' : p.trim()
+        ).map(p => '• ' + p).join('\n');
+    }
+    const safe = text
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\n/g, '&#10;');
     return ` class="has-tooltip prog-purpose-tip" data-tooltip="${safe}"`;
 }
 
