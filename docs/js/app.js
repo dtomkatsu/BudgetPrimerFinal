@@ -1237,21 +1237,26 @@ function purposeTooltipAttrs(programId) {
     return ` class="has-tooltip prog-purpose-tip" data-tooltip="${safe}"`;
 }
 
-// Build the tooltip attributes for a row's change-cell explaining WHY
-// the legislature changed the program's funding from the Governor's
-// supplemental.  Sources are the HB1800 Senate worksheet (EXEC) and
-// the SD-HD DISAGREE worksheet, parsed by
-// `scripts/extract_worksheet_reasons.py` and merged into
-// draft_comparison_fy*.json as `reason_sd_change` / `reason_hd_change`.
+// Build the full attribute block (`class="…" data-tooltip="…"`) for a
+// row's change-cell explaining WHY the legislature changed the program's
+// funding from the Governor's supplemental.  The change-cell `<td>`
+// already carries `amount-cell ${cls}` (positive/negative tint), so the
+// helper takes those base classes and emits a SINGLE merged `class`
+// attribute — emitting two would let HTML drop the second silently and
+// strip our hover hook.
 //
-// When both Senate and House reasons exist we label them so the reader
-// can tell whose decision drove which delta; the CSS uses
-// `white-space: pre-line` to keep the line break between paragraphs.
-function changeReasonTooltipAttrs(row) {
-    if (!row) return '';
+// Sources are the HB1800 Senate worksheet (EXEC) and the SD-HD
+// DISAGREE worksheet, parsed by `scripts/extract_worksheet_reasons.py`
+// and merged into draft_comparison_fy*.json as `reason_sd_change` /
+// `reason_hd_change`.  When both chambers' reasons exist we label them
+// so the reader can tell whose decision drove which delta; the CSS
+// uses `white-space: pre-line` to keep the line break between paragraphs.
+function changeReasonCellAttrs(row, baseClass) {
+    const base = baseClass ? ` class="${baseClass}"` : '';
+    if (!row) return base;
     const sd = row.reason_sd_change || '';
     const hd = row.reason_hd_change || '';
-    if (!sd && !hd) return '';
+    if (!sd && !hd) return base;
     const text = (sd && hd) ? `Senate: ${sd}\n\nHouse: ${hd}`
                : sd          ? `Senate: ${sd}`
                              : `House: ${hd}`;
@@ -1259,7 +1264,7 @@ function changeReasonTooltipAttrs(row) {
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
         .replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/\n/g, '&#10;');
-    return ` class="has-tooltip change-reason-tip" data-tooltip="${safe}"`;
+    return ` class="${baseClass ? baseClass + ' ' : ''}has-tooltip change-reason-tip" data-tooltip="${safe}"`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1906,6 +1911,11 @@ window.initDraftComparePage = async function () {
                         department_code: r.department_code, department_name: r.department_name,
                         d1: 0, d2: 0, hd1: 0, funds: new Set(), sections: new Set(),
                         hasAdded: false, hasRemoved: false, rawRows: [],
+                        // Worksheet reasons (from extract_worksheet_reasons.py) live on
+                        // every raw row of a program; copy onto the aggregated view so
+                        // changeReasonTooltipAttrs(p) can read them at render time.
+                        reason_sd_change: r.reason_sd_change || '',
+                        reason_hd_change: r.reason_hd_change || '',
                     });
                 }
                 const p = pMap.get(pid);
@@ -2042,7 +2052,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"${changeReasonTooltipAttrs(p)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         const secRows = p.rawRows.filter(r => r.section === sec);
@@ -2115,7 +2125,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"${changeReasonTooltipAttrs(p)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                     const byFund = new Map();
                     for (const r of p.rawRows) {
@@ -2153,7 +2163,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td class="amount-cell ${cls}"${changeReasonTooltipAttrs(p)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
                     </tr>`;
                 }
             }
@@ -2247,7 +2257,7 @@ window.initDraftComparePage = async function () {
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
-                    <td class="amount-cell change-cell ${cls}"${changeReasonTooltipAttrs(r)}>
+                    <td${changeReasonCellAttrs(r, `amount-cell change-cell ${cls}`)}>
                         <span class="change-main">${arrow ? `<span class="change-arrow">${arrow}</span>` : ''}<span class="figure-chip">${fmtHtml(delta)}</span></span>
                         ${arrow ? `<span class="change-pct">${pctStr}</span>` : ''}
                     </td>
