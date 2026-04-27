@@ -1,0 +1,1748 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-24T23:36:54.796540Z",
+    "sources": [
+      "Governor's Executive Supplemental Budget FY2027",
+      "Governor's Executive Biennium Budget FY2025-27",
+      "Governor's Executive Biennium Budget FY2023-25"
+    ],
+    "program_count": 279,
+    "by_source": {
+      "governor_supplemental_fy27": 144,
+      "governor_biennial_fy25-27": 125,
+      "governor_biennial_fy23-25": 10
+    },
+    "per_source_per_department_counts": {
+      "governor_supplemental_fy27": {
+        "AGR": 4,
+        "AGS": 11,
+        "ATG": 2,
+        "BED": 12,
+        "BUF": 10,
+        "CCA": 7,
+        "CCR": 2,
+        "DEF": 5,
+        "EDN": 10,
+        "GOV": 1,
+        "HHL": 1,
+        "HMS": 14,
+        "HRD": 1,
+        "HTH": 20,
+        "LAW": 4,
+        "LBR": 2,
+        "LNR": 12,
+        "LTG": 0,
+        "SUB": 1,
+        "TAX": 2,
+        "TRN": 18,
+        "UOH": 5
+      },
+      "governor_biennial_fy25-27": {
+        "AGR": 7,
+        "AGS": 15,
+        "ATG": 1,
+        "BED": 10,
+        "BUF": 7,
+        "CCA": 4,
+        "CCR": 17,
+        "DEF": 0,
+        "EDN": 1,
+        "GOV": 0,
+        "HHL": 1,
+        "HMS": 14,
+        "HRD": 2,
+        "HTH": 10,
+        "LAW": 2,
+        "LBR": 10,
+        "LNR": 0,
+        "LTG": 1,
+        "TAX": 2,
+        "TRN": 17,
+        "UOH": 4
+      },
+      "governor_biennial_fy23-25": {
+        "AGS": 0,
+        "HTH": 1,
+        "LAW": 0,
+        "LNR": 9,
+        "UOH": 0
+      }
+    }
+  },
+  "purposes": {
+    "AGR101": {
+      "objective": "To promote the agricultural and aquacultural development within the State by facilitating and granting loans, as well as providing related financial services to qualified farmers, new farmers, food manufacturers, and aquaculturists that meet program qualification requirements.",
+      "title": "FINANCIAL ASSISTANCE FOR AGRICULTURE",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR122": {
+      "objective": "To protect Hawaii's agricultural and horticultural industries, natural resources, and general public by preventing the introduction and establishment of harmful insects, diseases, illegal non-domestic animals, and other pests; to conduct effective plant pest control activities; and to enhance agricultural productivity and agribusiness development by facilitating export shipments of agricultural and horticultural materials and products.",
+      "title": "PLANT PEST AND DISEASE CONTROL",
+      "department": "AGR",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGR131": {
+      "objective": "To protect animal and public health by preventing the introduction of rabies and animal diseases in imported cats and dogs through import regulation, quarantine, and monitoring of animal entries for alien pests and diseases.",
+      "title": "RABIES QUARANTINE",
+      "department": "AGR",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGR132": {
+      "objective": "To assist the State's livestock and poultry industries in the production of disease-free livestock, poultry, and wholesome products and protect the public health through the prevention and response to livestock and poultry diseases of high consequence.",
+      "title": "ANIMAL DISEASE CONTROL",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR141": {
+      "objective": "To assist in developing and managing the State's agricultural resources by providing and/or managing irrigation water, farmland, infrastructure, produce processing, livestock slaughter, and agricultural research and processing facilities.",
+      "title": "AGRICULTURAL RESOURCE MANAGEMENT",
+      "department": "AGR",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGR151": {
+      "objective": "To assist in the development of the agricultural industries through quality assurance of agricultural commodities; licensing dealers of agricultural products; and producer price and quota control to maintain stability within the dairy industry.",
+      "title": "QUALITY AND PRICE ASSURANCE",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR153": {
+      "objective": "To develop a sustainable and profitable commercial aquaculture industry by encouraging a diversity of products; improving management practices and technologies; and providing direct assistance with regulations, disease, marketing, and new business development.",
+      "title": "AQUACULTURE DEVELOPMENT",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR171": {
+      "objective": "Supports the economic sustainability of commercial agriculture in Hawaii by promoting collaborative marketing initiatives for agricultural products with strong revenue growth potential. We also facilitate the development and expansion of marketing opportunities, including grants for targeted agricultural and processed products, and are committed to providing timely, accurate and useful statistics to support informed decision-making.",
+      "title": "AGRICULTURAL DEVELOPMENT AND MARKETING",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR192": {
+      "objective": "To expand agriculture's contribution to the State's economy by providing leadership, formulating policies and plans, directing operation, allocating resources and staff, providing for the exchange of information between stakeholders, and enhancing the effectiveness and efficiency of the department's programs.",
+      "title": "GENERAL ADMINISTRATION FOR AGRICULTURE",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR812": {
+      "objective": "To minimize inaccuracy or fraudulent practices in commercial measurement, labeling, and pricing to reduce losses for sellers and consumers through a program of licensing, inspecting, testing, calibrating, and investigating complaints.",
+      "title": "MEASUREMENT STANDARDS",
+      "department": "AGR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGR846": {
+      "objective": "To ensure the effective, efficient, and safe use of pesticides and to minimize their possible adverse effects on man and the environment while considering the benefits of their use.",
+      "title": "PESTICIDES",
+      "department": "AGR",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS101": {
+      "objective": "To enhance the effectiveness and efficiency of the statewide accounting and reporting systems of the State by developing, maintaining, improving, and controlling the methods, procedures and forms of these systems.",
+      "title": "ACCOUNTING SYSTEM DEVELOPMENT & MAINTENANCE",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS102": {
+      "objective": "To assure State payments conform to established standards of propriety and legality and are made promptly.",
+      "title": "EXPENDITURE EXAMINATION",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS103": {
+      "objective": "To assure that the State's financial transactions are promptly and properly recorded and reported.",
+      "title": "RECORDING AND REPORTING",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS104": {
+      "objective": "To ensure that control systems provide managers with reasonable assurance that desired outcomes will be achieved.",
+      "title": "INTERNAL POST AUDIT",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS105": {
+      "objective": "To promote government transparency and accountability by providing neutral and consistent decisions and guidance to members of the public and all State, county, and independent agencies regarding access to records maintained under Chapter 92F, HRS, Uniform Information Practices Act (UIPA), and access to public meetings subject to Part I of Chapter 92 (Sunshine Law).",
+      "title": "ENFORCEMENT OF INFORMATION PRACTICES",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS111": {
+      "objective": "To foster open government by preserving and making accessible the historic records of State government and partnering with State agencies to manage their active and inactive records.",
+      "title": "ARCHIVES - RECORDS MANAGEMENT",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS131": {
+      "objective": "To assist agencies in the effective, efficient, convenient delivery of programs and services to the public through information technology (IT) governance/services.",
+      "title": "ENTERPRISE TECHNOLOGY SERVICES",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS203": {
+      "objective": "The objective of this program is to operate a comprehensive risk management and insurance program to protect the State against catastrophic losses and to minimize total cost of risk.",
+      "title": "STATE RISK MANAGEMENT & INSURANCE ADMIN",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS211": {
+      "objective": "To assist in protecting the rights of public and private land ownership by providing field survey services and descriptions of surveyed lands.",
+      "title": "LAND SURVEY",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS221": {
+      "objective": "The objective of this program is to ensure provision of approved physical facilities necessary for the effective operation of State programs by providing timely and economical planning, design, and construction services within assigned areas of responsibility.",
+      "title": "PUBLIC WORKS-PLANNING, DESIGN & CONSTRUCTION",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS223": {
+      "objective": "To provide centralized office leasing services and acquire office space in non-State owned buildings for use by State departments and agencies.",
+      "title": "OFFICE LEASING",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS231": {
+      "objective": "To maintain assigned public buildings in a clean and safe condition by providing a variety of custodial services.",
+      "title": "CENTRAL SERVICES - CUSTODIAL SERVICES",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS232": {
+      "objective": "To maintain the grounds surrounding assigned public buildings in a neat and attractive condition by providing a variety of grounds maintenance services.",
+      "title": "CENTRAL SERVICES - GROUNDS MAINTENANCE",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS233": {
+      "objective": "To maintain assigned public buildings in a safe condition and at a high level of utility by providing repair and maintenance services by making minor alterations.",
+      "title": "CENTRAL SERVICES - BUILDING REPAIRS & ALT",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS234": {
+      "objective": "To operate, maintain, improve, and redevelop State-owned cemeteries. Determine ownership of plots, maintain records pertaining to cemeteries, including cemetery plot plans, and records of plot ownership, interments, and disinterment.",
+      "title": "CENTRAL SERVICES - CEMETERY MGMT OFFICE",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS240": {
+      "objective": "The objective of this program is to promote economy, efficiency, effectiveness, and impartiality in the procurement of commodities, services and construction for State and county governments through development, implementation and maintenance of policies and procedures that provide for broad-based competition, accessibility to government contracts, and fiscal integrity and responsibility in the procurement process; and to procure or supervise the procurement of commodities and services to meet t…",
+      "title": "STATE PROCUREMENT",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS244": {
+      "objective": "The program coordinates the transfer of State surplus property and federal surplus property available through the Federal Surplus Property Program to eligible \"donees\" (State/local government, non-profit organizations that serve or promote a public purpose, qualified small minority-owned businesses, tax-exempt educational and public health institutions or organizations).",
+      "title": "SURPLUS PROPERTY MANAGEMENT",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS251": {
+      "objective": "The objective of the program is to support State agencies by providing safe motor pool vehicle transportation required to perform their official duties.",
+      "title": "AUTOMOTIVE MANAGEMENT - MOTOR POOL",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS252": {
+      "objective": "The objectives of the program are to maintain, allocate parking spaces, assess, collect parking fees, and control parking on State lands under the jurisdiction of the Comptroller.",
+      "title": "AUTOMOTIVE MANAGEMENT - PARKING CONTROL",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS807": {
+      "objective": "To maintain public school facilities in a safe and highly usable condition by providing repair and maintenance (R&M) service. The program will strive to provide timely, responsive, quality, cost effective, and innovative R&M services to public schools on the islands of Hawaii, Kauai, Maui, Molokai, and Lanai.",
+      "title": "SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS871": {
+      "objective": "To ensure transparency and full disclosure of contributions and expenditures by all candidates and noncandidate committees, conduct investigations and administrative hearings, and administer the public funding program.",
+      "title": "CAMPAIGN SPENDING COMMISSION",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS879": {
+      "objective": "To maximize voter participation in the electoral process by developing policies and procedures that encourages registration and turnout.",
+      "title": "OFFICE OF ELECTIONS",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS881": {
+      "objective": "The mission of the State Foundation on Culture and the Arts is to promote, perpetuate, preserve culture, and the arts as central to the quality of life for the people of Hawaii.",
+      "title": "STATE FOUNDATION ON CULTURE & ARTS",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS891": {
+      "objective": "To administer the collection of the monthly surcharge from wireless service providers and provide reimbursement from the 911 Fund to public safety answering points (PSAP) and wireless and Voice over Internet Protocol (VoIP) connection service providers to pay for the reasonable costs to lease, purchase or maintain all necessary equipment, including computer hardware, software and database provisioning required by the PSAPs to provide technical functionality for the wireless enhanced 911 service…",
+      "title": "911 BOARD",
+      "department": "AGS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "AGS892": {
+      "objective": "The State Building Code Council is responsible for establishing and implementing a State building code so that building owners, designers, contractors, and code enforcers within the State would be able to apply consistent standards.",
+      "title": "STATE BUILDING CODE COUNCIL",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "AGS901": {
+      "objective": "To enhance program effectiveness and efficiency by formulating policies, allocating resources, administering operations, personnel, and providing staff support services.",
+      "title": "GENERAL ADMINISTRATIVE SERVICES",
+      "department": "AGS",
+      "source": "governor_supplemental_fy27"
+    },
+    "ATG100": {
+      "objective": "To facilitate compliance with, and enforcement of, State and federal laws by: 1) providing legal advice and advisory opinions to the Governor, the Legislature, public officers, and department heads; 2) conducting civil and criminal investigations; 3) representing the State in criminal or civil actions; and 4) safeguarding the rights and interests of the people by undertaking legal or judicial actions on their behalf.",
+      "title": "LEGAL SERVICES",
+      "department": "ATG",
+      "source": "governor_supplemental_fy27"
+    },
+    "ATG231": {
+      "objective": "To provide complete, accurate, and timely criminal justice information for use by all criminal justice and certain authorized non-criminal justice agencies throughout the State and to provide a statewide system of civil and criminal identification based on fingerprints, demographics, and photos.",
+      "title": "STATE CRIMINAL JUSTICE INFO & IDENTIFICATION",
+      "department": "ATG",
+      "source": "governor_supplemental_fy27"
+    },
+    "ATG500": {
+      "objective": "The Child Support Enforcement Agency (CSEA) works together with federal, State and local agencies to ensure that Hawaii's children have the ongoing financial support of both parents, by providing a system for case management, order enforcement, and processing payments and disbursements of court-ordered child support. The child support enforcement program is a partnership of federal and State resources.",
+      "title": "CHILD SUPPORT ENFORCEMENT SERVICES",
+      "department": "ATG",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED100": {
+      "objective": "To promote Hawaii business start-up and business expansion in targeted sectors, supporting economic diversification.",
+      "title": "STRATEGIC MARKETING AND SUPPORT",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED101": {
+      "objective": "To develop policies that promote and strengthen relations with other countries in the areas of international business, economy, culture and the arts, and promote transportation between and tourism with other countries; develop and promote international telecommunications and high technology exchanges; encourage development of international sister-city programs pairing Hawaii cities with cities around the world for artistic, cultural, economic, educational and faith-based exchanges; develop and p…",
+      "title": "OFFICE OF INTERNATIONAL AFFAIRS",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED103": {
+      "objective": "To preserve, protect, and encourage the development and preservation of lands in the state for those uses to which they are best suited in the interest of public health and welfare of the people of the state of Hawaii through the implementation of the state land use law, chapter 205, Hawaii revised statutes, as amended.",
+      "title": "STATE LAND USE COMMISSION",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED105": {
+      "objective": "To accelerate the growth of the Hawaii creative economy by building residents' entrepreneurial capacity while maintaining the State as a thriving film production destination.",
+      "title": "CREATIVE INDUSTRIES DIVISION",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED107": {
+      "objective": "Support regional and statewide economic development programs by effectively, efficiently, and timely allocating resources, including data, to programs that support growth, diversification, and resiliency of Hawaii's economy. Ensure the overall well-being of staff by supporting digital and human development investments that improve our employees' work-life balance, which simultaneously increases productivity.",
+      "title": "FOREIGN TRADE ZONE",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED113": {
+      "objective": "To operate and market the Hawaii Convention Center (HCC) as a commercial enterprise and world-class facility for conventions, entertainment, and public events.",
+      "title": "HAWAII TOURISM AUTHORITY-ADMIN & GOVERNANCE",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED114": {
+      "objective": "To globally market and brand the state of Hawaii and all of the islands as a globally competitive leisure and business destination to strengthen Tourism's overall contribution to Hawaii's economy.",
+      "title": "HTA - BRANDING AND MARKETING",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED115": {
+      "objective": "To support sports and signature events across the State to attract visitors, remain competitive as a vibrant destination, and increase economic and social benefits to communities.",
+      "title": "HTA - SPORTS AND SIGNATURE EVENTS",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED116": {
+      "objective": "To implement projects and programs that seek to balance and meet the economic, environmental, and social/cultural needs of Hawaii while working in close partnership with the visitor industry and residents; to manage the destination through island destination management action plans and island destination managers.",
+      "title": "HTA - DESTINATION STEWARDSHIP & COMMUNITY",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED117": {
+      "objective": "To restructure Hawaii's tourism industry towards sustainability of natural and cultural resources; to respect and preserve Hawaiian culture, and local culture and support communities; to contribute to the enhancement of local ecosystems; to grow the capacity of community organizations and local businesses to provide authentic, regenerative experiences for visitors.",
+      "title": "HTA - REGENERATIVE TOURISM DEVELOPMENT",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED118": {
+      "objective": "To support tourism workforce training, educational, and career counseling programs, conduct outreach efforts, and coordinate public and private sector partnerships for a robust visitor industry workforce.",
+      "title": "HTA - WORKFORCE DEVELOPMENT",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED120": {
+      "objective": "To promote energy efficiency, renewable energy, and clean transportation to help achieve a resilient clean energy economy by: (1) providing analysis and planning to actively develop and inform energy- related policies; (2) leading efforts to incorporate clean energy across public facilities; (3) providing energy project deployment facilitation to assist private sector projects; and (4) engaging the private sector to help lead efforts to achieve renewable energy and clean transportation goals.",
+      "title": "HAWAII STATE ENERGY OFFICE",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED130": {
+      "objective": "To enhance and contribute to the economic development of the state by providing analyses, and policy recommendations on economic issues; developing short and long-range forecasts of Hawaii's economy, conducting and reporting on basic research into the economy of the state, collecting, compiling, interpreting and publishing data and statistics on all aspects of business activity, the economy, and demographic characteristics of the state; and maintaining a statewide statistical reporting program t…",
+      "title": "ECONOMIC PLANNING & RESEARCH",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED138": {
+      "objective": "To democratize clean energy by making investments accessible and affordable to Hawaii's ratepayers, as well as address financial market barriers by leveraging innovative tools to mitigate risks and reach new markets.",
+      "title": "HAWAII GREEN INFRASTRUCTURE AUTHORITY",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED142": {
+      "objective": "Support regional and statewide economic development programs by effectively allocating resources, including data, and developing and putting processes in place for programs that promote growth, diversification, and resiliency of Hawaii's economy. Ensure the overall well-being of staff by supporting digital and human development. Invest in improving our employees' work-life balance that simultaneously increases productivity.",
+      "title": "GENERAL SUPPORT FOR ECONOMIC DEVELOPMENT",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED143": {
+      "objective": "To: 1) develop and promote Hawaii's science and technology assets and resources; 2) implement programs to support the attraction, expansion, and retention of technology companies; 3) support firms engaged in technology research and investment, and projects that support national and State interests; 4) utilize facilities and infrastructure in Hawaii to foster commercial technology development; and 5) promote and provide support for businesses involved in information and telecommunication technolo…",
+      "title": "HAWAII TECHNOLOGY DEVELOPMENT CORPORATION",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED144": {
+      "objective": "To enhance the efficiency and effectiveness of State programs by maintaining a comprehensive statewide planning process, through the formulation of a state policy plan and the development of a policy planning and implementation framework; by undertaking comprehensive land use and coastal zone planning, management, and implementation; by facilitating intergovernmental coordination and cooperation; by undertaking strategic and regional planning to address areas of critical State concerns related t…",
+      "title": "STATEWIDE PLANNING AND COORDINATION",
+      "department": "BED",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BED146": {
+      "objective": "Facilitate research, development, and commercialization of natural energy resources and ocean-related research, technology, and industry in Hawaii; and to engage in retail, commercial, or tourism activities that will financially support that research, development, and commercialization at a Research and Technology Park in Hawaii.",
+      "title": "NATURAL ENERGY LAB OF HAWAII AUTHORITY",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED150": {
+      "objective": "To stimulate economic development of specific community districts by planning and implementing community development programs, including infrastructure support.",
+      "title": "HAWAII COMMUNITY DEVELOPMENT AUTHORITY",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED160": {
+      "objective": "Hawaii Housing Finance and Development Corporation's (HHFDC) objective is to support economic growth by increasing the supply of workforce and affordable housing and preserving the existing inventory of affordable housing.",
+      "title": "HAWAII HOUSING FINANCE AND DEVELOPMENT CORP",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED170": {
+      "objective": "To be an aggressive and dynamic leader in diversified agriculture, demonstrating economic, environmental, and social benefits to the people of Hawaii.",
+      "title": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BED180": {
+      "objective": "To provide people of all ages with the opportunity to enrich their lives through attendance at spectator events and shows.",
+      "title": "SPECTATOR EVENTS & SHOWS - ALOHA STADIUM",
+      "department": "BED",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF101": {
+      "objective": "To facilitate and improve the executive resource allocation process by thorough planning, programming, and budgeting and analyses; through sound recommendations on all phases of program scope and funding; and by efforts to simplify and more directly tie program performance with resource allocation decisions.",
+      "title": "DEPARTMENTAL ADMINISTRATION & BUDGET DIV",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF102": {
+      "objective": "To facilitate the allotment and disbursement of statewide collective bargaining appropriations.",
+      "title": "COLLECTIVE BARGAINING STATEWIDE",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF103": {
+      "objective": "To provide a centralized annual vacation payout for all State departments, including the Department of Education and the University of Hawaii.",
+      "title": "VACATION PAYOUT - STATEWIDE",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF115": {
+      "objective": "To maximize the value, investment, and use of State funds through proactive planning, the development of prudent statewide financial policies, the timely scheduling of State bond financing, and the establishment of appropriate cash management controls and procedures.",
+      "title": "FINANCIAL ADMINISTRATION",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF141": {
+      "objective": "Administer the retirement and survivor benefits program for State and county members and to anticipate and exceed their needs; manage the Retirement System's resources in a responsible and cost-effective manner; prudently manage investments in accordance with fiduciary standards; and to provide an open and participative work environment for staff.",
+      "title": "EMPLOYEES' RETIREMENT SYSTEM",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF143": {
+      "objective": "To administer health and life insurance benefits for eligible active and retired State and county public employees and their dependents by: 1) providing quality service levels to employee-beneficiaries and dependent-beneficiaries; and 2) complying with federal and State legal requirements.",
+      "title": "HAWAII EMPLOYER-UNION TRUST FUND",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF151": {
+      "objective": "To safeguard the rights of individuals by providing constitutionally and statutorily required zealous and effective legal representation in criminal, mental commitment, family and parole cases in compliance with the Hawaii Rules of Professional Conduct. The program will prudently manage deputy public defender and support services resources and caseloads and manage a quality training program for deputy public defender staff.",
+      "title": "OFFICE OF THE PUBLIC DEFENDER",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF721": {
+      "objective": "To make and record debt service payments in a timely and accurate manner.",
+      "title": "DEBT SERVICE PAYMENTS - STATE",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF725": {
+      "objective": "To provide funds for debt service to support the Department of Education's (DOE) capital improvement program.",
+      "title": "DEBT SERVICE PAYMENTS - DOE",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF728": {
+      "objective": "To provide funds for debt service to support the University of Hawaii's (UH) capital improvement program.",
+      "title": "DEBT SERVICE PAYMENTS - UH",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF741": {
+      "objective": "To provide employer contribution payments for employee retirement benefits and payments of the federally mandated Social Security and Medicare payroll assessments in an effective and timely manner.",
+      "title": "RETIREMENT BENEFITS - STATE",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF745": {
+      "objective": "To provide funds for retirement benefits payments to support Department of Education (DOE) personnel.",
+      "title": "RETIREMENT BENEFITS - DOE",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF748": {
+      "objective": "To provide funds for retirement benefits payments to support University of Hawaii (UH) personnel.",
+      "title": "RETIREMENT BENEFITS - UH",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF761": {
+      "objective": "To provide employer contribution payments for health premiums in an effective and timely manner.",
+      "title": "HEALTH PREMIUM PAYMENTS - STATE",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF762": {
+      "objective": "To provide employer contribution payments for the Annual Required Contribution (ARC), including retirees and Other Post-Employment Benefits (OPEB) pre-funding.",
+      "title": "HEALTH PREMIUM PAYMENTS FOR ARC",
+      "department": "BUF",
+      "source": "governor_biennial_fy25-27"
+    },
+    "BUF765": {
+      "objective": "To provide funds for health premium payments to support Department of Education (DOE) personnel.",
+      "title": "HEALTH PREMIUM PAYMENTS - DOE",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "BUF768": {
+      "objective": "To provide funds for health premium payments to support University of Hawaii (UH) personnel.",
+      "title": "HEALTH PREMIUM PAYMENTS - UH",
+      "department": "BUF",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA102": {
+      "objective": "To promote responsive and reliable cable television communications services for the people of Hawaii by issuing cable franchises to qualified and suitable cable operators when it is in the public interest to do so; regulating cable television operators to ensure compliance with applicable state and federal law; expanding the statewide institutional network; and continuing the availability of public, educational, and governmental cable access.",
+      "title": "CABLE TELEVISION",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA103": {
+      "objective": "The Consumer Advocate Program (Program) ensures that Hawaii's public utilities and regulated transportation companies deliver services to consumers at fair cost that are sustainable, reliable, safe, and of high quality through advocacy, education, and planning.",
+      "title": "CONSUMER ADVOCATE FOR COMM, UTIL & TRAN SVC",
+      "department": "CCA",
+      "source": "governor_biennial_fy25-27"
+    },
+    "CCA104": {
+      "objective": "To ensure the safety, soundness, and regulatory compliance of State- chartered and State-licensed financial institutions which includes banks, trusts, escrow depositories, money transmitters, mortgage servicers, mortgage loan originators, and mortgage loan originator companies, installment lenders, non-depository trust companies, by fairly administering applicable statutes and rules, in order to protect the rights and funds of depositors, borrowers, consumers, and Hawaii citizens.",
+      "title": "FINANCIAL SERVICES REGULATION",
+      "department": "CCA",
+      "source": "governor_biennial_fy25-27"
+    },
+    "CCA105": {
+      "objective": "To ensure that the individual is provided with professional, vocational, and personal services meeting acceptable standards of quality, equity, and dependability by establishing and enforcing appropriate service standards; to regulate activities for the protection, welfare, and safety of the participants as well as the public.",
+      "title": "PROFESSIONAL & VOCATIONAL LICENSING",
+      "department": "CCA",
+      "source": "governor_biennial_fy25-27"
+    },
+    "CCA106": {
+      "objective": "To ensure that consumers are provided with insurance services meeting acceptable standards of quality, equity, and dependability at fair rates by establishing and enforcing appropriate service standards and fairly administering the Insurance Code.",
+      "title": "INSURANCE REGULATORY SERVICES",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA107": {
+      "objective": "To ensure the soundness of accredited degree-granting, post-secondary educational institutions by fairly administering applicable statutes and rules in order to protect students, consumers, and other members of the community.",
+      "title": "POST-SECONDARY EDUCATION AUTHORIZATION",
+      "department": "CCA",
+      "source": "governor_biennial_fy25-27"
+    },
+    "CCA110": {
+      "objective": "To protect consumers by investigating alleged violations of consumer protection laws, taking legal action to stop unfair or deceptive trade practices in the marketplace, and educating consumers and businesses about their respective rights and obligations in the marketplace under Hawaii consumer protection laws.",
+      "title": "OFFICE OF CONSUMER PROTECTION",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA111": {
+      "objective": "To process and maintain business registration filings for corporations, partnerships, limited liability companies, trade names, trademarks, service marks and other entities; to provide general assistance with State business registration filings; to ensure compliance with and enforcement of State securities and franchise laws; and to conduct statewide investor education outreach, including serving as State coordinator of the LifeSmarts Program.",
+      "title": "BUSINESS REGISTRATION & SECURITIES REGULATN",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA112": {
+      "objective": "To enforce the State's professional and vocational licensing laws through review of complaints, investigations, and prosecutions before licensing authorities and State courts, and to make available resources for consumers and licensees.",
+      "title": "REGULATED INDUSTRIES COMPLAINTS OFFICE",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA191": {
+      "objective": "To uphold fairness and public confidence in the marketplace and promote sound consumer practices by increasing knowledge and opportunity for our businesses and citizens.",
+      "title": "GENERAL SUPPORT",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "CCA901": {
+      "objective": "To ensure that regulated companies efficiently and safely provide their customers with adequate and reliable services at just and reasonable rates, while providing regulated companies with a fair opportunity to earn a reasonable rate.",
+      "title": "PUBLIC UTILITIES COMMISSION",
+      "department": "CCA",
+      "source": "governor_supplemental_fy27"
+    },
+    "DEF110": {
+      "objective": "To minimize deaths, injuries, property damage, and economic losses in the event of physical disasters, mass casualty situations, or man-made disasters by providing Administration, Engineering/Facilities Management, and Homeland Security services, with adequate manning, training, equipment, and readiness to expeditiously respond to both national and State missions and emergencies.",
+      "title": "AMELIORATION OF PHYSICAL DISASTERS",
+      "department": "DEF",
+      "source": "governor_supplemental_fy27"
+    },
+    "DEF112": {
+      "objective": "To enable veterans to achieve and maintain the social and psychological adjustments necessary for success in civilian life, and to assure their burial requirements.",
+      "title": "SERVICES TO VETERANS",
+      "department": "DEF",
+      "source": "governor_supplemental_fy27"
+    },
+    "DEF114": {
+      "objective": "To intervene and positively impact the lives of \"at-risk\" 16 to 18-year-old high school dropouts by providing the values, skills, education, and self-discipline necessary for a successful placement in the post-residential phase.",
+      "title": "HAWAII NATL GUARD YOUTH CHALLENGE ACADEMY",
+      "department": "DEF",
+      "source": "governor_supplemental_fy27"
+    },
+    "DEF116": {
+      "objective": "The Hawaii Army National Guard (HIARNG) is responsible for providing trained units to achieve the highest level of readiness in order to prepare individuals and units to perform effectively. HIARNG is expected to dominate across the full spectrum of unified land operations to fulfill its federal and State missions to protect, support, and defend the State of Hawaii, United States of America, and U.S. national interests.",
+      "title": "HAWAII ARMY AND AIR NATIONAL GUARD",
+      "department": "DEF",
+      "source": "governor_supplemental_fy27"
+    },
+    "DEF118": {
+      "objective": "The Hawaii Emergency Management Agency (HI-EMA) is the agency responsible for preparing for, mitigating against, responding to, and recovering from natural and human-caused disasters and emergencies.",
+      "title": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+      "department": "DEF",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN100": {
+      "objective": "To ensure high-quality learning with equitable outcomes by achieving reading and math proficiency, ensuring academic growth, and fostering a culturally responsive environment that will prepare students for college, career, and community engagement.",
+      "title": "SCHOOL-BASED BUDGETING",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN150": {
+      "objective": "To ensure all student's holistic needs are met through the implementation of a comprehensive and responsive multi-tiered system of support that attends to their academic, behavioral, social, emotional, and physical development so they may achieve the Hawaii Common Core and Hawaii Content and Performance Standards.",
+      "title": "SPECIAL EDUCATION & STUDENT SUPPORT SERVICES",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN200": {
+      "objective": "To support the instructional program by building capacity of complex area support teams and school leadership teams to implement the Hawaii Common Core and Hawaii Content and Performance Standards; and building capacity, providing technical assistance, evaluating professional learning pathways, and monitoring progress toward strategic plan goals which include content standards, content foundational skills, curriculum framework, explicit and implicit instructional strategies, formative assessment…",
+      "title": "INSTRUCTIONAL SUPPORT",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN300": {
+      "objective": "To facilitate the operation of the public school system by providing leadership, management, planning, fiscal, logistical, technological, personnel, compliance with federal and State laws, and other supporting services.",
+      "title": "STATE ADMINISTRATION",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN400": {
+      "objective": "To facilitate the operations of the Department by providing school food service, services and supplies relating to the operation and maintenance of grounds and facilities, and student transportation services.",
+      "title": "SCHOOL SUPPORT",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN407": {
+      "objective": "Public Libraries are vital components of our democratic communities. They ensure that no matter who you are or where you are from, you have the same access to our collective stories, information, ideas, learning, and connectivity. There is no other single resource in our Hawaii communities that plays this important role.",
+      "title": "PUBLIC LIBRARIES",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN450": {
+      "objective": "To plan and construct modern learning and living environments for Hawaii's public school system.",
+      "title": "SCHOOL FACILITIES AUTHORITY",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN500": {
+      "objective": "To provide lifelong learning opportunities for adults and to meet other community needs to the general public.",
+      "title": "SCHOOL COMMUNITY SERVICES",
+      "department": "EDN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "EDN600": {
+      "objective": "Charter schools provide parents and students within the State of Hawaii an alternative to the traditional public school experience. Charter schools, while subject to the same State accountability requirements as all other public schools, serve as incubators of innovative approaches to educational, governance, financing, administration, curricula, technology, and teaching strategies.",
+      "title": "CHARTER SCHOOLS",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN612": {
+      "objective": "To authorize high-quality public charter schools throughout the State.",
+      "title": "CHARTER SCHOOLS COMMISSION & ADMINISTRATION",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "EDN700": {
+      "objective": "To ensure all children, prenatal to five, have access to high quality early care and education to enrich their physical, cognitive, social, emotional, and personal growth and development.",
+      "title": "EARLY LEARNING",
+      "department": "EDN",
+      "source": "governor_supplemental_fy27"
+    },
+    "GOV100": {
+      "objective": "To enhance the effectiveness and efficiency of State programs and statewide initiatives by providing Executive direction, policy development, program coordination, and communications.",
+      "title": "OFFICE OF THE GOVERNOR",
+      "department": "GOV",
+      "source": "governor_supplemental_fy27"
+    },
+    "HHL602": {
+      "objective": "To develop and manage the Hawaiian Home Lands (HHL) inventory to create more homesteading opportunities for native Hawaiians (as defined by the Hawaiian Homes Commission Act, 1920, as amended) by: 1) designing and constructing off-site and on-site improvements to provide homesteading and income-producing opportunities for native Hawaiian beneficiaries; and 2) identifying and effectively managing HHL not suitable for homestead purposes by issuing general leases; revocable permits; licenses and ri…",
+      "title": "PLANNING & DEV FOR HAWAIIAN HOMESTEADS",
+      "department": "HHL",
+      "source": "governor_supplemental_fy27"
+    },
+    "HHL625": {
+      "objective": "To develop and manage the designated Hawaiian home lands (HHL) to create more homesteads for native Hawaiians (as defined by the Hawaiian Homes Commission Act (HHCA), 1920, as amended) and generate the revenues needed to administer the program. Through the use of these revenues, leased lands, loan funds and technical assistance will be provided to native Hawaiians.",
+      "title": "ADMINISTRATION AND OPERATING SUPPORT",
+      "department": "HHL",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS202": {
+      "objective": "To provide financial support, within State appropriations, through direct monetary payments for food, clothing, shelter, and other essentials, to individuals who are aged, blind, or permanently disabled who do not qualify for Social Security or who are waiting for a determination of eligibility for Supplemental Security Income (SSI) or Social Security benefits; and to maximize federal interim assistance from SSI payments.",
+      "title": "AGED, BLIND AND DISABLED PAYMENTS",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS204": {
+      "objective": "To provide financial support, within State appropriations, through direct monetary payments for food, clothing, shelter, and other essentials, to individuals who are temporarily disabled, who do not qualify for Social Security, or who are waiting for a determination of eligibility for Supplemental Security Income (SSI) or Social Security benefits and to maximize federal interim assistance from SSI payments.",
+      "title": "GENERAL ASSISTANCE PAYMENTS",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS206": {
+      "objective": "To provide eligible low-income households energy credit payments to offset the high utility costs in Hawaii; and to prevent utility disconnection or restore utility connection for households in crisis.",
+      "title": "FEDERAL ASSISTANCE PAYMENTS",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS211": {
+      "objective": "To provide financial support to families with children through direct monetary payments for food, clothing, shelter and other essentials until the family expands their capacity for self-sufficiency or until minor children attain the age of majority.",
+      "title": "CASH SUPPORT FOR FAMILIES - SELF-SUFFICIENCY",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS220": {
+      "objective": "To ensure the availability of adequate housing for low-income families by providing public rental housing facilities at a reasonable cost.",
+      "title": "RENTAL HOUSING SERVICES",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS222": {
+      "objective": "To facilitate the use of private rental housing for low-income families by supplementing their rental payments.",
+      "title": "RENTAL ASSISTANCE SERVICES",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS224": {
+      "objective": "To comprehensively address the needs of the homeless in Hawaii and to provide the opportunity for homeless people to help themselves by achieving improved, permanent living situations.",
+      "title": "HOMELESS SERVICES",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS229": {
+      "objective": "To enhance program effectiveness and efficiency by formulating policies, directing operations and personnel, and providing other administrative and housekeeping services.",
+      "title": "HPHA ADMINISTRATION",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS236": {
+      "objective": "To enhance program effectiveness and efficiency by determining the eligibility of applicants and recipients for public assistance, orienting them to the available services, directing them to appropriate places for assistance, and aiding recipients to obtain and retain employment.",
+      "title": "CASE MANAGEMENT FOR SELF-SUFFICIENCY",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS237": {
+      "objective": "To maximize the number of Employment and Training (E&T) participants who are able to obtain and retain employment.",
+      "title": "EMPLOYMENT AND TRAINING",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS238": {
+      "objective": "To process applications received for Social Security Disability Insurance (SSDI) Benefits and for Supplemental Security Income (SSI) Payments and maintain quality decision making by maintaining percentage of cases returned for substantive reasons by the Office of Quality Review Improvement.",
+      "title": "DISABILITY DETERMINATION",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS301": {
+      "objective": "To enable children at risk of abuse/neglect to live in a safe and secure environment by providing in-home and out-of-home social services that benefit the children and their families.",
+      "title": "CHILD PROTECTIVE SERVICES",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS302": {
+      "objective": "To promote self-sufficiency of low-income families who are employed, in training or in education by providing access to comprehensive child care resources and services which assure the basic health and safety of children.",
+      "title": "GENERAL SUPPORT FOR CHILD CARE",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS303": {
+      "objective": "To assure an adequate standard of living for children who are unable to be maintained in their family home because of abuse, neglect, or inability of the family to provide them adequate care and supervision by providing payment for room and board and for costs related to care or assistance in family preservation/reunification or adoption.",
+      "title": "CHILD PROTECTIVE SERVICES PAYMENTS",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS305": {
+      "objective": "To provide child care subsidies which promote the self-sufficiency of low- income families who are employed, or in approved training or education, and the health and safety of children.",
+      "title": "CASH SUPPORT FOR CHILD CARE",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS401": {
+      "objective": "To ensure that qualified low-income and disabled individuals and families are provided appropriate health or long-term care services that meet their needs.",
+      "title": "HEAL TH CARE PAYMENTS",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS501": {
+      "objective": "To coordinate a continuum of programs and services in communities for at-risk youth to prevent delinquency, reduce recidivism, and maximize opportunities for youth to thrive within their community; and to monitor standards for youth in residential custody facilities.",
+      "title": "IN-COMMUNITY YOUTH PROGRAMS",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS503": {
+      "objective": "To provide secure custody and quality care for youth who have been sent to the Hawaii Youth Correctional Facility (HYCF) and who will receive rehabilitation programs, specialized services, and custodial care, to increase their ability to successfully function within the community upon their release without re-offending.",
+      "title": "KAWAILOA YOUTH AND FAMILY WELLNESS CENTER",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS555": {
+      "objective": "To strengthen our State systems and services, using healing-centered care principles as strategies to make Hawaii a trauma-informed state.",
+      "title": "OFFICE OF WELLNESS AND RESILIENCE",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS601": {
+      "objective": "To enable vulnerable adults to live in a safe environment by providing protective services and volunteer programs to assist the community.",
+      "title": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS605": {
+      "objective": "To prevent inappropriate institutionalization of aged, blind, or disabled individuals by assisting with community-based residential needs.",
+      "title": "COMMNTY-BASED RSDNTL & MEDICAID FACLTY SUPPT",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS777": {
+      "objective": "To reduce homelessness in Hawaii by working with State, county, and community agencies to develop and test innovative solutions to prevent and end homelessness, including through transitional and permanent housing and supportive or assisted services or both.",
+      "title": "OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS802": {
+      "objective": "To enable individuals with disabilities to achieve competitive integrated employment (CIE) by providing them vocational rehabilitation services.",
+      "title": "VOCATIONAL REHABILITATION",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS888": {
+      "objective": "To assure women full and equal coverage under the law by informing government and non-government agencies and the public of women's rights, opportunities, and responsibilities; advocating the enactment or revision of laws to eliminate discrimination; identifying or supporting programs and projects that address women's concerns and needs; educating women in their political rights and responsibilities, particularly with respect to their voting duties; and establishing and maintaining an active pre…",
+      "title": "COMMISSION ON THE STATUS OF WOMEN",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS901": {
+      "objective": "To enhance program effectiveness and efficiency by providing training and information systems support to employees, contracting for services, providing quality assurance, monitoring programs, administering grants and federal funds, providing training and information systems support, and providing other administrative and support services.",
+      "title": "GENERAL SUPPORT FOR SOCIAL SERVICES",
+      "department": "HMS",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HMS902": {
+      "objective": "To ensure program effectiveness and efficiency by formulating policies, administering operations and personnel, and providing other administrative services.",
+      "title": "GENERAL SUPPORT FOR HEAL TH CARE PAYMENTS",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS903": {
+      "objective": "To enhance the effectiveness and efficiency of the programs and services by formulating policies, administering operations and personnel, and providing other administrative services that assist individuals and families to expand their capacity for self-sufficiency, make healthy choices, and improve their quality of life.",
+      "title": "GEN SUPPORT FOR SELF-SUFFICIENCY SERVICES",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HMS904": {
+      "objective": "To enhance program efficiency and effectiveness by formulating overall policies, directing operations and personnel, and providing other administrative and information technology services.",
+      "title": "GENERAL ADMINISTRATION -OHS",
+      "department": "HMS",
+      "source": "governor_supplemental_fy27"
+    },
+    "HRD102": {
+      "objective": "To support program objectives through recruitment and retention of a qualified workforce within applicable fiscal and operational constraints.",
+      "title": "WORKFORCE ATTR, SELECT, CLASS & EFFECTIVENES",
+      "department": "HRD",
+      "source": "governor_supplemental_fy27"
+    },
+    "HRD191": {
+      "objective": "To enhance program effectiveness and efficiency by formulating policies, directing operations and personnel, and providing other administrative support services.",
+      "title": "SUPPORTING SERVICES - HUMAN RESOURCES DEV",
+      "department": "HRD",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HRD200": {
+      "objective": "The Office of Wellness and Resilience (OWR) works to strengthen the State's systems and services, using healing-centered principles as strategies to make Hawaii a trauma-informed state. The OWR's core functions are data and assessment, policy and program development, training and technical assistance, and partnership and collaboration.",
+      "title": "OFFICE OF WELLNESS AND RESILIENCE",
+      "department": "HRD",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH100": {
+      "objective": "To reduce the incidence, severity, and disabling effects of established, communicable diseases of public health importance (tuberculosis (TB), sexually transmitted infections, Human Immunodeficiency Virus (HIV) and Hansen's disease (HD)) by adopting preventive measures and by undertaking programs of surveillance, early detection, linkage to care and effective treatment.",
+      "title": "COMMUNICABLE DISEASE & PUBLIC HEALTH NURSING",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH131": {
+      "objective": "To reduce the incidence, severity, and disabling effects related to infectious diseases and emerging disease threats as well as potential natural or intentional hazards, through early detection by means of electronic and other disease surveillance, public health investigation, public health interventions such as distribution of medical countermeasures as indicated, appropriate public health recommendations, education, and other methods of disease prevention and risk reduction.",
+      "title": "DISEASE OUTBREAK CONTROL",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH210": {
+      "objective": "To sustain and enhance both the levels of service and the quality of care for the communities we serve in the most cost-effective fashion. The Hawaii Health Systems Corporation (HHSC) and the regions of HHSC operate the primary acute care hospitals on the neighbor islands, and in many instances, provide the only inpatient acute hospital services and substantial long-term care services throughout Hawaii.",
+      "title": "HAWAII HEALTH SYSTEMS CORP - CORP OFFICE",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH211": {
+      "objective": "To sustain and enhance both the levels of service and the quality of care delivered to the North Shore communities on the island of Oahu. Kahuku Medical Center (KMC) provides medical care in the most cost-effective manner and operates a critical access hospital providing acute hospital services, skilled nursing services, a 24-hour emergency department, and supportive diagnostic/ancillary services.",
+      "title": "KAHUKU HOSPITAL",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH212": {
+      "objective": "To maintain and enhance the quality of care for the communities we serve in the most cost-effective fashion, thus providing better health for all people in Hawaii, including those served by rural facilities.",
+      "title": "HAWAII HEALTH SYSTEMS CORPORATION - REGIONS",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH213": {
+      "objective": "Provide quality assisted living services to the residents of Maui County through Alii Community Care, Inc., a 501(c)(3) organization.",
+      "title": "ALII COMMUNITY CARE",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH214": {
+      "objective": "To maintain and enhance the quality of care for the communities we serve in the most cost-effective fashion, thus providing better health for all of the people served by the Maui Health System, which consists of the following facilities: Maui Memorial Medical Center; Kula Hospital and Clinic; and Lanai Community Hospital.",
+      "title": "MAUI HEALTH SYSTEM, A KFH LLC",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH215": {
+      "objective": "To maintain and enhance the quality of care for the communities we serve in the most cost-effective fashion, thus providing better health for all of the people served by the Oahu Region. The facilities of the Hawaii Health Systems Corporation Oahu Region include Leahi Hospital and Maluhia Hospital.",
+      "title": "HHSC - OAHU REGION",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH420": {
+      "objective": "Reduce the severity of disability due to mental illness through the provision of community-based services including goal-oriented outpatient services, case management services, rehabilitation services, crisis intervention services, and community housing opportunities.",
+      "title": "ADULT MENTAL HEALTH - OUTPATIENT",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH430": {
+      "objective": "To reduce the severity of disability caused by severe mental illness, with the ultimate goal of community reintegration, through provision of inpatient and outpatient care, including diagnosis, treatment, and rehabilitation, for court- ordered individuals with special mental health issues and substance abuse problems in the State.",
+      "title": "ADULT MENTAL HEALTH -INPATIENT",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH440": {
+      "objective": "To provide the leadership necessary for the development and delivery of a culturally appropriate, comprehensive system of quality substance use prevention, treatment and recovery services designed to meet the needs of individuals and families.",
+      "title": "ALCOHOL & DRUG ABUSE DIVISION",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH460": {
+      "objective": "To provide timely and effective mental health assessment and treatment services to children and youth with emotional and behavioral challenges, and their families.",
+      "title": "CHILD & ADOLESCENT MENTAL HEALTH",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH495": {
+      "objective": "To enhance program effectiveness and efficiency by formulating policies; directing operations and personnel; and providing other administrative services in the areas of the divisions of the Behavioral Health Administration (BHA).",
+      "title": "BEHAVIORAL HEALTH ADMINISTRATION",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH501": {
+      "objective": "To support individuals with intellectual disabilities/developmental disabilities, and/or neurotrauma to live a healthy, meaningful, productive, and safe life in the community through the development, administration, provision, and monitoring of a comprehensive system of appropriate support services.",
+      "title": "DEVELOPMENTAL DISABILITIES",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH520": {
+      "objective": "To ensure that persons with disabilities are provided equal access to programs, services, activities, employment opportunities, and facilities to participate fully and independently in society.",
+      "title": "DISABILITY & COMMUNICATIONS ACCESS BOARD",
+      "department": "HTH",
+      "source": "governor_biennial_fy23-25"
+    },
+    "HTH560": {
+      "objective": "To improve the well-being of families with a focus on infants, children, and women of child-bearing age by increasing public awareness and professional education, and assuring access to a system of family centered, community-based preventive, early detection, treatment, habilitative and rehabilitative services.",
+      "title": "FAMILY HEALTH SERVICES",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH590": {
+      "objective": "Promote wellness and improve the quality and lifespan for Hawaii's people through effective prevention, detection, and management of chronic diseases.",
+      "title": "CHRONIC DISEASE PREVNTION & HEALTH PROMOTN",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH595": {
+      "objective": "To improve and maintain the health of individuals and communities by promoting healthy lifestyle choices, advocating for systemic and environmental policy changes, and assuring access to health care services through the provision of health promotion and education, public health nursing, school health, and bilingual health services.",
+      "title": "HEALTH RESOURCES ADMINISTRATION",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH596": {
+      "objective": "To improve and maintain the health of individuals in the Hawaii State Medical Cannabis program by ensuring safe access to medical cannabis for qualified patients in the State of Hawaii. To provide and use data to identify areas of need and promote the use of best practices to supplement the needs of medical cannabis patients.",
+      "title": "OFFICE OF MEDICAL CANNABIS CNTRL & REGULATN",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH610": {
+      "objective": "To protect the community from food-borne illnesses, unsanitary or hazardous conditions, adulterated or misbranded products, and vector-borne diseases; and to control noise, radiation, and indoor air quality.",
+      "title": "ENVIRONMENTAL HEALTH SERVICES",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH710": {
+      "objective": "To enhance the effectiveness of other health programs by providing specialized laboratory services to health care facilities and departmental programs and to various official agencies.",
+      "title": "STATE LABORATORY SERVICES",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH720": {
+      "objective": "To establish and enforce minimum standards to assure the health, welfare, and safety of people in health care facilities and services.",
+      "title": "HEALTH CARE ASSURANCE",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH730": {
+      "objective": "To minimize death, injury, and disability due to life threatening situations by assuring the availability of high-quality emergency medical care through the development of a statewide system capable of providing coordinated emergency medical care and injury prevention services.",
+      "title": "EMERGENCY MEDICAL SVCS & INJURY PREV SYS",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH760": {
+      "objective": "To collect, process, analyze, and disseminate relevant, population-based data in a timely fashion in order to assess the health status of Hawaii's multi-ethnic population and to fulfill health statistical/legal requirements, including the stewardship of Hawaii's Vital Records pertaining to Birth, Marriage, and Death certificates.",
+      "title": "HEALTH STATUS MONITORING",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH840": {
+      "objective": "To preserve and enhance environmental quality as it relates to human and ecological health in Hawaii.",
+      "title": "ENVIRONMENTAL MANAGEMENT",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH849": {
+      "objective": "To formulate environmental policy; direct operations and personnel; and provide other administrative, planning, hazard evaluation, and emergency response services.",
+      "title": "ENVIRONMENTAL HEALTH ADMINISTRATION",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH904": {
+      "objective": "To enable persons to live, to the greatest extent possible, healthy, dignified and independent lives by assuring an accessible, responsive, and comprehensive system of services through advocacy, planning, coordination, research and evaluation.",
+      "title": "EXECUTIVE OFFICE ON AGING",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH905": {
+      "objective": "To assure that individuals with intellectual and developmental disabilities (I/DD) and their families participate in the design of, and have access to, culturally competent services, supports and other assistance and opportunities that promote independence, productivity, and integration and inclusion into the community",
+      "title": "DEVELOPMENTAL DISABILITIES COUNCIL",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH906": {
+      "objective": "To provide a statewide process that involves consumers and providers of health care in the development and implementation of Health Services and Facilities Plan (HSFP) for the State of Hawaii which will promote equal access to quality health services at a reasonable cost.",
+      "title": "STATE HEALTH PLNG & DVLPMNT AGENCY",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "HTH907": {
+      "objective": "To enhance program effectiveness and efficiency of overall departmental functions by planning, formulating policies, directing operations and personnel, and by providing other administrative support.",
+      "title": "GENERAL ADMINISTRATION",
+      "department": "HTH",
+      "source": "governor_supplemental_fy27"
+    },
+    "HTH908": {
+      "objective": "To ensure that persons with limited or no ability to speak, read, write or understand English are able to access services, programs and activities provided by State agencies and State-funded entities.",
+      "title": "OFFICE OF LANGUAGE ACCESS",
+      "department": "HTH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LAW502": {
+      "objective": "To protect the public through the enforcement of laws relating to controlled substances and regulated chemicals.",
+      "title": "NARCOTICS ENFORCEMENT DIVISION",
+      "department": "LAW",
+      "source": "governor_supplemental_fy27"
+    },
+    "LAW503": {
+      "objective": "To serve and protect the public, government officials, and State personnel and property under State jurisdiction by providing law enforcement services which incorporate patrols, surveillance, and law enforcement tactical activities. To protect State judges and judicial proceedings, secure judicial facilities, and safely handle detained persons. To provide secure transport for persons in custody and execute arrest warrants for the Judiciary and the Hawaii Paroling Authority.",
+      "title": "SHERIFF",
+      "department": "LAW",
+      "source": "governor_supplemental_fy27"
+    },
+    "LAW504": {
+      "objective": "The Criminal Investigation Division (CID), formerly the law enforcement branch of the Department of the Attorney General, is now an Investigations Division for the Department of Law Enforcement. CID conducts a broad range of investigations involving suspected or actual violations of criminal, civil, and administrative laws, rules, regulations, or other legal requirements.",
+      "title": "CRIMINAL INVESTIGATION DIVISION",
+      "department": "LAW",
+      "source": "governor_supplemental_fy27"
+    },
+    "LAW505": {
+      "objective": "Under the general direction of the Deputy Director for Law Enforcement, the Law Enforcement Training Division (LETD) manages training and staff development functions and needs, developing overall plans and strategies, and designing curricula, course content and examinations for law enforcement training needs; coordinates and conducts training courses, including the training of trainers; and monitors adherence to training programs, schedules, and other requirements.",
+      "title": "LAW ENFORCEMENT TRAINING DIVISION",
+      "department": "LAW",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LAW900": {
+      "objective": "To assist the Department of Law Enforcement (DLE) in achieving its mission by planning, evaluating, and monitoring expenditures; managing the procurement of goods and services; administering a statewide training program for employees; administering policies and procedures; providing personnel services, fiscal services, management information, public relations; and administering internal investigative programs to ensure proper execution and compliance of laws, rules, regulations and standards of…",
+      "title": "GENERAL ADMINISTRATION",
+      "department": "LAW",
+      "source": "governor_supplemental_fy27"
+    },
+    "LAW901": {
+      "objective": "To start by strengthening the State of Hawaii's homeland security governance, codifying the process, partnerships and systems for information and intelligence analysis and dissemination, grow a cadre of homeland security experts, and develop functional core programs to cultivate a state of readiness for the State of Hawaii.",
+      "title": "OFFICE OF HOMELAND SECURITY",
+      "department": "LAW",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR111": {
+      "objective": "To plan, direct, coordinate, and implement a customer-driven statewide workforce development system with other partners to deliver employment and training services to job applicants, workers, and industries.",
+      "title": "WORKFORCE DEVELOPMENT",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR135": {
+      "objective": "To provide coordinated, aligned, comprehensive State workforce development systems that ensure all employers have competitively- skilled employees and residents have sustainable employment and self- sufficiency and support economic growth in compliance with the Workforce Innovation and Opportunity Act (WIOA).",
+      "title": "WORKFORCE DEVELOPMENT COUNCIL",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR143": {
+      "objective": "To ensure every employee safe and healthful working conditions; and the safe operation and use of boilers, pressure systems, amusement rides, elevators, and kindred equipment.",
+      "title": "HI OCCUPATIONAL SAFETY & HEALTH PROGRAM",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR152": {
+      "objective": "To assure workers of their lawful rights and benefits related to wages, safeguard against unlawful employment practices and protect young workers, and promote voluntary compliance by educating and assisting employers.",
+      "title": "WAGE STANDARDS PROGRAM",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR153": {
+      "objective": "To safeguard and assure the rights of the public against discriminatory practices due to race, color, religion, age, sex, marital status, national origin, ancestry, or handicapped status in employment, housing, public accommodations, and State-funded services through enforcement of anti-discrimination laws and providing public education and outreach.",
+      "title": "HAWAII CIVIL RIGHTS COMMISSION",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR161": {
+      "objective": "To Hawaii Labor Relations Board (Board) administers HRS Chapters 89 and 377 in a neutral quasi-judicial capacity to promote harmonious and cooperative labor-management relations, and to resolve collective bargaining disputes. The Board also hears appeals of occupational safety and health citations and orders issued under HRS Chapter 396.",
+      "title": "HAWAII LABOR RELATIONS BOARD",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR171": {
+      "objective": "To alleviate the economic hardships that result from loss of wage income during periods of involuntary unemployment.",
+      "title": "UNEMPLOYMENT INSURANCE PROGRAM",
+      "department": "LBR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LBR183": {
+      "objective": "To alleviate the economic hardships resulting from the loss of wage income due to work or nonwork-connected disability and provide vocational rehabilitation opportunities and incentives for industrially-injured workers.",
+      "title": "DISABILITY COMPENSATION PROGRAM",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR812": {
+      "objective": "The Labor and Industrial Relations Appeals Board's (LIRAB) primary objective is to provide fair treatment for individuals in the prompt, just, and administrative review of appeals from workers' compensation (WC) decisions of the Director of Labor and Industrial Relations.",
+      "title": "LABOR & INDUSTRIAL RELATIONS APPEALS BOARD",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR901": {
+      "objective": "To enhance program effectiveness and efficiency, and contribute to general economic policymaking by gathering, analyzing and reporting manpower, employment and related economic data.",
+      "title": "RESEARCH AND STATISTICS",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LBR902": {
+      "objective": "To enhance program effectiveness and efficiency by formulating policies, directing operations and personnel, and providing other administrative and housekeeping services.",
+      "title": "GENERAL ADMINISTRATION",
+      "department": "LBR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LBR903": {
+      "objective": "To facilitate and enhance the development, delivery, and coordination of effective programs for the economically disadvantaged, immigrants, and refugees, to achieve economic self-sufficiency.",
+      "title": "OFFICE OF COMMUNITY SERVICES",
+      "department": "LBR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "LNR101": {
+      "objective": "Land Division (LAND): To ensure the effective and efficient use of public lands in ways that will fulfill the public land trust obligations and promote the sustained social, environmental, and economic well-being of Hawaii's people, including setting aside public lands for public housing, affordable rental housing, education, transportation, forest reserves, parks, and other government and public uses; and the leasing of lands for renewable energy projects, and commercial, industrial and resort…",
+      "title": "PUBLIC LANDS MANAGEMENT",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR102": {
+      "objective": "Invest money every year to protect the State's natural capital base by conserving land for watershed protection, coastal preservation, flood prevention, parks, habitat protection, cultural preservation, agricultural production, and open space and scenic resources (Act 156, SLH 2005).",
+      "title": "LEGACY LAND CONSERVATION PROGRAM",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR111": {
+      "objective": "To protect the public by providing for an accurate, timely, and permanent system of registering and recording land title and related documents and maps.",
+      "title": "CONVEYANCES AND RECORDINGS",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR141": {
+      "objective": "This program promotes economic development and enhances public welfare by providing for an adequate supply of water for State-sponsored projects and developing State-owned lands.",
+      "title": "WATER AND LAND DEVELOPMENT",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR153": {
+      "objective": "Engages in activities that support the State's economic base by promoting sustainable resources use and ensuring the long-term viability of Hawaii's commercial and non-commercial fisheries.",
+      "title": "FISHERIES MANAGEMENT (HISTORICAL)",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR172": {
+      "objective": "To strengthen the State's economic opportunities through forest resource management to improve and assist in the sustainable production of forest products and services from Forest Reserves and other public and private lands. To promote resource restoration and conservation through outreach and education.",
+      "title": "FORESTRY - RESOURCE MANAGEMENT & DEVELOPMENT",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR401": {
+      "objective": "To support and assist in the wise use of and the long-term sustainability of Hawaii's aquatic ecosystems, fishery resources, and other aquatic life for the benefit of Hawaii's people and its visitors through monitoring, research, outreach, collaboration, and management.",
+      "title": "ECOSYSTEM PRTCTN, RSTRTN & FISHERIES MGMT",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR402": {
+      "objective": "Manage habitats to protect, maintain, and improve the biological integrity of native ecosystems. Minimize the impacts of wildfires on native ecosystems and watersheds. Reduce the effects of invasive species on native resources. Protect, sustain, and enhance native species populations, and recover threatened and endangered species. Promote outreach and build partnerships to increase public understanding, responsibility, and involvement.",
+      "title": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR404": {
+      "objective": "To set overall water conservation, quality, and use policies; determine reasonable and beneficial uses; protect ground and surface water resources, watersheds, and natural stream environments; establish criteria for water use priorities while assuring appurtenant rights; ensure public trust uses; and establish procedures for protecting and managing Hawaii's water resources.",
+      "title": "WATER RESOURCES",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR405": {
+      "objective": "1. To effectively uphold the laws that serve to protect, conserve, and manage Hawaii's unique and limited natural, cultural, and historic resources held in public trust for current and future generations of visitors and the people of Hawaii nei. 2. To promote the safe and responsible use of Hawaii's natural resources through public education, community outreach, and the establishment of meaningful partnerships.",
+      "title": "CONSERVATION & RESOURCES ENFORCEMENT",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR407": {
+      "objective": "To protect, restore, and enhance Hawaii's forested watersheds, native ecosystems, natural areas, unique native plant, animal species, cultural and geological features for their inherent value, their value as watersheds, their value to science, education, the economy, and for the enrichment of present and future generations.",
+      "title": "NATURAL AREA RESERVES & WATERSHED MGMT",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR801": {
+      "objective": "To enrich the lives of people of all ages, by providing opportunities and facilities for developing skills and participating in non-organized ocean-based outdoor activities such as boating, fishing, surfing, ocean swimming, etc.",
+      "title": "OCEAN-BASED RECREATION",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR802": {
+      "objective": "To protect, restore, and enhance Hawaii's historic and cultural resources for the enrichment of present and future generations.",
+      "title": "HISTORIC PRESERVATION",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR804": {
+      "objective": "To provide managed opportunities and facilities for the public to engage in multiple-use outdoor recreation activities (hiking, biking, equestrian riding, off-highway vehicle use, hunting and camping) while also providing access for resource management. To maintain and enhance a public hunting program to provide a source of food and outdoor recreation for the public and to control introduced game animals in watershed areas.",
+      "title": "FOREST AND OUTDOOR RECREATION",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR805": {
+      "objective": "Enriches the lives of people of all ages of the respective counties within the State of Hawaii by providing aquatic resource management at an appropriate level. Differences are taken into consideration between each county in the State consulting with the appropriate moku on resources management.",
+      "title": "DISTRICT RESOURCE MANAGEMENT (HISTORICAL)",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR806": {
+      "objective": "To manage, maintain, and support State park operations and infrastructure and programs for the public by providing statewide administrative and interpretive services, formulating overall policies and plans, determining current and future needs for State parks, and expanding the Land and Water Conservation Fund funded activities.",
+      "title": "PARKS ADMINISTRATION AND OPERATIONS",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR810": {
+      "objective": "The objective of this program is to protect people, property, and natural resources from natural hazards through planning, management, mitigative efforts, and regulatory programs related to floodplain management and the regulation of dams and reservoirs.",
+      "title": "PREVENTION OF NATURAL DISASTERS",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR906": {
+      "objective": "To continuously enhance program effectiveness and efficiency by formulating policies, directing and coordinating operations and personnel, and providing other administrative and support services.",
+      "title": "",
+      "department": "LNR",
+      "source": "governor_supplemental_fy27"
+    },
+    "LNR907": {
+      "objective": "To bring the people (Na Iwi O Ka'Aina) and the public trust, and their voices and decisions forward to all policy makers regarding the sustainability and perpetuation of all natural and cultural resources connected to the akua that created the 'aina/land, and 'aina from which the kanaka was born.",
+      "title": "AHA MOKU ADVISORY COMMITTEE",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR908": {
+      "objective": "The Kaho'olawe Island Reserve Commission (KIRC) is responsible for the management, control of use, and rehabilitation of the Kaho'olawe Island Reserve (Reserve), which includes the island of Kaho'olawe and the surrounding waters out to two miles.",
+      "title": "KAHOOLAWE ISLAND RESERVE COMMISSION",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LNR909": {
+      "objective": "The Mauna Kea Stewardship and Oversight Authority (MKSOA, also known as the Authority) was established for the governance of the summit region of Mauna Kea as a spiritual and special place of significance that is home to cultural landscapes, fragile habitats, and historical and archaeological artifacts.",
+      "title": "MAUNA KEA STEWARDSHIP & OVERSIGHT AUTHORITY",
+      "department": "LNR",
+      "source": "governor_biennial_fy23-25"
+    },
+    "LTG100": {
+      "objective": "To enhance the efficiency and effectiveness of State programs by providing leadership and executive management and by developing policies and priorities to give program direction.",
+      "title": "OFFICE OF THE LIEUTENANT GOVERNOR",
+      "department": "LTG",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD402": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in high/medium/closed/minimum security facilities. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "HALAWA CORRECTIONAL FACILITY",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD403": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in a minimum security facility. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "KULANI CORRECTIONAL FACILITY",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD404": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in a minimum security facility. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community, and to offer specialized treatment programs.",
+      "title": "WAIAWA CORRECTIONAL FACILITY",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD405": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in high/medium/closed/minimum security facilities. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "HAWAII COMMUNITY CORRECTIONAL CENTER",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD406": {
+      "objective": "To protect the public from criminal offenders by providing assessment, supervision, custodial, and related individualized services for offenders incarcerated in high, medium and minimum security facilities. To provide for the basic needs of offenders by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reentry into the community.",
+      "title": "MAUI COMMUNITY CORRECTIONAL CENTER",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD407": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in high/medium/closed/minimum security facilities. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "OAHU COMMUNITY CORRECTIONAL CENTER",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD408": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in a minimum security facility. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "KAUAI COMMUNITY CORRECTIONAL CENTER",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD409": {
+      "objective": "To protect society by providing assessment, supervision, custodial, and related individualized services for inmates in a minimum security facility. To provide for the basic needs of inmates by developing and maintaining a secure, safe, healthy and humane social and physical environment. To facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "WOMEN'S COMMUNITY CORRECTIONAL CENTER",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD410": {
+      "objective": "To assist in the coordination and facilitation of public safety programs by implementing assessment, evaluation and supervision programs throughout the criminal justice system.",
+      "title": "INTAKE SERVICE CENTERS",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD420": {
+      "objective": "To facilitate the safety of the public by providing statutory and constitutionally mandated evidence-based correctional programs that provide cognitive and behavioral rehabilitative services for the successful re-entry of the incarcerated to the community.",
+      "title": "CORRECTIONS PROGRAM SERVICES",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD421": {
+      "objective": "To develop and maintain health care programs involving both in-house and community resources (public health, contract, and volunteer) for all correctional institutions. To oversee the operations of these programs ensuring adherence to contemporary community standards and those set forth by the National Commission on Correctional Health Care, the uniformity of quality of health care delivery, integration and coordination among health care providers while remaining fiscally responsible.",
+      "title": "HEALTH CARE",
+      "department": "CCR",
+      "source": "governor_supplemental_fy27"
+    },
+    "PSD422": {
+      "objective": "Hawaii Correctional Industries (HCI) operates as a self-sustaining State entity that provides all able-bodied inmates with real-world work opportunities in various trades and develops work ethics that strengthen their ability to be productive citizens upon release.",
+      "title": "HAWAII CORRECTIONAL INDUSTRIES",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD502": {
+      "objective": "To protect the public through the enforcement of laws relating to controlled substances and regulated chemicals.",
+      "title": "NARCOTICS ENFORCEMENT (HISTORICAL)",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD503": {
+      "objective": "To serve and protect the public, government officials, and State personnel and property under State jurisdiction by providing law enforcement services which incorporate patrols, surveillance and law enforcement tactical activities. To protect State judges and judicial proceedings, secure judicial facilities and safely handle detained persons. To provide secure transport for persons in custody and execute arrest warrants for the Judiciary and the Hawaii Paroling Authority (HPA).",
+      "title": "SHERIFF (HISTORICAL)",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD611": {
+      "objective": "To protect the community and facilitate the rehabilitation of persons sentenced to confinement by making determinations regarding their readiness for release prior to the expiration of their full sentence.",
+      "title": "ADULT PAROLE DETERMINATIONS",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD612": {
+      "objective": "To supervise the activities of persons granted parole so as to assure their behavior conforms to the standards set down. To provide such guidance, counseling and assistance as may be required to aid their rehabilitation.",
+      "title": "ADULT PAROLE SUPERVISION & COUNSELING",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD613": {
+      "objective": "To mitigate the suffering and losses of innocent victims of certain crimes, including mass violence incidents, through compensation. To compensate private citizens (Good Samaritans) who suffer personal injury or property damage in the course of preventing a crime or apprehending a criminal. To collect restitution payments from inmates and parolees and disburse them to their victims.",
+      "title": "CRIME VICTIM COMPENSATION COMMISSION",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "PSD808": {
+      "objective": "To protect the society by providing assessment, supervision, custodial, and related individualized services for inmates housed in out-of-state facilities and the Federal Detention Center (FDC) in Hawaii; to provide the basic needs of inmates by developing and maintaining a secure, safe, healthy, and humane social and physical environment; and to facilitate participation in academic and work/training programs designed to prepare these inmates for reintegration into the community.",
+      "title": "NON-STATE FACILITIES",
+      "department": "CCR",
+      "source": "governor_supplemental_fy27"
+    },
+    "PSD900": {
+      "objective": "To assist the Department of Corrections and Rehabilitation (DCR) in achieving its mission by planning, evaluating, and monitoring expenditures; managing the procurement of goods and services; administering a statewide training program for employees; administering policies and procedures; providing personnel services, fiscal services, management information, and public relations; and administering internal investigative programs to ensure proper execution and compliance of laws, rules, regulation…",
+      "title": "GENERAL ADMINISTRATION",
+      "department": "CCR",
+      "source": "governor_biennial_fy25-27"
+    },
+    "SUB301": {
+      "objective": "To provide grants to the County of Hawaii.",
+      "title": "COUNTY OF HAWAII",
+      "department": "SUB",
+      "source": "governor_supplemental_fy27"
+    },
+    "TAX100": {
+      "objective": "To promote and maintain a tax system based on self-assessment and voluntary compliance by taxpayers through the consistent and fair application of all State tax laws administered by the department. To reduce the amount of outstanding taxes owed to the State.",
+      "title": "COMPLIANCE",
+      "department": "TAX",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TAX103": {
+      "objective": "To provide revenues to support quality public service in the State of Hawaii through the collection of delinquent taxes in accordance with prescribed laws and regulations.",
+      "title": "TAX COLLECTION SERVICES OFFICE",
+      "department": "TAX",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TAX105": {
+      "objective": "To process all tax documents received in the most efficient and expeditious manner possible; maintain accurate accounting records for all tax programs; and promote voluntary taxpayer compliance through timely delivery of information, forms, and responses to questions and inquiries.",
+      "title": "TAX SERVICES AND PROCESSING",
+      "department": "TAX",
+      "source": "governor_supplemental_fy27"
+    },
+    "TAX107": {
+      "objective": "To enhance the department's effectiveness and efficiency in implementing tax programs for formulating policies, allocating resources, and providing direction to operations, and improve the State's policy and decision-making process by providing timely and accurate tax data and interpretive information.",
+      "title": "SUPPORTING SERVICES - REVENUE COLLECTION",
+      "department": "TAX",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN102": {
+      "objective": "To manage and maintain high quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN104": {
+      "objective": "To manage and maintain high quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "GENERAL AVIATION",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN111": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods into, within, and out of the State by providing and operating airport facilities and supporting services at General Lyman Field (Hilo International Airport).",
+      "title": "HILO INTERNATIONAL AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN111111111111111": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "HILO INTERNATIONAL AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN114": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "ELLISON ONIZUKA KONA INTL. AIRPT AT KE'AHOLE",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN116": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Waimea-Kohala Airport.",
+      "title": "WAIMEA-KOHALA AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN118": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Upolu Airport.",
+      "title": "UPOLU AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN131": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "KAHULUI AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN133": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "HANA AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN135": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "KAPALUA AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN141": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Molokai Airport.",
+      "title": "MOLOKAI AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN143": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Kalaupapa Airport.",
+      "title": "KALAUPAPA AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN151": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Lanai Airport (LNY).",
+      "title": "LANAI AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN161": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "LIHUE AIRPORT",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN163": {
+      "objective": "To facilitate the rapid, safe and economical movement of people and goods within the State by providing and operating airport facilities and supporting services at Port Allen Airport.",
+      "title": "PORT ALLEN AIRPORT",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN195": {
+      "objective": "To manage and maintain high-quality airport facilities for the traveling public by working in partnership with key stakeholders.",
+      "title": "AIRPORTS ADMINISTRATION",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN301": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and operating commercial harbor facilities and supporting services throughout the Hawaii Harbors System.",
+      "title": "HONOLULU HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN303": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and operating commercial harbor facilities and supporting services at Kalaeloa Barbers Point Harbor.",
+      "title": "KALAELOA BARBERS POINT HARBOR",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN311": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Hilo Harbor.",
+      "title": "HILO HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN313": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Kawaihae Harbor.",
+      "title": "KAWAIHAE HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN331": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Kahului Harbor.",
+      "title": "KAHULUI HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN333": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Hana Harbor.",
+      "title": "HANA HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN341": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Kaunakakai Harbor.",
+      "title": "KAUNAKAKAI HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN351": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Kaumalapau Harbor.",
+      "title": "KAUMALAPAU HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN361": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Nawiliwili Harbor.",
+      "title": "NAWILIWILI HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN363": {
+      "objective": "To facilitate the safe and efficient movement of people and goods into, within, and out of the State by providing and maintaining commercial harbor facilities and supporting services at Port Allen Harbor.",
+      "title": "PORT ALLEN HARBOR",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN395": {
+      "objective": "To enhance the effectiveness and efficiency of the program by providing program leadership, staff support services, and general water transportation-related services statewide.",
+      "title": "HARBORS ADMINISTRATION",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN501": {
+      "objective": "To provide a safe, efficient, accessible, and sustainable inter-modal transportation system that ensures the mobility of people and goods and enhances and/or preserves economic prosperity and the quality of life on the island of Oahu by providing and maintaining highways.",
+      "title": "OAHU HIGHWAYS",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN511": {
+      "objective": "To provide a safe, efficient, accessible, and sustainable inter-modal transportation system that ensures the mobility of people and goods and enhances and/or preserves economic prosperity and the quality of life on the island of Hawaii by providing and maintaining highways.",
+      "title": "HAWAII HIGHWAYS",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN531": {
+      "objective": "To provide a safe, efficient, accessible, and sustainable inter-modal transportation system that ensures the mobility of people and goods and enhances and/or preserves economic prosperity and the quality of life on the islands of Maui, Molokai, and Lanai by providing and maintaining highways.",
+      "title": "MAUI HIGHWAYS",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN561": {
+      "objective": "To provide a safe, efficient, accessible, and sustainable inter-modal transportation system that ensures the mobility of people and goods and enhances and/or preserves economic prosperity and the quality of life on the island of Kauai by providing and maintaining highways.",
+      "title": "KAUAI HIGHWAYS",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN595": {
+      "objective": "To enhance the effectiveness of the program by providing program leadership, staff support services, and general land transportation-related services.",
+      "title": "HIGHWAYS ADMINISTRATION",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN597": {
+      "objective": "To facilitate the safe movement of people and goods on public highways within the State by formulating and implementing a highway safety plan and enforcing laws, rules, and regulations relating to highway and motor carrier safety operations and providing for supportive services.",
+      "title": "HIGHWAYS SAFETY",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "TRN695": {
+      "objective": "To better serve the economic, maritime, and recreational needs of the people of Hawaii by developing, redeveloping or improving the Aloha Tower Complex.",
+      "title": "ALOHA TOWER DEVELOPMENT CORPORATION",
+      "department": "TRN",
+      "source": "governor_biennial_fy25-27"
+    },
+    "TRN995": {
+      "objective": "To enhance the effectiveness and efficiency of the program by providing program leadership, staff support services, and general transportation-related services.",
+      "title": "GENERAL ADMINISTRATION",
+      "department": "TRN",
+      "source": "governor_supplemental_fy27"
+    },
+    "UOH100": {
+      "objective": "A research university of international standing, the University of Hawaii (UH) at Manoa (UHM) is the flagship of the UH System, the State's sole public university system governed by an 11-member Board of Regents.",
+      "title": "UNIVERSITY OF HAWAII, MANOA",
+      "department": "UOH",
+      "source": "governor_supplemental_fy27"
+    },
+    "UOH110": {
+      "objective": "The John A. Burns School of Medicine (JABSOM) opened in 1965 as a two-year program of basic medical sciences and became a four-year degree-granting program in 1973. The School is named after the late Governor John A. Burns, who was instrumental in its founding. JABSOM is a diverse learning community committed to excellence and leadership in: *Educating current and future healthcare professionals and leaders. *Conducting medical and biomedical research and translating discoveries into practice.",
+      "title": "UNIVERSITY OF HAWAII, JOHN A. BURNS S.O.MED",
+      "department": "UOH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "UOH115": {
+      "objective": "The mission of the University of Hawaii Cancer Center (UHCC) is to reduce the burden of cancer through research, education, patient care and community outreach with an emphasis on the unique ethnic, cultural and environmental characteristics of Hawaii and the Pacific. To accomplish this mission, UHCC is organized into two cancer research programs: Population Sciences in the Pacific (PSP) and Cancer Biology (CB).",
+      "title": "UNIVERSITY OF HAWAII, CANCER CENTER",
+      "department": "UOH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "UOH210": {
+      "objective": "To develop eligible individuals to higher levels of intellectual, personal, social, and vocational competency by providing occupational, general academic, and professional training leading to certificates and degrees.",
+      "title": "UNIVERSITY OF HAWAII, HILO",
+      "department": "UOH",
+      "source": "governor_supplemental_fy27"
+    },
+    "UOH220": {
+      "objective": "To stimulate the State's economy by developing eligible individuals to increased entrepreneurial knowledge and skills by providing consulting and training services.",
+      "title": "SMALL BUSINESS DEVELOPMENT",
+      "department": "UOH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "UOH700": {
+      "objective": "The University of Hawaii West Oahu (UHWO) offers a distinct, learner-centered baccalaureate education that integrates liberal arts; social sciences; and science, technology, engineering, and math with professional and applied fields.",
+      "title": "UNIVERSITY OF HAWAII, WEST OAHU",
+      "department": "UOH",
+      "source": "governor_supplemental_fy27"
+    },
+    "UOH800": {
+      "objective": "To provide accessible, comprehensive education and services, including two- and four-year career and technical training, college transfer and general education, and adult continuing education, to develop individuals' intellectual, personal, social, and vocational competency, and meet the workforce needs and cultural interests of the community, often utilizing distance education to extend reach.",
+      "title": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+      "department": "UOH",
+      "source": "governor_supplemental_fy27"
+    },
+    "UOH881": {
+      "objective": "To enrich the lives of residents and visitors by displaying fishes and other marine life for appreciation, education, and research.",
+      "title": "AQUARIA",
+      "department": "UOH",
+      "source": "governor_biennial_fy25-27"
+    },
+    "UOH900": {
+      "objective": "To facilitate the operation of the institution as an organization providing executive management, fiscal, logistical, career, technical education, student assessment, and other related student, academic, and administrative support services across the ten-campus University of Hawaii (UH) System. In addition, to plan and administer certain post-secondary education programs funded by the federal government.",
+      "title": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+      "department": "UOH",
+      "source": "governor_supplemental_fy27"
+    }
+  }
+}

@@ -37,6 +37,9 @@ class Router {
             if (window.loadDraftComparison) {
                 loadPromises.push(window.loadDraftComparison());
             }
+            if (window.loadProgramPurposes) {
+                loadPromises.push(window.loadProgramPurposes());
+            }
             if (window.loadProjects) {
                 loadPromises.push(window.loadProjects());
             }

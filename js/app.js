@@ -1206,6 +1206,37 @@ window.loadDraftComparison = async function () {
     }
 };
 
+// Program purposes — short "Program Objective" text harvested from the
+// Governor's Executive Budget PDFs (supplemental FY27 → biennial FY25-27 →
+// biennial FY23-25 fallback).  Powers the hover tooltip on program-ID rows
+// in the HB1800 draft-comparison table.
+let programPurposesData = {};
+window.loadProgramPurposes = async function () {
+    try {
+        const r = await fetch('./js/program_purposes.json?v=' + Date.now());
+        if (r.ok) {
+            const json = await r.json();
+            programPurposesData = json.purposes || {};
+        }
+    } catch (e) {
+        console.warn('Program purposes unavailable:', e.message);
+    }
+};
+
+// Build the class + data-tooltip attributes for a program-ID element.
+// Returns an empty string when no objective exists for the ID so the
+// markup stays clean (no empty data-tooltip).  Normalizes whitespace in
+// the ID (HB1800 uses "AGR122", some sources emit "AGR 122").
+function purposeTooltipAttrs(programId) {
+    const key = String(programId || '').replace(/\s+/g, '');
+    const rec = programPurposesData[key];
+    if (!rec || !rec.objective) return '';
+    const safe = rec.objective
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return ` class="has-tooltip prog-purpose-tip" data-tooltip="${safe}"`;
+}
+
 // ---------------------------------------------------------------------------
 // Draft Comparison Page
 // ---------------------------------------------------------------------------
@@ -1980,7 +2011,7 @@ window.initDraftComparePage = async function () {
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -2053,7 +2084,7 @@ window.initDraftComparePage = async function () {
                     const fundOpen = expandedFunds.has(fundKey);
                     const fundArrow = fundOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -2091,7 +2122,7 @@ window.initDraftComparePage = async function () {
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${pairKeyAttr}>
-                        <td class="detail-indent"><strong>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
@@ -2187,7 +2218,7 @@ window.initDraftComparePage = async function () {
                 const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '';
                 const pctStr = fmtPct(dynPct).replace(/^\+/, '');
                 fundHtml += `<tr class="fund-detail-row${isOpen ? '' : ' hidden'}" data-fund-type="${fg.type}">
-                    <td class="detail-indent"><strong>${highlight(r.program_id || '', q)}</strong> ${highlight(r.program_name || '', q)}</td>
+                    <td class="detail-indent"><strong${purposeTooltipAttrs(r.program_id)}>${highlight(r.program_id || '', q)}</strong> ${highlight(r.program_name || '', q)}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
@@ -2614,7 +2645,7 @@ window.initDraftComparePage = async function () {
                     ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Amt)}</span></td>`
                     : '';
                 bodyRows += `<tr class="project-row change-${pr.change_type}${isOpen ? '' : ' hidden'}" data-project-dept="${dept.code}">
-                    <td class="project-program-cell"><strong>${highlight(pr.program_id, q)}</strong><div class="project-prog-name">${highlight(progName, q)}</div></td>
+                    <td class="project-program-cell"><strong${purposeTooltipAttrs(pr.program_id)}>${highlight(pr.program_id, q)}</strong><div class="project-prog-name">${highlight(progName, q)}</div></td>
                     <td class="project-num">${pr.project_id}</td>
                     <td><div class="project-name">${highlight(pr.project_name, q)}</div>${scope}</td>
                     <td><span class="fund-chip" data-fund-cat="${pr.fund_category || ''}">${shortFund(pr.fund_category)}</span></td>
