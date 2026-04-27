@@ -2468,6 +2468,28 @@ th.sortable .sort-hint {
     text-underline-offset: 3px;
 }
 
+/* Change-reason tooltip on the HB1800 delta cell.  The text is a
+   one-line summary of the legislature's stated reason for changing the
+   program's funding (sourced from EXEC + DISAGREE worksheet PDFs).
+   When both chambers' reasons exist they're labelled "Senate: …" /
+   "House: …" with a blank-line separator — `pre-line` preserves that
+   visual break inside the tooltip card. */
+.change-reason-tip {
+    cursor: help;
+}
+.change-reason-tip::after {
+    width: 360px;
+    max-width: min(360px, 90vw);
+    white-space: pre-line;
+    z-index: 50;
+}
+/* Subtle dotted underline on the change-cell number when a reason
+   exists, mirroring the program-id affordance. */
+.change-reason-tip .figure-chip {
+    text-decoration: underline dotted rgba(47, 58, 54, 0.30);
+    text-underline-offset: 3px;
+}
+
 /* Export button row below tables */
 .table-export-row {
     display: flex;
