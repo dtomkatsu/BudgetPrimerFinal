@@ -2479,27 +2479,189 @@ th.sortable .sort-hint {
    When both chambers' reasons exist they're labelled "Senate: …" /
    "House: …" with a blank-line separator — `pre-line` preserves that
    visual break inside the tooltip card. */
-.change-reason-tip {
+/* Change-cell affordance: the dotted underline tells the user there's a
+   tooltip on hover, mirroring the program-id objective tooltip pattern. */
+.has-reason {
     cursor: help;
+    position: relative;
 }
-.change-reason-tip::after {
-    width: 360px;
-    max-width: min(360px, 90vw);
-    white-space: pre-line;
-    z-index: 50;
-    /* Change cell is the rightmost column on the HB1800 tab; the
-       default `left: 0` from .has-tooltip::after pushes the 360px card
-       past the viewport edge.  Anchor to the right edge of the cell so
-       it grows leftward into the table area instead. */
-    left: auto;
-    right: 0;
-}
-/* Subtle dotted underline on the change-cell number when a reason
-   exists, mirroring the program-id affordance. */
-.change-reason-tip .figure-chip {
-    text-decoration: underline dotted rgba(47, 58, 54, 0.30);
+.has-reason .figure-chip {
+    text-decoration: underline dotted rgba(47, 58, 54, 0.32);
     text-underline-offset: 3px;
 }
+.has-reason:focus {
+    outline: 2px solid rgba(70, 110, 95, 0.45);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+/* Inline divergence pill — sits next to the change figure when HD1 ≠ SD1.
+   Compact so it doesn't blow out the column; chamber-tinted so the eye
+   picks up "the chambers disagree here" before reading the number. */
+.hd-sd-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    margin-left: 6px;
+    padding: 1px 6px 2px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.25;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    vertical-align: middle;
+    /* Default (positive = Senate added vs House) — Senate blue */
+    background: rgba(44, 82, 130, 0.10);
+    color: #2c5282;
+    border-color: rgba(44, 82, 130, 0.28);
+}
+.hd-sd-pill.neg {
+    /* Senate cut vs House — House red so the "House preserved more" reading
+       comes through.  Both chamber colors live on this single pill so users
+       don't have to learn two separate badges. */
+    background: rgba(155, 44, 44, 0.10);
+    color: #9b2c2c;
+    border-color: rgba(155, 44, 44, 0.28);
+}
+.hd-sd-pill-meta {
+    font-weight: 500;
+    font-size: 0.66rem;
+    opacity: 0.75;
+    letter-spacing: 0.03em;
+}
+
+/* ===== Reason popover (the formatted hover card on change cells) ===== */
+.reason-popover {
+    position: absolute;
+    z-index: 1000;
+    width: 420px;
+    max-width: min(420px, calc(100vw - 24px));
+    /* Hard ceiling: never taller than the viewport.  The JS positioner
+       sets a tighter max-height inline when the available slot is even
+       smaller; this rule is the safety net. */
+    max-height: calc(100vh - 24px);
+    background: #ffffff;
+    border: 1px solid rgba(47, 58, 54, 0.18);
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(20, 30, 28, 0.18),
+                0 2px 6px rgba(20, 30, 28, 0.10);
+    padding: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: #2f3a36;
+    /* Internal scroll when content exceeds max-height.  `overflow-y: auto`
+       supersedes the previous `overflow: hidden` (which was clipping the
+       bottom of long lists).  The rounded-corner safety for section bars
+       is preserved by `overflow-x: hidden`. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;   /* don't bubble scroll to page */
+}
+/* Slimmer scrollbar so the card doesn't look like a code editor. */
+.reason-popover::-webkit-scrollbar { width: 8px; }
+.reason-popover::-webkit-scrollbar-thumb {
+    background: rgba(47, 58, 54, 0.22);
+    border-radius: 4px;
+}
+.reason-popover::-webkit-scrollbar-thumb:hover {
+    background: rgba(47, 58, 54, 0.40);
+}
+.reason-pop-header {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid rgba(47, 58, 54, 0.10);
+    background: #f7f8f6;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: #4a5550;
+}
+.reason-pop-header strong {
+    color: #1f2a26;
+    margin-right: 6px;
+    font-weight: 700;
+}
+.reason-pop-prog-name {
+    font-weight: 500;
+}
+.reason-section {
+    padding: 10px 14px 12px 14px;
+    border-left: 4px solid transparent;
+    background: #ffffff;
+}
+.reason-section + .reason-section {
+    border-top: 1px solid rgba(47, 58, 54, 0.10);
+}
+.reason-section.reason-house {
+    border-left-color: #9b2c2c;     /* warm "House" red */
+}
+.reason-section.reason-senate {
+    border-left-color: #2c5282;     /* cool "Senate" blue */
+}
+.reason-chamber-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+.reason-house .reason-chamber-label { color: #9b2c2c; }
+.reason-senate .reason-chamber-label { color: #2c5282; }
+.reason-amt {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 1px 7px 2px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.04);
+    color: #1f2a26;
+}
+/* Net delta chip: resolves "Reduce funds; Add funds" contradictions by
+   surfacing the signed net vs the other chamber inline in the label row.
+   Sits after the amount badge, right-aligned by the flex parent. */
+.reason-net {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 1px 6px 2px;
+    border-radius: 999px;
+    margin-left: auto;   /* push to the far right of the label row */
+}
+.reason-net.pos {
+    background: rgba(44, 82, 130, 0.12);
+    color: #2c5282;
+    border: 1px solid rgba(44, 82, 130, 0.28);
+}
+.reason-net.neg {
+    background: rgba(155, 44, 44, 0.10);
+    color: #9b2c2c;
+    border: 1px solid rgba(155, 44, 44, 0.24);
+}
+.reason-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.reason-list li {
+    position: relative;
+    padding-left: 14px;
+    margin: 2px 0 4px;
+    color: #2f3a36;
+}
+.reason-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: rgba(47, 58, 54, 0.55);
+    font-weight: 700;
+}
+.reason-list li:last-child { margin-bottom: 0; }
 
 /* Export button row below tables */
 .table-export-row {

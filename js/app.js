@@ -1266,20 +1266,333 @@ function purposeTooltipAttrs(programId) {
 // `reason_hd_change`.  When both chambers' reasons exist we label them
 // so the reader can tell whose decision drove which delta; the CSS
 // uses `white-space: pre-line` to keep the line break between paragraphs.
+// HTML-attribute escape (single helper used by all the popover data-* attrs
+// below).  Single-quoted attrs are not in play, so escaping `&"<>` is enough.
+function _escAttr(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// Pull the HD1 / SD1 amounts from either an aggregated `p` object (which
+// uses `hd1` / `d2` summed fields) or a raw `r` row (which uses
+// `amount_hd1` / `amount_sd1`).  Returns [hd, sd] — null when missing.
+//
+// Note: sd1Active is a closure variable scoped to initDraftComparePage and
+// NOT accessible here.  We rely on the fact that when SD1 is toggled OFF,
+// d2Key === hd1Key, so p.d2 === p.hd1 and the delta is 0 — correct behaviour
+// (no divergence chip when we're only showing one draft column).
+function _hdSdAmounts(row) {
+    if (!row) return [null, null];
+    const hd = row.hd1 != null ? row.hd1 : (row.amount_hd1 != null ? row.amount_hd1 : null);
+    // Raw comparison rows carry amount_sd1 directly.  Aggregated `p` objects
+    // carry the column sum in `d2` (which equals amount_sd1 totals when SD1
+    // is active, or amount_hd1 totals when SD1 is toggled off → delta = 0).
+    let sd = null;
+    if (row.amount_sd1 != null) sd = row.amount_sd1;
+    else if (row.d2 != null) sd = row.d2;
+    return [hd, sd];
+}
+
+// Cell attrs for the change cell.  Emits a `has-reason` class plus the
+// data-* attrs the popover handler reads on hover.  The popover element
+// is created on-demand by ensureReasonPopover() and shared across all
+// cells (no per-cell DOM bloat).
 function changeReasonCellAttrs(row, baseClass) {
     const base = baseClass ? ` class="${baseClass}"` : '';
     if (!row) return base;
+    // Don't surface a reason tooltip when this fiscal year has no net
+    // change — the worksheet reasons cover both FY26 and FY27 and can
+    // otherwise leak onto rows where the delta is $0 for that year.
+    if (!row.change || Math.abs(row.change) < 1) return base;
     const sd = row.reason_sd_change || '';
     const hd = row.reason_hd_change || '';
     if (!sd && !hd) return base;
-    const text = (sd && hd) ? `Senate: ${sd}\n\nHouse: ${hd}`
-               : sd          ? `Senate: ${sd}`
-                             : `House: ${hd}`;
-    const safe = text
+    const [hdAmt, sdAmt] = _hdSdAmounts(row);
+    const cls = `${baseClass ? baseClass + ' ' : ''}has-reason`;
+    const attrs = [
+        ` class="${cls}"`,
+        ` data-reason-sd="${_escAttr(sd)}"`,
+        ` data-reason-hd="${_escAttr(hd)}"`,
+        ` data-program-id="${_escAttr(row.program_id || '')}"`,
+        ` data-program-name="${_escAttr(row.program_name || '')}"`,
+        hdAmt != null ? ` data-amt-hd="${hdAmt}"` : '',
+        sdAmt != null ? ` data-amt-sd="${sdAmt}"` : '',
+        ` tabindex="0"`,
+    ];
+    return attrs.join('');
+}
+
+// Inline HD↔SD divergence chip.  Returns `<span>` markup when the two
+// chambers landed on different numbers for this row; empty string
+// otherwise.  Reads HD/SD via _hdSdAmounts() so it works for both
+// aggregated `p` and raw `r`.  Threshold of $1 absorbs floating-point
+// noise without losing real divergences.
+function divergenceChipHtml(row) {
+    if (!row) return '';
+    if (typeof sd1Active !== 'undefined' && !sd1Active) return '';
+    const [hdAmt, sdAmt] = _hdSdAmounts(row);
+    if (hdAmt == null || sdAmt == null) return '';
+    const delta = sdAmt - hdAmt;
+    if (Math.abs(delta) < 1) return '';
+    const sign = delta > 0 ? '+' : '−';
+    const abs = Math.abs(delta);
+    let short;
+    if (abs >= 1e9) short = `$${(abs / 1e9).toFixed(2)}B`;
+    else if (abs >= 1e6) short = `$${(abs / 1e6).toFixed(2)}M`;
+    else if (abs >= 1e3) short = `$${(abs / 1e3).toFixed(0)}K`;
+    else short = `$${Math.round(abs).toLocaleString()}`;
+    const dirClass = delta > 0 ? 'pos' : 'neg';
+    const tipText = delta > 0
+        ? `Senate added ${short} vs House`
+        : `Senate cut ${short} vs House`;
+    return ` <span class="hd-sd-pill ${dirClass}" title="${_escAttr(tipText)}">SD ${sign}${short} <span class="hd-sd-pill-meta">vs HD</span></span>`;
+}
+
+// ---------------------------------------------------------------------------
+// Reason popover — formatted hover/focus card for change-cell tooltips.
+// One shared element on the body; cells declare their content via data-*
+// attrs on the cell.  Keeps DOM weight small even with hundreds of rows.
+// ---------------------------------------------------------------------------
+
+// Hawaii-government acronyms + short tokens worth keeping uppercase in the
+// soft-cased reason text.  Worksheets are screamy ALL CAPS; lowercasing
+// makes them readable, but program IDs and acronyms still need to pop.
+const _REASON_ACRONYMS = new Set([
+    'CIP', 'MOF', 'POS', 'FTP', 'FTS', 'FY', 'GO', 'GE', 'EA', 'HD', 'SD',
+    'HMS', 'EDN', 'AGR', 'BED', 'TRN', 'LNR', 'UOH', 'DEF', 'PSD', 'AGS',
+    'LBR', 'TAX', 'BUF', 'HRD', 'HTH', 'LAW', 'JUD', 'CCA', 'ATG', 'GOV',
+    'LTG', 'OHA', 'SUB', 'COH', 'STA', 'DOH', 'DOE', 'DOT', 'DLNR'
+]);
+
+// Title-ish-case the screamy worksheet titles.  Goal: readable sentence
+// case, but program IDs (3-letter prefix + 3–4 digits) and known
+// acronyms stay uppercase.  Hawaii / Hawaiian get title-cased explicitly.
+function _softCaseReason(text) {
+    if (!text) return '';
+    // Full lowercase first, then re-capitalize selectively.
+    let out = text.toLowerCase();
+    // Program IDs: XXX###[#] — always uppercase
+    out = out.replace(/\b([a-z]{3}\d{3,4})\b/g, m => m.toUpperCase());
+    // Known acronyms — case-insensitive, restore upper case
+    out = out.replace(/\b([a-z]{2,5})\b/g, (m) => {
+        const upper = m.toUpperCase();
+        return _REASON_ACRONYMS.has(upper) ? upper : m;
+    });
+    // Hawaii / Hawaiian title-cased
+    out = out.replace(/\bhawaii\b/g, 'Hawaii').replace(/\bhawaiian\b/g, 'Hawaiian');
+    // Capitalize the very first letter
+    out = out.charAt(0).toUpperCase() + out.slice(1);
+    return out;
+}
+
+// Split the joined reason sentence ("ACTION ONE; ACTION TWO; ACTION THREE.")
+// back into its constituent SEQ # actions.  The extractor joins with `; `
+// and ends with `.`; we strip the trailing period and split.
+function _bulletizeReason(text) {
+    if (!text) return [];
+    return text.replace(/\.\s*$/, '').split(/;\s+/).filter(s => s.trim());
+}
+
+// Compact short-form formatter used for chamber-amount badges in the
+// popover.  Mirrors fmtHtml() output but returns plain text.
+function _fmtShort(amount) {
+    if (amount == null) return '$0';
+    const abs = Math.abs(amount);
+    const sign = amount < 0 ? '-' : '';
+    if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+    return `${sign}$${Math.round(abs).toLocaleString()}`;
+}
+
+// Lazily create the singleton popover element.  Detached body child so
+// it can sit above any overflow-hidden ancestor without z-index fights.
+function _ensureReasonPopover() {
+    let pop = document.getElementById('reason-popover');
+    if (pop) return pop;
+    pop = document.createElement('div');
+    pop.id = 'reason-popover';
+    pop.className = 'reason-popover';
+    pop.setAttribute('role', 'tooltip');
+    pop.style.display = 'none';
+    document.body.appendChild(pop);
+    return pop;
+}
+
+// HTML escape for the popover body content (going into innerHTML).
+function _escHtml(s) {
+    return String(s == null ? '' : s)
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\n/g, '&#10;');
-    return ` class="${baseClass ? baseClass + ' ' : ''}has-tooltip change-reason-tip" data-tooltip="${safe}"`;
+        .replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Build the popover inner HTML for a given cell.  Reads data-* attrs;
+// returns an empty string if neither chamber has reason text (caller
+// suppresses the show in that case).
+function _buildReasonPopoverHtml(cell) {
+    const sd = cell.getAttribute('data-reason-sd') || '';
+    const hd = cell.getAttribute('data-reason-hd') || '';
+    if (!sd && !hd) return '';
+    const programId = cell.getAttribute('data-program-id') || '';
+    const programName = cell.getAttribute('data-program-name') || '';
+    const hdAmt = parseFloat(cell.getAttribute('data-amt-hd'));
+    const sdAmt = parseFloat(cell.getAttribute('data-amt-sd'));
+
+    // Net delta vs the other chamber — resolves apparent contradictions like
+    // "Reduce funds; Add funds" which just means a fund-source reallocation.
+    // Show "+$1.1M vs HD" or "−$26.8M vs SD" so the reader can verify the
+    // net result without doing the mental arithmetic across fund rows.
+    const sdDelta = isFinite(sdAmt) && isFinite(hdAmt) ? sdAmt - hdAmt : NaN;
+    const hdDelta = isFinite(hdAmt) && isFinite(sdAmt) ? hdAmt - sdAmt : NaN;
+    const _signedFmt = (n) => (n > 0 ? '+' : '') + _fmtShort(n);
+
+    const buildSection = (label, raw, amt, klass, delta) => {
+        if (!raw) return '';
+        const items = _bulletizeReason(raw)
+            .map(p => `<li>${_escHtml(_softCaseReason(p))}.</li>`)
+            .join('');
+        const vsLabel = klass === 'senate' ? 'vs HD' : 'vs SD';
+        // Amount badge: show the chamber's total, plus a "net ±$X vs <other>"
+        // suffix when there's a computable delta.  Resolves contradictions like
+        // "Reduce funds; Add funds" (= fund reallocation, net may be near-zero).
+        const amtBadge = isFinite(amt)
+            ? `<span class="reason-amt">${_fmtShort(amt)}</span>` : '';
+        const deltaChip = (isFinite(delta) && Math.abs(delta) >= 1)
+            ? `<span class="reason-net ${delta >= 0 ? 'pos' : 'neg'}">${_signedFmt(delta)} ${vsLabel}</span>`
+            : '';
+        return `<div class="reason-section reason-${klass}">
+            <div class="reason-chamber-label">${label}${amtBadge}${deltaChip}</div>
+            <ul class="reason-list">${items}</ul>
+        </div>`;
+    };
+
+    const header = programId
+        ? `<div class="reason-pop-header">
+             <strong>${_escHtml(programId)}</strong>
+             <span class="reason-pop-prog-name">${_escHtml(programName)}</span>
+           </div>` : '';
+
+    const hdSection = buildSection('House', hd, hdAmt, 'house', hdDelta);
+    const sdSection = buildSection('Senate', sd, sdAmt, 'senate', sdDelta);
+    // House on top when both — chronological order (House drafts first,
+    // Senate amends).  When only one chamber has text, just show that one.
+    return header + hdSection + sdSection;
+}
+
+// Position the popover relative to the triggering cell.  Three-step
+// fallback to keep tall popovers fully on-screen:
+//   1. Try below-right of the cell.
+//   2. If it overflows the bottom and there's more room above, flip up.
+//   3. If it still overflows (popover is taller than the available
+//      vertical slot), pin to the larger slot and let the popover's
+//      max-height + overflow-y CSS rule scroll the content internally.
+function _positionReasonPopover(pop, cell) {
+    const r = cell.getBoundingClientRect();
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // Reset any prior pinned max-height so we measure the natural size.
+    pop.style.maxHeight = '';
+    pop.style.display = 'block';
+    pop.style.visibility = 'hidden';
+    pop.style.left = '0px';
+    pop.style.top = '0px';
+    const popRect = pop.getBoundingClientRect();
+    const popH = popRect.height;
+    const popW = popRect.width;
+
+    // Horizontal: right-anchored, clamped to viewport.
+    let left = r.right + window.scrollX - popW;
+    if (left < window.scrollX + margin) left = r.left + window.scrollX;
+    left = Math.max(window.scrollX + margin,
+                    Math.min(left, window.scrollX + vw - popW - margin));
+
+    // Vertical: prefer below the cell, but fall back to above when below
+    // overflows.  If neither fits, anchor to whichever side has more room
+    // and cap height so the popover scrolls instead of clipping.
+    const spaceBelow = vh - r.bottom - margin;
+    const spaceAbove = r.top - margin;
+    const gap = 6;
+    let top;
+    if (popH + gap <= spaceBelow) {
+        top = r.bottom + window.scrollY + gap;
+    } else if (popH + gap <= spaceAbove) {
+        top = r.top + window.scrollY - popH - gap;
+    } else if (spaceBelow >= spaceAbove) {
+        top = r.bottom + window.scrollY + gap;
+        pop.style.maxHeight = `${Math.max(160, spaceBelow - gap)}px`;
+    } else {
+        const cap = Math.max(160, spaceAbove - gap);
+        top = r.top + window.scrollY - cap - gap;
+        pop.style.maxHeight = `${cap}px`;
+    }
+
+    pop.style.left = `${left}px`;
+    pop.style.top  = `${top}px`;
+    pop.style.visibility = 'visible';
+}
+
+// One-time wire-up of delegated hover/focus handlers.  Idempotent: a
+// flag on the body avoids double-binding when the page re-renders.
+function initReasonPopoverHandlers() {
+    if (document.body.dataset.reasonPopBound === '1') return;
+    document.body.dataset.reasonPopBound = '1';
+    const pop = _ensureReasonPopover();
+    let activeCell = null;
+    let hideTimer = null;
+
+    const show = (cell) => {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        if (activeCell === cell) return;
+        const html = _buildReasonPopoverHtml(cell);
+        if (!html) return;
+        activeCell = cell;
+        pop.innerHTML = html;
+        _positionReasonPopover(pop, cell);
+    };
+    const hideSoon = () => {
+        hideTimer = setTimeout(() => {
+            pop.style.display = 'none';
+            activeCell = null;
+        }, 80);  // small grace so the user can move into the popover itself
+    };
+    const cancelHide = () => {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    };
+
+    document.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('.has-reason');
+        if (cell) show(cell);
+        else if (e.target.closest('#reason-popover')) cancelHide();
+    });
+    document.addEventListener('mouseout', (e) => {
+        const cell = e.target.closest('.has-reason');
+        if (cell && !cell.contains(e.relatedTarget) && !pop.contains(e.relatedTarget)) {
+            hideSoon();
+        } else if (e.target.closest('#reason-popover') &&
+                   !pop.contains(e.relatedTarget) &&
+                   (!activeCell || !activeCell.contains(e.relatedTarget))) {
+            hideSoon();
+        }
+    });
+    document.addEventListener('focusin', (e) => {
+        const cell = e.target.closest('.has-reason');
+        if (cell) show(cell);
+    });
+    document.addEventListener('focusout', (e) => {
+        const cell = e.target.closest('.has-reason');
+        if (cell && !cell.contains(e.relatedTarget)) hideSoon();
+    });
+    // Hide on scroll/resize — repositioning during scroll feels janky.
+    window.addEventListener('scroll', () => {
+        if (activeCell) { pop.style.display = 'none'; activeCell = null; }
+    }, { passive: true });
+    window.addEventListener('resize', () => {
+        if (activeCell) { pop.style.display = 'none'; activeCell = null; }
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -1405,6 +1718,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 };
 
 window.initDraftComparePage = async function () {
+    initReasonPopoverHandlers();
     const hasData = (draftComparisonData && draftComparisonData.comparisons) ||
                     (draftComparisonDataFY27 && draftComparisonDataFY27.comparisons);
     if (!hasData) return;
@@ -2067,7 +2381,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         const secRows = p.rawRows.filter(r => r.section === sec);
@@ -2140,7 +2454,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                     const byFund = new Map();
                     for (const r of p.rawRows) {
@@ -2178,7 +2492,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span></td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                 }
             }
@@ -2272,9 +2586,10 @@ window.initDraftComparePage = async function () {
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
-                    <td${changeReasonCellAttrs(r, `amount-cell change-cell ${cls}`)}>
+                    <td${changeReasonCellAttrs(delta !== 0 ? r : null, `amount-cell change-cell ${cls}`)}>
                         <span class="change-main">${arrow ? `<span class="change-arrow">${arrow}</span>` : ''}<span class="figure-chip">${fmtHtml(delta)}</span></span>
                         ${arrow ? `<span class="change-pct">${pctStr}</span>` : ''}
+                        ${divergenceChipHtml(r)}
                     </td>
                 </tr>`;
             }
