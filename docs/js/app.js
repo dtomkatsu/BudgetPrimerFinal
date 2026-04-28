@@ -1227,29 +1227,61 @@ window.loadProgramPurposes = async function () {
 // Returns an empty string when no objective exists for the ID so the
 // markup stays clean (no empty data-tooltip).  Normalizes whitespace in
 // the ID (HB1800 uses "AGR122", some sources emit "AGR 122").
+// Structure and display helpers for program-objective popovers.
+// The raw text comes from program_purposes.json (Governor's budget PDFs).
+// Three cases:
+//   1. "To [verb]…" multi-sentence stack → each goal as a <li>
+//   2. Long plain prose (3+ sentences, >280 chars) → sentence-split <li>s
+//   3. Short / single sentence → plain <p>
+function _structurePurposeText(text) {
+    if (!text) return '';
+    // Case 1: "To [verb]..." pattern — already the most common structure
+    const toCount = (text.match(/(?:^|\.\s+)To\s+[a-z]/g) || []).length;
+    if (toCount >= 2) {
+        const parts = text.replace(/\.\s*$/, '').split(/\.\s+(?=To\b)/);
+        return '<ul class="purpose-list">' +
+            parts.map(p => `<li>${_escHtml(p.trim())}.</li>`).join('') +
+            '</ul>';
+    }
+    // Case 2: Long prose — split on sentence boundaries into scannable bullets
+    const sentences = (text.match(/[^.!?]+[.!?]+/g) || []).map(s => s.trim()).filter(Boolean);
+    if (sentences.length >= 3 && text.length > 280) {
+        return '<ul class="purpose-list">' +
+            sentences.map(s => `<li>${_escHtml(s)}</li>`).join('') +
+            '</ul>';
+    }
+    // Case 3: Short or single-sentence — paragraph is fine
+    return `<p class="purpose-text">${_escHtml(text)}</p>`;
+}
+
+function _buildPurposePopoverHtml(el) {
+    const raw = el.getAttribute('data-purpose') || '';
+    if (!raw) return '';
+    const programId   = el.getAttribute('data-purpose-id')   || el.textContent?.trim() || '';
+    const programName = el.getAttribute('data-purpose-name') || '';
+    // Flag truncated descriptions (JSON source caps around 500 chars)
+    const isTruncated = raw.length >= 498 || !raw.match(/[.!?]\s*$/);
+    const body = _structurePurposeText(raw);
+    const header = `<div class="reason-pop-header purpose-pop-header">
+        <strong>${_escHtml(programId)}</strong>
+        <span class="reason-pop-prog-name">${_escHtml(programName)}</span>
+    </div>`;
+    const truncNote = isTruncated
+        ? `<p class="purpose-truncated">See official budget documents for full text.</p>` : '';
+    return `${header}<div class="reason-section reason-purpose">
+        <div class="reason-chamber-label">Program Objective</div>
+        ${body}${truncNote}
+    </div>`;
+}
+
 function purposeTooltipAttrs(programId) {
     const key = String(programId || '').replace(/\s+/g, '');
     const rec = programPurposesData[key];
     if (!rec || !rec.objective) return '';
-    let text = rec.objective;
-    // Many objectives are written as a stack of "To [verb]…" sentences
-    // (e.g. PSD402: "To protect society… To provide for the basic needs…
-    // To facilitate participation…").  Render those as a bulleted list
-    // so the reader can scan the goals instead of slogging through a
-    // wall of text.  CSS `white-space: pre-line` on the tooltip honors
-    // the `\n` separators we inject here.
-    const toCount = (text.match(/(?:^|\.\s+)To\s+[a-z]/g) || []).length;
-    if (toCount >= 2) {
-        const parts = text.split(/\.\s+(?=To\b)/);
-        text = parts.map((p, i) =>
-            i < parts.length - 1 ? p.trim() + '.' : p.trim()
-        ).map(p => '• ' + p).join('\n');
-    }
-    const safe = text
+    const safe = rec.objective
         .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\n/g, '&#10;');
-    return ` class="has-tooltip prog-purpose-tip" data-tooltip="${safe}"`;
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return ` class="has-purpose" data-purpose="${safe}" data-purpose-id="${_escAttr(key)}" tabindex="0"`;
 }
 
 // Build the full attribute block (`class="…" data-tooltip="…"`) for a
@@ -1544,11 +1576,20 @@ function initReasonPopoverHandlers() {
     let activeCell = null;
     let hideTimer = null;
 
+    // Find the nearest triggering element — either a change-reason cell
+    // or a program-objective ID.  Both share the same popover element.
+    const _triggerEl = (target) =>
+        target.closest('.has-reason') || target.closest('.has-purpose');
+
     const show = (cell) => {
         if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
         if (activeCell === cell) return;
-        const html = _buildReasonPopoverHtml(cell);
+        const html = cell.classList.contains('has-purpose')
+            ? _buildPurposePopoverHtml(cell)
+            : _buildReasonPopoverHtml(cell);
         if (!html) return;
+        // Tag popover type so CSS can style accordingly
+        pop.dataset.popType = cell.classList.contains('has-purpose') ? 'purpose' : 'reason';
         activeCell = cell;
         pop.innerHTML = html;
         _positionReasonPopover(pop, cell);
@@ -1564,12 +1605,12 @@ function initReasonPopoverHandlers() {
     };
 
     document.addEventListener('mouseover', (e) => {
-        const cell = e.target.closest('.has-reason');
+        const cell = _triggerEl(e.target);
         if (cell) show(cell);
         else if (e.target.closest('#reason-popover')) cancelHide();
     });
     document.addEventListener('mouseout', (e) => {
-        const cell = e.target.closest('.has-reason');
+        const cell = _triggerEl(e.target);
         if (cell && !cell.contains(e.relatedTarget) && !pop.contains(e.relatedTarget)) {
             hideSoon();
         } else if (e.target.closest('#reason-popover') &&
@@ -1579,11 +1620,11 @@ function initReasonPopoverHandlers() {
         }
     });
     document.addEventListener('focusin', (e) => {
-        const cell = e.target.closest('.has-reason');
+        const cell = _triggerEl(e.target);
         if (cell) show(cell);
     });
     document.addEventListener('focusout', (e) => {
-        const cell = e.target.closest('.has-reason');
+        const cell = _triggerEl(e.target);
         if (cell && !cell.contains(e.relatedTarget)) hideSoon();
     });
     // Hide on scroll/resize — repositioning during scroll feels janky.
