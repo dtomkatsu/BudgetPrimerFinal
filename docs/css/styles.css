@@ -2203,8 +2203,8 @@ th.sortable .sort-hint {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 450px;
-    max-width: 575px;
+    min-width: 580px;
+    max-width: min(720px, calc(100vw - 32px));
     background: #fff;
     border: 1px solid #d0dbd5;
     border-left: 4px solid var(--primary-color, #2e7d32);
