@@ -153,12 +153,12 @@ class Router {
     updateHeaderText(path) {
         const configs = {
             '/enacted': {
-                subtitle: 'FY2026 · The budget passed by the legislature and signed by the Governor in 2025 (HB300).',
+                subtitle: 'Enacted biennial appropriations · FY2016–FY2027. Pick a year for department-level totals.',
                 docTitle: 'Hawaiʻi Budget Tracker · HB300'
             },
             '/history': {
-                subtitle: 'Ten years of biennial budget acts, with inflation-adjusted comparisons.',
-                docTitle: 'History · Hawaiʻi Budget Tracker'
+                subtitle: 'Enacted biennial appropriations · FY2016–FY2027. Pick a year for department-level totals.',
+                docTitle: 'Hawaiʻi Budget Tracker · HB300'
             },
             '/about': {
                 subtitle: 'About this tracker.',

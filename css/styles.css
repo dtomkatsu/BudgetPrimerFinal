@@ -4340,14 +4340,155 @@ mark.search-highlight {
     #hist-dept-select { min-width: 0; width: 100%; }
 }
 
-/* ── Dev-mode nav tabs ─────────────────────────────────────────────────────
-   [data-dev-only] links are hidden by default (the `hidden` HTML attr).
-   When the page is loaded with ?dev the <html> element gets data-dev="",
-   which unhides them and adds a subtle DEV badge so they're visually
-   distinguishable from production tabs.
+/* ── HB300 year selector + history chart + dept-card sparkline ─────────────
+   The HB300 tab now spans FY2016–FY2027.  The year selector picks which
+   FY's totals appear in the summary cards and on each department card.
+   The state-wide chart at the top shows 12 years of operating + capital
+   appropriations (carry-over from the old History tab).  The mini SVG
+   sparkline on each department card mirrors the same 12-year arc, scoped
+   to that department.
    ────────────────────────────────────────────────────────────────────────── */
+.hb300-year-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    background: #f7f8f6;
+    border: 1px solid rgba(70, 110, 95, 0.18);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+}
+.hb300-year-bar label {
+    font-size: 0.95rem;
+    color: #2f3a36;
+}
+.hb300-fy-select {
+    font-size: 0.95rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid rgba(70, 110, 95, 0.35);
+    border-radius: 6px;
+    background: #fff;
+    color: #2f3a36;
+    cursor: pointer;
+    min-width: 220px;
+}
+.hb300-fy-select:focus {
+    outline: 2px solid rgba(90, 123, 104, 0.45);
+    outline-offset: 1px;
+}
+.hb300-fy-help {
+    font-size: 0.85rem;
+    color: #6a7370;
+    flex-basis: 100%;
+    margin-top: 0.15rem;
+    line-height: 1.45;
+}
+
+.hb300-history-section {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.1rem 1.2rem 0.9rem;
+    margin: 1.1rem 0 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.hb300-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.hb300-history-head h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--primary-dark, #2f3a36);
+}
+.hb300-history-sub {
+    margin: 0.1rem 0 0.7rem;
+    font-size: 0.85rem;
+    color: #6a7370;
+}
+.hb300-history-chart-wrap {
+    height: 280px;
+    margin-top: 0.4rem;
+}
+
+/* Per-department mini sparkline on each card */
+.dept-card-spark-wrap {
+    margin: 0.4rem 0 0.55rem;
+    padding: 0.35rem 0.5rem 0.2rem;
+    background: rgba(247, 248, 246, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 6px;
+}
+.dept-card-sparkline {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+.dept-card-sparkline-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #8a918e;
+    letter-spacing: 0.04em;
+    margin-top: -0.1rem;
+}
+
+/* Department detail page — per-dept funding history chart */
+.dept-history-section {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.1rem 1.2rem 0.9rem;
+    margin: 1rem 0 1.4rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.dept-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.dept-history-head h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--primary-dark, #2f3a36);
+}
+.dept-history-sub {
+    margin: 0.1rem 0 0.7rem;
+    font-size: 0.85rem;
+    color: #6a7370;
+}
+.dept-history-chart-wrap {
+    height: 300px;
+    margin-top: 0.4rem;
+}
+
+/* Narrow viewports — keep the year-bar and chart breathable */
+@media (max-width: 720px) {
+    .hb300-fy-select { min-width: 0; flex: 1 1 auto; }
+    .hb300-history-chart-wrap { height: 240px; }
+    .dept-history-chart-wrap { height: 240px; }
+}
+
+/* ── Dev-mode nav tabs ─────────────────────────────────────────────────────
+   [data-dev-only] links are hidden by default — the explicit `display:none`
+   is required because `.nav-link { display: flex }` would otherwise win
+   over the HTML `hidden` attribute's UA stylesheet.  When the page is
+   loaded with ?dev the <html> element gets data-dev="", which unhides
+   them and adds a subtle DEV badge so they're visually distinguishable
+   from production tabs.
+   ────────────────────────────────────────────────────────────────────────── */
+[data-dev-only] {
+    display: none !important;
+}
 [data-dev] [data-dev-only] {
-    display: inline-flex; /* override `hidden` */
+    display: inline-flex !important;
 }
 /* Small DEV badge appended after the tab label */
 [data-dev] [data-dev-only]::after {

@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=145">
+    <link rel="stylesheet" href="css/styles.css?v=147">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -74,8 +74,7 @@
                 <nav class="main-nav">
                     <a href="#/" class="nav-link nav-link-stacked">HB1800<span class="nav-sub">2026 budget bill</span></a>
                     <a href="#/tax-calculator" class="nav-link nav-link-calc" data-dev-only="true" hidden>Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
-                    <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
-                    <a href="#/history" class="nav-link nav-link-stacked" data-dev-only="true" hidden>History<span class="nav-sub">10 years, inflation-adjusted</span></a>
+                    <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">Enacted budgets, FY16–27</span></a>
                     <a href="#/about" class="nav-link">About</a>
                 </nav>
             </div>
@@ -102,8 +101,8 @@
     </div>
 
     <!-- Load app and router scripts -->
-    <script src="js/app.js?v=160"></script>
-    <script src="js/router.js?v=17"></script>
+    <script src="js/app.js?v=161"></script>
+    <script src="js/router.js?v=18"></script>
     
     <script>
         // Show "Open ↗" button only when this page is embedded inside an
@@ -170,9 +169,14 @@
                     init: initTaxCalculatorPage
                 },
                 {
+                    // History is merged into the HB300 (/enacted) page.
+                    // Keep the route registered as a redirect so any old
+                    // bookmarks land on the new combined view.
                     path: '/history',
-                    component: historicalTrendsPage,
-                    init: initHistoricalTrendsPage
+                    component: async () => {
+                        window.location.replace('#/enacted');
+                        return '';
+                    }
                 },
                 {
                     path: '/about',
