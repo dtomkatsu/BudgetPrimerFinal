@@ -310,6 +310,78 @@ function downloadCSV(rows, filename) {
 }
 
 // ---------------------------------------------------------------------------
+// Year-aware historical helpers (drive the FY dropdown + per-dept sparklines
+// on the HB300 tab — the History tab is now merged into this page)
+// ---------------------------------------------------------------------------
+
+// Per-fiscal-year department totals (nominal + real) sourced from
+// historical_trends.json. Returns Map<dept_code, {nominal, real}>.
+function deptTotalsForFy(fy) {
+    const out = new Map();
+    const depts = historicalTrendsData?.by_department || [];
+    for (const d of depts) {
+        const e = d.series.find(s => s.fy === fy);
+        if (e) out.set(d.dept_code, { nominal: e.nominal, real: e.real });
+    }
+    return out;
+}
+
+// State-wide totals row (operating/capital/total, both nominal and real)
+// for the given fiscal year, or null if the year is out of range.
+function stateTotalsForFy(fy) {
+    return (historicalTrendsData?.totals_by_fy || []).find(r => r.fy === fy) || null;
+}
+
+// Wider sparkline for the department cards / dropdown summary.
+// `points` is an array of { fy, value }. Renders a 12-year mini-trend with
+// a baseline, an end-marker, and a subtle gradient fill — sized for a
+// summary card (180×42). Returns '' if data is too sparse to be meaningful.
+function deptHistorySparkline(points, opts = {}) {
+    const pts = (points || []).filter(p => p && p.value != null && !Number.isNaN(p.value));
+    if (pts.length < 3) return '';
+    const W = opts.width  || 180;
+    const H = opts.height || 42;
+    const padX = 4, padY = 5;
+    const innerW = W - padX * 2;
+    const innerH = H - padY * 2;
+    const values = pts.map(p => p.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    const xStep = innerW / (pts.length - 1);
+    const y = (v) => padY + innerH - ((v - min) / range) * innerH;
+    const coords = pts.map((p, i) => [padX + i * xStep, y(p.value)]);
+    const path = coords
+        .map((c, i) => `${i === 0 ? 'M' : 'L'}${c[0].toFixed(1)} ${c[1].toFixed(1)}`)
+        .join(' ');
+    // Area fill anchored at baseline
+    const area = `${path} L${coords[coords.length - 1][0].toFixed(1)} ${(H - padY).toFixed(1)} `
+               + `L${coords[0][0].toFixed(1)} ${(H - padY).toFixed(1)} Z`;
+    const delta = values[values.length - 1] - values[0];
+    // Sage-aligned palette consistent with the rest of the dashboard
+    const colour = delta > 0 ? '#5a7b68' : delta < 0 ? '#a06868' : '#6a7370';
+    const fill   = delta > 0 ? 'rgba(90,123,104,0.16)'
+                 : delta < 0 ? 'rgba(160,104,104,0.16)'
+                 :             'rgba(106,115,112,0.12)';
+    const last = coords[coords.length - 1];
+    const firstFy = pts[0].fy;
+    const lastFy  = pts[pts.length - 1].fy;
+    return `
+        <svg class="dept-card-sparkline" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"
+             aria-label="Funding trend FY${firstFy}–FY${lastFy}" role="img">
+            <path d="${area}" fill="${fill}" stroke="none"/>
+            <path d="${path}" fill="none" stroke="${colour}" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.4"
+                    fill="${colour}"/>
+        </svg>
+        <div class="dept-card-sparkline-legend">
+            <span>FY${String(firstFy).slice(-2)}</span>
+            <span>FY${String(lastFy).slice(-2)}</span>
+        </div>`;
+}
+
+// ---------------------------------------------------------------------------
 // Home Page
 // ---------------------------------------------------------------------------
 
@@ -318,44 +390,55 @@ window.homePage = async function () {
         return `<section class="home-page"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></section>`;
     }
 
-    const grandTotal = summaryStats.total_budget;
-    const positions = summaryStats.total_positions;
+    // Year selector range — from historical_trends metadata when available,
+    // else fall back to FY2026 only.  "Current" detail year (operating /
+    // capital / positions / programs) is FY2026; older years show totals
+    // sourced from the historical series.
+    const meta   = historicalTrendsData?.metadata || null;
+    const fyMin  = meta?.fy_range?.[0] ?? 2026;
+    const fyMax  = meta?.fy_range?.[1] ?? 2026;
+    const DETAIL_FY = 2026;
+    const projected = new Set(meta?.projected_fys || []);
 
-    const deptCard = (dept) => {
-        const op = dept.operating_budget || 0;
-        const cap = dept.capital_budget || 0;
-        const ot = dept.one_time_appropriations || 0;
-        const total = op + cap + ot;
-        const pos = dept.positions;
-        return `
-            <a href="#/department/${dept.id}" class="department-card">
-                <h3>${dept.name}</h3>
-                <div class="card-content">
-                    <div class="budget-total">
-                        <span>Total Budget</span>
-                        <strong>${fmt(total)}</strong>
-                    </div>
-                    <div class="budget-breakdown">
-                        <div class="budget-row"><span>Operating</span><span>${fmt(op)}</span></div>
-                        ${cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(cap)}</span></div>` : ''}
-                        ${ot > 0 ? `<div class="budget-row"><span>One-Time</span><span>${fmt(ot)}</span></div>` : ''}
-                        ${pos ? `<div class="budget-row"><span>Positions</span><span>${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
-                    </div>
-                </div>
-            </a>`;
-    };
-
-    const sorted = sortDepartments('desc');
+    // FY options — newest first, with badges for projected years
+    const yearOptions = [];
+    for (let y = fyMax; y >= fyMin; y--) {
+        const isProj = projected.has(y);
+        const isDetail = y === DETAIL_FY;
+        const label = `FY${y}` + (isProj ? ' (projected)' : '') + (isDetail ? ' — full detail' : '');
+        yearOptions.push(`<option value="${y}"${isDetail ? ' selected' : ''}>${label}</option>`);
+    }
 
     const html = `
         <section class="home-page">
-            <div class="context-banner"><strong>Historical reference:</strong> This is the FY2025–26 enacted budget (HB300), passed by the Legislature last year. For the current FY2026–27 supplemental budget draft comparison, see <a href="#/">HB1800 →</a></div>
-            <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(grandTotal)}</div><div class="label">Total Budget</div><div class="label-sub">(FY 2026)</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
-                ${positions ? `<div class="summary-card"><div class="amount">${positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div></div>` : ''}
+            <div class="context-banner">
+                <strong>Enacted budgets.</strong> Pick a fiscal year below.
+                FY${DETAIL_FY} carries the full operating/capital/program detail from HB300 (Act 250, SLH 2025).
+                Earlier years show totals from the corresponding biennial appropriations act.
+                For the current FY2026–27 supplemental budget draft, see <a href="#/">HB1800 →</a>
             </div>
+
+            <div class="hb300-year-bar">
+                <label for="hb300-fy-select"><strong>Fiscal year:</strong></label>
+                <select id="hb300-fy-select" class="hb300-fy-select">${yearOptions.join('')}</select>
+                <span class="hb300-fy-help" id="hb300-fy-help"></span>
+            </div>
+
+            <div class="summary-cards-grid" id="hb300-summary-cards"></div>
+
+            ${meta ? `
+            <div class="hb300-history-section">
+                <div class="hb300-history-head">
+                    <h3>State Appropriations · FY${fyMin}–FY${fyMax}</h3>
+                    <div class="hist-toggle" role="tablist" aria-label="Display mode">
+                        <button class="hist-toggle-btn active" data-mode="nominal" type="button">Nominal $</button>
+                        <button class="hist-toggle-btn" data-mode="real" type="button">Real (FY${meta.base_fy} $)</button>
+                    </div>
+                </div>
+                <p class="hb300-history-sub">Operating + Capital combined across ${meta.acts.length} biennial appropriations acts.</p>
+                <div class="hb300-history-chart-wrap"><canvas id="hb300-history-chart"></canvas></div>
+            </div>` : ''}
+
             <div class="controls-bar">
                 <div class="sort-controls">
                     <span>Sort: </span>
@@ -368,28 +451,9 @@ window.homePage = async function () {
                     <button class="action-link export-btn" id="export-depts">⬇ Export CSV</button>
                 </div>
             </div>
-            <div class="department-grid" id="dept-grid">${sorted.map(deptCard).join('')}</div>
-        </section>`;
 
-    setTimeout(() => {
-        document.querySelectorAll('.sort-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const s = sortDepartments(this.dataset.sort);
-                document.getElementById('dept-grid').innerHTML = s.map(deptCard).join('');
-                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        document.getElementById('export-depts')?.addEventListener('click', () => {
-            const rows = departmentsData.map(d => ({
-                code: d.code, name: d.name, operating: d.operating_budget,
-                capital: d.capital_budget, one_time: d.one_time_appropriations,
-                total: (d.operating_budget||0)+(d.capital_budget||0)+(d.one_time_appropriations||0),
-                positions: d.positions || '',
-            }));
-            downloadCSV(rows, 'departments_fy2026.csv');
-        });
-    }, 0);
+            <div class="department-grid" id="dept-grid"></div>
+        </section>`;
 
     return html;
 };
@@ -452,6 +516,22 @@ window.departmentDetailPage = async function (params) {
             <td class="amount-cell">${p.positions ? p.positions.toLocaleString(undefined,{maximumFractionDigits:0}) : '—'}</td>
         </tr>`).join('');
 
+    // Historical context — pull this department's 12-yr series if available
+    const histDept = (historicalTrendsData?.by_department || [])
+        .find(d => d.dept_code === dept.code);
+    const histSection = histDept ? `
+        <section class="dept-history-section">
+            <div class="dept-history-head">
+                <h3>Funding History · FY${histDept.series[0].fy}–FY${histDept.series[histDept.series.length-1].fy}</h3>
+                <div class="hist-toggle" role="tablist" aria-label="Display mode">
+                    <button class="hist-toggle-btn active" data-mode="nominal" type="button">Nominal $</button>
+                    <button class="hist-toggle-btn" data-mode="real" type="button">Real (FY${historicalTrendsData.metadata.base_fy} $)</button>
+                </div>
+            </div>
+            <p class="dept-history-sub">Combined operating + capital appropriations across each biennial budget act.</p>
+            <div class="dept-history-chart-wrap"><canvas id="dept-history-chart"></canvas></div>
+        </section>` : '';
+
     return `
         <section class="department-detail">
             <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
@@ -461,11 +541,13 @@ window.departmentDetailPage = async function (params) {
             </div>
 
             <div class="summary-cards-grid">
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">FY2026</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.operating_budget)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.capital_budget)}</div><div class="label">Capital</div></div>
                 ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
             </div>
+
+            ${histSection}
 
             <h3>Fund Type Breakdown</h3>
             <table class="data-table">
@@ -495,6 +577,88 @@ window.initDepartmentDetailPage = async function () {
         }));
         downloadCSV(rows, `${deptId}_programs_fy2026.csv`);
     });
+
+    // ---- Historical chart for this department ---------------------------
+    const canvas = document.getElementById('dept-history-chart');
+    if (!canvas || typeof Chart === 'undefined' || !historicalTrendsData) return;
+
+    const deptId = window.location.hash.split('/').pop();
+    const dept = departmentsData.find(d => d.id === deptId);
+    if (!dept) return;
+    const histDept = historicalTrendsData.by_department.find(d => d.dept_code === dept.code);
+    if (!histDept) return;
+
+    const baseFy = historicalTrendsData.metadata.base_fy;
+    const labels = histDept.series.map(s => `FY${s.fy}`);
+    const fmtBillions = (v) => Math.abs(v) >= 1e9
+        ? `$${(v / 1e9).toFixed(2)}B`
+        : `$${(v / 1e6).toFixed(0)}M`;
+
+    let mode = 'nominal';
+    let chart = null;
+
+    const renderChart = () => {
+        if (chart) chart.destroy();
+        const data = histDept.series.map(s => mode === 'real' ? s.real : s.nominal);
+        chart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: `${dept.code} — ${dept.name}`,
+                    data,
+                    borderColor: '#5a7b68',
+                    backgroundColor: 'rgba(90, 123, 104, 0.20)',
+                    tension: 0.25,
+                    fill: true,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => fmtBillions(ctx.parsed.y),
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (v) => Math.abs(v) >= 1e9
+                                ? `$${(v / 1e9).toFixed(1)}B`
+                                : `$${(v / 1e6).toFixed(0)}M`,
+                        },
+                        title: {
+                            display: true,
+                            text: mode === 'real' ? `Constant FY${baseFy} dollars` : 'Nominal dollars',
+                        },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+    };
+
+    document.querySelectorAll('.dept-history-section .hist-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const m = this.dataset.mode;
+            if (m === mode) return;
+            mode = m;
+            document.querySelectorAll('.dept-history-section .hist-toggle-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.mode === mode));
+            renderChart();
+        });
+    });
+
+    renderChart();
 };
 
 // ---------------------------------------------------------------------------
@@ -3611,7 +3775,277 @@ window.initDraftComparePage = async function () {
 // ---------------------------------------------------------------------------
 // Init hooks
 // ---------------------------------------------------------------------------
-window.initHomePage = async function () {};
+window.initHomePage = async function () {
+    if (!departmentsData?.length) return;
+
+    const DETAIL_FY = 2026;
+    let selectedFy = DETAIL_FY;
+    let sortDir    = 'desc';
+    let histMode   = 'nominal';   // 'nominal' | 'real' — drives top history chart
+
+    // ---- Department grid -------------------------------------------------
+    // Each card: dept name + "FY{year} total" + (when DETAIL_FY) full
+    // operating/capital/positions breakdown + 12-yr nominal sparkline.
+    // Non-detail years collapse to total + sparkline.
+    const renderDeptCard = (dept, totalForFy, sparkSvg) => {
+        const isDetail = selectedFy === DETAIL_FY;
+        const op  = dept.operating_budget || 0;
+        const cap = dept.capital_budget || 0;
+        const ot  = dept.one_time_appropriations || 0;
+        const pos = dept.positions;
+        const detailRows = isDetail ? `
+            <div class="budget-row"><span>Operating</span><span>${fmt(op)}</span></div>
+            ${cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(cap)}</span></div>` : ''}
+            ${ot > 0 ? `<div class="budget-row"><span>One-Time</span><span>${fmt(ot)}</span></div>` : ''}
+            ${pos ? `<div class="budget-row"><span>Positions</span><span>${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
+        ` : '';
+        const totalDisplay = totalForFy != null ? fmt(totalForFy) : '—';
+        return `
+            <a href="#/department/${dept.id}" class="department-card">
+                <h3>${dept.name}</h3>
+                <div class="card-content">
+                    <div class="budget-total">
+                        <span>Total Budget · FY${selectedFy}</span>
+                        <strong>${totalDisplay}</strong>
+                    </div>
+                    ${sparkSvg ? `<div class="dept-card-spark-wrap">${sparkSvg}</div>` : ''}
+                    ${detailRows ? `<div class="budget-breakdown">${detailRows}</div>` : ''}
+                </div>
+            </a>`;
+    };
+
+    const renderGrid = () => {
+        const fyTotals = deptTotalsForFy(selectedFy); // Map<code, {nominal,real}>
+
+        // Build list with year-specific totals attached, then sort.
+        const rows = departmentsData.map(d => {
+            const histRow = fyTotals.get(d.code);
+            const total = histRow
+                ? histRow.nominal
+                : (selectedFy === DETAIL_FY
+                    ? (d.operating_budget||0) + (d.capital_budget||0) + (d.one_time_appropriations||0)
+                    : null);
+            return { dept: d, total };
+        });
+
+        rows.sort((a, b) => {
+            const tA = a.total ?? -Infinity;
+            const tB = b.total ?? -Infinity;
+            return sortDir === 'asc' ? tA - tB : tB - tA;
+        });
+
+        // Pre-compute sparkline points per dept once (12-yr nominal series)
+        const grid = document.getElementById('dept-grid');
+        if (!grid) return;
+        const histDepts = historicalTrendsData?.by_department || [];
+        const histByCode = new Map(histDepts.map(d => [d.dept_code, d]));
+        const cards = rows.map(({ dept, total }) => {
+            const hist = histByCode.get(dept.code);
+            const points = hist
+                ? hist.series.map(s => ({ fy: s.fy, value: s.nominal }))
+                : [];
+            const spark = deptHistorySparkline(points);
+            return renderDeptCard(dept, total, spark);
+        });
+        grid.innerHTML = cards.join('');
+    };
+
+    // ---- Summary cards (state-wide totals for selected year) ------------
+    const renderSummaryCards = () => {
+        const wrap = document.getElementById('hb300-summary-cards');
+        if (!wrap) return;
+        const t = stateTotalsForFy(selectedFy);
+        const totalAmt = t ? t.total_nominal
+                           : (selectedFy === DETAIL_FY ? summaryStats.total_budget : null);
+        const opAmt    = t ? t.operating_nominal
+                           : (selectedFy === DETAIL_FY ? summaryStats.operating_budget : null);
+        const capAmt   = t ? t.capital_nominal
+                           : (selectedFy === DETAIL_FY ? summaryStats.capital_budget : null);
+        const posAmt   = (selectedFy === DETAIL_FY) ? summaryStats.total_positions : null;
+        wrap.innerHTML = `
+            <div class="summary-card">
+                <div class="amount">${totalAmt != null ? fmtHtmlCard(totalAmt) : '—'}</div>
+                <div class="label">Total Budget</div>
+                <div class="label-sub">FY${selectedFy}</div>
+            </div>
+            <div class="summary-card">
+                <div class="amount">${opAmt != null ? fmtHtmlCard(opAmt) : '—'}</div>
+                <div class="label">Operating</div>
+            </div>
+            <div class="summary-card">
+                <div class="amount">${capAmt != null ? fmtHtmlCard(capAmt) : '—'}</div>
+                <div class="label">Capital</div>
+            </div>
+            ${posAmt ? `<div class="summary-card">
+                <div class="amount">${posAmt.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
+                <div class="label">Total Positions</div>
+                <div class="label-sub">FY${selectedFy}</div>
+            </div>` : ''}`;
+
+        // Help line below the year selector — explains what the user will see
+        const help = document.getElementById('hb300-fy-help');
+        if (help) {
+            if (selectedFy === DETAIL_FY) {
+                help.textContent = 'Showing the full FY2026 enacted budget — operating, capital, and program-level detail.';
+            } else if (historicalTrendsData?.metadata?.projected_fys?.includes(selectedFy)) {
+                help.textContent = `FY${selectedFy} is projected by the FY2026–27 biennial bill (HB300, Act 250 SLH 2025). Department totals only.`;
+            } else {
+                help.textContent = `Department totals only — FY${selectedFy} is from the corresponding biennial appropriations act.`;
+            }
+        }
+    };
+
+    // ---- State-wide history chart (line) --------------------------------
+    let historyChart = null;
+    const renderHistoryChart = () => {
+        const canvas = document.getElementById('hb300-history-chart');
+        if (!canvas || typeof Chart === 'undefined' || !historicalTrendsData) return;
+        if (historyChart) historyChart.destroy();
+
+        const totals = historicalTrendsData.totals_by_fy;
+        const baseFy = historicalTrendsData.metadata.base_fy;
+        const labels = totals.map(t => `FY${t.fy}`);
+        const opK    = histMode === 'real' ? 'operating_real' : 'operating_nominal';
+        const capK   = histMode === 'real' ? 'capital_real'   : 'capital_nominal';
+        const totK   = histMode === 'real' ? 'total_real'     : 'total_nominal';
+        const fmtB   = (v) => `$${(v / 1e9).toFixed(2)}B`;
+
+        // Highlight the currently-selected year by tinting the matching point.
+        const highlightIndex = totals.findIndex(t => t.fy === selectedFy);
+        const pointBg = totals.map((_t, i) => i === highlightIndex ? '#3d4a45' : '#88a194');
+        const pointRadii = totals.map((_t, i) => i === highlightIndex ? 7 : 4);
+
+        historyChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Operating',
+                        data: totals.map(t => t[opK]),
+                        borderColor: '#5a7b68',
+                        backgroundColor: 'rgba(90, 123, 104, 0.15)',
+                        tension: 0.25, fill: false, borderWidth: 2,
+                        pointRadius: 3, pointHoverRadius: 5,
+                    },
+                    {
+                        label: 'Capital',
+                        data: totals.map(t => t[capK]),
+                        borderColor: '#a08e58',
+                        backgroundColor: 'rgba(160, 142, 88, 0.15)',
+                        tension: 0.25, fill: false, borderWidth: 2,
+                        pointRadius: 3, pointHoverRadius: 5,
+                    },
+                    {
+                        label: 'Total',
+                        data: totals.map(t => t[totK]),
+                        borderColor: '#3d4a45',
+                        backgroundColor: 'rgba(61, 74, 69, 0.10)',
+                        tension: 0.25, fill: false, borderWidth: 3,
+                        pointRadius: pointRadii,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: pointBg,
+                        pointBorderColor: pointBg,
+                    },
+                ],
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 14 } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtB(ctx.parsed.y)}`,
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (v) => `$${(v / 1e9).toFixed(0)}B` },
+                        title: { display: true, text: histMode === 'real' ? `Constant FY${baseFy} dollars` : 'Nominal dollars' },
+                    },
+                    x: { grid: { display: false } },
+                },
+                onClick: (_evt, els) => {
+                    if (!els?.length) return;
+                    const idx = els[0].index;
+                    const fy = totals[idx]?.fy;
+                    const sel = document.getElementById('hb300-fy-select');
+                    if (sel && fy != null) {
+                        sel.value = String(fy);
+                        sel.dispatchEvent(new Event('change'));
+                    }
+                },
+            },
+        });
+    };
+
+    const renderAll = () => {
+        renderSummaryCards();
+        renderHistoryChart();
+        renderGrid();
+    };
+
+    // ---- Wire up controls ------------------------------------------------
+    document.getElementById('hb300-fy-select')?.addEventListener('change', (e) => {
+        const v = parseInt(e.target.value, 10);
+        if (Number.isFinite(v)) {
+            selectedFy = v;
+            renderAll();
+        }
+    });
+
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            sortDir = this.dataset.sort;
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            renderGrid();
+        });
+    });
+
+    document.querySelectorAll('.hist-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const m = this.dataset.mode;
+            if (m === histMode) return;
+            histMode = m;
+            document.querySelectorAll('.hist-toggle-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.mode === histMode));
+            renderHistoryChart();
+        });
+    });
+
+    document.getElementById('export-depts')?.addEventListener('click', () => {
+        // Always export FY2026 detail rows — that's the only year with
+        // operating/capital/position breakdown in `departmentsData`.
+        const rows = departmentsData.map(d => {
+            const hist = historicalTrendsData?.by_department.find(x => x.dept_code === d.code);
+            const yrTotal = hist?.series.find(s => s.fy === selectedFy)?.nominal ?? null;
+            return {
+                code: d.code,
+                name: d.name,
+                fy: selectedFy,
+                total: yrTotal != null
+                    ? yrTotal
+                    : (selectedFy === DETAIL_FY
+                        ? (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0)
+                        : ''),
+                operating_fy2026: d.operating_budget,
+                capital_fy2026:   d.capital_budget,
+                one_time_fy2026:  d.one_time_appropriations,
+                positions_fy2026: d.positions || '',
+            };
+        });
+        downloadCSV(rows, `departments_fy${selectedFy}.csv`);
+    });
+
+    // Initial render
+    renderAll();
+};
 
 // ===========================================================================
 // Tax Calculator Page ("Where Do My Taxes Go?")
