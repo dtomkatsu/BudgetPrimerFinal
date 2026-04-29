@@ -4339,3 +4339,31 @@ mark.search-highlight {
     .hist-export-btn { width: 100%; }
     #hist-dept-select { min-width: 0; width: 100%; }
 }
+
+/* ── Dev-mode nav tabs ─────────────────────────────────────────────────────
+   [data-dev-only] links are hidden by default (the `hidden` HTML attr).
+   When the page is loaded with ?dev the <html> element gets data-dev="",
+   which unhides them and adds a subtle DEV badge so they're visually
+   distinguishable from production tabs.
+   ────────────────────────────────────────────────────────────────────────── */
+[data-dev] [data-dev-only] {
+    display: inline-flex; /* override `hidden` */
+}
+/* Small DEV badge appended after the tab label */
+[data-dev] [data-dev-only]::after {
+    content: 'DEV';
+    display: inline-block;
+    margin-left: 0.45rem;
+    padding: 0.1em 0.4em;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    vertical-align: middle;
+    background: rgba(155, 44, 44, 0.15);
+    color: #9b2c2c;
+    border: 1px solid rgba(155, 44, 44, 0.35);
+    border-radius: 3px;
+    text-transform: uppercase;
+    pointer-events: none;
+}
