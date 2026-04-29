@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=144">
+    <link rel="stylesheet" href="css/styles.css?v=145">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -28,6 +28,15 @@
                 if (q.p !== undefined) {
                     window.history.replaceState(null, null, l.pathname.slice(0, -1) + (q.p || '') + (q.q ? ('?' + q.q) : '') + l.hash);
                 }
+            }
+        })();
+    </script>
+    <!-- Dev-mode: ?dev in the URL reveals hidden work-in-progress tabs.
+         Runs synchronously so tabs appear before first paint — no flash. -->
+    <script>
+        (function() {
+            if (new URLSearchParams(window.location.search).has('dev')) {
+                document.documentElement.setAttribute('data-dev', '');
             }
         })();
     </script>
@@ -64,13 +73,9 @@
                 <p class="app-header-subtitle">FY2026–27 · Compare the Governor, House, and Senate drafts.</p>
                 <nav class="main-nav">
                     <a href="#/" class="nav-link nav-link-stacked">HB1800<span class="nav-sub">2026 budget bill</span></a>
-                    <!-- Tax calculator tab hidden for now — needs further development before re-enabling
-                    <a href="#/tax-calculator" class="nav-link nav-link-calc">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
-                    -->
+                    <a href="#/tax-calculator" class="nav-link nav-link-calc" data-dev-only="true" hidden>Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
                     <a href="#/enacted" class="nav-link nav-link-hb300">HB300<span class="nav-sub">2025 budget bill</span></a>
-                    <!-- History tab hidden for now — needs further review before re-enabling
-                    <a href="#/history" class="nav-link nav-link-stacked">History<span class="nav-sub">10 years, inflation-adjusted</span></a>
-                    -->
+                    <a href="#/history" class="nav-link nav-link-stacked" data-dev-only="true" hidden>History<span class="nav-sub">10 years, inflation-adjusted</span></a>
                     <a href="#/about" class="nav-link">About</a>
                 </nav>
             </div>
