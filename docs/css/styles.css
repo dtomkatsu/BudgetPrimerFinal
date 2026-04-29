@@ -4348,41 +4348,117 @@ mark.search-highlight {
    sparkline on each department card mirrors the same 12-year arc, scoped
    to that department.
    ────────────────────────────────────────────────────────────────────────── */
-.hb300-year-bar {
+/* ── Year picker ───────────────────────────────────────────────────────────
+   Reusable component used on the home page (HB300 grid) and the dept
+   detail page.  Three controls in a single rounded shell: "previous",
+   a styled select with a chevron, and "next".  Disabled state on the
+   stepper buttons reflects whether you can actually move further.
+   ────────────────────────────────────────────────────────────────────────── */
+.year-picker-bar {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.85rem;
     flex-wrap: wrap;
-    background: #f7f8f6;
+    background: linear-gradient(180deg, #fbfcfa 0%, #f3f6f1 100%);
     border: 1px solid rgba(70, 110, 95, 0.18);
-    border-radius: 8px;
-    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
     margin: 1rem 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
-.hb300-year-bar label {
-    font-size: 0.95rem;
-    color: #2f3a36;
+.year-picker-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6a7370;
+    font-weight: 600;
 }
-.hb300-fy-select {
-    font-size: 0.95rem;
-    padding: 0.35rem 0.6rem;
-    border: 1px solid rgba(70, 110, 95, 0.35);
-    border-radius: 6px;
+.year-picker {
+    display: inline-flex;
+    align-items: stretch;
     background: #fff;
+    border: 1px solid rgba(70, 110, 95, 0.32);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.year-picker:focus-within {
+    border-color: rgba(70, 110, 95, 0.6);
+    box-shadow: 0 0 0 3px rgba(90, 123, 104, 0.18);
+}
+.year-picker-step {
+    background: transparent;
+    border: 0;
+    padding: 0 0.7rem;
+    color: #466e5f;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.year-picker-step:hover:not(:disabled) {
+    background: #eef4ee;
+}
+.year-picker-step:active:not(:disabled) {
+    background: #e1ebe1;
+}
+.year-picker-step:disabled {
+    color: #c4cdc8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.year-picker-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-left: 1px solid rgba(70, 110, 95, 0.18);
+    border-right: 1px solid rgba(70, 110, 95, 0.18);
+}
+.year-picker-select {
+    /* Drop the native select chrome and re-style with our own chevron */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 0;
+    background: transparent;
     color: #2f3a36;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.55rem 2rem 0.55rem 1rem;
     cursor: pointer;
     min-width: 220px;
+    line-height: 1.2;
+    font-family: inherit;
 }
-.hb300-fy-select:focus {
-    outline: 2px solid rgba(90, 123, 104, 0.45);
-    outline-offset: 1px;
+.year-picker-select:focus {
+    outline: none;
 }
-.hb300-fy-help {
+.year-picker-chev {
+    position: absolute;
+    right: 0.7rem;
+    color: #6a7370;
+    pointer-events: none;
+}
+.year-picker-help {
     font-size: 0.85rem;
     color: #6a7370;
     flex-basis: 100%;
     margin-top: 0.15rem;
     line-height: 1.45;
+}
+
+/* On the dept detail page the picker sits between the dept name and the
+   summary cards.  Slightly tighter top margin so it visually attaches to
+   the header. */
+.dept-year-bar {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 540px) {
+    .year-picker-select { min-width: 160px; padding-right: 1.8rem; font-size: 0.9rem; }
+    .year-picker-step { padding: 0 0.55rem; }
 }
 
 .hb300-history-section {

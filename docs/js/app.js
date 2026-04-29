@@ -418,10 +418,27 @@ window.homePage = async function () {
                 For the current FY2026–27 supplemental budget draft, see <a href="#/">HB1800 →</a>
             </div>
 
-            <div class="hb300-year-bar">
-                <label for="hb300-fy-select"><strong>Fiscal year:</strong></label>
-                <select id="hb300-fy-select" class="hb300-fy-select">${yearOptions.join('')}</select>
-                <span class="hb300-fy-help" id="hb300-fy-help"></span>
+            <div class="year-picker-bar">
+                <span class="year-picker-label">Fiscal year</span>
+                <div class="year-picker" role="group" aria-label="Choose fiscal year">
+                    <button type="button" class="year-picker-step" id="hb300-fy-prev" aria-label="Previous year">
+                        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                            <path d="M10 3 L5 8 L10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="year-picker-select-wrap">
+                        <select id="hb300-fy-select" class="year-picker-select">${yearOptions.join('')}</select>
+                        <svg class="year-picker-chev" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                            <path d="M3 6 L8 11 L13 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <button type="button" class="year-picker-step" id="hb300-fy-next" aria-label="Next year">
+                        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                            <path d="M6 3 L11 8 L6 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <span class="year-picker-help" id="hb300-fy-help"></span>
             </div>
 
             <div class="summary-cards-grid" id="hb300-summary-cards"></div>
@@ -576,6 +593,47 @@ window.departmentDetailPage = async function (params) {
             <div class="dept-history-chart-wrap"><canvas id="dept-history-chart"></canvas></div>
         </section>` : '';
 
+    // Year picker — same component as the home page, scoped to this dept's
+    // historical series.  When the user picks an earlier year we recompute
+    // the summary cards from historical_trends.json (the FY2026 detail
+    // sections below stay static — no dept-level program detail exists
+    // for older years).
+    const deptYearOptions = (() => {
+        if (!histDept) return '';
+        const opts = [];
+        const yrs = histDept.series.map(s => s.fy).sort((a, b) => b - a);
+        for (const y of yrs) {
+            const isDetail = y === 2026;
+            const isProj = (historicalTrendsData?.metadata?.projected_fys || []).includes(y);
+            const label = `FY${y}` + (isProj ? ' (projected)' : '') + (isDetail ? ' — full detail' : '');
+            opts.push(`<option value="${y}"${isDetail ? ' selected' : ''}>${label}</option>`);
+        }
+        return opts.join('');
+    })();
+    const deptYearPicker = histDept ? `
+        <div class="year-picker-bar dept-year-bar">
+            <span class="year-picker-label">Fiscal year</span>
+            <div class="year-picker" role="group" aria-label="Choose fiscal year">
+                <button type="button" class="year-picker-step" id="dept-fy-prev" aria-label="Previous year">
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                        <path d="M10 3 L5 8 L10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="year-picker-select-wrap">
+                    <select id="dept-fy-select" class="year-picker-select">${deptYearOptions}</select>
+                    <svg class="year-picker-chev" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                        <path d="M3 6 L8 11 L13 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <button type="button" class="year-picker-step" id="dept-fy-next" aria-label="Next year">
+                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                        <path d="M6 3 L11 8 L6 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <span class="year-picker-help" id="dept-fy-help"></span>
+        </div>` : '';
+
     return `
         <section class="department-detail">
             <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
@@ -584,7 +642,9 @@ window.departmentDetailPage = async function (params) {
                 ${dept.description ? `<p class="dept-desc">${dept.description}</p>` : ''}
             </div>
 
-            <div class="summary-cards-grid">
+            ${deptYearPicker}
+
+            <div class="summary-cards-grid" id="dept-summary-cards">
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">FY2026</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.operating_budget)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.capital_budget)}</div><div class="label">Capital</div></div>
@@ -730,37 +790,67 @@ window.initDepartmentDetailPage = async function () {
     const fmtBillions = (v) => Math.abs(v) >= 1e9
         ? `$${(v / 1e9).toFixed(2)}B`
         : `$${(v / 1e6).toFixed(0)}M`;
+    const fmtAxis = (v) => Math.abs(v) >= 1e9
+        ? `$${(v / 1e9).toFixed(1)}B`
+        : `$${(v / 1e6).toFixed(0)}M`;
 
     let mode = 'nominal';
     let chart = null;
 
     const renderChart = () => {
         if (chart) chart.destroy();
-        const data = histDept.series.map(s => mode === 'real' ? s.real : s.nominal);
+        // Operating + capital filled areas, stacked.  Stack silhouette =
+        // total appropriation per FY for this department.
+        const opData  = histDept.series.map(s => mode === 'real'
+            ? s.operating_real  : s.operating_nominal);
+        const capData = histDept.series.map(s => mode === 'real'
+            ? s.capital_real    : s.capital_nominal);
+        const hasCapital = capData.some(v => v > 0);
+
+        const datasets = [
+            {
+                label: 'Operating',
+                data: opData,
+                borderColor: '#5a7b68',
+                backgroundColor: 'rgba(90, 123, 104, 0.55)',
+                tension: 0.25,
+                fill: 'origin',
+                borderWidth: 1.6,
+                pointRadius: 3, pointHoverRadius: 6,
+                pointBackgroundColor: '#5a7b68',
+            },
+        ];
+        if (hasCapital) {
+            datasets.push({
+                label: 'Capital',
+                data: capData,
+                borderColor: '#a08e58',
+                backgroundColor: 'rgba(160, 142, 88, 0.55)',
+                tension: 0.25,
+                fill: '-1',
+                borderWidth: 1.6,
+                pointRadius: 3, pointHoverRadius: 6,
+                pointBackgroundColor: '#a08e58',
+            });
+        }
+
         chart = new Chart(canvas.getContext('2d'), {
             type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: `${dept.code} — ${dept.name}`,
-                    data,
-                    borderColor: '#5a7b68',
-                    backgroundColor: 'rgba(90, 123, 104, 0.20)',
-                    tension: 0.25,
-                    fill: true,
-                    borderWidth: 2.5,
-                    pointRadius: 4,
-                    pointHoverRadius: 7,
-                }],
-            },
+            data: { labels, datasets },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: false },
+                    legend: { display: hasCapital, position: 'top', labels: { boxWidth: 14 } },
                     tooltip: {
                         callbacks: {
-                            label: (ctx) => fmtBillions(ctx.parsed.y),
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtBillions(ctx.parsed.y)}`,
+                            footer: (items) => {
+                                if (items.length < 2) return '';
+                                const sum = items.reduce((s, it) => s + (it.parsed.y || 0), 0);
+                                return `Total: ${fmtBillions(sum)}`;
+                            },
                         },
                     },
                     datalabels: { display: false },
@@ -768,11 +858,8 @@ window.initDepartmentDetailPage = async function () {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: (v) => Math.abs(v) >= 1e9
-                                ? `$${(v / 1e9).toFixed(1)}B`
-                                : `$${(v / 1e6).toFixed(0)}M`,
-                        },
+                        stacked: true,
+                        ticks: { callback: fmtAxis },
                         title: {
                             display: true,
                             text: mode === 'real' ? `Constant FY${baseFy} dollars` : 'Nominal dollars',
@@ -796,6 +883,79 @@ window.initDepartmentDetailPage = async function () {
     });
 
     renderChart();
+
+    // ---- Dept-page year picker -----------------------------------------
+    // Drives the summary cards.  FY2026 is the only year with the full
+    // operating/capital/positions detail (sourced from departments.json);
+    // earlier and projected years collapse to a Total card pulled from the
+    // historical series for this department.
+    const deptSel  = document.getElementById('dept-fy-select');
+    const deptPrev = document.getElementById('dept-fy-prev');
+    const deptNext = document.getElementById('dept-fy-next');
+    const deptHelp = document.getElementById('dept-fy-help');
+    const cardsWrap = document.getElementById('dept-summary-cards');
+    if (!deptSel || !cardsWrap) return;
+
+    const projectedFys = new Set(historicalTrendsData?.metadata?.projected_fys || []);
+
+    const renderDeptCards = (fy) => {
+        const seriesEntry = histDept.series.find(s => s.fy === fy);
+        if (fy === 2026) {
+            // Full detail from the FY2026 source data
+            const op = dept.operating_budget;
+            const cap = dept.capital_budget;
+            cardsWrap.innerHTML = `
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">FY2026</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(op)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(cap)}</div><div class="label">Capital</div></div>
+                ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}`;
+            if (deptHelp) deptHelp.textContent = '';
+        } else if (seriesEntry) {
+            // Use historical op/cap split (added by the new aggregator)
+            const totalNom = seriesEntry.nominal;
+            const opNom = seriesEntry.operating_nominal;
+            const capNom = seriesEntry.capital_nominal;
+            cardsWrap.innerHTML = `
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(totalNom)}</div><div class="label">Total</div><div class="label-sub">FY${fy}</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(opNom)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${capNom > 0 ? fmtHtmlCard(capNom) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>`;
+            if (deptHelp) {
+                deptHelp.textContent = projectedFys.has(fy)
+                    ? `FY${fy} projected by the FY2026–27 biennial bill. Fund and program detail below reflect FY2026 only.`
+                    : `FY${fy} totals from the corresponding biennial appropriations act. Fund and program detail below reflect FY2026 only.`;
+            }
+        } else {
+            cardsWrap.innerHTML = `
+                <div class="summary-card"><div class="amount">—</div><div class="label">Total</div><div class="label-sub">FY${fy}</div></div>`;
+            if (deptHelp) deptHelp.textContent = `No data for FY${fy}.`;
+        }
+    };
+
+    const syncDeptStepperButtons = () => {
+        const idx = deptSel.selectedIndex;
+        const last = deptSel.options.length - 1;
+        if (deptPrev) deptPrev.disabled = idx <= 0;
+        if (deptNext) deptNext.disabled = idx >= last;
+    };
+
+    deptSel.addEventListener('change', () => {
+        const fy = parseInt(deptSel.value, 10);
+        if (!Number.isFinite(fy)) return;
+        renderDeptCards(fy);
+        syncDeptStepperButtons();
+    });
+    deptPrev?.addEventListener('click', () => {
+        if (deptSel.selectedIndex <= 0) return;
+        deptSel.selectedIndex -= 1;
+        deptSel.dispatchEvent(new Event('change'));
+    });
+    deptNext?.addEventListener('click', () => {
+        if (deptSel.selectedIndex >= deptSel.options.length - 1) return;
+        deptSel.selectedIndex += 1;
+        deptSel.dispatchEvent(new Event('change'));
+    });
+
+    syncDeptStepperButtons();
 };
 
 // ---------------------------------------------------------------------------
@@ -4052,6 +4212,10 @@ window.initHomePage = async function () {
         const pointBg = totals.map((_t, i) => i === highlightIndex ? '#3d4a45' : '#88a194');
         const pointRadii = totals.map((_t, i) => i === highlightIndex ? 7 : 4);
 
+        // Stacked area: operating fills from the x-axis, capital stacks on
+        // top.  The two filled areas always add up to the combined state
+        // budget, so the silhouette of the upper stack reads as the total
+        // line — no separate "Total" series needed.
         historyChart = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
@@ -4061,24 +4225,24 @@ window.initHomePage = async function () {
                         label: 'Operating',
                         data: totals.map(t => t[opK]),
                         borderColor: '#5a7b68',
-                        backgroundColor: 'rgba(90, 123, 104, 0.15)',
-                        tension: 0.25, fill: false, borderWidth: 2,
+                        backgroundColor: 'rgba(90, 123, 104, 0.55)',
+                        tension: 0.25,
+                        fill: 'origin',
+                        borderWidth: 1.6,
                         pointRadius: 3, pointHoverRadius: 5,
+                        pointBackgroundColor: '#5a7b68',
                     },
                     {
                         label: 'Capital',
                         data: totals.map(t => t[capK]),
                         borderColor: '#a08e58',
-                        backgroundColor: 'rgba(160, 142, 88, 0.15)',
-                        tension: 0.25, fill: false, borderWidth: 2,
-                        pointRadius: 3, pointHoverRadius: 5,
-                    },
-                    {
-                        label: 'Total',
-                        data: totals.map(t => t[totK]),
-                        borderColor: '#3d4a45',
-                        backgroundColor: 'rgba(61, 74, 69, 0.10)',
-                        tension: 0.25, fill: false, borderWidth: 3,
+                        backgroundColor: 'rgba(160, 142, 88, 0.55)',
+                        tension: 0.25,
+                        fill: '-1',
+                        borderWidth: 1.6,
+                        // Highlight the currently-selected year on the top
+                        // (stacked-total) curve so it's clear which point
+                        // matches the dropdown.
                         pointRadius: pointRadii,
                         pointHoverRadius: 7,
                         pointBackgroundColor: pointBg,
@@ -4095,6 +4259,13 @@ window.initHomePage = async function () {
                     tooltip: {
                         callbacks: {
                             label: (ctx) => `${ctx.dataset.label}: ${fmtB(ctx.parsed.y)}`,
+                            // Add a "Total" footer so the user sees the
+                            // combined sum without a third dataset cluttering
+                            // the legend.
+                            footer: (items) => {
+                                const sum = items.reduce((s, it) => s + (it.parsed.y || 0), 0);
+                                return `Total: ${fmtB(sum)}`;
+                            },
                         },
                     },
                     datalabels: { display: false },
@@ -4102,6 +4273,7 @@ window.initHomePage = async function () {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        stacked: true,
                         ticks: { callback: (v) => `$${(v / 1e9).toFixed(0)}B` },
                         title: { display: true, text: histMode === 'real' ? `Constant FY${baseFy} dollars` : 'Nominal dollars' },
                     },
@@ -4128,13 +4300,44 @@ window.initHomePage = async function () {
     };
 
     // ---- Wire up controls ------------------------------------------------
-    document.getElementById('hb300-fy-select')?.addEventListener('change', (e) => {
+    const fySelect = document.getElementById('hb300-fy-select');
+    const fyPrev   = document.getElementById('hb300-fy-prev');
+    const fyNext   = document.getElementById('hb300-fy-next');
+
+    // Update the prev/next buttons' enabled state based on the current
+    // option position.  Options are listed newest-first, so "prev" moves
+    // to a newer year (smaller index) and "next" moves older (larger
+    // index).  The labels reflect that visually.
+    const syncStepperButtons = () => {
+        if (!fySelect) return;
+        const idx = fySelect.selectedIndex;
+        const last = fySelect.options.length - 1;
+        if (fyPrev) fyPrev.disabled = idx <= 0;
+        if (fyNext) fyNext.disabled = idx >= last;
+    };
+
+    fySelect?.addEventListener('change', (e) => {
         const v = parseInt(e.target.value, 10);
         if (Number.isFinite(v)) {
             selectedFy = v;
+            syncStepperButtons();
             renderAll();
         }
     });
+
+    fyPrev?.addEventListener('click', () => {
+        if (!fySelect || fySelect.selectedIndex <= 0) return;
+        fySelect.selectedIndex -= 1;
+        fySelect.dispatchEvent(new Event('change'));
+    });
+    fyNext?.addEventListener('click', () => {
+        if (!fySelect || fySelect.selectedIndex >= fySelect.options.length - 1) return;
+        fySelect.selectedIndex += 1;
+        fySelect.dispatchEvent(new Event('change'));
+    });
+
+    // Initial button state sync
+    syncStepperButtons();
 
     document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.addEventListener('click', function () {

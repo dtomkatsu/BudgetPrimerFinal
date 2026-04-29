@@ -95,48 +95,48 @@
         "note": "The 2019 biennial budget was enacted as two bills: HB2 and HB1259. Totals here combine both."
       }
     ],
-    "generated": "2026-04-22T21:13:08",
+    "generated": "2026-04-28T19:16:00",
     "notes": "Figures reflect CD1 (legislatively-passed) totals. Line-item vetoes are not netted out."
   },
   "totals_by_fy": [
     {
       "fy": 2016,
-      "operating_nominal": 13015729217.0,
-      "operating_real": 18240242925.0,
-      "capital_nominal": 1650381015.0,
-      "capital_real": 2312843954.0,
-      "total_nominal": 14666110232.0,
-      "total_real": 20553086879.0,
+      "operating_nominal": 23299807067.0,
+      "operating_real": 32652349624.0,
+      "capital_nominal": 3230737000.0,
+      "capital_real": 4527554832.0,
+      "total_nominal": 26530544067.0,
+      "total_real": 37179904455.0,
       "deflator": 1.4014
     },
     {
       "fy": 2017,
-      "operating_nominal": 13443084847.0,
-      "operating_real": 18407616081.0,
-      "capital_nominal": 767803764.0,
-      "capital_real": 1051353694.0,
-      "total_nominal": 14210888611.0,
-      "total_real": 19458969775.0,
+      "operating_nominal": 26959158389.0,
+      "operating_real": 36915175582.0,
+      "capital_nominal": 3442732000.0,
+      "capital_real": 4714132928.0,
+      "total_nominal": 30401890389.0,
+      "total_real": 41629308510.0,
       "deflator": 1.3693
     },
     {
       "fy": 2018,
-      "operating_nominal": 14103622414.0,
-      "operating_real": 18692941148.0,
-      "capital_nominal": 2294419413.0,
-      "capital_real": 3041023490.0,
-      "total_nominal": 16398041827.0,
-      "total_real": 21733964638.0,
+      "operating_nominal": 26721090892.0,
+      "operating_real": 35416133868.0,
+      "capital_nominal": 4579490000.0,
+      "capital_real": 6069656046.0,
+      "total_nominal": 31300580892.0,
+      "total_real": 41485789914.0,
       "deflator": 1.3254
     },
     {
       "fy": 2019,
-      "operating_nominal": 14308859860.0,
-      "operating_real": 18336803911.0,
-      "capital_nominal": 695713251.0,
-      "capital_real": 891556531.0,
-      "total_nominal": 15004573111.0,
-      "total_real": 19228360442.0,
+      "operating_nominal": 28746939969.0,
+      "operating_real": 36839203570.0,
+      "capital_nominal": 3082938000.0,
+      "capital_real": 3950785047.0,
+      "total_nominal": 31829877969.0,
+      "total_real": 40789988617.0,
       "deflator": 1.2815
     },
     {
@@ -161,62 +161,62 @@
     },
     {
       "fy": 2022,
-      "operating_nominal": 15875914734.0,
-      "operating_real": 18312867646.0,
-      "capital_nominal": 1756366000.0,
-      "capital_real": 2025968181.0,
-      "total_nominal": 17632280734.0,
-      "total_real": 20338835827.0,
+      "operating_nominal": 26677879194.0,
+      "operating_real": 30772933650.0,
+      "capital_nominal": 3379951000.0,
+      "capital_real": 3898773478.0,
+      "total_nominal": 30057830194.0,
+      "total_real": 34671707129.0,
       "deflator": 1.1535
     },
     {
       "fy": 2023,
-      "operating_nominal": 15261635479.0,
-      "operating_real": 16703860032.0,
-      "capital_nominal": 929231000.0,
-      "capital_real": 1017043330.0,
-      "total_nominal": 16190866479.0,
-      "total_real": 17720903361.0,
+      "operating_nominal": 32187548556.0,
+      "operating_real": 35229271895.0,
+      "capital_nominal": 5168818000.0,
+      "capital_real": 5657271301.0,
+      "total_nominal": 37356366556.0,
+      "total_real": 40886543196.0,
       "deflator": 1.0945
     },
     {
       "fy": 2024,
-      "operating_nominal": 19586585892.0,
-      "operating_real": 20734359825.0,
-      "capital_nominal": 2935198173.0,
-      "capital_real": 3107200786.0,
-      "total_nominal": 22521784065.0,
-      "total_real": 23841560611.0,
+      "operating_nominal": 34449923501.0,
+      "operating_real": 36468689018.0,
+      "capital_nominal": 5843592000.0,
+      "capital_real": 6186026491.0,
+      "total_nominal": 40293515501.0,
+      "total_real": 42654715509.0,
       "deflator": 1.0586
     },
     {
       "fy": 2025,
-      "operating_nominal": 18751616899.0,
-      "operating_real": 19229783130.0,
-      "capital_nominal": 1354713397.0,
-      "capital_real": 1389258589.0,
-      "total_nominal": 20106330296.0,
-      "total_real": 20619041719.0,
+      "operating_nominal": 37818127971.0,
+      "operating_real": 38782490234.0,
+      "capital_nominal": 5809141000.0,
+      "capital_real": 5957274096.0,
+      "total_nominal": 43627268971.0,
+      "total_real": 44739764330.0,
       "deflator": 1.0255
     },
     {
       "fy": 2026,
-      "operating_nominal": 19974031624.0,
-      "operating_real": 19974031624.0,
-      "capital_nominal": 3381940582.0,
-      "capital_real": 3381940582.0,
-      "total_nominal": 23355972206.0,
-      "total_real": 23355972206.0,
+      "operating_nominal": 19940654149.0,
+      "operating_real": 19940654149.0,
+      "capital_nominal": 3379551000.0,
+      "capital_real": 3379551000.0,
+      "total_nominal": 23320205149.0,
+      "total_real": 23320205149.0,
       "deflator": 1.0
     },
     {
       "fy": 2027,
-      "operating_nominal": 19792131073.0,
-      "operating_real": 19204304780.0,
-      "capital_nominal": 2332623079.0,
-      "capital_real": 2263344174.0,
-      "total_nominal": 22124754152.0,
-      "total_real": 21467648954.0,
+      "operating_nominal": 19758753598.0,
+      "operating_real": 19171918616.0,
+      "capital_nominal": 2331259000.0,
+      "capital_real": 2262020608.0,
+      "total_nominal": 22090012598.0,
+      "total_real": 21433939224.0,
       "deflator": 0.9703
     }
   ],
@@ -227,63 +227,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 3037391697.0,
-          "real": 4256600724.0
+          "nominal": 4565188542.0,
+          "real": 6397655223.0,
+          "operating_nominal": 4555012542.0,
+          "operating_real": 6383394576.0,
+          "capital_nominal": 10176000.0,
+          "capital_real": 14260646.0
         },
         {
           "fy": 2017,
-          "nominal": 3133813574.0,
-          "real": 4291130927.0
+          "nominal": 6429723214.0,
+          "real": 8804219997.0,
+          "operating_nominal": 6389013214.0,
+          "operating_real": 8748475794.0,
+          "capital_nominal": 40710000.0,
+          "capital_real": 55744203.0
         },
         {
           "fy": 2018,
-          "nominal": 3480427940.0,
-          "real": 4612959192.0
+          "nominal": 6624062064.0,
+          "real": 8779531860.0,
+          "operating_nominal": 6582070064.0,
+          "operating_real": 8723875663.0,
+          "capital_nominal": 41992000.0,
+          "capital_real": 55656197.0
         },
         {
           "fy": 2019,
-          "nominal": 3586947888.0,
-          "real": 4596673718.0
+          "nominal": 7232933450.0,
+          "real": 9269004216.0,
+          "operating_nominal": 7206633450.0,
+          "operating_real": 9235300766.0,
+          "capital_nominal": 26300000.0,
+          "capital_real": 33703450.0
         },
         {
           "fy": 2020,
           "nominal": 3619978998.0,
-          "real": 4533299699.0
+          "real": 4533299699.0,
+          "operating_nominal": 3599978998.0,
+          "operating_real": 4508253699.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 25046000.0
         },
         {
           "fy": 2021,
           "nominal": 3656564623.0,
-          "real": 4456986619.0
+          "real": 4456986619.0,
+          "operating_nominal": 3656564623.0,
+          "operating_real": 4456986619.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 3742848530.0,
-          "real": 4317375779.0
+          "nominal": 5344110843.0,
+          "real": 6164431857.0,
+          "operating_nominal": 5324110843.0,
+          "operating_real": 6141361857.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 23070000.0
         },
         {
           "fy": 2023,
-          "nominal": 3733064106.0,
-          "real": 4085838664.0
+          "nominal": 7586145278.0,
+          "real": 8303036007.0,
+          "operating_nominal": 7566145278.0,
+          "operating_real": 8281146007.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 21890000.0
         },
         {
           "fy": 2024,
-          "nominal": 4200341827.0,
-          "real": 4446481858.0
+          "nominal": 5847250361.0,
+          "real": 6189899232.0,
+          "operating_nominal": 5813650361.0,
+          "operating_real": 6154330272.0,
+          "capital_nominal": 33600000.0,
+          "capital_real": 35568960.0
         },
         {
           "fy": 2025,
-          "nominal": 4229305335.0,
-          "real": 4337152621.0
+          "nominal": 8754853480.0,
+          "real": 8978102244.0,
+          "operating_nominal": 8678253480.0,
+          "operating_real": 8899548944.0,
+          "capital_nominal": 76600000.0,
+          "capital_real": 78553300.0
         },
         {
           "fy": 2026,
-          "nominal": 4804476375.0,
-          "real": 4804476375.0
+          "nominal": 4804441975.0,
+          "real": 4804441975.0,
+          "operating_nominal": 4770041975.0,
+          "operating_real": 4770041975.0,
+          "capital_nominal": 34400000.0,
+          "capital_real": 34400000.0
         },
         {
           "fy": 2027,
-          "nominal": 4774792596.0,
-          "real": 4632981256.0
+          "nominal": 4774779596.0,
+          "real": 4632968642.0,
+          "operating_nominal": 4761779596.0,
+          "operating_real": 4620354742.0,
+          "capital_nominal": 13000000.0,
+          "capital_real": 12613900.0
         }
       ]
     },
@@ -293,63 +341,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 2354734776.0,
-          "real": 3299925315.0
+          "nominal": 4702202334.0,
+          "real": 6589666351.0,
+          "operating_nominal": 4625976334.0,
+          "operating_real": 6482843234.0,
+          "capital_nominal": 76226000.0,
+          "capital_real": 106823116.0
         },
         {
           "fy": 2017,
-          "nominal": 2554011932.0,
-          "real": 3497208538.0
+          "nominal": 5173260410.0,
+          "real": 7083745479.0,
+          "operating_nominal": 5173260410.0,
+          "operating_real": 7083745479.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 2636310187.0,
-          "real": 3494165522.0
+          "nominal": 5272509700.0,
+          "real": 6988184356.0,
+          "operating_nominal": 5272509700.0,
+          "operating_real": 6988184356.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 2858486587.0,
-          "real": 3663150561.0
+          "nominal": 5637606493.0,
+          "real": 7224592721.0,
+          "operating_nominal": 5637606493.0,
+          "operating_real": 7224592721.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 3464670353.0,
-          "real": 4338806683.0
+          "real": 4338806683.0,
+          "operating_nominal": 3464670353.0,
+          "operating_real": 4338806683.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 3601413608.0,
-          "real": 4389763047.0
+          "real": 4389763047.0,
+          "operating_nominal": 3601413608.0,
+          "operating_real": 4389763047.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 3295029241.0,
-          "real": 3800816229.0
+          "nominal": 6420337690.0,
+          "real": 7405859525.0,
+          "operating_nominal": 6420337690.0,
+          "operating_real": 7405859525.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 3364759310.0,
-          "real": 3682729065.0
+          "nominal": 7062827869.0,
+          "real": 7730265103.0,
+          "operating_nominal": 6947352869.0,
+          "operating_real": 7603877715.0,
+          "capital_nominal": 115475000.0,
+          "capital_real": 126387388.0
         },
         {
           "fy": 2024,
-          "nominal": 4768088452.0,
-          "real": 5047498435.0
+          "nominal": 9143820146.0,
+          "real": 9679648007.0,
+          "operating_nominal": 9143820146.0,
+          "operating_real": 9679648007.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 4801076034.0,
-          "real": 4923503473.0
+          "nominal": 9120095979.0,
+          "real": 9352658426.0,
+          "operating_nominal": 9120095979.0,
+          "operating_real": 9352658426.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 4349371728.0,
-          "real": 4349371728.0
+          "real": 4349371728.0,
+          "operating_nominal": 4349371728.0,
+          "operating_real": 4349371728.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 4435497528.0,
-          "real": 4303763251.0
+          "real": 4303763251.0,
+          "operating_nominal": 4435497528.0,
+          "operating_real": 4303763251.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -359,63 +455,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 2345369453.0,
-          "real": 3286800751.0
+          "nominal": 4551088427.0,
+          "real": 6377895322.0,
+          "operating_nominal": 3974502427.0,
+          "operating_real": 5569867701.0,
+          "capital_nominal": 576586000.0,
+          "capital_real": 808027620.0
         },
         {
           "fy": 2017,
-          "nominal": 2137132683.0,
-          "real": 2926375783.0
+          "nominal": 4525952474.0,
+          "real": 6197386723.0,
+          "operating_nominal": 4110372474.0,
+          "operating_real": 5628333029.0,
+          "capital_nominal": 415580000.0,
+          "capital_real": 569053694.0
         },
         {
           "fy": 2018,
-          "nominal": 2569769330.0,
-          "real": 3405972270.0
+          "nominal": 5138626032.0,
+          "real": 6810734943.0,
+          "operating_nominal": 4225998032.0,
+          "operating_real": 5601137792.0,
+          "capital_nominal": 912628000.0,
+          "capital_real": 1209597151.0
         },
         {
           "fy": 2019,
-          "nominal": 2129924401.0,
-          "real": 2729498120.0
+          "nominal": 4622190745.0,
+          "real": 5923337440.0,
+          "operating_nominal": 4238504745.0,
+          "operating_real": 5431643831.0,
+          "capital_nominal": 383686000.0,
+          "capital_real": 491693609.0
         },
         {
           "fy": 2020,
           "nominal": 2818015363.0,
-          "real": 3529000639.0
+          "real": 3529000639.0,
+          "operating_nominal": 2241757363.0,
+          "operating_real": 2807352746.0,
+          "capital_nominal": 576258000.0,
+          "capital_real": 721647893.0
         },
         {
           "fy": 2021,
           "nominal": 2485765565.0,
-          "real": 3029899647.0
+          "real": 3029899647.0,
+          "operating_nominal": 2276365565.0,
+          "operating_real": 2774661987.0,
+          "capital_nominal": 209400000.0,
+          "capital_real": 255237660.0
         },
         {
           "fy": 2022,
-          "nominal": 2656430233.0,
-          "real": 3064192274.0
+          "nominal": 4939378622.0,
+          "real": 5697573240.0,
+          "operating_nominal": 4111328622.0,
+          "operating_real": 4742417565.0,
+          "capital_nominal": 828050000.0,
+          "capital_real": 955155675.0
         },
         {
           "fy": 2023,
-          "nominal": 2259219936.0,
-          "real": 2472716220.0
+          "nominal": 5746737309.0,
+          "real": 6289803985.0,
+          "operating_nominal": 4763272309.0,
+          "operating_real": 5213401542.0,
+          "capital_nominal": 983465000.0,
+          "capital_real": 1076402442.0
         },
         {
           "fy": 2024,
-          "nominal": 3335747276.0,
-          "real": 3531222066.0
+          "nominal": 6498036980.0,
+          "real": 6878821947.0,
+          "operating_nominal": 5481239980.0,
+          "operating_real": 5802440643.0,
+          "capital_nominal": 1016797000.0,
+          "capital_real": 1076381304.0
         },
         {
           "fy": 2025,
-          "nominal": 2912615297.0,
-          "real": 2986886987.0
+          "nominal": 6387473190.0,
+          "real": 6550353756.0,
+          "operating_nominal": 5407663190.0,
+          "operating_real": 5545558601.0,
+          "capital_nominal": 979810000.0,
+          "capital_real": 1004795155.0
         },
         {
           "fy": 2026,
-          "nominal": 3494336138.0,
-          "real": 3494336138.0
+          "nominal": 3493927838.0,
+          "real": 3493927838.0,
+          "operating_nominal": 3115627838.0,
+          "operating_real": 3115627838.0,
+          "capital_nominal": 378300000.0,
+          "capital_real": 378300000.0
         },
         {
           "fy": 2027,
-          "nominal": 3308849486.0,
-          "real": 3210576656.0
+          "nominal": 3308802986.0,
+          "real": 3210531537.0,
+          "operating_nominal": 3142302986.0,
+          "operating_real": 3048976587.0,
+          "capital_nominal": 166500000.0,
+          "capital_real": 161554950.0
         }
       ]
     },
@@ -425,63 +569,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 1812059735.0,
-          "real": 2539420513.0
+          "nominal": 3594901324.0,
+          "real": 5037894715.0,
+          "operating_nominal": 1724948324.0,
+          "operating_real": 2417342581.0,
+          "capital_nominal": 1869953000.0,
+          "capital_real": 2620552134.0
         },
         {
           "fy": 2017,
-          "nominal": 1414387775.0,
-          "real": 1936721180.0
+          "nominal": 3722914387.0,
+          "real": 5097786670.0,
+          "operating_nominal": 1921699387.0,
+          "operating_real": 2631382971.0,
+          "capital_nominal": 1801215000.0,
+          "capital_real": 2466403700.0
         },
         {
           "fy": 2018,
-          "nominal": 2204582787.0,
-          "real": 2921954026.0
+          "nominal": 4250563644.0,
+          "real": 5633697054.0,
+          "operating_nominal": 1851229644.0,
+          "operating_real": 2453619770.0,
+          "capital_nominal": 2399334000.0,
+          "capital_real": 3180077284.0
         },
         {
           "fy": 2019,
-          "nominal": 1592115430.0,
-          "real": 2040295924.0
+          "nominal": 4246517826.0,
+          "real": 5441912594.0,
+          "operating_nominal": 2084912826.0,
+          "operating_real": 2671815787.0,
+          "capital_nominal": 2161605000.0,
+          "capital_real": 2770096808.0
         },
         {
           "fy": 2020,
           "nominal": 2299866946.0,
-          "real": 2880123376.0
+          "real": 2880123376.0,
+          "operating_nominal": 1146141946.0,
+          "operating_real": 1435313559.0,
+          "capital_nominal": 1153725000.0,
+          "capital_real": 1444809818.0
         },
         {
           "fy": 2021,
           "nominal": 1848381148.0,
-          "real": 2252991781.0
+          "real": 2252991781.0,
+          "operating_nominal": 1181927148.0,
+          "operating_real": 1440651001.0,
+          "capital_nominal": 666454000.0,
+          "capital_real": 812340781.0
         },
         {
           "fy": 2022,
-          "nominal": 1700330484.0,
-          "real": 1961331213.0
+          "nominal": 3372134973.0,
+          "real": 3889757691.0,
+          "operating_nominal": 2130645973.0,
+          "operating_real": 2457700130.0,
+          "capital_nominal": 1241489000.0,
+          "capital_real": 1432057562.0
         },
         {
           "fy": 2023,
-          "nominal": 1752720532.0,
-          "real": 1918352622.0
+          "nominal": 4741691581.0,
+          "real": 5189781435.0,
+          "operating_nominal": 2457683581.0,
+          "operating_real": 2689934679.0,
+          "capital_nominal": 2284008000.0,
+          "capital_real": 2499846756.0
         },
         {
           "fy": 2024,
-          "nominal": 2804483695.0,
-          "real": 2968826440.0
+          "nominal": 5364026564.0,
+          "real": 5678358521.0,
+          "operating_nominal": 2480160564.0,
+          "operating_real": 2625497973.0,
+          "capital_nominal": 2883866000.0,
+          "capital_real": 3052860548.0
         },
         {
           "fy": 2025,
-          "nominal": 1936993467.0,
-          "real": 1986386800.0
+          "nominal": 6001561301.0,
+          "real": 6154601114.0,
+          "operating_nominal": 2861382301.0,
+          "operating_real": 2934347550.0,
+          "capital_nominal": 3140179000.0,
+          "capital_real": 3220253565.0
         },
         {
           "fy": 2026,
-          "nominal": 3428173344.0,
-          "real": 3428173344.0
+          "nominal": 3427208480.0,
+          "real": 3427208480.0,
+          "operating_nominal": 1646163480.0,
+          "operating_real": 1646163480.0,
+          "capital_nominal": 1781045000.0,
+          "capital_real": 1781045000.0
         },
         {
           "fy": 2027,
-          "nominal": 3257838065.0,
-          "real": 3161080274.0
+          "nominal": 3256801908.0,
+          "real": 3160074891.0,
+          "operating_nominal": 1578778908.0,
+          "operating_real": 1531889174.0,
+          "capital_nominal": 1678023000.0,
+          "capital_real": 1628185717.0
         }
       ]
     },
@@ -491,63 +683,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 1698116865.0,
-          "real": 2379740975.0
+          "nominal": 2973188076.0,
+          "real": 4166625770.0,
+          "operating_nominal": 2879898076.0,
+          "operating_real": 4035889164.0,
+          "capital_nominal": 93290000.0,
+          "capital_real": 130736606.0
         },
         {
           "fy": 2017,
-          "nominal": 1685592613.0,
-          "real": 2308081965.0
+          "nominal": 3430549728.0,
+          "real": 4697451743.0,
+          "operating_nominal": 3348761728.0,
+          "operating_real": 4585459434.0,
+          "capital_nominal": 81788000.0,
+          "capital_real": 111992308.0
         },
         {
           "fy": 2018,
-          "nominal": 1884715220.0,
-          "real": 2498001553.0
+          "nominal": 3524741078.0,
+          "real": 4671691825.0,
+          "operating_nominal": 3413401078.0,
+          "operating_real": 4524121789.0,
+          "capital_nominal": 111340000.0,
+          "capital_real": 147570036.0
         },
         {
           "fy": 2019,
-          "nominal": 1740156316.0,
-          "real": 2230010319.0
+          "nominal": 3566176549.0,
+          "real": 4570055248.0,
+          "operating_nominal": 3525875549.0,
+          "operating_real": 4518409516.0,
+          "capital_nominal": 40301000.0,
+          "capital_real": 51645732.0
         },
         {
           "fy": 2020,
           "nominal": 1901183306.0,
-          "real": 2380851854.0
+          "real": 2380851854.0,
+          "operating_nominal": 1842938306.0,
+          "operating_real": 2307911641.0,
+          "capital_nominal": 58245000.0,
+          "capital_real": 72940214.0
         },
         {
           "fy": 2021,
           "nominal": 1821824349.0,
-          "real": 2220621699.0
+          "real": 2220621699.0,
+          "operating_nominal": 1766079349.0,
+          "operating_real": 2152674118.0,
+          "capital_nominal": 55745000.0,
+          "capital_real": 67947580.0
         },
         {
           "fy": 2022,
-          "nominal": 1861264606.0,
-          "real": 2146968723.0
+          "nominal": 2904653778.0,
+          "real": 3350518133.0,
+          "operating_nominal": 2789437778.0,
+          "operating_real": 3217616477.0,
+          "capital_nominal": 115216000.0,
+          "capital_real": 132901656.0
         },
         {
           "fy": 2023,
-          "nominal": 1832542888.0,
-          "real": 2005718191.0
+          "nominal": 3826665440.0,
+          "real": 4188285324.0,
+          "operating_nominal": 3653595440.0,
+          "operating_real": 3998860209.0,
+          "capital_nominal": 173070000.0,
+          "capital_real": 189425115.0
         },
         {
           "fy": 2024,
-          "nominal": 2199647160.0,
-          "real": 2328546484.0
+          "nominal": 4017771985.0,
+          "real": 4253213423.0,
+          "operating_nominal": 3633585985.0,
+          "operating_real": 3846514124.0,
+          "capital_nominal": 384186000.0,
+          "capital_real": 406699300.0
         },
         {
           "fy": 2025,
-          "nominal": 2211017821.0,
-          "real": 2267398775.0
+          "nominal": 4527809423.0,
+          "real": 4643268563.0,
+          "operating_nominal": 4281858423.0,
+          "operating_real": 4391045813.0,
+          "capital_nominal": 245951000.0,
+          "capital_real": 252222751.0
         },
         {
           "fy": 2026,
-          "nominal": 2346803728.0,
-          "real": 2346803728.0
+          "nominal": 2346721494.0,
+          "real": 2346721494.0,
+          "operating_nominal": 2234523494.0,
+          "operating_real": 2234523494.0,
+          "capital_nominal": 112198000.0,
+          "capital_real": 112198000.0
         },
         {
           "fy": 2027,
-          "nominal": 2351293895.0,
-          "real": 2281460466.0
+          "nominal": 2351213081.0,
+          "real": 2281382052.0,
+          "operating_nominal": 2190435081.0,
+          "operating_real": 2125379159.0,
+          "capital_nominal": 160778000.0,
+          "capital_real": 156002893.0
         }
       ]
     },
@@ -557,63 +797,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 1209945687.0,
-          "real": 1695617886.0
+          "nominal": 2399705606.0,
+          "real": 3362947436.0,
+          "operating_nominal": 2233937606.0,
+          "operating_real": 3130640161.0,
+          "capital_nominal": 165768000.0,
+          "capital_real": 232307275.0
         },
         {
           "fy": 2017,
-          "nominal": 1117770790.0,
-          "real": 1530563543.0
+          "nominal": 2389329184.0,
+          "real": 3271708452.0,
+          "operating_nominal": 2240829184.0,
+          "operating_real": 3068367402.0,
+          "capital_nominal": 148500000.0,
+          "capital_real": 203341050.0
         },
         {
           "fy": 2018,
-          "nominal": 1319689632.0,
-          "real": 1749116638.0
+          "nominal": 2278009429.0,
+          "real": 3019273697.0,
+          "operating_nominal": 1980469429.0,
+          "operating_real": 2624914181.0,
+          "capital_nominal": 297540000.0,
+          "capital_real": 394359516.0
         },
         {
           "fy": 2019,
-          "nominal": 1185740862.0,
-          "real": 1519526915.0
+          "nominal": 2487177530.0,
+          "real": 3187318005.0,
+          "operating_nominal": 2347204530.0,
+          "operating_real": 3007942605.0,
+          "capital_nominal": 139973000.0,
+          "capital_real": 179375400.0
         },
         {
           "fy": 2020,
           "nominal": 1454594197.0,
-          "real": 1821588313.0
+          "real": 1821588313.0,
+          "operating_nominal": 1218073197.0,
+          "operating_real": 1525393065.0,
+          "capital_nominal": 236521000.0,
+          "capital_real": 296195248.0
         },
         {
           "fy": 2021,
           "nominal": 1321243785.0,
-          "real": 1610464050.0
+          "real": 1610464050.0,
+          "operating_nominal": 1227943785.0,
+          "operating_real": 1496740680.0,
+          "capital_nominal": 93300000.0,
+          "capital_real": 113723370.0
         },
         {
           "fy": 2022,
-          "nominal": 1443734150.0,
-          "real": 1665347342.0
+          "nominal": 2724079857.0,
+          "real": 3142226115.0,
+          "operating_nominal": 2253179857.0,
+          "operating_real": 2599042965.0,
+          "capital_nominal": 470900000.0,
+          "capital_real": 543183150.0
         },
         {
           "fy": 2023,
-          "nominal": 1311878255.0,
-          "real": 1435850750.0
+          "nominal": 2747200073.0,
+          "real": 3006810480.0,
+          "operating_nominal": 2482360073.0,
+          "operating_real": 2716943100.0,
+          "capital_nominal": 264840000.0,
+          "capital_real": 289867380.0
         },
         {
           "fy": 2024,
-          "nominal": 1524767256.0,
-          "real": 1614118617.0
+          "nominal": 3023745282.0,
+          "real": 3200936756.0,
+          "operating_nominal": 2621620282.0,
+          "operating_real": 2775247231.0,
+          "capital_nominal": 402125000.0,
+          "capital_real": 425689525.0
         },
         {
           "fy": 2025,
-          "nominal": 1509847841.0,
-          "real": 1548348961.0
+          "nominal": 3072934407.0,
+          "real": 3151294234.0,
+          "operating_nominal": 2688417407.0,
+          "operating_real": 2756972051.0,
+          "capital_nominal": 384517000.0,
+          "capital_real": 394322184.0
         },
         {
           "fy": 2026,
-          "nominal": 1573335440.0,
-          "real": 1573335440.0
+          "nominal": 1573156984.0,
+          "real": 1573156984.0,
+          "operating_nominal": 1363950984.0,
+          "operating_real": 1363950984.0,
+          "capital_nominal": 209206000.0,
+          "capital_real": 209206000.0
         },
         {
           "fy": 2027,
-          "nominal": 1431487301.0,
-          "real": 1388972128.0
+          "nominal": 1431448797.0,
+          "real": 1388934768.0,
+          "operating_nominal": 1364444797.0,
+          "operating_real": 1323920787.0,
+          "capital_nominal": 67004000.0,
+          "capital_real": 65013981.0
         }
       ]
     },
@@ -623,63 +911,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 477210944.0,
-          "real": 668763417.0
+          "nominal": 907903747.0,
+          "real": 1272336311.0,
+          "operating_nominal": 889773747.0,
+          "operating_real": 1246928929.0,
+          "capital_nominal": 18130000.0,
+          "capital_real": 25407382.0
         },
         {
           "fy": 2017,
-          "nominal": 466890278.0,
-          "real": 639312858.0
+          "nominal": 946151207.0,
+          "real": 1295564848.0,
+          "operating_nominal": 939518207.0,
+          "operating_real": 1286482281.0,
+          "capital_nominal": 6633000.0,
+          "capital_real": 9082567.0
         },
         {
           "fy": 2018,
-          "nominal": 476375585.0,
-          "real": 631388200.0
+          "nominal": 903853551.0,
+          "real": 1197967496.0,
+          "operating_nominal": 896537551.0,
+          "operating_real": 1188270870.0,
+          "capital_nominal": 7316000.0,
+          "capital_real": 9696626.0
         },
         {
           "fy": 2019,
-          "nominal": 473439354.0,
-          "real": 606712532.0
+          "nominal": 961933195.0,
+          "real": 1232717389.0,
+          "operating_nominal": 944702195.0,
+          "operating_real": 1210635863.0,
+          "capital_nominal": 17231000.0,
+          "capital_real": 22081526.0
         },
         {
           "fy": 2020,
           "nominal": 475497170.0,
-          "real": 595465106.0
+          "real": 595465106.0,
+          "operating_nominal": 475497170.0,
+          "operating_real": 595465106.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 473460549.0,
-          "real": 577101063.0
+          "real": 577101063.0,
+          "operating_nominal": 473460549.0,
+          "operating_real": 577101063.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 1245391407.0,
-          "real": 1436558988.0
+          "nominal": 1373242958.0,
+          "real": 1584035752.0,
+          "operating_nominal": 1373242958.0,
+          "operating_real": 1584035752.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 515230191.0,
-          "real": 563919444.0
+          "nominal": 1399958654.0,
+          "real": 1532254747.0,
+          "operating_nominal": 1399958654.0,
+          "operating_real": 1532254747.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 560806587.0,
-          "real": 593669853.0
+          "nominal": 1083442437.0,
+          "real": 1146932164.0,
+          "operating_nominal": 1043442437.0,
+          "operating_real": 1104588164.0,
+          "capital_nominal": 40000000.0,
+          "capital_real": 42344000.0
         },
         {
           "fy": 2025,
-          "nominal": 450269243.0,
-          "real": 461751109.0
+          "nominal": 923110838.0,
+          "real": 946650164.0,
+          "operating_nominal": 903110838.0,
+          "operating_real": 926140164.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 20510000.0
         },
         {
           "fy": 2026,
-          "nominal": 483826077.0,
-          "real": 483826077.0
+          "nominal": 483806077.0,
+          "real": 483806077.0,
+          "operating_nominal": 463806077.0,
+          "operating_real": 463806077.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 20000000.0
         },
         {
           "fy": 2027,
           "nominal": 463199718.0,
-          "real": 449442686.0
+          "real": 449442686.0,
+          "operating_nominal": 463199718.0,
+          "operating_real": 449442686.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -689,63 +1025,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 402274654.0,
-          "real": 563747700.0
+          "nominal": 713420445.0,
+          "real": 999787412.0,
+          "operating_nominal": 617310445.0,
+          "operating_real": 865098858.0,
+          "capital_nominal": 96110000.0,
+          "capital_real": 134688554.0
         },
         {
           "fy": 2017,
-          "nominal": 354839874.0,
-          "real": 485882239.0
+          "nominal": 823980133.0,
+          "real": 1128275996.0,
+          "operating_nominal": 699695133.0,
+          "operating_real": 958092546.0,
+          "capital_nominal": 124285000.0,
+          "capital_real": 170183450.0
         },
         {
           "fy": 2018,
-          "nominal": 333173527.0,
-          "real": 441588193.0
+          "nominal": 583621345.0,
+          "real": 773531731.0,
+          "operating_nominal": 465321345.0,
+          "operating_real": 616736911.0,
+          "capital_nominal": 118300000.0,
+          "capital_real": 156794820.0
         },
         {
           "fy": 2019,
-          "nominal": 270315915.0,
-          "real": 346409845.0
+          "nominal": 563408842.0,
+          "real": 722008431.0,
+          "operating_nominal": 548108842.0,
+          "operating_real": 702401481.0,
+          "capital_nominal": 15300000.0,
+          "capital_real": 19606950.0
         },
         {
           "fy": 2020,
           "nominal": 335588838.0,
-          "real": 420257902.0
+          "real": 420257902.0,
+          "operating_nominal": 278363838.0,
+          "operating_real": 348595034.0,
+          "capital_nominal": 57225000.0,
+          "capital_real": 71662868.0
         },
         {
           "fy": 2021,
           "nominal": 303321733.0,
-          "real": 369718860.0
+          "real": 369718860.0,
+          "operating_nominal": 278321733.0,
+          "operating_real": 339246360.0,
+          "capital_nominal": 25000000.0,
+          "capital_real": 30472500.0
         },
         {
           "fy": 2022,
-          "nominal": 202685996.0,
-          "real": 233798296.0
+          "nominal": 386714837.0,
+          "real": 446075564.0,
+          "operating_nominal": 302714837.0,
+          "operating_real": 349181564.0,
+          "capital_nominal": 84000000.0,
+          "capital_real": 96894000.0
         },
         {
           "fy": 2023,
-          "nominal": 205659598.0,
-          "real": 225094430.0
+          "nominal": 1229223945.0,
+          "real": 1345385608.0,
+          "operating_nominal": 345723945.0,
+          "operating_real": 378394858.0,
+          "capital_nominal": 883500000.0,
+          "capital_real": 966990750.0
         },
         {
           "fy": 2024,
-          "nominal": 929563122.0,
-          "real": 984035521.0
+          "nominal": 1440978208.0,
+          "real": 1525419531.0,
+          "operating_nominal": 1314978208.0,
+          "operating_real": 1392035931.0,
+          "capital_nominal": 126000000.0,
+          "capital_real": 133383600.0
         },
         {
           "fy": 2025,
-          "nominal": 415478500.0,
-          "real": 426073202.0
+          "nominal": 1250846222.0,
+          "real": 1282742801.0,
+          "operating_nominal": 907721222.0,
+          "operating_real": 930868113.0,
+          "capital_nominal": 343125000.0,
+          "capital_real": 351874688.0
         },
         {
           "fy": 2026,
-          "nominal": 659115173.0,
-          "real": 659115173.0
+          "nominal": 658709072.0,
+          "real": 658709072.0,
+          "operating_nominal": 292608072.0,
+          "operating_real": 292608072.0,
+          "capital_nominal": 366101000.0,
+          "capital_real": 366101000.0
         },
         {
           "fy": 2027,
-          "nominal": 441362996.0,
-          "real": 428254515.0
+          "nominal": 441188396.0,
+          "real": 428085101.0,
+          "operating_nominal": 266588396.0,
+          "operating_real": 258670721.0,
+          "capital_nominal": 174600000.0,
+          "capital_real": 169414380.0
         }
       ]
     },
@@ -755,63 +1139,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 285940386.0,
-          "real": 400716857.0
+          "nominal": 520461280.0,
+          "real": 729374438.0,
+          "operating_nominal": 400670280.0,
+          "operating_real": 561499330.0,
+          "capital_nominal": 119791000.0,
+          "capital_real": 167875107.0
         },
         {
           "fy": 2017,
-          "nominal": 266395776.0,
-          "real": 364775736.0
+          "nominal": 794817067.0,
+          "real": 1088343010.0,
+          "operating_nominal": 432890067.0,
+          "operating_real": 592756369.0,
+          "capital_nominal": 361927000.0,
+          "capital_real": 495586641.0
         },
         {
           "fy": 2018,
-          "nominal": 373353125.0,
-          "real": 494842232.0
+          "nominal": 719968432.0,
+          "real": 954246160.0,
+          "operating_nominal": 397068432.0,
+          "operating_real": 526274500.0,
+          "capital_nominal": 322900000.0,
+          "capital_real": 427971660.0
         },
         {
           "fy": 2019,
-          "nominal": 218078737.0,
-          "real": 279467901.0
+          "nominal": 491973321.0,
+          "real": 630463811.0,
+          "operating_nominal": 392769321.0,
+          "operating_real": 503333885.0,
+          "capital_nominal": 99204000.0,
+          "capital_real": 127129926.0
         },
         {
           "fy": 2020,
           "nominal": 303687934.0,
-          "real": 380308400.0
+          "real": 380308400.0,
+          "operating_nominal": 196691934.0,
+          "operating_real": 246317309.0,
+          "capital_nominal": 106996000.0,
+          "capital_real": 133991091.0
         },
         {
           "fy": 2021,
           "nominal": 240958607.0,
-          "real": 293704446.0
+          "real": 293704446.0,
+          "operating_nominal": 193101607.0,
+          "operating_real": 235371549.0,
+          "capital_nominal": 47857000.0,
+          "capital_real": 58332897.0
         },
         {
           "fy": 2022,
-          "nominal": 364137966.0,
-          "real": 420033144.0
+          "nominal": 604776350.0,
+          "real": 697609520.0,
+          "operating_nominal": 351364350.0,
+          "operating_real": 405298778.0,
+          "capital_nominal": 253412000.0,
+          "capital_real": 292310742.0
         },
         {
           "fy": 2023,
-          "nominal": 227964602.0,
-          "real": 249507257.0
+          "nominal": 612116080.0,
+          "real": 669961050.0,
+          "operating_nominal": 496166080.0,
+          "operating_real": 543053775.0,
+          "capital_nominal": 115950000.0,
+          "capital_real": 126907275.0
         },
         {
           "fy": 2024,
-          "nominal": 490214874.0,
-          "real": 518941466.0
+          "nominal": 967707147.0,
+          "real": 1024414786.0,
+          "operating_nominal": 478623147.0,
+          "operating_real": 506670463.0,
+          "capital_nominal": 489084000.0,
+          "capital_real": 517744322.0
         },
         {
           "fy": 2025,
-          "nominal": 365658885.0,
-          "real": 374983187.0
+          "nominal": 731440813.0,
+          "real": 750092554.0,
+          "operating_nominal": 453545813.0,
+          "operating_real": 465111231.0,
+          "capital_nominal": 277895000.0,
+          "capital_real": 284981322.0
         },
         {
           "fy": 2026,
-          "nominal": 476972058.0,
-          "real": 476972058.0
+          "nominal": 476758034.0,
+          "real": 476758034.0,
+          "operating_nominal": 261234034.0,
+          "operating_real": 261234034.0,
+          "capital_nominal": 215524000.0,
+          "capital_real": 215524000.0
         },
         {
           "fy": 2027,
-          "nominal": 329713607.0,
-          "real": 319921113.0
+          "nominal": 329646153.0,
+          "real": 319855662.0,
+          "operating_nominal": 260692153.0,
+          "operating_real": 252949596.0,
+          "capital_nominal": 68954000.0,
+          "capital_real": 66906066.0
         }
       ]
     },
@@ -821,63 +1253,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 265482731.0,
-          "real": 372047499.0
+          "nominal": 529844468.0,
+          "real": 742524037.0,
+          "operating_nominal": 529844468.0,
+          "operating_real": 742524037.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 269663561.0,
-          "real": 369250314.0
+          "nominal": 562136365.0,
+          "real": 769733325.0,
+          "operating_nominal": 539636365.0,
+          "operating_real": 738924075.0,
+          "capital_nominal": 22500000.0,
+          "capital_real": 30809250.0
         },
         {
           "fy": 2018,
-          "nominal": 280967385.0,
-          "real": 372394172.0
+          "nominal": 561934070.0,
+          "real": 744787416.0,
+          "operating_nominal": 561234070.0,
+          "operating_real": 743859636.0,
+          "capital_nominal": 700000.0,
+          "capital_real": 927780.0
         },
         {
           "fy": 2019,
-          "nominal": 275543425.0,
-          "real": 353108899.0
+          "nominal": 560934136.0,
+          "real": 718837095.0,
+          "operating_nominal": 560934136.0,
+          "operating_real": 718837095.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 297854090.0,
-          "real": 373002677.0
+          "real": 373002677.0,
+          "operating_nominal": 294854090.0,
+          "operating_real": 369245777.0,
+          "capital_nominal": 3000000.0,
+          "capital_real": 3756900.0
         },
         {
           "fy": 2021,
           "nominal": 298527876.0,
-          "real": 363875628.0
+          "real": 363875628.0,
+          "operating_nominal": 295527876.0,
+          "operating_real": 360218928.0,
+          "capital_nominal": 3000000.0,
+          "capital_real": 3656700.0
         },
         {
           "fy": 2022,
-          "nominal": 297540439.0,
-          "real": 343212896.0
+          "nominal": 634708506.0,
+          "real": 732136262.0,
+          "operating_nominal": 591740506.0,
+          "operating_real": 682572674.0,
+          "capital_nominal": 42968000.0,
+          "capital_real": 49563588.0
         },
         {
           "fy": 2023,
-          "nominal": 287106995.0,
-          "real": 314238606.0
+          "nominal": 646325523.0,
+          "real": 707403285.0,
+          "operating_nominal": 607825523.0,
+          "operating_real": 665265035.0,
+          "capital_nominal": 38500000.0,
+          "capital_real": 42138250.0
         },
         {
           "fy": 2024,
-          "nominal": 332092737.0,
-          "real": 351553371.0
+          "nominal": 658927753.0,
+          "real": 697540919.0,
+          "operating_nominal": 635927753.0,
+          "operating_real": 673193119.0,
+          "capital_nominal": 23000000.0,
+          "capital_real": 24347800.0
         },
         {
           "fy": 2025,
-          "nominal": 337747244.0,
-          "real": 346359799.0
+          "nominal": 695711631.0,
+          "real": 713452278.0,
+          "operating_nominal": 637711631.0,
+          "operating_real": 653973278.0,
+          "capital_nominal": 58000000.0,
+          "capital_real": 59479000.0
         },
         {
           "fy": 2026,
-          "nominal": 330449082.0,
-          "real": 330449082.0
+          "nominal": 330439082.0,
+          "real": 330439082.0,
+          "operating_nominal": 320439082.0,
+          "operating_real": 320439082.0,
+          "capital_nominal": 10000000.0,
+          "capital_real": 10000000.0
         },
         {
           "fy": 2027,
           "nominal": 319712288.0,
-          "real": 310216833.0
+          "real": 310216833.0,
+          "operating_nominal": 319712288.0,
+          "operating_real": 310216833.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -887,63 +1367,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 165241947.0,
-          "real": 231570065.0
+          "nominal": 282258999.0,
+          "real": 395557761.0,
+          "operating_nominal": 198882999.0,
+          "operating_real": 278714635.0,
+          "capital_nominal": 83376000.0,
+          "capital_real": 116843126.0
         },
         {
           "fy": 2017,
-          "nominal": 141936686.0,
-          "real": 194353904.0
+          "nominal": 335349083.0,
+          "real": 459193499.0,
+          "operating_nominal": 244375083.0,
+          "operating_real": 334622801.0,
+          "capital_nominal": 90974000.0,
+          "capital_real": 124570698.0
         },
         {
           "fy": 2018,
-          "nominal": 215376064.0,
-          "real": 285459435.0
+          "nominal": 381545630.0,
+          "real": 505700578.0,
+          "operating_nominal": 278391630.0,
+          "operating_real": 368980266.0,
+          "capital_nominal": 103154000.0,
+          "capital_real": 136720312.0
         },
         {
           "fy": 2019,
-          "nominal": 161424470.0,
-          "real": 206865458.0
+          "nominal": 379858950.0,
+          "real": 486789244.0,
+          "operating_nominal": 309734950.0,
+          "operating_real": 396925338.0,
+          "capital_nominal": 70124000.0,
+          "capital_real": 89863906.0
         },
         {
           "fy": 2020,
           "nominal": 193634870.0,
-          "real": 242488948.0
+          "real": 242488948.0,
+          "operating_nominal": 166454870.0,
+          "operating_real": 208451434.0,
+          "capital_nominal": 27180000.0,
+          "capital_real": 34037514.0
         },
         {
           "fy": 2021,
           "nominal": 194961082.0,
-          "real": 237638063.0
+          "real": 237638063.0,
+          "operating_nominal": 163919082.0,
+          "operating_real": 199800969.0,
+          "capital_nominal": 31042000.0,
+          "capital_real": 37837094.0
         },
         {
           "fy": 2022,
-          "nominal": 248454209.0,
-          "real": 286591930.0
+          "nominal": 402621035.0,
+          "real": 464423364.0,
+          "operating_nominal": 275429035.0,
+          "operating_real": 317707392.0,
+          "capital_nominal": 127192000.0,
+          "capital_real": 146715972.0
         },
         {
           "fy": 2023,
-          "nominal": 173705356.0,
-          "real": 190120512.0
+          "nominal": 473012579.0,
+          "real": 517712268.0,
+          "operating_nominal": 374677579.0,
+          "operating_real": 410084610.0,
+          "capital_nominal": 98335000.0,
+          "capital_real": 107627658.0
         },
         {
           "fy": 2024,
-          "nominal": 527664998.0,
-          "real": 558586167.0
+          "nominal": 808708793.0,
+          "real": 856099128.0,
+          "operating_nominal": 643716793.0,
+          "operating_real": 681438597.0,
+          "capital_nominal": 164992000.0,
+          "capital_real": 174660531.0
         },
         {
           "fy": 2025,
-          "nominal": 273764138.0,
-          "real": 280745124.0
+          "nominal": 698306041.0,
+          "real": 716112845.0,
+          "operating_nominal": 596377041.0,
+          "operating_real": 611584656.0,
+          "capital_nominal": 101929000.0,
+          "capital_real": 104528190.0
         },
         {
           "fy": 2026,
-          "nominal": 400687800.0,
-          "real": 400687800.0
+          "nominal": 400612895.0,
+          "real": 400612895.0,
+          "operating_nominal": 324957895.0,
+          "operating_real": 324957895.0,
+          "capital_nominal": 75655000.0,
+          "capital_real": 75655000.0
         },
         {
           "fy": 2027,
-          "nominal": 298627192.0,
-          "real": 289757964.0
+          "nominal": 298625042.0,
+          "real": 289755878.0,
+          "operating_nominal": 296225042.0,
+          "operating_real": 287427158.0,
+          "capital_nominal": 2400000.0,
+          "capital_real": 2328720.0
         }
       ]
     },
@@ -953,63 +1481,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 80577375.0,
-          "real": 112921133.0
+          "nominal": 118991881.0,
+          "real": 166755222.0,
+          "operating_nominal": 118991881.0,
+          "operating_real": 166755222.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 81250993.0,
-          "real": 111256985.0
+          "nominal": 177173796.0,
+          "real": 242604079.0,
+          "operating_nominal": 177173796.0,
+          "operating_real": 242604079.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 103647780.0,
-          "real": 137374768.0
+          "nominal": 152801362.0,
+          "real": 202522925.0,
+          "operating_nominal": 152801362.0,
+          "operating_real": 202522925.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 98032256.0,
-          "real": 125628336.0
+          "nominal": 199161012.0,
+          "real": 255224837.0,
+          "operating_nominal": 199161012.0,
+          "operating_real": 255224837.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 103000417.0,
-          "real": 128987422.0
+          "real": 128987422.0,
+          "operating_nominal": 103000417.0,
+          "operating_real": 128987422.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 102428017.0,
-          "real": 124849510.0
+          "real": 124849510.0,
+          "operating_nominal": 102428017.0,
+          "operating_real": 124849510.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 102285053.0,
-          "real": 117985809.0
+          "nominal": 144568970.0,
+          "real": 166760307.0,
+          "operating_nominal": 144568970.0,
+          "operating_real": 166760307.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 102293109.0,
-          "real": 111959808.0
+          "nominal": 219695927.0,
+          "real": 240457192.0,
+          "operating_nominal": 219695927.0,
+          "operating_real": 240457192.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 124947791.0,
-          "real": 132269732.0
+          "nominal": 218703168.0,
+          "real": 231519174.0,
+          "operating_nominal": 218703168.0,
+          "operating_real": 231519174.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 118308376.0,
-          "real": 121325240.0
+          "nominal": 240367491.0,
+          "real": 246496862.0,
+          "operating_nominal": 240367491.0,
+          "operating_real": 246496862.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 135475160.0,
-          "real": 135475160.0
+          "real": 135475160.0,
+          "operating_nominal": 135475160.0,
+          "operating_real": 135475160.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 133721369.0,
-          "real": 129749844.0
+          "real": 129749844.0,
+          "operating_nominal": 133721369.0,
+          "operating_real": 129749844.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1019,63 +1595,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 122903794.0,
-          "real": 172237377.0
+          "nominal": 153021318.0,
+          "real": 214444075.0,
+          "operating_nominal": 134822318.0,
+          "operating_real": 188939996.0,
+          "capital_nominal": 18199000.0,
+          "capital_real": 25504079.0
         },
         {
           "fy": 2017,
-          "nominal": 209694040.0,
-          "real": 287134049.0
+          "nominal": 447277740.0,
+          "real": 612457409.0,
+          "operating_nominal": 245209740.0,
+          "operating_real": 335765697.0,
+          "capital_nominal": 202068000.0,
+          "capital_real": 276691712.0
         },
         {
           "fy": 2018,
-          "nominal": 148762167.0,
-          "real": 197169376.0
+          "nominal": 185679863.0,
+          "real": 246100090.0,
+          "operating_nominal": 152613863.0,
+          "operating_real": 202274414.0,
+          "capital_nominal": 33066000.0,
+          "capital_real": 43825676.0
         },
         {
           "fy": 2019,
-          "nominal": 146440016.0,
-          "real": 187662881.0
+          "nominal": 267273119.0,
+          "real": 342510502.0,
+          "operating_nominal": 236536119.0,
+          "operating_real": 303121036.0,
+          "capital_nominal": 30737000.0,
+          "capital_real": 39389466.0
         },
         {
           "fy": 2020,
           "nominal": 116013811.0,
-          "real": 145284096.0
+          "real": 145284096.0,
+          "operating_nominal": 110067811.0,
+          "operating_real": 137837920.0,
+          "capital_nominal": 5946000.0,
+          "capital_real": 7446176.0
         },
         {
           "fy": 2021,
           "nominal": 111240645.0,
-          "real": 135591222.0
+          "real": 135591222.0,
+          "operating_nominal": 109540645.0,
+          "operating_real": 133519092.0,
+          "capital_nominal": 1700000.0,
+          "capital_real": 2072130.0
         },
         {
           "fy": 2022,
-          "nominal": 105170791.0,
-          "real": 121314507.0
+          "nominal": 131872886.0,
+          "real": 152115374.0,
+          "operating_nominal": 128472886.0,
+          "operating_real": 148193474.0,
+          "capital_nominal": 3400000.0,
+          "capital_real": 3921900.0
         },
         {
           "fy": 2023,
-          "nominal": 106680791.0,
-          "real": 116762126.0
+          "nominal": 294135127.0,
+          "real": 321930897.0,
+          "operating_nominal": 282265127.0,
+          "operating_real": 308939182.0,
+          "capital_nominal": 11870000.0,
+          "capital_real": 12991715.0
         },
         {
           "fy": 2024,
-          "nominal": 156644077.0,
-          "real": 165823420.0
+          "nominal": 218848747.0,
+          "real": 231673284.0,
+          "operating_nominal": 187308747.0,
+          "operating_real": 198285040.0,
+          "capital_nominal": 31540000.0,
+          "capital_real": 33388244.0
         },
         {
           "fy": 2025,
-          "nominal": 131596144.0,
-          "real": 134951846.0
+          "nominal": 284251026.0,
+          "real": 291499427.0,
+          "operating_nominal": 259577026.0,
+          "operating_real": 266196240.0,
+          "capital_nominal": 24674000.0,
+          "capital_real": 25303187.0
         },
         {
           "fy": 2026,
-          "nominal": 219370364.0,
-          "real": 219370364.0
+          "nominal": 219325466.0,
+          "real": 219325466.0,
+          "operating_nominal": 113204466.0,
+          "operating_real": 113204466.0,
+          "capital_nominal": 106121000.0,
+          "capital_real": 106121000.0
         },
         {
           "fy": 2027,
           "nominal": 113164375.0,
-          "real": 109803393.0
+          "real": 109803393.0,
+          "operating_nominal": 113164375.0,
+          "operating_real": 109803393.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1085,63 +1709,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 78193107.0,
-          "real": 109579820.0
+          "nominal": 154247221.0,
+          "real": 216162056.0,
+          "operating_nominal": 154247221.0,
+          "operating_real": 216162056.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 77079103.0,
-          "real": 105544416.0
+          "nominal": 155663197.0,
+          "real": 213149616.0,
+          "operating_nominal": 155663197.0,
+          "operating_real": 213149616.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 82281351.0,
-          "real": 109055703.0
+          "nominal": 164312702.0,
+          "real": 217780055.0,
+          "operating_nominal": 164312702.0,
+          "operating_real": 217780055.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 81731874.0,
-          "real": 104739397.0
+          "nominal": 172801377.0,
+          "real": 221444965.0,
+          "operating_nominal": 172801377.0,
+          "operating_real": 221444965.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 48579208.0,
-          "real": 60835742.0
+          "real": 60835742.0,
+          "operating_nominal": 48579208.0,
+          "operating_real": 60835742.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 49764208.0,
-          "real": 60657593.0
+          "real": 60657593.0,
+          "operating_nominal": 49764208.0,
+          "operating_real": 60657593.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 93821564.0,
-          "real": 108223174.0
+          "nominal": 184789882.0,
+          "real": 213155129.0,
+          "operating_nominal": 184789882.0,
+          "operating_real": 213155129.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 90997564.0,
-          "real": 99596834.0
+          "nominal": 183894648.0,
+          "real": 201272692.0,
+          "operating_nominal": 183894648.0,
+          "operating_real": 201272692.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 108044694.0,
-          "real": 114376113.0
+          "nominal": 194757538.0,
+          "real": 206170330.0,
+          "operating_nominal": 194757538.0,
+          "operating_real": 206170330.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 109944699.0,
-          "real": 112748289.0
+          "nominal": 229480660.0,
+          "real": 235332417.0,
+          "operating_nominal": 229480660.0,
+          "operating_real": 235332417.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 119071633.0,
-          "real": 119071633.0
+          "real": 119071633.0,
+          "operating_nominal": 119071633.0,
+          "operating_real": 119071633.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 106090779.0,
-          "real": 102939883.0
+          "real": 102939883.0,
+          "operating_nominal": 106090779.0,
+          "operating_real": 102939883.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1151,23 +1823,39 @@
       "series": [
         {
           "fy": 2024,
-          "nominal": 92819245.0,
-          "real": 98258453.0
+          "nominal": 173269787.0,
+          "real": 183423397.0,
+          "operating_nominal": 173269787.0,
+          "operating_real": 183423397.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 65238306.0,
-          "real": 66901883.0
+          "nominal": 161797449.0,
+          "real": 165923284.0,
+          "operating_nominal": 161797449.0,
+          "operating_real": 165923284.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
-          "nominal": 104679615.0,
-          "real": 104679615.0
+          "nominal": 104676615.0,
+          "real": 104676615.0,
+          "operating_nominal": 101676615.0,
+          "operating_real": 101676615.0,
+          "capital_nominal": 3000000.0,
+          "capital_real": 3000000.0
         },
         {
           "fy": 2027,
           "nominal": 98243046.0,
-          "real": 95325228.0
+          "real": 95325228.0,
+          "operating_nominal": 98243046.0,
+          "operating_real": 95325228.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1177,99 +1865,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 63355467.0,
-          "real": 88786351.0
+          "nominal": 110850650.0,
+          "real": 155346101.0,
+          "operating_nominal": 84950650.0,
+          "operating_real": 119049841.0,
+          "capital_nominal": 25900000.0,
+          "capital_real": 36296260.0
         },
         {
           "fy": 2017,
-          "nominal": 49094209.0,
-          "real": 67224700.0
+          "nominal": 169337905.0,
+          "real": 231874393.0,
+          "operating_nominal": 100687905.0,
+          "operating_real": 137871948.0,
+          "capital_nominal": 68650000.0,
+          "capital_real": 94002445.0
         },
         {
           "fy": 2018,
-          "nominal": 103946950.0,
-          "real": 137771288.0
+          "nominal": 195771843.0,
+          "real": 259476001.0,
+          "operating_nominal": 95951843.0,
+          "operating_real": 127174573.0,
+          "capital_nominal": 99820000.0,
+          "capital_real": 132301428.0
         },
         {
           "fy": 2019,
-          "nominal": 51907866.0,
-          "real": 66519930.0
+          "nominal": 127601508.0,
+          "real": 163521333.0,
+          "operating_nominal": 106200508.0,
+          "operating_real": 136095951.0,
+          "capital_nominal": 21401000.0,
+          "capital_real": 27425382.0
         },
         {
           "fy": 2020,
           "nominal": 70832135.0,
-          "real": 88703083.0
+          "real": 88703083.0,
+          "operating_nominal": 47132135.0,
+          "operating_real": 59023573.0,
+          "capital_nominal": 23700000.0,
+          "capital_real": 29679510.0
         },
         {
           "fy": 2021,
           "nominal": 56485162.0,
-          "real": 68849764.0
+          "real": 68849764.0,
+          "operating_nominal": 47185162.0,
+          "operating_real": 57513994.0,
+          "capital_nominal": 9300000.0,
+          "capital_real": 11335770.0
         },
         {
           "fy": 2022,
-          "nominal": 57250942.0,
-          "real": 66038962.0
+          "nominal": 98347288.0,
+          "real": 113443597.0,
+          "operating_nominal": 88425288.0,
+          "operating_real": 101998570.0,
+          "capital_nominal": 9922000.0,
+          "capital_real": 11445027.0
         },
         {
           "fy": 2023,
-          "nominal": 49185548.0,
-          "real": 53833582.0
+          "nominal": 147792808.0,
+          "real": 161759228.0,
+          "operating_nominal": 132672808.0,
+          "operating_real": 145210388.0,
+          "capital_nominal": 15120000.0,
+          "capital_real": 16548840.0
         },
         {
           "fy": 2024,
-          "nominal": 94191353.0,
-          "real": 99710966.0
+          "nominal": 164062256.0,
+          "real": 173676304.0,
+          "operating_nominal": 124662256.0,
+          "operating_real": 131967464.0,
+          "capital_nominal": 39400000.0,
+          "capital_real": 41708840.0
         },
         {
           "fy": 2025,
-          "nominal": 57640628.0,
-          "real": 59110464.0
+          "nominal": 149118390.0,
+          "real": 152920909.0,
+          "operating_nominal": 118117390.0,
+          "operating_real": 121129383.0,
+          "capital_nominal": 31001000.0,
+          "capital_real": 31791526.0
         },
         {
           "fy": 2026,
-          "nominal": 80714926.0,
-          "real": 80714926.0
+          "nominal": 80709926.0,
+          "real": 80709926.0,
+          "operating_nominal": 75708926.0,
+          "operating_real": 75708926.0,
+          "capital_nominal": 5001000.0,
+          "capital_real": 5001000.0
         },
         {
           "fy": 2027,
           "nominal": 71650676.0,
-          "real": 69522651.0
-        }
-      ]
-    },
-    {
-      "dept_code": "COM",
-      "dept_name": "County of Maui",
-      "series": [
-        {
-          "fy": 2017,
-          "nominal": 2000000.0,
-          "real": 2738600.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 6005000.0,
-          "real": 7959027.0
-        },
-        {
-          "fy": 2020,
-          "nominal": 1345000.0,
-          "real": 1684344.0
-        },
-        {
-          "fy": 2022,
-          "nominal": 7000000.0,
-          "real": 8074500.0
-        },
-        {
-          "fy": 2023,
-          "nominal": 40000000.0,
-          "real": 43780000.0
-        },
-        {
-          "fy": 2024,
-          "nominal": 69535750.0,
-          "real": 73610545.0
+          "real": 69522651.0,
+          "operating_nominal": 71650676.0,
+          "operating_real": 69522651.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1279,63 +1979,189 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 80091732.0,
-          "real": 112240553.0
+          "nominal": 102634167.0,
+          "real": 143831522.0,
+          "operating_nominal": 57504167.0,
+          "operating_real": 80586340.0,
+          "capital_nominal": 45130000.0,
+          "capital_real": 63245182.0
         },
         {
           "fy": 2017,
-          "nominal": 79790277.0,
-          "real": 109256826.0
+          "nominal": 181921012.0,
+          "real": 249104442.0,
+          "operating_nominal": 119321012.0,
+          "operating_real": 163386262.0,
+          "capital_nominal": 62600000.0,
+          "capital_real": 85718180.0
         },
         {
           "fy": 2018,
-          "nominal": 111258700.0,
-          "real": 147462281.0
+          "nominal": 222409000.0,
+          "real": 294780889.0,
+          "operating_nominal": 114009000.0,
+          "operating_real": 151107529.0,
+          "capital_nominal": 108400000.0,
+          "capital_real": 143673360.0
         },
         {
           "fy": 2019,
-          "nominal": 74919500.0,
-          "real": 96009339.0
+          "nominal": 167239000.0,
+          "real": 214316778.0,
+          "operating_nominal": 114209000.0,
+          "operating_real": 146358834.0,
+          "capital_nominal": 53030000.0,
+          "capital_real": 67957945.0
         },
         {
           "fy": 2020,
           "nominal": 76521830.0,
-          "real": 95828288.0
+          "real": 95828288.0,
+          "operating_nominal": 50521830.0,
+          "operating_real": 63268488.0,
+          "capital_nominal": 26000000.0,
+          "capital_real": 32559800.0
         },
         {
           "fy": 2021,
           "nominal": 50528050.0,
-          "real": 61588640.0
+          "real": 61588640.0,
+          "operating_nominal": 50528050.0,
+          "operating_real": 61588640.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 106635438.0,
-          "real": 123003978.0
+          "nominal": 172952349.0,
+          "real": 199500535.0,
+          "operating_nominal": 83952349.0,
+          "operating_real": 96839035.0,
+          "capital_nominal": 89000000.0,
+          "capital_real": 102661500.0
         },
         {
           "fy": 2023,
-          "nominal": 78635438.0,
-          "real": 86066487.0
+          "nominal": 215314424.0,
+          "real": 235661637.0,
+          "operating_nominal": 153314424.0,
+          "operating_real": 167802637.0,
+          "capital_nominal": 62000000.0,
+          "capital_real": 67859000.0
         },
         {
           "fy": 2024,
-          "nominal": 85331961.0,
-          "real": 90332414.0
+          "nominal": 147305395.0,
+          "real": 155937491.0,
+          "operating_nominal": 107305395.0,
+          "operating_real": 113593491.0,
+          "capital_nominal": 40000000.0,
+          "capital_real": 42344000.0
         },
         {
           "fy": 2025,
-          "nominal": 85699870.0,
-          "real": 87885217.0
+          "nominal": 172167944.0,
+          "real": 176558227.0,
+          "operating_nominal": 132167944.0,
+          "operating_real": 135538227.0,
+          "capital_nominal": 40000000.0,
+          "capital_real": 41020000.0
         },
         {
           "fy": 2026,
-          "nominal": 185179472.0,
-          "real": 185179472.0
+          "nominal": 185159472.0,
+          "real": 185159472.0,
+          "operating_nominal": 165159472.0,
+          "operating_real": 165159472.0,
+          "capital_nominal": 20000000.0,
+          "capital_real": 20000000.0
         },
         {
           "fy": 2027,
           "nominal": 68167008.0,
-          "real": 66142448.0
+          "real": 66142448.0,
+          "operating_nominal": 68167008.0,
+          "operating_real": 66142448.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        }
+      ]
+    },
+    {
+      "dept_code": "COM",
+      "dept_name": "County of Maui",
+      "series": [
+        {
+          "fy": 2017,
+          "nominal": 4000000.0,
+          "real": 5477200.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 4000000.0,
+          "capital_real": 5477200.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 12000000.0,
+          "real": 15904800.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 12000000.0,
+          "capital_real": 15904800.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 7500000.0,
+          "real": 9611250.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 7500000.0,
+          "capital_real": 9611250.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1345000.0,
+          "real": 1684344.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 1345000.0,
+          "capital_real": 1684344.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 14000000.0,
+          "real": 16149000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 14000000.0,
+          "capital_real": 16149000.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 82500000.0,
+          "real": 90296250.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 82500000.0,
+          "capital_real": 90296250.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 139002000.0,
+          "real": 147147517.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 139002000.0,
+          "capital_real": 147147517.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 63560000.0,
+          "real": 65180780.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 63560000.0,
+          "capital_real": 65180780.0
         }
       ]
     },
@@ -1345,63 +2171,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 29686027.0,
-          "real": 41601998.0
+          "nominal": 59372054.0,
+          "real": 83203996.0,
+          "operating_nominal": 59372054.0,
+          "operating_real": 83203996.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 29890893.0,
-          "real": 40929600.0
+          "nominal": 58647009.0,
+          "real": 80305349.0,
+          "operating_nominal": 58647009.0,
+          "operating_real": 80305349.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 28866369.0,
-          "real": 38259485.0
+          "nominal": 56659069.0,
+          "real": 75095930.0,
+          "operating_nominal": 55659069.0,
+          "operating_real": 73770530.0,
+          "capital_nominal": 1000000.0,
+          "capital_real": 1325400.0
         },
         {
           "fy": 2019,
-          "nominal": 28240869.0,
-          "real": 36190674.0
+          "nominal": 75800978.0,
+          "real": 97138953.0,
+          "operating_nominal": 59254978.0,
+          "operating_real": 75935254.0,
+          "capital_nominal": 16546000.0,
+          "capital_real": 21203699.0
         },
         {
           "fy": 2020,
           "nominal": 36687491.0,
-          "real": 45943745.0
+          "real": 45943745.0,
+          "operating_nominal": 36687491.0,
+          "operating_real": 45943745.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 37847491.0,
-          "real": 46132307.0
+          "real": 46132307.0,
+          "operating_nominal": 37847491.0,
+          "operating_real": 46132307.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 28629744.0,
-          "real": 33024410.0
+          "nominal": 57259488.0,
+          "real": 66048819.0,
+          "operating_nominal": 57259488.0,
+          "operating_real": 66048819.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 28629744.0,
-          "real": 31335255.0
+          "nominal": 59167694.0,
+          "real": 64759041.0,
+          "operating_nominal": 59167694.0,
+          "operating_real": 64759041.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 44993119.0,
-          "real": 47629716.0
+          "nominal": 89986238.0,
+          "real": 95259432.0,
+          "operating_nominal": 89986238.0,
+          "operating_real": 95259432.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 42029076.0,
-          "real": 43100817.0
+          "nominal": 84601555.0,
+          "real": 86758895.0,
+          "operating_nominal": 84601555.0,
+          "operating_real": 86758895.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 43315613.0,
-          "real": 43315613.0
+          "real": 43315613.0,
+          "operating_nominal": 43315613.0,
+          "operating_real": 43315613.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 44665709.0,
-          "real": 43339137.0
+          "real": 43339137.0,
+          "operating_nominal": 44665709.0,
+          "operating_real": 43339137.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1411,63 +2285,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 21834643.0,
-          "real": 30599069.0
+          "nominal": 43669286.0,
+          "real": 61198137.0,
+          "operating_nominal": 43669286.0,
+          "operating_real": 61198137.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 22043991.0,
-          "real": 30184837.0
+          "nominal": 45281477.0,
+          "real": 62003926.0,
+          "operating_nominal": 45281477.0,
+          "operating_real": 62003926.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 25289778.0,
-          "real": 33519072.0
+          "nominal": 50579556.0,
+          "real": 67038144.0,
+          "operating_nominal": 50579556.0,
+          "operating_real": 67038144.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 25438698.0,
-          "real": 32599691.0
+          "nominal": 50978476.0,
+          "real": 65328917.0,
+          "operating_nominal": 50978476.0,
+          "operating_real": 65328917.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 26206625.0,
-          "real": 32818556.0
+          "real": 32818556.0,
+          "operating_nominal": 26206625.0,
+          "operating_real": 32818556.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 26203625.0,
-          "real": 31939599.0
+          "real": 31939599.0,
+          "operating_nominal": 26203625.0,
+          "operating_real": 31939599.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 26032612.0,
-          "real": 30028618.0
+          "nominal": 52065224.0,
+          "real": 60057236.0,
+          "operating_nominal": 52065224.0,
+          "operating_real": 60057236.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 26085187.0,
-          "real": 28550237.0
+          "nominal": 52405510.0,
+          "real": 57357831.0,
+          "operating_nominal": 52405510.0,
+          "operating_real": 57357831.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 36882596.0,
-          "real": 39043916.0
+          "nominal": 47542476.0,
+          "real": 50328465.0,
+          "operating_nominal": 47542476.0,
+          "operating_real": 50328465.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 32006487.0,
-          "real": 32822652.0
+          "nominal": 39685121.0,
+          "real": 40697092.0,
+          "operating_nominal": 39685121.0,
+          "operating_real": 40697092.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 37052068.0,
-          "real": 37052068.0
+          "real": 37052068.0,
+          "operating_nominal": 37052068.0,
+          "operating_real": 37052068.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 36278606.0,
-          "real": 35201131.0
+          "real": 35201131.0,
+          "operating_nominal": 36278606.0,
+          "operating_real": 35201131.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1477,53 +2399,93 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 119070670.0,
-          "real": 166865637.0
+          "nominal": 23000000.0,
+          "real": 32232200.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 23000000.0,
+          "capital_real": 32232200.0
         },
         {
           "fy": 2017,
-          "nominal": 107559170.0,
-          "real": 147280771.0
+          "nominal": 9450000.0,
+          "real": 12939885.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 9450000.0,
+          "capital_real": 12939885.0
         },
         {
           "fy": 2018,
-          "nominal": 3503500.0,
-          "real": 4643539.0
+          "nominal": 7000000.0,
+          "real": 9277800.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 7000000.0,
+          "capital_real": 9277800.0
         },
         {
           "fy": 2020,
           "nominal": 5400000.0,
-          "real": 6762420.0
+          "real": 6762420.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 5400000.0,
+          "capital_real": 6762420.0
         },
         {
           "fy": 2021,
           "nominal": 11900000.0,
-          "real": 14504910.0
+          "real": 14504910.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 11900000.0,
+          "capital_real": 14504910.0
         },
         {
           "fy": 2022,
-          "nominal": 19700000.0,
-          "real": 22723950.0
+          "nominal": 39400000.0,
+          "real": 45447900.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 39400000.0,
+          "capital_real": 45447900.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 8383000.0,
+          "real": 9175194.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 8383000.0,
+          "capital_real": 9175194.0
         },
         {
           "fy": 2024,
-          "nominal": 16003875.0,
-          "real": 16941702.0
+          "nominal": 8000000.0,
+          "real": 8468800.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 8000000.0,
+          "capital_real": 8468800.0
         },
         {
           "fy": 2025,
-          "nominal": 12000900.0,
-          "real": 12306923.0
+          "nominal": 17900000.0,
+          "real": 18356450.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 17900000.0,
+          "capital_real": 18356450.0
         },
         {
           "fy": 2026,
-          "nominal": 59295375.0,
-          "real": 59295375.0
-        },
-        {
-          "fy": 2027,
-          "nominal": 33282375.0,
-          "real": 32293888.0
+          "nominal": 26000000.0,
+          "real": 26000000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 26000000.0,
+          "capital_real": 26000000.0
         }
       ]
     },
@@ -1533,33 +2495,66 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 4002000.0,
-          "real": 5608403.0
+          "nominal": 8000000.0,
+          "real": 11211200.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 8000000.0,
+          "capital_real": 11211200.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1850000.0,
+          "real": 2533205.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 1850000.0,
+          "capital_real": 2533205.0
         },
         {
           "fy": 2018,
-          "nominal": 1501500.0,
-          "real": 1990088.0
+          "nominal": 3000000.0,
+          "real": 3976200.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 3000000.0,
+          "capital_real": 3976200.0
         },
         {
           "fy": 2020,
           "nominal": 9000000.0,
-          "real": 11270700.0
+          "real": 11270700.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 9000000.0,
+          "capital_real": 11270700.0
         },
         {
           "fy": 2022,
-          "nominal": 2500000.0,
-          "real": 2883750.0
+          "nominal": 5000000.0,
+          "real": 5767500.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 5000000.0,
+          "capital_real": 5767500.0
         },
         {
           "fy": 2024,
-          "nominal": 11010500.0,
-          "real": 11655715.0
+          "nominal": 22000000.0,
+          "real": 23289200.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 22000000.0,
+          "capital_real": 23289200.0
         },
         {
           "fy": 2026,
-          "nominal": 10002000.0,
-          "real": 10002000.0
+          "nominal": 10000000.0,
+          "real": 10000000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 10000000.0,
+          "capital_real": 10000000.0
         }
       ]
     },
@@ -1569,99 +2564,66 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 552550.0,
-          "real": 774344.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 2000.0,
-          "real": 2739.0
+          "nominal": 1100000.0,
+          "real": 1541540.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 1100000.0,
+          "capital_real": 1541540.0
         },
         {
           "fy": 2020,
           "nominal": 15240000.0,
-          "real": 19085052.0
+          "real": 19085052.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 15240000.0,
+          "capital_real": 19085052.0
         },
         {
           "fy": 2021,
           "nominal": 1560000.0,
-          "real": 1901484.0
+          "real": 1901484.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 1560000.0,
+          "capital_real": 1901484.0
         },
         {
           "fy": 2022,
-          "nominal": 18000000.0,
-          "real": 20763000.0
-        },
-        {
-          "fy": 2026,
-          "nominal": 7003500.0,
-          "real": 7003500.0
-        }
-      ]
-    },
-    {
-      "dept_code": "GOV",
-      "dept_name": "Office of the Governor",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 4061495.0,
-          "real": 5691779.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 3609054.0,
-          "real": 4941878.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 3462635.0,
-          "real": 4589376.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 3462635.0,
-          "real": 4437367.0
-        },
-        {
-          "fy": 2020,
-          "nominal": 3613903.0,
-          "real": 4525691.0
-        },
-        {
-          "fy": 2021,
-          "nominal": 3613903.0,
-          "real": 4404986.0
-        },
-        {
-          "fy": 2022,
-          "nominal": 3551536.0,
-          "real": 4096697.0
+          "nominal": 36000000.0,
+          "real": 41526000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 36000000.0,
+          "capital_real": 41526000.0
         },
         {
           "fy": 2023,
-          "nominal": 3551536.0,
-          "real": 3887156.0
-        },
-        {
-          "fy": 2024,
-          "nominal": 5341153.0,
-          "real": 5654145.0
+          "nominal": 11800000.0,
+          "real": 12915100.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 11800000.0,
+          "capital_real": 12915100.0
         },
         {
           "fy": 2025,
-          "nominal": 5426774.0,
-          "real": 5565157.0
+          "nominal": 4000000.0,
+          "real": 4102000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 4000000.0,
+          "capital_real": 4102000.0
         },
         {
           "fy": 2026,
-          "nominal": 4701872.0,
-          "real": 4701872.0
-        },
-        {
-          "fy": 2027,
-          "nominal": 4551872.0,
-          "real": 4416681.0
+          "nominal": 7000000.0,
+          "real": 7000000.0,
+          "operating_nominal": 0.0,
+          "operating_real": 0.0,
+          "capital_nominal": 7000000.0,
+          "capital_real": 7000000.0
         }
       ]
     },
@@ -1672,37 +2634,179 @@
         {
           "fy": 2016,
           "nominal": 4490244.0,
-          "real": 6292628.0
+          "real": 6292628.0,
+          "operating_nominal": 4490244.0,
+          "operating_real": 6292628.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 4490244.0,
-          "real": 6148491.0
+          "nominal": 6990244.0,
+          "real": 9571741.0,
+          "operating_nominal": 6990244.0,
+          "operating_real": 9571741.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 942000.0,
-          "real": 1248527.0
+          "nominal": 1884000.0,
+          "real": 2497054.0,
+          "operating_nominal": 1884000.0,
+          "operating_real": 2497054.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 942000.0,
-          "real": 1207173.0
+          "nominal": 1884000.0,
+          "real": 2414346.0,
+          "operating_nominal": 1884000.0,
+          "operating_real": 2414346.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 942000.0,
-          "real": 1179667.0
+          "real": 1179667.0,
+          "operating_nominal": 942000.0,
+          "operating_real": 1179667.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 942000.0,
-          "real": 1148204.0
+          "real": 1148204.0,
+          "operating_nominal": 942000.0,
+          "operating_real": 1148204.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 2900000.0,
-          "real": 3345150.0
+          "nominal": 5800000.0,
+          "real": 6690300.0,
+          "operating_nominal": 5800000.0,
+          "operating_real": 6690300.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        }
+      ]
+    },
+    {
+      "dept_code": "GOV",
+      "dept_name": "Office of the Governor",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 7811640.0,
+          "real": 10947232.0,
+          "operating_nominal": 7809640.0,
+          "operating_real": 10944429.0,
+          "capital_nominal": 2000.0,
+          "capital_real": 2803.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 7426758.0,
+          "real": 10169460.0,
+          "operating_nominal": 7424758.0,
+          "operating_real": 10166721.0,
+          "capital_nominal": 2000.0,
+          "capital_real": 2739.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 6925270.0,
+          "real": 9178753.0,
+          "operating_nominal": 6925270.0,
+          "operating_real": 9178753.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 6925270.0,
+          "real": 8874734.0,
+          "operating_nominal": 6925270.0,
+          "operating_real": 8874734.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 3613903.0,
+          "real": 4525691.0,
+          "operating_nominal": 3613903.0,
+          "operating_real": 4525691.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 3613903.0,
+          "real": 4404986.0,
+          "operating_nominal": 3613903.0,
+          "operating_real": 4404986.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 7103072.0,
+          "real": 8193394.0,
+          "operating_nominal": 7101072.0,
+          "operating_real": 8191087.0,
+          "capital_nominal": 2000.0,
+          "capital_real": 2307.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 7434501.0,
+          "real": 8137061.0,
+          "operating_nominal": 7432501.0,
+          "operating_real": 8134872.0,
+          "capital_nominal": 2000.0,
+          "capital_real": 2189.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 10682306.0,
+          "real": 11308289.0,
+          "operating_nominal": 10682306.0,
+          "operating_real": 11308289.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 10853548.0,
+          "real": 11130313.0,
+          "operating_nominal": 10853548.0,
+          "operating_real": 11130313.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 4701872.0,
+          "real": 4701872.0,
+          "operating_nominal": 4701872.0,
+          "operating_real": 4701872.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 4551872.0,
+          "real": 4416681.0,
+          "operating_nominal": 4551872.0,
+          "operating_real": 4416681.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     },
@@ -1712,193 +2816,111 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 1596179.0,
-          "real": 2236885.0
+          "nominal": 3192358.0,
+          "real": 4473771.0,
+          "operating_nominal": 3192358.0,
+          "operating_real": 4473771.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2017,
-          "nominal": 1626296.0,
-          "real": 2226887.0
+          "nominal": 2707999.0,
+          "real": 3708063.0,
+          "operating_nominal": 2707999.0,
+          "operating_real": 3708063.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2018,
-          "nominal": 1061626.0,
-          "real": 1407079.0
+          "nominal": 2123252.0,
+          "real": 2814158.0,
+          "operating_nominal": 2123252.0,
+          "operating_real": 2814158.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2019,
-          "nominal": 1061626.0,
-          "real": 1360474.0
+          "nominal": 2002192.0,
+          "real": 2565809.0,
+          "operating_nominal": 2002192.0,
+          "operating_real": 2565809.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2020,
           "nominal": 977555.0,
-          "real": 1224192.0
+          "real": 1224192.0,
+          "operating_nominal": 977555.0,
+          "operating_real": 1224192.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2021,
           "nominal": 977555.0,
-          "real": 1191542.0
+          "real": 1191542.0,
+          "operating_nominal": 977555.0,
+          "operating_real": 1191542.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2022,
-          "nominal": 955793.0,
-          "real": 1102507.0
+          "nominal": 1911586.0,
+          "real": 2205014.0,
+          "operating_nominal": 1911586.0,
+          "operating_real": 2205014.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2023,
-          "nominal": 955793.0,
-          "real": 1046115.0
+          "nominal": 1938586.0,
+          "real": 2121782.0,
+          "operating_nominal": 1938586.0,
+          "operating_real": 2121782.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2024,
-          "nominal": 2619967.0,
-          "real": 2773497.0
+          "nominal": 4939934.0,
+          "real": 5229414.0,
+          "operating_nominal": 4939934.0,
+          "operating_real": 5229414.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2025,
-          "nominal": 2665231.0,
-          "real": 2733194.0
+          "nominal": 5342462.0,
+          "real": 5478695.0,
+          "operating_nominal": 5342462.0,
+          "operating_real": 5478695.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2026,
           "nominal": 2563665.0,
-          "real": 2563665.0
+          "real": 2563665.0,
+          "operating_nominal": 2563665.0,
+          "operating_real": 2563665.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         },
         {
           "fy": 2027,
           "nominal": 2563665.0,
-          "real": 2487524.0
-        }
-      ]
-    },
-    {
-      "dept_code": "CONSTRUCTION",
-      "dept_name": "CONSTRUCTION",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 1677420.0,
-          "real": 2350736.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 283914.0,
-          "real": 388763.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 2368886.0,
-          "real": 3139722.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 161045.0,
-          "real": 206379.0
-        }
-      ]
-    },
-    {
-      "dept_code": "DESIGN",
-      "dept_name": "DESIGN",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 153756.0,
-          "real": 215474.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 13406.0,
-          "real": 18357.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 241937.0,
-          "real": 320663.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 29700.0,
-          "real": 38061.0
-        }
-      ]
-    },
-    {
-      "dept_code": "PLANS",
-      "dept_name": "PLANS",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 30670.0,
-          "real": 42981.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 22998.0,
-          "real": 31491.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 66347.0,
-          "real": 87936.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 27619.0,
-          "real": 35394.0
-        }
-      ]
-    },
-    {
-      "dept_code": "EQUIPMENT",
-      "dept_name": "EQUIPMENT",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 8074.0,
-          "real": 11315.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 476.0,
-          "real": 652.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 13091.0,
-          "real": 17351.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 3917.0,
-          "real": 5020.0
-        }
-      ]
-    },
-    {
-      "dept_code": "LAND",
-      "dept_name": "LAND",
-      "series": [
-        {
-          "fy": 2016,
-          "nominal": 56154.0,
-          "real": 78694.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 2005.0,
-          "real": 2745.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 81428.0,
-          "real": 107925.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 105.0,
-          "real": 135.0
+          "real": 2487524.0,
+          "operating_nominal": 2563665.0,
+          "operating_real": 2487524.0,
+          "capital_nominal": 0.0,
+          "capital_real": 0.0
         }
       ]
     }
@@ -1909,23 +2931,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 6614005465.0,
-          "real": 9268867259.0
+          "nominal": 13185502918.0,
+          "real": 18478163789.0
         },
         {
           "fy": 2017,
-          "nominal": 6864299492.0,
-          "real": 9399285294.0
+          "nominal": 13836402696.0,
+          "real": 18946186212.0
         },
         {
           "fy": 2018,
-          "nominal": 7258942770.0,
-          "real": 9621002747.0
+          "nominal": 14517864586.0,
+          "real": 19241977722.0
         },
         {
           "fy": 2019,
-          "nominal": 7432391405.0,
-          "real": 9524609586.0
+          "nominal": 14944666208.0,
+          "real": 19151589746.0
         },
         {
           "fy": 2020,
@@ -1939,23 +2961,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 7424917404.0,
-          "real": 8564642226.0
+          "nominal": 14812658975.0,
+          "real": 17086402128.0
         },
         {
           "fy": 2023,
-          "nominal": 7501192761.0,
-          "real": 8210055477.0
+          "nominal": 16187880023.0,
+          "real": 17717634685.0
         },
         {
           "fy": 2024,
-          "nominal": 11675872812.0,
-          "real": 12360078959.0
+          "nominal": 22716810755.0,
+          "real": 24048015865.0
         },
         {
           "fy": 2025,
-          "nominal": 10684085530.0,
-          "real": 10956529711.0
+          "nominal": 21097655764.0,
+          "real": 21635645986.0
         },
         {
           "fy": 2026,
@@ -1974,23 +2996,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 3199404202.0,
-          "real": 4483645049.0
+          "nominal": 6109732996.0,
+          "real": 8562179821.0
         },
         {
           "fy": 2017,
-          "nominal": 3200461100.0,
-          "real": 4382391384.0
+          "nominal": 6064562422.0,
+          "real": 8304205324.0
         },
         {
           "fy": 2018,
-          "nominal": 2909328942.0,
-          "real": 3856024580.0
+          "nominal": 5100749372.0,
+          "real": 6760533218.0
         },
         {
           "fy": 2019,
-          "nominal": 2936431647.0,
-          "real": 3763037156.0
+          "nominal": 5920539537.0,
+          "real": 7587171417.0
         },
         {
           "fy": 2020,
@@ -2004,33 +3026,33 @@
         },
         {
           "fy": 2022,
-          "nominal": 3221763173.0,
-          "real": 3716303820.0
+          "nominal": 5523376436.0,
+          "real": 6371214719.0
         },
         {
           "fy": 2023,
-          "nominal": 3293363848.0,
-          "real": 3604586732.0
+          "nominal": 6731225343.0,
+          "real": 7367326138.0
         },
         {
           "fy": 2024,
-          "nominal": 3594447185.0,
-          "real": 3805081790.0
+          "nominal": 6325622369.0,
+          "real": 6696303840.0
         },
         {
           "fy": 2025,
-          "nominal": 3642800271.0,
-          "real": 3735691678.0
+          "nominal": 7465337116.0,
+          "real": 7655703212.0
         },
         {
           "fy": 2026,
-          "nominal": 4386836030.0,
-          "real": 4386836030.0
+          "nominal": 4386749113.0,
+          "real": 4386749113.0
         },
         {
           "fy": 2027,
-          "nominal": 4306002942.0,
-          "real": 4178114655.0
+          "nominal": 4305823651.0,
+          "real": 4177940689.0
         }
       ]
     },
@@ -2039,23 +3061,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 2554632723.0,
-          "real": 3580062298.0
+          "nominal": 3301258553.0,
+          "real": 4626383736.0
         },
         {
           "fy": 2017,
-          "nominal": 2714481604.0,
-          "real": 3716939660.0
+          "nominal": 5654263115.0,
+          "real": 7742382483.0
         },
         {
           "fy": 2018,
-          "nominal": 3128868445.0,
-          "real": 4147002237.0
+          "nominal": 5737974597.0,
+          "real": 7605111531.0
         },
         {
           "fy": 2019,
-          "nominal": 3038008291.0,
-          "real": 3893207625.0
+          "nominal": 6448086303.0,
+          "real": 8263222597.0
         },
         {
           "fy": 2020,
@@ -2069,23 +3091,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 3154471715.0,
-          "real": 3638683123.0
+          "nominal": 3739350125.0,
+          "real": 4313340369.0
         },
         {
           "fy": 2023,
-          "nominal": 3104972956.0,
-          "real": 3398392900.0
+          "nominal": 7427539312.0,
+          "real": 8129441777.0
         },
         {
           "fy": 2024,
-          "nominal": 3617883400.0,
-          "real": 3829891367.0
+          "nominal": 4510482239.0,
+          "real": 4774796498.0
         },
         {
           "fy": 2025,
-          "nominal": 3484984089.0,
-          "real": 3573851183.0
+          "nominal": 8079294693.0,
+          "real": 8285316708.0
         },
         {
           "fy": 2026,
@@ -2104,23 +3126,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 676403138.0,
-          "real": 947911358.0
+          "nominal": 1316032000.0,
+          "real": 1844287245.0
         },
         {
           "fy": 2017,
-          "nominal": 281186455.0,
-          "real": 385028613.0
+          "nominal": 1268262000.0,
+          "real": 1736631157.0
         },
         {
           "fy": 2018,
-          "nominal": 795318196.0,
-          "real": 1054114737.0
+          "nominal": 1589074000.0,
+          "real": 2106158680.0
         },
         {
           "fy": 2019,
-          "nominal": 270966045.0,
-          "real": 347242987.0
+          "nominal": 1128606000.0,
+          "real": 1446308589.0
         },
         {
           "fy": 2020,
@@ -2134,33 +3156,33 @@
         },
         {
           "fy": 2022,
-          "nominal": 343885000.0,
-          "real": 396671348.0
+          "nominal": 687770000.0,
+          "real": 793342695.0
         },
         {
           "fy": 2023,
-          "nominal": 430211000.0,
-          "real": 470865940.0
+          "nominal": 1443132000.0,
+          "real": 1579507974.0
         },
         {
           "fy": 2024,
-          "nominal": 1009782685.0,
-          "real": 1068955950.0
+          "nominal": 2017838000.0,
+          "real": 2136083307.0
         },
         {
           "fy": 2025,
-          "nominal": 343363509.0,
-          "real": 352119278.0
+          "nominal": 1802303000.0,
+          "real": 1848261727.0
         },
         {
           "fy": 2026,
-          "nominal": 755597702.0,
-          "real": 755597702.0
+          "nominal": 755024000.0,
+          "real": 755024000.0
         },
         {
           "fy": 2027,
-          "nominal": 992646866.0,
-          "real": 963165254.0
+          "nominal": 991790000.0,
+          "real": 962333837.0
         }
       ]
     },
@@ -2169,23 +3191,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 448516011.0,
-          "real": 628550338.0
+          "nominal": 634701672.0,
+          "real": 889470923.0
         },
         {
           "fy": 2017,
-          "nominal": 446565221.0,
-          "real": 611481757.0
+          "nominal": 888618004.0,
+          "real": 1216784633.0
         },
         {
           "fy": 2018,
-          "nominal": 444667505.0,
-          "real": 589362311.0
+          "nominal": 868839510.0,
+          "real": 1151559887.0
         },
         {
           "fy": 2019,
-          "nominal": 446796181.0,
-          "real": 572569306.0
+          "nominal": 892802011.0,
+          "real": 1144125777.0
         },
         {
           "fy": 2020,
@@ -2199,23 +3221,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 511441034.0,
-          "real": 589947233.0
+          "nominal": 957398231.0,
+          "real": 1104358859.0
         },
         {
           "fy": 2023,
-          "nominal": 511607962.0,
-          "real": 559954914.0
+          "nominal": 1065704531.0,
+          "real": 1166413609.0
         },
         {
           "fy": 2024,
-          "nominal": 561220607.0,
-          "real": 594108135.0
+          "nominal": 826075961.0,
+          "real": 874484012.0
         },
         {
           "fy": 2025,
-          "nominal": 557925299.0,
-          "real": 572152394.0
+          "nominal": 1117987419.0,
+          "real": 1146496098.0
         },
         {
           "fy": 2026,
@@ -2230,67 +3252,17 @@
       ]
     },
     {
-      "fund_category": "General Obligation Bond Fund",
+      "fund_category": "American Rescue Plan Funds",
       "series": [
         {
-          "fy": 2016,
-          "nominal": 719744648.0,
-          "real": 1008650150.0
-        },
-        {
-          "fy": 2017,
-          "nominal": 246792876.0,
-          "real": 337933485.0
-        },
-        {
-          "fy": 2018,
-          "nominal": 1031751840.0,
-          "real": 1367483889.0
-        },
-        {
-          "fy": 2019,
-          "nominal": 49709030.0,
-          "real": 63702122.0
-        },
-        {
-          "fy": 2020,
-          "nominal": 1018811000.0,
-          "real": 1275857015.0
-        },
-        {
-          "fy": 2021,
-          "nominal": 439275000.0,
-          "real": 535432298.0
-        },
-        {
           "fy": 2022,
-          "nominal": 984796000.0,
-          "real": 1135962186.0
+          "nominal": 1240715231.0,
+          "real": 1431165019.0
         },
         {
           "fy": 2023,
-          "nominal": 294105000.0,
-          "real": 321897922.0
-        },
-        {
-          "fy": 2024,
-          "nominal": 888324954.0,
-          "real": 940380796.0
-        },
-        {
-          "fy": 2025,
-          "nominal": 339218880.0,
-          "real": 347868961.0
-        },
-        {
-          "fy": 2026,
-          "nominal": 1462868438.0,
-          "real": 1462868438.0
-        },
-        {
-          "fy": 2027,
-          "nominal": 456727397.0,
-          "real": 443162593.0
+          "nominal": 559389702.0,
+          "real": 612252029.0
         }
       ]
     },
@@ -2299,23 +3271,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 142040426.0,
-          "real": 199055453.0
+          "nominal": 263563578.0,
+          "real": 369357998.0
         },
         {
           "fy": 2017,
-          "nominal": 148983446.0,
-          "real": 204003033.0
+          "nominal": 679700038.0,
+          "real": 930713262.0
         },
         {
           "fy": 2018,
-          "nominal": 431780888.0,
-          "real": 572282389.0
+          "nominal": 863561776.0,
+          "real": 1144564778.0
         },
         {
           "fy": 2019,
-          "nominal": 433263524.0,
-          "real": 555227206.0
+          "nominal": 874687048.0,
+          "real": 1120911452.0
         },
         {
           "fy": 2020,
@@ -2329,23 +3301,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 433944641.0,
-          "real": 500555143.0
+          "nominal": 502219492.0,
+          "real": 579310184.0
         },
         {
           "fy": 2023,
-          "nominal": 433944641.0,
-          "real": 474952410.0
+          "nominal": 1199801604.0,
+          "real": 1313182856.0
         },
         {
           "fy": 2024,
-          "nominal": 476371973.0,
-          "real": 504287371.0
+          "nominal": 937927910.0,
+          "real": 992890486.0
         },
         {
           "fy": 2025,
-          "nominal": 423675825.0,
-          "real": 434479559.0
+          "nominal": 851745084.0,
+          "real": 873464584.0
         },
         {
           "fy": 2026,
@@ -2360,27 +3332,92 @@
       ]
     },
     {
+      "fund_category": "General Obligation Bond Fund",
+      "series": [
+        {
+          "fy": 2016,
+          "nominal": 1276134000.0,
+          "real": 1788374188.0
+        },
+        {
+          "fy": 2017,
+          "nominal": 1306941000.0,
+          "real": 1789594311.0
+        },
+        {
+          "fy": 2018,
+          "nominal": 2055902000.0,
+          "real": 2724892511.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 804899000.0,
+          "real": 1031478069.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 1018811000.0,
+          "real": 1275857015.0
+        },
+        {
+          "fy": 2021,
+          "nominal": 439275000.0,
+          "real": 535432298.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 1950620000.0,
+          "real": 2250040170.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 1863886000.0,
+          "real": 2040023227.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 1761974000.0,
+          "real": 1865225676.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 1740930000.0,
+          "real": 1785323715.0
+        },
+        {
+          "fy": 2026,
+          "nominal": 1428063000.0,
+          "real": 1428063000.0
+        },
+        {
+          "fy": 2027,
+          "nominal": 423022000.0,
+          "real": 410458247.0
+        }
+      ]
+    },
+    {
       "fund_category": "Other Federal Funds",
       "series": [
         {
           "fy": 2016,
-          "nominal": 192167781.0,
-          "real": 269303928.0
+          "nominal": 251872337.0,
+          "real": 352973893.0
         },
         {
           "fy": 2017,
-          "nominal": 188732116.0,
-          "real": 258430886.0
+          "nominal": 462700819.0,
+          "real": 633576231.0
         },
         {
           "fy": 2018,
-          "nominal": 249742738.0,
-          "real": 331009025.0
+          "nominal": 314919237.0,
+          "real": 417393957.0
         },
         {
           "fy": 2019,
-          "nominal": 238227940.0,
-          "real": 305289105.0
+          "nominal": 451884392.0,
+          "real": 579089848.0
         },
         {
           "fy": 2020,
@@ -2394,23 +3431,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 223816643.0,
-          "real": 258172498.0
+          "nominal": 292378923.0,
+          "real": 337259088.0
         },
         {
           "fy": 2023,
-          "nominal": 204818370.0,
-          "real": 224173706.0
+          "nominal": 528518009.0,
+          "real": 578462961.0
         },
         {
           "fy": 2024,
-          "nominal": 475528341.0,
-          "real": 503394302.0
+          "nominal": 778747229.0,
+          "real": 824381817.0
         },
         {
           "fy": 2025,
-          "nominal": 516198118.0,
-          "real": 529361170.0
+          "nominal": 1110442311.0,
+          "real": 1138758590.0
         },
         {
           "fy": 2026,
@@ -2425,42 +3462,27 @@
       ]
     },
     {
-      "fund_category": "American Rescue Plan Funds",
-      "series": [
-        {
-          "fy": 2022,
-          "nominal": 1144124939.0,
-          "real": 1319748117.0
-        },
-        {
-          "fy": 2023,
-          "nominal": 286935756.0,
-          "real": 314051185.0
-        }
-      ]
-    },
-    {
       "fund_category": "Interdepartmental Transfers",
       "series": [
         {
           "fy": 2016,
-          "nominal": 87333736.0,
-          "real": 122389498.0
+          "nominal": 160181809.0,
+          "real": 224478787.0
         },
         {
           "fy": 2017,
-          "nominal": 87320264.0,
-          "real": 119567637.0
+          "nominal": 184559221.0,
+          "real": 252716941.0
         },
         {
           "fy": 2018,
-          "nominal": 102080623.0,
-          "real": 135297658.0
+          "nominal": 160590454.0,
+          "real": 212846588.0
         },
         {
           "fy": 2019,
-          "nominal": 102100099.0,
-          "real": 130841277.0
+          "nominal": 181732412.0,
+          "real": 232890086.0
         },
         {
           "fy": 2020,
@@ -2474,23 +3496,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 79165797.0,
-          "real": 91317747.0
+          "nominal": 137134005.0,
+          "real": 158184075.0
         },
         {
           "fy": 2023,
-          "nominal": 79165797.0,
-          "real": 86646965.0
+          "nominal": 161609285.0,
+          "real": 176881362.0
         },
         {
           "fy": 2024,
-          "nominal": 84561595.0,
-          "real": 89516904.0
+          "nominal": 142813533.0,
+          "real": 151182406.0
         },
         {
           "fy": 2025,
-          "nominal": 91564699.0,
-          "real": 93899599.0
+          "nominal": 205179153.0,
+          "real": 210411221.0
         },
         {
           "fy": 2026,
@@ -2505,27 +3527,67 @@
       ]
     },
     {
+      "fund_category": "General Obligation Bond Fund with Debt Service Cost to be Paid from Special Funds",
+      "series": [
+        {
+          "fy": 2017,
+          "nominal": 6200000.0,
+          "real": 8489660.0
+        },
+        {
+          "fy": 2019,
+          "nominal": 4900000.0,
+          "real": 6279350.0
+        },
+        {
+          "fy": 2020,
+          "nominal": 4000000.0,
+          "real": 5009200.0
+        },
+        {
+          "fy": 2022,
+          "nominal": 12600000.0,
+          "real": 14534100.0
+        },
+        {
+          "fy": 2023,
+          "nominal": 80000000.0,
+          "real": 87560000.0
+        },
+        {
+          "fy": 2024,
+          "nominal": 19800000.0,
+          "real": 20960280.0
+        },
+        {
+          "fy": 2025,
+          "nominal": 68920000.0,
+          "real": 70677460.0
+        }
+      ]
+    },
+    {
       "fund_category": "County Funds",
       "series": [
         {
           "fy": 2016,
-          "nominal": 2209721.0,
-          "real": 3096703.0
+          "nominal": 4419442.0,
+          "real": 6193406.0
         },
         {
           "fy": 2017,
-          "nominal": 209721.0,
-          "real": 287171.0
+          "nominal": 6419442.0,
+          "real": 8790142.0
         },
         {
           "fy": 2018,
-          "nominal": 3209721.0,
-          "real": 4254164.0
+          "nominal": 6419442.0,
+          "real": 8508328.0
         },
         {
           "fy": 2019,
-          "nominal": 2209721.0,
-          "real": 2831757.0
+          "nominal": 6419442.0,
+          "real": 8226515.0
         },
         {
           "fy": 2020,
@@ -2539,23 +3601,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 24187802.0,
-          "real": 27900630.0
+          "nominal": 44675604.0,
+          "real": 51533309.0
         },
         {
           "fy": 2023,
-          "nominal": 22937802.0,
-          "real": 25105424.0
+          "nominal": 51875604.0,
+          "real": 56777849.0
         },
         {
           "fy": 2024,
-          "nominal": 40984721.0,
-          "real": 43386426.0
+          "nominal": 81759721.0,
+          "real": 86550841.0
         },
         {
           "fy": 2025,
-          "nominal": 209721.0,
-          "real": 215069.0
+          "nominal": 11159721.0,
+          "real": 11444294.0
         },
         {
           "fy": 2026,
@@ -2569,23 +3631,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 433067.0,
-          "real": 606900.0
+          "nominal": 866134.0,
+          "real": 1213800.0
         },
         {
           "fy": 2017,
-          "nominal": 2183067.0,
-          "real": 2989274.0
+          "nominal": 9125134.0,
+          "real": 12495046.0
         },
         {
           "fy": 2018,
-          "nominal": 5738352.0,
-          "real": 7605612.0
+          "nominal": 11476704.0,
+          "real": 15211223.0
         },
         {
           "fy": 2019,
-          "nominal": 10398510.0,
-          "real": 13325691.0
+          "nominal": 27450020.0,
+          "real": 35177201.0
         },
         {
           "fy": 2020,
@@ -2599,23 +3661,23 @@
         },
         {
           "fy": 2022,
-          "nominal": 935067.0,
-          "real": 1078600.0
+          "nominal": 1870134.0,
+          "real": 2157200.0
         },
         {
           "fy": 2023,
-          "nominal": 5935067.0,
-          "real": 6495931.0
+          "nominal": 16370134.0,
+          "real": 17917112.0
         },
         {
           "fy": 2024,
-          "nominal": 923067.0,
-          "real": 977159.0
+          "nominal": 1846134.0,
+          "real": 1954317.0
         },
         {
           "fy": 2025,
-          "nominal": 931067.0,
-          "real": 954809.0
+          "nominal": 1862134.0,
+          "real": 1909618.0
         },
         {
           "fy": 2026,
@@ -2634,23 +3696,23 @@
       "series": [
         {
           "fy": 2016,
-          "nominal": 29219314.0,
-          "real": 40947947.0
+          "nominal": 26278628.0,
+          "real": 36826869.0
         },
         {
           "fy": 2017,
-          "nominal": 29673249.0,
-          "real": 40631580.0
+          "nominal": 34136498.0,
+          "real": 46743107.0
         },
         {
           "fy": 2018,
-          "nominal": 36611807.0,
-          "real": 48525289.0
+          "nominal": 73209214.0,
+          "real": 97031492.0
         },
         {
           "fy": 2019,
-          "nominal": 44070718.0,
-          "real": 56476625.0
+          "nominal": 143205596.0,
+          "real": 183517971.0
         },
         {
           "fy": 2020,
@@ -2664,58 +3726,33 @@
         },
         {
           "fy": 2022,
-          "nominal": 77531519.0,
-          "real": 89432607.0
+          "nominal": 155063038.0,
+          "real": 178865214.0
         },
         {
           "fy": 2023,
-          "nominal": 19175519.0,
-          "real": 20987606.0
+          "nominal": 39435009.0,
+          "real": 43161617.0
         },
         {
           "fy": 2024,
-          "nominal": 85972825.0,
-          "real": 91010833.0
+          "nominal": 171817650.0,
+          "real": 181886164.0
         },
         {
           "fy": 2025,
-          "nominal": 21373288.0,
-          "real": 21918307.0
+          "nominal": 74452576.0,
+          "real": 76351117.0
         },
         {
           "fy": 2026,
-          "nominal": 332274357.0,
-          "real": 332274357.0
+          "nominal": 331973357.0,
+          "real": 331973357.0
         },
         {
           "fy": 2027,
           "nominal": 25927960.0,
           "real": 25157900.0
-        }
-      ]
-    },
-    {
-      "fund_category": "General Obligation Bond Fund with Debt Service Cost to be Paid from Special Funds",
-      "series": [
-        {
-          "fy": 2020,
-          "nominal": 4000000.0,
-          "real": 5009200.0
-        },
-        {
-          "fy": 2022,
-          "nominal": 7300000.0,
-          "real": 8420550.0
-        },
-        {
-          "fy": 2023,
-          "nominal": 2500000.0,
-          "real": 2736250.0
-        },
-        {
-          "fy": 2024,
-          "nominal": 9909900.0,
-          "real": 10490620.0
         }
       ]
     }

@@ -108,24 +108,56 @@ def build_totals_by_fy(df: pd.DataFrame, deflators: dict[str, float]) -> list[di
 
 
 def build_by_department(df: pd.DataFrame, deflators: dict[str, float]) -> list[dict]:
-    """For each department, total appropriation per FY (nominal + real)."""
+    """For each department × FY, total appropriation plus the operating/
+    capital split.  The split lets the SPA stack op + cap on the
+    per-department history chart instead of showing only the combined
+    total line.
+
+    Rows in the source CSV carry a ``section`` column with values
+    "Operating" or "Capital Improvement" (the parser drops anything
+    else).  We pivot on that.
+    """
     out: list[dict] = []
+    # Pivot department × fiscal_year × section  →  amount.
     by_dept = (
-        df.groupby(["department_code", "fiscal_year"])["amount"]
+        df.groupby(["department_code", "fiscal_year", "section"])["amount"]
         .sum()
+        .unstack("section", fill_value=0.0)
         .reset_index()
     )
+    # Normalize column names — older pandas can leave the columns index
+    # named "section" and we rename the two sections to friendly keys.
+    by_dept.columns.name = None
+    by_dept = by_dept.rename(columns={
+        "Operating": "operating",
+        "Capital Improvement": "capital",
+    })
+    if "operating" not in by_dept.columns:
+        by_dept["operating"] = 0.0
+    if "capital" not in by_dept.columns:
+        by_dept["capital"] = 0.0
+    by_dept["total"] = by_dept["operating"] + by_dept["capital"]
+
     for dept_code, sub in by_dept.groupby("department_code"):
         dept_name = DEPARTMENT_NAMES.get(dept_code, dept_code)
         series = []
         for _, row in sub.sort_values("fiscal_year").iterrows():
             fy = int(row["fiscal_year"])
-            amt = float(row["amount"])
+            op = float(row["operating"])
+            cap = float(row["capital"])
+            tot = float(row["total"])
             d = float(deflators.get(str(fy), 1.0))
             series.append({
                 "fy": fy,
-                "nominal": round(amt, 0),
-                "real": round(amt * d, 0),
+                # Combined totals — kept for backward compatibility with
+                # any consumer that only reads ``nominal`` / ``real``.
+                "nominal": round(tot, 0),
+                "real": round(tot * d, 0),
+                # Operating / capital split, both nominal and real.
+                "operating_nominal": round(op, 0),
+                "operating_real": round(op * d, 0),
+                "capital_nominal": round(cap, 0),
+                "capital_real": round(cap * d, 0),
             })
         out.append({
             "dept_code": dept_code,
