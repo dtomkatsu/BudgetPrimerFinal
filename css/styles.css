@@ -5005,17 +5005,21 @@ mark.search-highlight {
 [data-dept-bd] {
     cursor: help;
 }
-/* Small amber note below the dept change chip when transfers exist.
-   Shows "→ $49.75M transferred" so the user knows the real-net chip
+/* Small amber badge below the dept change chip when transfers exist.
+   Shows "→ $49.75M reshuffled" so the user knows the real-net chip
    above excludes reshuffled money. */
 .dept-xfer-note {
-    display: block;
-    font-size: 0.69rem;
-    font-weight: 500;
-    color: #8b6914;
-    line-height: 1.2;
-    margin-top: 2px;
+    display: inline-block;
+    margin-top: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #7a5c0a;
+    background: #fef8e7;
+    border: 1px solid #f0d580;
     white-space: nowrap;
+    line-height: 1.5;
 }
 /* Transfer footnote inside the breakdown tooltip net line */
 .dept-bd-net-xfer {

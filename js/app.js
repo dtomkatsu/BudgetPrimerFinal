@@ -3065,9 +3065,9 @@ window.initDraftComparePage = async function () {
             const realDelta = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
             const xferDelta = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
             const deptCls   = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
-            // If there are transfers, show a compact amber note below the chip.
+            // If there are transfers, show a small amber badge below the chip.
             const deptXferNote = xferDelta !== 0
-                ? `<span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} transferred</span>`
+                ? `<div><span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} reshuffled</span></div>`
                 : '';
 
             // Dept-level pairing is now communicated via paired ↔ DEPT chips on
