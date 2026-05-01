@@ -2142,6 +2142,115 @@ function initReasonPopoverHandlers() {
 }
 
 // ---------------------------------------------------------------------------
+// Department Breakdown Hover Card
+// ---------------------------------------------------------------------------
+
+// Build the inner HTML for the dept-level change breakdown card.
+// Groups programs into Transfers / Increases / Reductions; skips unchanged.
+// Pre-computed at render time and stored in data-dept-bd="..." so the card
+// just reads the attribute on mouseenter — no runtime state lookup needed.
+function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) {
+    const fmt = (v) => {
+        const sign = v < 0 ? '−' : v > 0 ? '+' : '';
+        const abs = Math.abs(v);
+        if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+        if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+        if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}K`;
+        return `${sign}$${abs.toLocaleString()}`;
+    };
+
+    const transfers = [], increases = [], reductions = [];
+    for (const p of programs) {
+        if (!p.change) continue;
+        if (p.isTransfer) transfers.push(p);
+        else if (p.change > 0) increases.push(p);
+        else reductions.push(p);
+    }
+
+    // Largest absolute change first in each bucket
+    const byAbs = (a, b) => Math.abs(b.change) - Math.abs(a.change);
+    transfers.sort(byAbs); increases.sort(byAbs); reductions.sort(byAbs);
+
+    const renderRow = (p) => {
+        const cls = p.isTransfer ? 'transferred' : p.change > 0 ? 'positive' : 'negative';
+        const splitMap = splitProgramsMap ? splitProgramsMap.get(p.program_id) : null;
+        const dest = splitMap ? [...splitMap.keys()].filter(d => d !== deptCode) : [];
+        const destStr = dest.length
+            ? (p.change < 0 ? `→ ${dest.join(', ')}` : `← ${dest.join(', ')}`) : '';
+        const rawName = p.program_name || '';
+        const shortName = rawName.length > 38 ? rawName.slice(0, 36) + '…' : rawName;
+        return `<div class="dept-bd-row">
+            <span class="dept-bd-pid">${_escHtml(p.program_id)}</span>
+            <span class="dept-bd-name" title="${_escAttr(rawName)}">${_escHtml(shortName)}</span>
+            <span class="dept-bd-chip ${cls}">${fmt(p.change)}</span>
+            ${destStr ? `<span class="dept-bd-dest">${_escHtml(destStr)}</span>` : ''}
+        </div>`;
+    };
+
+    const renderSection = (label, bucket) => {
+        if (!bucket.length) return '';
+        return `<div class="dept-bd-section-label">${label}</div>` +
+               bucket.map(p => renderRow(p)).join('');
+    };
+
+    let html = `<div class="dept-bd-header">${_escHtml(deptCode)} — ${_escHtml(deptName)}</div>`;
+    html += renderSection('Transferred', transfers);
+    html += renderSection('Increases', increases);
+    html += renderSection('Reductions', reductions);
+
+    if (!transfers.length && !increases.length && !reductions.length) {
+        html += `<div style="color:var(--text-muted);font-size:0.8rem;padding:4px 0">No program-level changes</div>`;
+    }
+
+    const net = programs.reduce((s, p) => s + (p.change || 0), 0);
+    const netCls = net > 0 ? 'positive' : net < 0 ? 'negative' : '';
+    html += `<div class="dept-bd-net">Net <span class="dept-bd-chip ${netCls}">${fmt(net)}</span></div>`;
+
+    return html;
+}
+
+function _ensureDeptBreakdownCard() {
+    let card = document.getElementById('dept-breakdown-card');
+    if (card) return card;
+    card = document.createElement('div');
+    card.id = 'dept-breakdown-card';
+    card.setAttribute('role', 'tooltip');
+    card.style.display = 'none';
+    document.body.appendChild(card);
+    return card;
+}
+
+// One-time wire-up of delegated hover handlers for the dept change cell.
+// Idempotent: a flag on the body prevents double-binding on re-renders.
+// Reuses _positionReasonPopover for consistent above/below placement logic.
+function initDeptBreakdownCardHandlers() {
+    if (document.body.dataset.deptBdBound === '1') return;
+    document.body.dataset.deptBdBound = '1';
+    const card = _ensureDeptBreakdownCard();
+    let lastCell = null;
+
+    document.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('[data-dept-bd]');
+        if (cell) {
+            if (cell !== lastCell) {
+                lastCell = cell;
+                card.innerHTML = cell.getAttribute('data-dept-bd') || '';
+                _positionReasonPopover(card, cell);
+            }
+        } else if (lastCell && !lastCell.contains(e.target)) {
+            card.style.display = 'none';
+            lastCell = null;
+        }
+    });
+    window.addEventListener('scroll', () => {
+        card.style.display = 'none'; lastCell = null;
+    }, { passive: true });
+    window.addEventListener('resize', () => {
+        card.style.display = 'none'; lastCell = null;
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Draft Comparison Page
 // ---------------------------------------------------------------------------
 
@@ -2265,6 +2374,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
 window.initDraftComparePage = async function () {
     initReasonPopoverHandlers();
+    initDeptBreakdownCardHandlers();
     const hasData = (draftComparisonData && draftComparisonData.comparisons) ||
                     (draftComparisonDataFY27 && draftComparisonDataFY27.comparisons);
     if (!hasData) return;
@@ -2950,7 +3060,7 @@ window.initDraftComparePage = async function () {
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
-                <td class="amount-cell ${deptCls}"><span class="figure-chip">${fmtHtml(deptDelta)}</span></td>
+                <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(deptDelta)}</span></td>
             </tr>`;
 
             for (const p of programs) {
