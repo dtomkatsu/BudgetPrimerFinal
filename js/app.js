@@ -2158,6 +2158,13 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
         if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}K`;
         return `${sign}$${abs.toLocaleString()}`;
     };
+    const fmtAbs = (v) => {
+        const a = Math.abs(v);
+        if (a >= 1e9) return `$${(a / 1e9).toFixed(2)}B`;
+        if (a >= 1e6) return `$${(a / 1e6).toFixed(2)}M`;
+        if (a >= 1e3) return `$${Math.round(a / 1e3)}K`;
+        return `$${a.toLocaleString()}`;
+    };
 
     const transfers = [], increases = [], reductions = [];
     for (const p of programs) {
@@ -2166,55 +2173,67 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
         else if (p.change > 0) increases.push(p);
         else reductions.push(p);
     }
-
-    // Largest absolute change first in each bucket
     const byAbs = (a, b) => Math.abs(b.change) - Math.abs(a.change);
     transfers.sort(byAbs); increases.sort(byAbs); reductions.sort(byAbs);
 
-    const renderRow = (p) => {
-        const cls = p.isTransfer ? 'transferred' : p.change > 0 ? 'positive' : 'negative';
+    // Single row: PID chip · name · amount (right-rail, tabular) · destination
+    const renderRow = (p, cls) => {
         const splitMap = splitProgramsMap ? splitProgramsMap.get(p.program_id) : null;
         const dest = splitMap ? [...splitMap.keys()].filter(d => d !== deptCode) : [];
         const destStr = dest.length
             ? (p.change < 0 ? `→ ${dest.join(', ')}` : `← ${dest.join(', ')}`) : '';
         const rawName = p.program_name || '';
-        const shortName = rawName.length > 38 ? rawName.slice(0, 36) + '…' : rawName;
+        const shortName = rawName.length > 40 ? rawName.slice(0, 38) + '…' : rawName;
         return `<div class="dept-bd-row">
             <span class="dept-bd-pid">${_escHtml(p.program_id)}</span>
             <span class="dept-bd-name" title="${_escAttr(rawName)}">${_escHtml(shortName)}</span>
-            <span class="dept-bd-chip ${cls}">${fmt(p.change)}</span>
-            ${destStr ? `<span class="dept-bd-dest">${_escHtml(destStr)}</span>` : ''}
+            <span class="dept-bd-amt ${cls}">${fmt(p.change)}</span>
+            ${destStr ? `<span class="dept-bd-dest">${_escHtml(destStr)}</span>` : '<span></span>'}
         </div>`;
     };
 
-    const renderSection = (label, bucket) => {
+    // Section: header (icon + label + subtotal) followed by rows
+    const ICONS = { up: '▲', down: '▼', xfer: '⇄' };
+    const renderSection = (label, iconKey, bucket, cls) => {
         if (!bucket.length) return '';
-        return `<div class="dept-bd-section-label">${label}</div>` +
-               bucket.map(p => renderRow(p)).join('');
+        const subtotal = bucket.reduce((s, p) => s + (p.change || 0), 0);
+        const subStr = iconKey === 'xfer' ? `${subtotal < 0 ? '→' : '←'} ${fmtAbs(subtotal)}` : fmt(subtotal);
+        return `<div class="dept-bd-section">
+            <div class="dept-bd-section-head">
+                <span class="dept-bd-section-icon dept-bd-icon-${iconKey}">${ICONS[iconKey]}</span>
+                <span class="dept-bd-section-label">${label}</span>
+                <span class="dept-bd-section-total ${cls}">${subStr}</span>
+            </div>
+            ${bucket.map(p => renderRow(p, cls)).join('')}
+        </div>`;
     };
 
-    let html = `<div class="dept-bd-header">${_escHtml(deptCode)} — ${_escHtml(deptName)}</div>`;
-    html += renderSection('Increases', increases);
-    html += renderSection('Reductions', reductions);
-    html += renderSection('Moved between depts', transfers);
+    // Header: dept chip + dept name
+    let html = `<div class="dept-bd-header">
+        <span class="dept-bd-dept-chip">${_escHtml(deptCode)}</span>
+        <span class="dept-bd-dept-name" title="${_escAttr(deptName)}">${_escHtml(deptName)}</span>
+    </div>`;
 
-    if (!transfers.length && !increases.length && !reductions.length) {
-        html += `<div style="color:var(--text-muted);font-size:0.8rem;padding:4px 0">No program-level changes</div>`;
+    // Body: sections
+    let body = '';
+    body += renderSection('Increases', 'up', increases, 'positive');
+    body += renderSection('Reductions', 'down', reductions, 'negative');
+    body += renderSection('Moved between depts', 'xfer', transfers, 'transferred');
+    if (!body) {
+        body = `<div class="dept-bd-empty">No program-level changes</div>`;
     }
+    html += `<div class="dept-bd-body">${body}</div>`;
 
+    // Sticky footer: real net (excl. transfers) + optional moved-line
     const realNet = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
     const xferNet = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
     const netCls = realNet > 0 ? 'positive' : realNet < 0 ? 'negative' : '';
-    html += `<div class="dept-bd-net">Real net <span class="dept-bd-chip ${netCls}">${fmt(realNet)}</span>`;
+    html += `<div class="dept-bd-net">
+        <span class="dept-bd-net-label">Real net change</span>
+        <span class="dept-bd-net-value ${netCls}">${fmt(realNet)}</span>`;
     if (xferNet !== 0) {
-        const xferFmt = (xferNet < 0 ? '−' : '+') + '$' + (() => {
-            const a = Math.abs(xferNet);
-            if (a >= 1e9) return `${(a/1e9).toFixed(2)}B`;
-            if (a >= 1e6) return `${(a/1e6).toFixed(2)}M`;
-            if (a >= 1e3) return `${Math.round(a/1e3)}K`;
-            return a.toLocaleString();
-        })();
-        html += ` <span class="dept-bd-net-xfer">${xferNet < 0 ? '→' : '←'} ${xferFmt} moved</span>`;
+        const arrow = xferNet < 0 ? '→' : '←';
+        html += `<div class="dept-bd-net-xfer-line">${arrow} ${fmtAbs(xferNet)} moved between depts</div>`;
     }
     html += `</div>`;
 
@@ -2234,31 +2253,64 @@ function _ensureDeptBreakdownCard() {
 
 // One-time wire-up of delegated hover handlers for the dept change cell.
 // Idempotent: a flag on the body prevents double-binding on re-renders.
-// Reuses _positionReasonPopover for consistent above/below placement logic.
+// Card is interactive (no pointer-events: none) so users can scroll its
+// internal contents — that's why hide is delayed and cancelled when the
+// mouse moves into the card itself.
 function initDeptBreakdownCardHandlers() {
     if (document.body.dataset.deptBdBound === '1') return;
     document.body.dataset.deptBdBound = '1';
     const card = _ensureDeptBreakdownCard();
-    let lastCell = null;
+    let activeCell = null;
+    let hideTimer = null;
+
+    const show = (cell) => {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        if (activeCell === cell) return;
+        activeCell = cell;
+        card.innerHTML = cell.getAttribute('data-dept-bd') || '';
+        // Reset scroll position to top whenever a new dept is shown
+        card.scrollTop = 0;
+        _positionReasonPopover(card, cell);
+    };
+    const hideSoon = () => {
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+            card.style.display = 'none';
+            activeCell = null;
+            hideTimer = null;
+        }, 120);
+    };
+    const cancelHide = () => {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    };
 
     document.addEventListener('mouseover', (e) => {
         const cell = e.target.closest('[data-dept-bd]');
         if (cell) {
-            if (cell !== lastCell) {
-                lastCell = cell;
-                card.innerHTML = cell.getAttribute('data-dept-bd') || '';
-                _positionReasonPopover(card, cell);
-            }
-        } else if (lastCell && !lastCell.contains(e.target)) {
-            card.style.display = 'none';
-            lastCell = null;
+            show(cell);
+        } else if (e.target.closest('#dept-breakdown-card')) {
+            cancelHide();
         }
     });
+    document.addEventListener('mouseout', (e) => {
+        const cell = e.target.closest('[data-dept-bd]');
+        const inCard = card.contains(e.relatedTarget);
+        if (cell && !cell.contains(e.relatedTarget) && !inCard) {
+            hideSoon();
+        } else if (e.target.closest('#dept-breakdown-card') &&
+                   !inCard &&
+                   (!activeCell || !activeCell.contains(e.relatedTarget))) {
+            hideSoon();
+        }
+    });
+
+    // Hide on page scroll (but NOT on scroll inside the card — that bubbles
+    // to document via wheel events but doesn't fire window 'scroll').
     window.addEventListener('scroll', () => {
-        card.style.display = 'none'; lastCell = null;
+        if (activeCell) { card.style.display = 'none'; activeCell = null; }
     }, { passive: true });
     window.addEventListener('resize', () => {
-        card.style.display = 'none'; lastCell = null;
+        if (activeCell) { card.style.display = 'none'; activeCell = null; }
     });
 }
 
