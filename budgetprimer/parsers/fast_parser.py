@@ -511,7 +511,16 @@ class FastBudgetParser(BaseBudgetParser):
                 # appropriations for this bill.
                 if raw_line.endswith('"') and len(raw_line) >= 2 and raw_line[-2].isalpha():
                     _candidate = raw_line[:-1]
-                    if re.match(r'^[A-Z]{2,4}\s', _candidate.strip(), re.IGNORECASE):
+                    _stripped = _candidate.strip()
+                    # Strip when the line matches an appropriations/project pattern.
+                    # Two cases:
+                    #   1. "DEPT  amount  fund" rows (existing). e.g. "COK 13,000,000S  S".
+                    #   2. "TOTAL FUNDING DEPT amount fund" rows (Section 14 last item
+                    #      of a quoted section). e.g. SD1 21.2 LIMA OLA's
+                    #      "TOTAL FUNDING SUB  C  3,000 C\"" — the trailing quote
+                    #      ends the quoted Section 14 amendment.
+                    if (re.match(r'^[A-Z]{2,4}\s', _stripped, re.IGNORECASE)
+                            or _stripped.upper().startswith('TOTAL FUNDING')):
                         raw_line = _candidate
                 line = raw_line.strip()
                 if not line:
