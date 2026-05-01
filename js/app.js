@@ -2176,15 +2176,26 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     const byAbs = (a, b) => Math.abs(b.change) - Math.abs(a.change);
     transfers.sort(byAbs); increases.sort(byAbs); reductions.sort(byAbs);
 
-    // Single row: PID chip · name · amount (right-rail, tabular) · destination
+    // Single row: PID chip · name · amount (right-rail, tabular) · destination.
+    // Transfer rows pick up a directional class (`-xfer-out` / `-xfer-in`) so the
+    // CSS can paint a colored left edge — peripheral cue that mirrors the diagonal
+    // arrow in the dest cell (↗ leaving the dept, ↙ arriving from another).
     const renderRow = (p, cls) => {
         const splitMap = splitProgramsMap ? splitProgramsMap.get(p.program_id) : null;
         const dest = splitMap ? [...splitMap.keys()].filter(d => d !== deptCode) : [];
+        const isXfer = !!p.isTransfer;
+        const xferDir = isXfer ? (p.change < 0 ? 'out' : 'in') : '';
+        const destPrefix = xferDir === 'out' ? 'to' : xferDir === 'in' ? 'from' : '';
         const destStr = dest.length
-            ? (p.change < 0 ? `→ ${dest.join(', ')}` : `← ${dest.join(', ')}`) : '';
+            ? `${destPrefix ? destPrefix + ' ' : ''}${dest.join(', ')}`
+            : '';
         const rawName = p.program_name || '';
         const shortName = rawName.length > 40 ? rawName.slice(0, 38) + '…' : rawName;
-        return `<div class="dept-bd-row">
+        const rowCls = xferDir      ? `dept-bd-row dept-bd-row-xfer-${xferDir}`
+                     : cls === 'positive' ? 'dept-bd-row dept-bd-row-pos'
+                     : cls === 'negative' ? 'dept-bd-row dept-bd-row-neg'
+                     : 'dept-bd-row';
+        return `<div class="${rowCls}">
             <span class="dept-bd-pid">${_escHtml(p.program_id)}</span>
             <span class="dept-bd-name" title="${_escAttr(rawName)}">${_escHtml(shortName)}</span>
             <span class="dept-bd-amt ${cls}">${fmt(p.change)}</span>
@@ -2197,7 +2208,11 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     const renderSection = (label, iconKey, bucket, cls) => {
         if (!bucket.length) return '';
         const subtotal = bucket.reduce((s, p) => s + (p.change || 0), 0);
-        const subStr = iconKey === 'xfer' ? `${subtotal < 0 ? '→' : '←'} ${fmtAbs(subtotal)}` : fmt(subtotal);
+        // For transfers, show gross (sum of absolute values) — net is misleading when
+        // both inflows and outflows exist. Direction is shown per-row already.
+        const subStr = iconKey === 'xfer'
+            ? `⇄ ${fmtAbs(bucket.reduce((s, p) => s + Math.abs(p.change || 0), 0))}`
+            : fmt(subtotal);
         return `<div class="dept-bd-section">
             <div class="dept-bd-section-head">
                 <span class="dept-bd-section-icon dept-bd-icon-${iconKey}">${ICONS[iconKey]}</span>
@@ -2224,18 +2239,13 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     }
     html += `<div class="dept-bd-body">${body}</div>`;
 
-    // Sticky footer: real net (excl. transfers) + optional moved-line
+    // Sticky footer: net change (excl. transfers)
     const realNet = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
-    const xferNet = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
     const netCls = realNet > 0 ? 'positive' : realNet < 0 ? 'negative' : '';
     html += `<div class="dept-bd-net">
-        <span class="dept-bd-net-label">Real net change</span>
-        <span class="dept-bd-net-value ${netCls}">${fmt(realNet)}</span>`;
-    if (xferNet !== 0) {
-        const arrow = xferNet < 0 ? '→' : '←';
-        html += `<div class="dept-bd-net-xfer-line">${arrow} ${fmtAbs(xferNet)} moved between depts</div>`;
-    }
-    html += `</div>`;
+        <span class="dept-bd-net-label">Net Change</span>
+        <span class="dept-bd-net-value ${netCls}">${fmt(realNet)}</span>
+    </div>`;
 
     return html;
 }
@@ -3114,12 +3124,16 @@ window.initDraftComparePage = async function () {
 
             // Real net = change excluding cross-dept transfers (those net to $0 across
             // the whole budget — they're reshuffles, not new money or cuts).
-            const realDelta = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
-            const xferDelta = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
-            const deptCls   = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
+            const realDelta  = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
+            const xferDelta  = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
+            // Gross = sum of absolute values of all transfer programs; tells the reader
+            // how much total money was shuffled (net is misleading when inflows + outflows
+            // partially cancel each other).
+            const xferGross  = programs.reduce((s, p) => s + (p.isTransfer ? Math.abs(p.change || 0) : 0), 0);
+            const deptCls    = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
             // If there are transfers, show a small amber badge below the chip.
-            const deptXferNote = xferDelta !== 0
-                ? `<div><span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} moved</span></div>`
+            const deptXferNote = xferGross !== 0
+                ? `<div><span class="dept-xfer-note">⇄ ${_fmtShort(xferGross)} moved</span></div>`
                 : '';
 
             // Dept-level pairing is now communicated via paired ↔ DEPT chips on

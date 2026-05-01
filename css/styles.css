@@ -5028,19 +5028,52 @@ mark.search-highlight {
 .dept-bd-section-total.negative    { color: #b32a2a; }
 .dept-bd-section-total.transferred { color: #b88a14; }
 
-/* Grid row keeps amount column on a fixed rail so digits align vertically */
+/* Grid row keeps amount column on a fixed rail so digits align vertically.
+   Transparent 3px left border by default; transfer rows color it to indicate
+   direction (red-amber for outflow, green-teal for inflow). Border is INSIDE
+   the existing horizontal padding so non-transfer rows don't shift. */
 .dept-bd-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) 96px minmax(0, auto);
     align-items: center;
     column-gap: 9px;
-    padding: 4px 6px;
+    padding: 4px 6px 4px 3px;
     margin: 0 -6px;
+    border-left: 3px solid transparent;
     border-radius: 5px;
     transition: background 0.1s ease;
 }
 .dept-bd-row:hover {
     background: rgba(0, 0, 0, 0.025);
+}
+/* Outflow: money leaving this dept — red-amber edge matches the negative palette. */
+.dept-bd-row-xfer-out {
+    border-left-color: #c2410c;
+    background: linear-gradient(to right, rgba(194, 65, 12, 0.04) 0%, transparent 40%);
+}
+/* Inflow: money arriving from another dept — teal edge matches the positive palette. */
+.dept-bd-row-xfer-in {
+    border-left-color: #0f7a5c;
+    background: linear-gradient(to right, rgba(15, 122, 92, 0.05) 0%, transparent 40%);
+}
+.dept-bd-row-xfer-out:hover,
+.dept-bd-row-xfer-in:hover {
+    /* Preserve the directional tint on hover; just deepen it a touch. */
+    filter: brightness(0.985);
+}
+/* Increase rows — green trim. */
+.dept-bd-row-pos {
+    border-left-color: #1a6b3a;
+    background: linear-gradient(to right, rgba(26, 107, 58, 0.04) 0%, transparent 40%);
+}
+/* Reduction rows — red trim. */
+.dept-bd-row-neg {
+    border-left-color: #8b1a1a;
+    background: linear-gradient(to right, rgba(139, 26, 26, 0.04) 0%, transparent 40%);
+}
+.dept-bd-row-pos:hover,
+.dept-bd-row-neg:hover {
+    filter: brightness(0.985);
 }
 .dept-bd-pid {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
