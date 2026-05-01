@@ -2737,6 +2737,73 @@ window.initDraftComparePage = async function () {
             for (const vals of deptMap.values()) vals.delta = vals.d2 - vals.d1;
         }
 
+        // Per-section and per-fund transfer lookups — same shape as splitPrograms
+        // but keyed by "pid|section" and "pid|section|fund" so pair chips and the
+        // amber "transferred" style can appear on section rows and fund sub-rows.
+        const splitBySection = new Map();
+        const splitByFund    = new Map();
+        for (const r of activeData.comparisons) {
+            const pid = r.program_id, dc = r.department_code;
+            if (!pid || !dc || !splitPrograms.has(pid)) continue;
+            const sKey = `${pid}|${r.section || ''}`;
+            if (!splitBySection.has(sKey)) splitBySection.set(sKey, new Map());
+            const sm = splitBySection.get(sKey);
+            if (!sm.has(dc)) sm.set(dc, { d1: 0, d2: 0 });
+            sm.get(dc).d1 += r[d1Key] || 0;
+            sm.get(dc).d2 += r[d2Key] || 0;
+            const fKey = `${pid}|${r.section || ''}|${r.fund_category || ''}`;
+            if (!splitByFund.has(fKey)) splitByFund.set(fKey, new Map());
+            const fm = splitByFund.get(fKey);
+            if (!fm.has(dc)) fm.set(dc, { d1: 0, d2: 0 });
+            fm.get(dc).d1 += r[d1Key] || 0;
+            fm.get(dc).d2 += r[d2Key] || 0;
+        }
+        for (const [k, m] of splitBySection) {
+            if (m.size < 2) { splitBySection.delete(k); continue; }
+            for (const v of m.values()) v.delta = v.d2 - v.d1;
+        }
+        for (const [k, m] of splitByFund) {
+            if (m.size < 2) { splitByFund.delete(k); continue; }
+            for (const v of m.values()) v.delta = v.d2 - v.d1;
+        }
+
+        // Reusable pair-chip builder for program, section, and fund levels.
+        // splitMap: Map<dept_code, {delta}> with 2+ entries.
+        const buildPairChips = (pid, thisDept, splitMap) => {
+            if (!splitMap || splitMap.size < 2) return '';
+            const thisDelta = splitMap.get(thisDept)?.delta || 0;
+            const SIG = 100_000;
+            return [...splitMap.keys()]
+                .filter(d => d !== thisDept)
+                .map(d => {
+                    const od = splitMap.get(d)?.delta || 0;
+                    const abs = Math.abs(od);
+                    let arrow, cls;
+                    if (Math.abs(thisDelta) > SIG && abs > SIG && (thisDelta < 0) !== (od < 0)) {
+                        arrow = thisDelta < 0 ? '→' : '←';
+                        cls   = thisDelta < 0 ? 'pair-chip-out' : 'pair-chip-in';
+                    } else {
+                        arrow = '↔'; cls = 'pair-chip-neutral';
+                    }
+                    const odStr = abs >= 1e9 ? `${od<0?'−':'+'}$${(abs/1e9).toFixed(1)}B`
+                                : abs >= 1e6 ? `${od<0?'−':'+'}$${(abs/1e6).toFixed(1)}M`
+                                : abs >= 1e3 ? `${od<0?'−':'+'}$${Math.round(abs/1e3)}K`
+                                : `${od<0?'−':'+'}$${abs}`;
+                    const tip = (`Also under ${d} (${odStr}). Hover to highlight; click to jump.`)
+                        .replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+                    return `<a class="pair-chip ${cls}" href="javascript:void(0)" data-scroll-dept="${d}" data-pair-key="${pid}" title="${tip}">${arrow}&nbsp;${d}</a>`;
+                }).join(' ');
+        };
+
+        // "→ AGS" annotation rendered below the delta chip for transferred rows.
+        const transferAnnotation = (pid, thisDept, splitMap, deptScopedDelta) => {
+            if (!splitMap || splitMap.size < 2 || deptScopedDelta === 0) return '';
+            const others = [...splitMap.keys()].filter(d => d !== thisDept);
+            if (!others.length) return '';
+            const arrow = deptScopedDelta < 0 ? '→' : '←';
+            return `<span class="change-transfer-dest">${arrow} ${others.join(', ')}</span>`;
+        };
+
         // Auto-expand departments when searching
         const autoExpand = q.length > 0;
 
@@ -2852,6 +2919,7 @@ window.initDraftComparePage = async function () {
                 p.displayD1  = isSplit ? p.d1DeptScope  : p.d1;
                 p.displayD2  = isSplit ? p.d2DeptScope  : p.d2;
                 p.displayHD1 = isSplit ? p.hd1DeptScope : p.hd1;
+                p.isTransfer = isSplit && p.change !== 0;
                 p.change_type = p.hasAdded && p.d1 === 0 ? 'added' : p.hasRemoved && p.d2 === 0 ? 'removed' : 'modified';
                 p.isMixed = p.sections.size > 1;
                 p.section = p.isMixed ? 'Mixed' : [...p.sections][0] || '';
@@ -2886,7 +2954,11 @@ window.initDraftComparePage = async function () {
             </tr>`;
 
             for (const p of programs) {
-                const cls = p.change > 0 ? 'positive' : p.change < 0 ? 'negative' : '';
+                const cls = p.isTransfer ? 'transferred'
+                    : p.change > 0 ? 'positive' : p.change < 0 ? 'negative' : '';
+                const progTransferAnnotation = p.isTransfer
+                    ? transferAnnotation(p.program_id, dept.code, splitPrograms.get(p.program_id), p.change)
+                    : '';
                 const typeBadge = p.change_type === 'added' ? '<span class="badge badge-add">new</span>'
                     : p.change_type === 'removed' ? '<span class="badge badge-remove">removed</span>' : '';
                 const progKey = `${dept.code}:${p.program_id}`;
@@ -2945,7 +3017,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         // For split programs rawRows includes sibling-dept rows (pulled in
@@ -2970,14 +3042,23 @@ window.initDraftComparePage = async function () {
                         const secFundKey = `${dept.code}:${p.program_id}:${sec}`;
                         const secFundOpen = expandedFunds.has(secFundKey);
                         const secFundArrow = secFundOpen ? '▼' : '▶';
+                        // Section-level transfer detection
+                        const secSplitMap = splitBySection.get(`${p.program_id}|${sec}`);
+                        const secIsTransfer = !!secSplitMap && secDelta !== 0;
+                        const secTransferCls = secIsTransfer ? 'transferred'
+                            : secDelta > 0 ? 'positive' : secDelta < 0 ? 'negative' : '';
+                        const secPairChips = secSplitMap
+                            ? buildPairChips(p.program_id, dept.code, secSplitMap) : '';
+                        const secTransferNote = secIsTransfer
+                            ? transferAnnotation(p.program_id, dept.code, secSplitMap, secDelta) : '';
                         bodyHtml += `<tr class="prog-section-row${isSecFundGroup ? ' prog-fund-group' : ''}${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${isSecFundGroup ? ` data-fund-key="${secFundKey}"` : ''}>
-                            <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow">${secFundArrow}</span> ` : ''}${secChipHtml}</td>
+                            <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow">${secFundArrow}</span> ` : ''}${secChipHtml}${secPairChips}</td>
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(secHD1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD2)}</span></td>
-                            <td class="amount-cell ${secCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span></td>
+                            <td class="amount-cell ${secTransferCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span>${secTransferNote}</td>
                         </tr>`;
                         if (isSecFundGroup) {
                             const byFund = new Map();
@@ -2991,15 +3072,22 @@ window.initDraftComparePage = async function () {
                             }
                             for (const [fc, f] of byFund) {
                                 const fDelta = f.d2 - f.d1;
-                                const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                                 const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
+                                const fSplitMap = splitByFund.get(`${p.program_id}|${sec}|${fc}`);
+                                const fIsTransfer = !!fSplitMap && fDelta !== 0;
+                                const fCls = fIsTransfer ? 'transferred'
+                                    : fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
+                                const fPairChips = fSplitMap
+                                    ? buildPairChips(p.program_id, dept.code, fSplitMap) : '';
+                                const fTransferNote = fIsTransfer
+                                    ? transferAnnotation(p.program_id, dept.code, fSplitMap, fDelta) : '';
                                 bodyHtml += `<tr class="prog-fund-row${isOpen && progOpen && secFundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}" data-fund-key="${secFundKey}">
-                                    <td class="fund-indent fund-indent-deep"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                                    <td class="fund-indent fund-indent-deep"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span>${fPairChips}</td>
                                     <td></td><td></td>
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
-                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span></td>
+                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${fTransferNote}</td>
                                 </tr>`;
                             }
                         }
@@ -3021,7 +3109,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     const byFund = new Map();
                     // Filter to this dept's rows so cross-dept augmentation rows
@@ -3036,15 +3124,22 @@ window.initDraftComparePage = async function () {
                     }
                     for (const [fc, f] of byFund) {
                         const fDelta = f.d2 - f.d1;
-                        const fCls = fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
                         const fPct = f.d1 !== 0 ? ((f.d2 - f.d1) / Math.abs(f.d1)) * 100 : (f.d2 !== 0 ? 100 : 0);
+                        const fSplitMap = splitByFund.get(`${p.program_id}|${p.section}|${fc}`);
+                        const fIsTransfer = !!fSplitMap && fDelta !== 0;
+                        const fCls = fIsTransfer ? 'transferred'
+                            : fDelta > 0 ? 'positive' : fDelta < 0 ? 'negative' : '';
+                        const fPairChips = fSplitMap
+                            ? buildPairChips(p.program_id, dept.code, fSplitMap) : '';
+                        const fTransferNote = fIsTransfer
+                            ? transferAnnotation(p.program_id, dept.code, fSplitMap, fDelta) : '';
                         bodyHtml += `<tr class="prog-fund-row${isOpen && fundOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}">
-                            <td class="fund-indent"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span></td>
+                            <td class="fund-indent"><span class="fund-chip" data-fund-cat="${fc}">${shortFund(fc)}</span> <span class="fund-name-full">${fc}</span>${fPairChips}</td>
                             <td></td><td></td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
-                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span></td>
+                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${fTransferNote}</td>
                         </tr>`;
                     }
                 } else {
@@ -3061,7 +3156,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                 }
             }

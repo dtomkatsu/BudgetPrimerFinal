@@ -828,6 +828,22 @@ body {
     background: #fbecee;
     border-color: #f2c9ce;
 }
+/* Transferred: amber — money moved between depts, not cut or added */
+.amount-cell.transferred .figure-chip {
+    color: #7a5c0a;
+    background: #fef8e7;
+    border-color: #f5df96;
+}
+/* Small "→ AGS" annotation rendered below the delta chip in the change cell */
+.change-transfer-dest {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #8b6914;
+    letter-spacing: 0.01em;
+    margin-top: 3px;
+    line-height: 1.2;
+}
 
 /* ── Unified Change cell: dollar delta + inline pct on a second line ── */
 .change-cell {
