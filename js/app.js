@@ -2723,39 +2723,36 @@ window.initDraftComparePage = async function () {
              <span class="compare-info-icon reading-guide-pill" id="reading-guide-box" tabindex="0">
                  <svg class="rg-info-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="4.6" r="0.95" fill="currentColor"/><rect x="7.15" y="6.8" width="1.7" height="5.2" rx="0.6" fill="currentColor"/></svg> How to read this
                  <div class="reading-guide-panel">
-                     <p class="reading-guide-summary">Not every change is a real cut or increase — some reflect <strong>funds being reshuffled between departments</strong>.</p>
-                     <p>In the House draft (HD1), capital projects are sometimes listed under <strong>AGS</strong> (Accounting &amp; General Services) as a placeholder. Some programs, like Rental Housing, receive funding from multiple departments (e.g., <strong>HMS</strong> and <strong>BED</strong>).</p>
+                     <p class="reading-guide-summary">Some changes are real cuts/increases; others are <strong>funds reshuffled between depts</strong>.</p>
                      <div class="rg-chips">
-                         <p class="rg-chips-title">Chips next to a program name</p>
+                         <p class="rg-chips-title">Chips on a program row</p>
                          <dl class="rg-chips-defs">
                              <dt><span class="pair-chip pair-chip-out" style="pointer-events:none;">→ AGS</span></dt>
-                             <dd>funds moved <em>out</em> of this dept</dd>
+                             <dd>moved <em>to</em> that dept</dd>
                              <dt><span class="pair-chip pair-chip-in" style="pointer-events:none;">← BED</span></dt>
-                             <dd>funds moved <em>into</em> this dept</dd>
+                             <dd>moved <em>from</em> that dept</dd>
                              <dt><span class="pair-chip pair-chip-neutral" style="pointer-events:none;">↔ EDN</span></dt>
-                             <dd>program appears in both depts (no clear direction)</dd>
+                             <dd>also under that dept</dd>
                              <dt><span class="data-note" style="pointer-events:none;">⚠</span></dt>
-                             <dd>known data anomaly — hover for details</dd>
-                             <dt><span class="fund-note" style="pointer-events:none;">ℹ bond-financed</span></dt>
-                             <dd>capital projects in the Fund Detail section below</dd>
+                             <dd>data anomaly (hover)</dd>
                          </dl>
-                         <p class="rg-chips-help">Hover a chip to highlight paired rows; click to jump.</p>
+                         <p class="rg-chips-help">Hover a chip to highlight; click to jump.</p>
                      </div>
-                     <div class="rg-chips rg-funds">
-                         <p class="rg-chips-title">Fund-chip colors — where the money comes from</p>
+                     <details class="rg-chips rg-funds">
+                         <summary>Fund-chip colors</summary>
                          <dl class="rg-chips-defs rg-funds-defs">
                              <dt><span class="fund-chip" data-fund-cat="General Funds" style="pointer-events:none;">A</span></dt>
-                             <dd><strong>State General</strong> — tax revenue, flexible spending</dd>
+                             <dd>State General (tax revenue)</dd>
                              <dt><span class="fund-chip" data-fund-cat="Special Funds" style="pointer-events:none;">B T W</span></dt>
-                             <dd><strong>State Dedicated</strong> — state-collected money set aside for a specific purpose</dd>
+                             <dd>State Dedicated</dd>
                              <dt><span class="fund-chip" data-fund-cat="Federal Funds" style="pointer-events:none;">N P</span></dt>
-                             <dd><strong>Federal</strong> — money from the US government</dd>
+                             <dd>Federal</dd>
                              <dt><span class="fund-chip" data-fund-cat="General Obligation Bond Fund" style="pointer-events:none;">C E</span></dt>
-                             <dd><strong>Borrowed</strong> — state takes on bond debt</dd>
+                             <dd>Borrowed (bond debt)</dd>
                              <dt><span class="fund-chip" data-fund-cat="Interdepartmental Transfers" style="pointer-events:none;">U S R X</span></dt>
-                             <dd><strong>Transfers / Other</strong> — inter-agency, county, private, misc</dd>
+                             <dd>Transfers / Other</dd>
                          </dl>
-                     </div>
+                     </details>
                  </div>
              </span>`;
         // Re-attach filter/search listeners after re-render

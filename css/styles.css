@@ -2219,8 +2219,9 @@ th.sortable .sort-hint {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 580px;
-    max-width: min(720px, calc(100vw - 32px));
+    min-width: 0;
+    width: min(380px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
     background: #fff;
     border: 1px solid #d0dbd5;
     border-left: 4px solid var(--primary-color, #2e7d32);
@@ -2336,18 +2337,50 @@ th.sortable .sort-hint {
     letter-spacing: 0.06em;
     padding: 1px 8px;
 }
-/* On narrow viewports the pill sits near the left edge; switch to fixed
-   positioning so the panel spans the usable screen width. */
-@media (max-width: 600px) {
+/* On narrow viewports anchor the panel to the screen edges via fixed
+   positioning so it can never overflow the viewport on either side. */
+@media (max-width: 720px) {
     .reading-guide-panel {
         position: fixed;
         top: auto;
-        left: 1rem;
-        right: 1rem;
+        left: 0.75rem;
+        right: 0.75rem;
         min-width: 0;
         max-width: none;
         width: auto;
     }
+}
+/* Collapsed fund-color section — keeps the default panel short, expands
+   only when the user wants the fund-color reference. */
+.reading-guide-panel details.rg-funds {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+}
+.reading-guide-panel details.rg-funds > summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6f9184;
+    list-style: none;
+    padding: 0.25rem 0;
+    user-select: none;
+}
+.reading-guide-panel details.rg-funds > summary::-webkit-details-marker {
+    display: none;
+}
+.reading-guide-panel details.rg-funds > summary::before {
+    content: '▸ ';
+    display: inline-block;
+    width: 0.9em;
+    transition: transform 0.12s;
+}
+.reading-guide-panel details.rg-funds[open] > summary::before {
+    transform: rotate(90deg);
+}
+.reading-guide-panel details.rg-funds > .rg-chips-defs {
+    margin-top: 0.5rem;
 }
 .reading-guide-panel .reading-guide-summary {
     margin: 0 0 0.6rem;
