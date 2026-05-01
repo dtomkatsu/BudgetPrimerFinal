@@ -390,6 +390,45 @@ window.homePage = async function () {
         return `<section class="home-page"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></section>`;
     }
 
+    const isDev = document.documentElement.hasAttribute('data-dev');
+
+    // ── Public version (no ?dev) ─────────────────────────────────────────────
+    // Shows the FY2026 enacted budget only: no year picker, no sparklines,
+    // no historical chart.  Matches the original simple HB300 layout.
+    if (!isDev) {
+        return `
+            <section class="home-page">
+                <div class="context-banner">
+                    <strong>Historical reference.</strong> This is the FY2025–26 enacted budget
+                    (HB300, Act 250, SLH 2025). For the current FY2026–27 supplemental budget
+                    draft, see <a href="#/">HB1800 →</a>
+                </div>
+
+                <div class="summary-cards-grid" id="hb300-summary-cards">
+                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.total_budget)}</div><div class="label">Total Budget</div><div class="label-sub">FY2026</div></div>
+                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
+                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
+                    ${summaryStats.total_positions ? `<div class="summary-card"><div class="amount">${summaryStats.total_positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div><div class="label-sub">FY2026</div></div>` : ''}
+                </div>
+
+                <div class="controls-bar">
+                    <div class="sort-controls">
+                        <span>Sort: </span>
+                        <button class="sort-btn active" data-sort="desc">High→Low</button>
+                        <button class="sort-btn" data-sort="asc">Low→High</button>
+                    </div>
+                    <div class="action-links">
+                        <a href="#/search" class="action-link">🔍 Search Programs</a>
+                        <a href="#/compare" class="action-link">📊 FY Comparison</a>
+                        <button class="action-link export-btn" id="export-depts">⬇ Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="department-grid" id="dept-grid"></div>
+            </section>`;
+    }
+
+    // ── Dev version: full multi-year page ────────────────────────────────────
     // Year selector range — from historical_trends metadata when available,
     // else fall back to FY2026 only.  "Current" detail year (operating /
     // capital / positions / programs) is FY2026; older years show totals
@@ -486,6 +525,8 @@ window.departmentDetailPage = async function (params) {
     const dept = departmentsData.find(d => d.id === deptId);
     if (!dept) return window.notFoundPage();
 
+    const isDev = document.documentElement.hasAttribute('data-dev');
+
     const total = (dept.operating_budget || 0) + (dept.capital_budget || 0) + (dept.one_time_appropriations || 0);
     const programs = dept.programs || [];
 
@@ -577,10 +618,11 @@ window.departmentDetailPage = async function (params) {
             </article>`;
     }).join('');
 
-    // Historical context — pull this department's 12-yr series if available
+    // Historical context — pull this department's 12-yr series if available.
+    // The chart and year picker are dev-only; public page shows FY2026 only.
     const histDept = (historicalTrendsData?.by_department || [])
         .find(d => d.dept_code === dept.code);
-    const histSection = histDept ? `
+    const histSection = (isDev && histDept) ? `
         <section class="dept-history-section">
             <div class="dept-history-head">
                 <h3>Funding History · FY${histDept.series[0].fy}–FY${histDept.series[histDept.series.length-1].fy}</h3>
@@ -598,8 +640,7 @@ window.departmentDetailPage = async function (params) {
     // the summary cards from historical_trends.json (the FY2026 detail
     // sections below stay static — no dept-level program detail exists
     // for older years).
-    const deptYearOptions = (() => {
-        if (!histDept) return '';
+    const deptYearOptions = (isDev && histDept) ? (() => {
         const opts = [];
         const yrs = histDept.series.map(s => s.fy).sort((a, b) => b - a);
         for (const y of yrs) {
@@ -609,8 +650,8 @@ window.departmentDetailPage = async function (params) {
             opts.push(`<option value="${y}"${isDetail ? ' selected' : ''}>${label}</option>`);
         }
         return opts.join('');
-    })();
-    const deptYearPicker = histDept ? `
+    })() : '';
+    const deptYearPicker = (isDev && histDept) ? `
         <div class="year-picker-bar dept-year-bar">
             <span class="year-picker-label">Fiscal year</span>
             <div class="year-picker" role="group" aria-label="Choose fiscal year">
@@ -775,7 +816,10 @@ window.initDepartmentDetailPage = async function () {
         });
     }
 
-    // ---- Historical chart for this department ---------------------------
+    // ---- Historical chart + year picker — dev only ----------------------
+    // Public page omits both; bail out here so no chart code runs.
+    if (!document.documentElement.hasAttribute('data-dev')) return;
+
     const canvas = document.getElementById('dept-history-chart');
     if (!canvas || typeof Chart === 'undefined' || !historicalTrendsData) return;
 
@@ -4075,6 +4119,73 @@ window.initDraftComparePage = async function () {
 window.initHomePage = async function () {
     if (!departmentsData?.length) return;
 
+    const isDev = document.documentElement.hasAttribute('data-dev');
+
+    // ── Public init (no ?dev) ────────────────────────────────────────────────
+    // Simple FY2026 grid with sort + export only — no year picker or chart.
+    if (!isDev) {
+        let sortDir = 'desc';
+
+        const renderPublicGrid = () => {
+            const grid = document.getElementById('dept-grid');
+            if (!grid) return;
+            const rows = [...departmentsData].sort((a, b) => {
+                const tA = (a.operating_budget||0) + (a.capital_budget||0) + (a.one_time_appropriations||0);
+                const tB = (b.operating_budget||0) + (b.capital_budget||0) + (b.one_time_appropriations||0);
+                return sortDir === 'asc' ? tA - tB : tB - tA;
+            });
+            grid.innerHTML = rows.map(dept => {
+                const total = (dept.operating_budget||0) + (dept.capital_budget||0) + (dept.one_time_appropriations||0);
+                const op  = dept.operating_budget || 0;
+                const cap = dept.capital_budget || 0;
+                const ot  = dept.one_time_appropriations || 0;
+                const pos = dept.positions;
+                return `
+                    <a href="#/department/${dept.id}" class="department-card">
+                        <h3>${dept.name}</h3>
+                        <div class="card-content">
+                            <div class="budget-total">
+                                <span>Total Budget · FY2026</span>
+                                <strong>${fmt(total)}</strong>
+                            </div>
+                            <div class="budget-breakdown">
+                                <div class="budget-row"><span>Operating</span><span>${fmt(op)}</span></div>
+                                ${cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(cap)}</span></div>` : ''}
+                                ${ot > 0  ? `<div class="budget-row"><span>One-Time</span><span>${fmt(ot)}</span></div>`  : ''}
+                                ${pos ? `<div class="budget-row"><span>Positions</span><span>${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
+                            </div>
+                        </div>
+                    </a>`;
+            }).join('');
+        };
+
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                sortDir = this.dataset.sort;
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                renderPublicGrid();
+            });
+        });
+
+        document.getElementById('export-depts')?.addEventListener('click', () => {
+            const rows = departmentsData.map(d => ({
+                code: d.code,
+                name: d.name,
+                total: (d.operating_budget||0) + (d.capital_budget||0) + (d.one_time_appropriations||0),
+                operating: d.operating_budget,
+                capital:   d.capital_budget,
+                one_time:  d.one_time_appropriations,
+                positions: d.positions || '',
+            }));
+            downloadCSV(rows, 'departments_fy2026.csv');
+        });
+
+        renderPublicGrid();
+        return;
+    }
+
+    // ── Dev init: full multi-year page ───────────────────────────────────────
     const DETAIL_FY = 2026;
     let selectedFy = DETAIL_FY;
     let sortDir    = 'desc';
