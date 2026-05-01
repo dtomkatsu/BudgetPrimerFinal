@@ -2196,7 +2196,7 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     let html = `<div class="dept-bd-header">${_escHtml(deptCode)} — ${_escHtml(deptName)}</div>`;
     html += renderSection('Increases', increases);
     html += renderSection('Reductions', reductions);
-    html += renderSection('Transferred (reshuffled between depts)', transfers);
+    html += renderSection('Moved between depts', transfers);
 
     if (!transfers.length && !increases.length && !reductions.length) {
         html += `<div style="color:var(--text-muted);font-size:0.8rem;padding:4px 0">No program-level changes</div>`;
@@ -2214,7 +2214,7 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
             if (a >= 1e3) return `${Math.round(a/1e3)}K`;
             return a.toLocaleString();
         })();
-        html += ` <span class="dept-bd-net-xfer">${xferNet < 0 ? '→' : '←'} ${xferFmt} reshuffled</span>`;
+        html += ` <span class="dept-bd-net-xfer">${xferNet < 0 ? '→' : '←'} ${xferFmt} moved</span>`;
     }
     html += `</div>`;
 
@@ -3067,7 +3067,7 @@ window.initDraftComparePage = async function () {
             const deptCls   = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
             // If there are transfers, show a small amber badge below the chip.
             const deptXferNote = xferDelta !== 0
-                ? `<div><span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} reshuffled</span></div>`
+                ? `<div><span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} moved</span></div>`
                 : '';
 
             // Dept-level pairing is now communicated via paired ↔ DEPT chips on
