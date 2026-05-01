@@ -2978,15 +2978,13 @@ window.initDraftComparePage = async function () {
         }
 
         // Pre-compute dept aggregates, then sort by active sortCol/sortDir.
-        // realDelta excludes cross-dept transfer rows (splitPrograms) so the
-        // change sort ranks depts by genuine funding changes, not reshuffles.
+        // Change sort uses the full dept delta so per-dept rankings match the
+        // headline-total reconciliation (sum of dept rows = headline total).
         const depts = [...deptMap.values()].map(d => {
             d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             d.hd1 = d.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
             d.delta = d.d2 - d.d1;
-            d.realDelta = d.rows.reduce((s, r) =>
-                splitPrograms.has(r.program_id) ? s : s + ((r[d2Key] || 0) - (r[d1Key] || 0)), 0);
             return d;
         }).sort((a, b) => {
             if (frozenDeptOrder) {
@@ -2998,7 +2996,7 @@ window.initDraftComparePage = async function () {
             if (sortCol === 'program_name') { va = a.code.toLowerCase(); vb = b.code.toLowerCase(); }
             else if (sortCol === 'd1') { va = a.d1; vb = b.d1; }
             else if (sortCol === 'd2') { va = a.d2; vb = b.d2; }
-            else { va = a.realDelta; vb = b.realDelta; } // change sort uses real delta
+            else { va = a.delta; vb = b.delta; } // change sort uses full dept delta
             if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
             return sortDir === 'asc' ? va - vb : vb - va;
         });
@@ -3092,6 +3090,25 @@ window.initDraftComparePage = async function () {
             // appear short relative to Part II in any project-level comparison.
             'SUB501': {
                 any: 'Subsidies (SUB501) is a cross-departmental accounting code. Capital project detail is listed under the originating departments in Section 14, not under SUB — so project-level totals will appear lower than the Part II appropriation.'
+            },
+            // AGS820: HD1-introduced new program ($360K Operating, fund A,
+            // both FY26 and FY27). The bill SD1 carries it through unchanged.
+            // The Senate Money Committee Report's published Operating SD1
+            // FY26 total ($19,772,640,288) is exactly $360K LESS than a
+            // line-by-line sum of Section 13 — the report appears to net
+            // AGS820's $360K addition against AGS901's $360K reduction
+            // rather than counting both. Our totals reflect the bill's
+            // actual line items.
+            'AGS820': {
+                any: 'AGS820 (Hawaii Broadband and Digital Equity Office) is a new HD1-introduced program at $360K/year (fund A). The Senate Money Committee Report\'s published SD1 FY26 Operating total appears to net AGS820\'s addition against AGS901\'s offsetting $360K reduction rather than counting both — so our line-by-line total will run $360K higher than the Senate report\'s aggregate.'
+            },
+            // EDN407 FY27 Capital: Section 13 program total ($30M EDN dept
+            // fund C) exceeds the sum of Section 14 itemized projects ($25M
+            // for HAWAII LIBRARY HEALTH/SAFETY) by $5M. The capital projects
+            // table will appear $5M short relative to the main table for this
+            // program — a bill drafting inconsistency between the two sections.
+            'EDN407': {
+                fy27: 'Section 13 program total for EDN407 fund C ($30M FY27) exceeds the sum of Section 14 itemized projects ($25M for HAWAII LIBRARY HEALTH/SAFETY) by $5M. Inconsistency in the bill itself — the project list will appear short by that amount.'
             },
         };
 
@@ -3224,29 +3241,30 @@ window.initDraftComparePage = async function () {
 
             const programs = aggregatePrograms(dept.rows);
 
-            // Real net = change excluding cross-dept transfers (those net to $0 across
-            // the whole budget — they're reshuffles, not new money or cuts).
-            const realDelta  = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
+            // Show the FULL dept-level delta on the change cell so per-dept rows
+            // sum to the headline total — this matches the Senate Money Committee
+            // Report's per-dept "definitive decreases". Earlier we used a "real
+            // net" (excluding split/transferred programs), but that hid genuine
+            // cuts to depts whose appropriations were redirected to AGS bond
+            // financing or county codes (e.g. PSD -$49.75M, BUF -$43M). The
+            // hover-card breakdown still itemizes Increases / Reductions /
+            // Moved between depts so transfer context isn't lost.
             const xferDelta  = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
-            // Gross = sum of absolute values of all transfer programs; tells the reader
-            // how much total money was shuffled (net is misleading when inflows + outflows
-            // partially cancel each other).
             const xferGross  = programs.reduce((s, p) => s + (p.isTransfer ? Math.abs(p.change || 0) : 0), 0);
-            const deptCls    = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
-            // If there are transfers, show a small amber badge below the chip.
+            const deptCls    = deptDelta > 0 ? 'positive' : deptDelta < 0 ? 'negative' : '';
+            // If there are transfers, show a small amber badge below the chip
+            // (gross moved through this dept; not double-counted in the main number).
             const deptXferNote = xferGross !== 0
                 ? `<div><span class="dept-xfer-note">⇄ ${_fmtShort(xferGross)} moved</span></div>`
                 : '';
 
-            // Dept-level pairing is now communicated via paired ↔ DEPT chips on
-            // individual program rows, so no dept-level transfer badge is needed.
             bodyHtml += `<tr class="dept-group-row${isOpen ? ' open' : ''}" data-dept="${dept.code}">
                 <td><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
-                <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(realDelta)}</span>${deptXferNote}</td>
+                <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(deptDelta)}</span>${deptXferNote}</td>
             </tr>`;
 
             for (const p of programs) {
