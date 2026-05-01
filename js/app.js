@@ -3752,6 +3752,54 @@ window.initDraftComparePage = async function () {
             const isOpen = expandedProjectPrograms.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
+            // Pre-build breakdown HTML for the dept change cell hover card.
+            // Uses the same data-dept-bd attribute + initDeptBreakdownCardHandlers
+            // infrastructure as the program-level comparison table.
+            const projDeptBdHtml = (() => {
+                const fmt = (v) => {
+                    const sign = v < 0 ? '−' : v > 0 ? '+' : '';
+                    const abs = Math.abs(v);
+                    if (abs >= 1e9) return `${sign}$${(abs/1e9).toFixed(2)}B`;
+                    if (abs >= 1e6) return `${sign}$${(abs/1e6).toFixed(2)}M`;
+                    if (abs >= 1e3) return `${sign}$${Math.round(abs/1e3)}K`;
+                    return `${sign}$${abs.toLocaleString()}`;
+                };
+                const rows = filteredProjects
+                    .map(pr => {
+                        const d1 = govActive ? (resolveGovAmt(pr) ?? 0) : (pr[hd1Key] || 0);
+                        return { pr, change: getD2Amt(pr) - d1 };
+                    })
+                    .filter(r => r.change !== 0)
+                    .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+                if (!rows.length) return '';
+                const increases  = rows.filter(r => r.change > 0);
+                const reductions = rows.filter(r => r.change < 0);
+                const renderRow = ({ pr, change }) => {
+                    const cls = change > 0 ? 'positive' : 'negative';
+                    const rawName = pr.project_name || '';
+                    const shortName = rawName.length > 36 ? rawName.slice(0, 34) + '…' : rawName;
+                    const typeBadge = pr.change_type === 'added'
+                        ? `<span style="font-size:0.68rem;background:#c8f5da;color:#1a6b3a;border-radius:3px;padding:0 4px;flex-shrink:0">new</span>`
+                        : pr.change_type === 'removed'
+                        ? `<span style="font-size:0.68rem;background:#ffdde0;color:#8b1a1a;border-radius:3px;padding:0 4px;flex-shrink:0">gone</span>`
+                        : '';
+                    return `<div class="dept-bd-row">
+                        <span class="dept-bd-pid">#${_escHtml(String(pr.project_id))}</span>
+                        <span class="dept-bd-name" title="${_escAttr(rawName)}">${_escHtml(shortName)}</span>
+                        ${typeBadge}
+                        <span class="dept-bd-chip ${cls}">${fmt(change)}</span>
+                    </div>`;
+                };
+                const renderSection = (label, bucket) =>
+                    bucket.length ? `<div class="dept-bd-section-label">${label}</div>` + bucket.map(renderRow).join('') : '';
+                let html = `<div class="dept-bd-header">${_escHtml(dept.code)} — ${_escHtml(dept.name)}</div>`;
+                html += renderSection('Increases', increases);
+                html += renderSection('Reductions', reductions);
+                const netCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
+                html += `<div class="dept-bd-net">Net <span class="dept-bd-chip ${netCls}">${fmt(delta)}</span></div>`;
+                return html;
+            })();
+
             // Dept group row — individual cells matching first table's dept row pattern
             bodyRows += `<tr class="dept-group-row project-dept-row${isOpen ? ' open' : ''}" data-project-dept="${dept.code}">
                 <td colspan="3"><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
@@ -3759,7 +3807,7 @@ window.initDraftComparePage = async function () {
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(d1Total)}</span></td>
                 ${showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Total)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(d2Total)}</span></td>
-                <td class="amount-cell ${deltaCls}"><span class="figure-chip">${fmtHtml(delta)}</span></td>
+                <td class="amount-cell ${deltaCls}"${projDeptBdHtml ? ` data-dept-bd="${_escAttr(projDeptBdHtml)}"` : ''}><span class="figure-chip">${fmtHtml(delta)}</span></td>
             </tr>`;
 
             // Individual project rows (hidden until dept expanded)
