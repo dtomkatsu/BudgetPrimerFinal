@@ -2808,12 +2808,38 @@ window.initDraftComparePage = async function () {
             if (!deptMap.has(key)) deptMap.set(key, { code: key, name: r.department_name || key, rows: [] });
             deptMap.get(key).rows.push(r);
         }
-        // Pre-compute dept aggregates, then sort by active sortCol/sortDir
+
+        // Build cross-reference map: program_id → Map<deptCode, {d1, d2, delta}>
+        // Must be built before depts sort so realDelta (excl. transfers) can
+        // power the change-column sort consistently with the displayed value.
+        const splitPrograms = new Map();
+        for (const r of activeData.comparisons) {
+            const pid = r.program_id;
+            const dc  = r.department_code;
+            if (!pid || !dc) continue;
+            if (!splitPrograms.has(pid)) splitPrograms.set(pid, new Map());
+            const sm = splitPrograms.get(pid);
+            if (!sm.has(dc)) sm.set(dc, { d1: 0, d2: 0 });
+            const entry = sm.get(dc);
+            entry.d1 += r[d1Key] || 0;
+            entry.d2 += r[d2Key] || 0;
+        }
+        // Only keep programs that appear in 2+ departments; compute delta
+        for (const [pid, sm] of splitPrograms) {
+            if (sm.size < 2) { splitPrograms.delete(pid); continue; }
+            for (const vals of sm.values()) vals.delta = vals.d2 - vals.d1;
+        }
+
+        // Pre-compute dept aggregates, then sort by active sortCol/sortDir.
+        // realDelta excludes cross-dept transfer rows (splitPrograms) so the
+        // change sort ranks depts by genuine funding changes, not reshuffles.
         const depts = [...deptMap.values()].map(d => {
             d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             d.hd1 = d.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
             d.delta = d.d2 - d.d1;
+            d.realDelta = d.rows.reduce((s, r) =>
+                splitPrograms.has(r.program_id) ? s : s + ((r[d2Key] || 0) - (r[d1Key] || 0)), 0);
             return d;
         }).sort((a, b) => {
             if (frozenDeptOrder) {
@@ -2825,36 +2851,10 @@ window.initDraftComparePage = async function () {
             if (sortCol === 'program_name') { va = a.code.toLowerCase(); vb = b.code.toLowerCase(); }
             else if (sortCol === 'd1') { va = a.d1; vb = b.d1; }
             else if (sortCol === 'd2') { va = a.d2; vb = b.d2; }
-            else { va = a.delta; vb = b.delta; } // change, pct_change, default
+            else { va = a.realDelta; vb = b.realDelta; } // change sort uses real delta
             if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
             return sortDir === 'asc' ? va - vb : vb - va;
         });
-
-        // Build cross-reference map: program_id → Map<deptCode, {d1, d2, delta}>
-        // Uses the active d1Key/d2Key so reallocation detection works correctly
-        // in any comparison mode (Gov→SD1, HD1→SD1, etc.). The baseline lookup
-        // keys on {dept+program+fund+section}, so per-dept baseline values
-        // differ — a placeholder row with no governor entry gets $0, while the
-        // originating dept keeps the full Gov amount. That's exactly what's
-        // needed to detect a legislative split like PSD900 (all in PSD under
-        // Gov, split into AGS placeholder + PSD under HD1/SD1).
-        const splitPrograms = new Map();
-        for (const r of activeData.comparisons) {
-            const pid = r.program_id;
-            const dept = r.department_code;
-            if (!pid || !dept) continue;
-            if (!splitPrograms.has(pid)) splitPrograms.set(pid, new Map());
-            const deptMap = splitPrograms.get(pid);
-            if (!deptMap.has(dept)) deptMap.set(dept, { d1: 0, d2: 0 });
-            const entry = deptMap.get(dept);
-            entry.d1 += r[d1Key] || 0;
-            entry.d2 += r[d2Key] || 0;
-        }
-        // Only keep programs that appear in 2+ departments; compute delta
-        for (const [pid, deptMap] of splitPrograms) {
-            if (deptMap.size < 2) { splitPrograms.delete(pid); continue; }
-            for (const vals of deptMap.values()) vals.delta = vals.d2 - vals.d1;
-        }
 
         // Per-section and per-fund transfer lookups — same shape as splitPrograms
         // but keyed by "pid|section" and "pid|section|fund" so pair chips and the
