@@ -3652,6 +3652,84 @@ window.initDraftComparePage = async function () {
             return null;
         };
 
+        // Inject "orphan" governor projects: projects that appear in the gov
+        // CIP request with a non-zero amount but have NO matching HD1/SD1 row.
+        // Without this, those gov amounts show up in the dept-level delta but
+        // are invisible at the project level — every row shows $0 change while
+        // the summary shows e.g. −$1.5M (AGR141 Wahiawa Dam dropped in HD1).
+        // Parallels injectOrphans() in the main comparison table.
+        if (govActive && governorProjectsData && governorProjectsData.projects_by_program) {
+            // Track which govMap keys were "consumed" by an existing HD1 project.
+            // Use the same direct + fuzzy logic as getGovAmt so we don't inject
+            // a duplicate for a project the fuzzy matcher already handled.
+            const consumedGovKeys = new Set();
+            for (const d of deptMap.values()) {
+                for (const pr of d.projects) {
+                    const nm = normProjectName(pr.project_name);
+                    const directKey = `${pr.program_id}:${nm}:${pr.fund_category}`;
+                    if (govMap.has(directKey)) {
+                        consumedGovKeys.add(directKey);
+                    } else {
+                        // Mark fuzzy-matched keys consumed
+                        const prefix = `${pr.program_id}:`;
+                        const suffix = `:${pr.fund_category}`;
+                        for (const gk of govMap.keys()) {
+                            if (!gk.startsWith(prefix) || !gk.endsWith(suffix)) continue;
+                            const gName = gk.slice(prefix.length, gk.length - suffix.length);
+                            if (gName.length >= 25 && nm.startsWith(gName)) { consumedGovKeys.add(gk); break; }
+                            if (nm.length >= 25 && gName.startsWith(nm)) { consumedGovKeys.add(gk); break; }
+                        }
+                    }
+                }
+            }
+            // Scan gov projects; inject any with a positive FY amount not consumed.
+            for (const projs of Object.values(governorProjectsData.projects_by_program)) {
+                for (const gp of projs) {
+                    const amt = gp[govFyKey] || 0;
+                    if (amt <= 0) continue;
+                    const nm = normProjectName(gp.project_name);
+                    const k  = `${gp.program_id}:${nm}:${gp.fund_category}`;
+                    if (consumedGovKeys.has(k)) continue;
+                    // Also skip if any fuzzy match against deptMap projects would cover it
+                    const prefix = `${gp.program_id}:`;
+                    const suffix = `:${gp.fund_category}`;
+                    let fuzzyCovered = false;
+                    for (const ck of consumedGovKeys) {
+                        if (!ck.startsWith(prefix) || !ck.endsWith(suffix)) continue;
+                        const ckName = ck.slice(prefix.length, ck.length - suffix.length);
+                        if (ckName.length >= 25 && nm.startsWith(ckName)) { fuzzyCovered = true; break; }
+                        if (nm.length >= 25 && ckName.startsWith(nm)) { fuzzyCovered = true; break; }
+                    }
+                    if (fuzzyCovered) continue;
+                    // Inject a synthetic "removed" project row
+                    const dc = gp.department_code || '(unknown)';
+                    if (!deptMap.has(dc)) {
+                        deptMap.set(dc, {
+                            code: dc,
+                            name: deptNameMap.get(dc) || gp.department_name || dc,
+                            projects: [],
+                        });
+                    }
+                    const progName = activeData.comparisons.find(r => r.program_id === gp.program_id)?.program_name || '';
+                    deptMap.get(dc).projects.push({
+                        project_id: gp.project_id,
+                        project_name: gp.project_name,
+                        program_id: gp.program_id,
+                        program_name: progName,
+                        department_code: dc,
+                        department_name: gp.department_name || '',
+                        fund_category: gp.fund_category || '',
+                        fund_type: gp.fund_type || '',
+                        [hd1Key]: 0,
+                        [sd1Key]: 0,
+                        change_type: 'removed',
+                        scope: '',
+                        _gov_orphan: true,
+                    });
+                }
+            }
+        }
+
         // Sort depts by projSortCol using pre-computed aggregate totals
         const depts = [...deptMap.values()].map(d => {
             // Use program-level gov totals for d1 so sorting is correct even when
