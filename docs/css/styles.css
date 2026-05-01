@@ -4876,3 +4876,99 @@ mark.search-highlight {
     text-transform: uppercase;
     pointer-events: none;
 }
+
+/* ── Department breakdown hover card ──────────────────────────────────── */
+#dept-breakdown-card {
+    position: absolute;
+    z-index: 200;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.11);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.16);
+    padding: 10px 14px 12px;
+    min-width: 300px;
+    max-width: 460px;
+    max-height: 380px;
+    overflow-y: auto;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    pointer-events: none;
+    display: none;
+    font-family: inherit;
+}
+.dept-bd-header {
+    font-weight: 600;
+    font-size: 0.84rem;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.dept-bd-section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin: 8px 0 3px;
+}
+.dept-bd-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+}
+.dept-bd-pid {
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: monospace;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.06);
+    color: var(--primary-dark);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.dept-bd-name {
+    flex: 1;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.80rem;
+    min-width: 0;
+}
+.dept-bd-chip {
+    font-size: 0.78rem;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+}
+.dept-bd-chip.positive { color: #1a6b3a; background: #eaf7ee; border-color: #b3e6c8; }
+.dept-bd-chip.negative { color: #8b1a1a; background: #fef0f0; border-color: #f5c6c6; }
+.dept-bd-chip.transferred { color: #7a5c0a; background: #fef8e7; border-color: #f5df96; }
+.dept-bd-dest {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #8b6914;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.dept-bd-net {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--primary-dark);
+}
+/* Cursor hint on the change cell so users know it's hoverable */
+[data-dept-bd] {
+    cursor: help;
+}
