@@ -2815,8 +2815,9 @@ window.initDraftComparePage = async function () {
                 if (!splitPrograms.has(p.program_id)) continue;
                 // Save pre-augmentation (dept-scoped) totals so we can later compute
                 // each program's individual contribution to the dept-vs-program mismatch.
-                p.d1DeptScope = p.d1;
-                p.d2DeptScope = p.d2;
+                p.d1DeptScope  = p.d1;
+                p.d2DeptScope  = p.d2;
+                p.hd1DeptScope = p.hd1;
                 const mySections = new Set(p.rawRows.map(r => r.section));
                 p.crossDeptAugmented = new Set(); // other depts pulled in
                 for (const r of activeData.comparisons) {
@@ -2832,8 +2833,25 @@ window.initDraftComparePage = async function () {
                 }
             }
             return [...pMap.values()].map(p => {
-                p.change = p.d2 - p.d1;
-                p.pct_change = p.d1 !== 0 ? ((p.d2 - p.d1) / Math.abs(p.d1)) * 100 : (p.d2 !== 0 ? 100 : 0);
+                // For split programs (same program_id across multiple depts), the
+                // cross-dept augmentation makes p.d1/p.d2 the combined total — which
+                // nets to $0 change even when one dept lost $49.75M to another.
+                // Show the dept-scoped slice instead so the actual movement is visible.
+                const isSplit = p.d1DeptScope !== undefined;
+                p.change = isSplit
+                    ? (p.d2DeptScope  - p.d1DeptScope)
+                    : (p.d2 - p.d1);
+                p.pct_change = (() => {
+                    const base = isSplit ? p.d1DeptScope : p.d1;
+                    return base !== 0
+                        ? (p.change / Math.abs(base)) * 100
+                        : (p.change !== 0 ? 100 : 0);
+                })();
+                // Display columns: show dept-scoped slice for split programs so the
+                // Gov/HD1/SD1 cells are arithmetically consistent with the change cell.
+                p.displayD1  = isSplit ? p.d1DeptScope  : p.d1;
+                p.displayD2  = isSplit ? p.d2DeptScope  : p.d2;
+                p.displayHD1 = isSplit ? p.hd1DeptScope : p.hd1;
                 p.change_type = p.hasAdded && p.d1 === 0 ? 'added' : p.hasRemoved && p.d2 === 0 ? 'removed' : 'modified';
                 p.isMixed = p.sections.size > 1;
                 p.section = p.isMixed ? 'Mixed' : [...p.sections][0] || '';
@@ -2921,16 +2939,19 @@ window.initDraftComparePage = async function () {
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
-                        const secRows = p.rawRows.filter(r => r.section === sec);
+                        // For split programs rawRows includes sibling-dept rows (pulled in
+                        // by the augmentation loop). Filter to this dept only so the section
+                        // sub-row shows the dept-scoped amounts, matching the program row.
+                        const secRows = p.rawRows.filter(r => r.section === sec && r.department_code === p.department_code);
                         const secD1 = secRows.reduce((s, r) => s + (r[d1Key] || 0), 0);
                         const secD2 = secRows.reduce((s, r) => s + (r[d2Key] || 0), 0);
                         const secHD1 = secRows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
@@ -2994,16 +3015,18 @@ window.initDraftComparePage = async function () {
                     const fundOpen = expandedFunds.has(fundKey);
                     const fundArrow = fundOpen ? '▼' : '▶';
                     bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                     const byFund = new Map();
-                    for (const r of p.rawRows) {
+                    // Filter to this dept's rows so cross-dept augmentation rows
+                    // don't inflate fund sub-row amounts for split programs.
+                    for (const r of p.rawRows.filter(r => r.department_code === p.department_code)) {
                         const fc = r.fund_category || '(unknown)';
                         if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
                         const f = byFund.get(fc);
@@ -3032,12 +3055,12 @@ window.initDraftComparePage = async function () {
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
                     bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${pairKeyAttr}>
-                        <td class="detail-indent"><strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.d1, p.hd1, p.d2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.hd1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.d2)}</span></td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}</td>
                     </tr>`;
                 }
