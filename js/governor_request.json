@@ -778,7 +778,7 @@
     "fund_category": "General Obligation Bond Fund",
     "section": "Capital Improvement",
     "amount_fy2026": 6500000.0,
-    "amount_fy2027": 63025000.0
+    "amount_fy2027": 34225000.0
   },
   {
     "program_id": "AGR141",
@@ -5816,7 +5816,7 @@
     "fund_category": "Special Funds",
     "section": "Operating",
     "amount_fy2026": 31094536.0,
-    "amount_fy2027": 34094536.0
+    "amount_fy2027": 31094536.0
   },
   {
     "program_id": "LNR806",
@@ -7830,16 +7830,5 @@
     "section": "Capital Improvement",
     "amount_fy2026": 2000000,
     "amount_fy2027": 0.0
-  },
-  {
-    "program_id": "LNR806",
-    "program_name": "PARKS ADMINISTRATION AND OPERATIONS",
-    "department_code": "LNR",
-    "department_name": "Department of Land & Natural Resources",
-    "fund_type": "B",
-    "fund_category": "Special Funds",
-    "section": "Capital Improvement",
-    "amount_fy2026": 0.0,
-    "amount_fy2027": 4000000
   }
 ]
