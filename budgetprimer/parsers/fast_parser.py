@@ -348,6 +348,14 @@ class FastBudgetParser(BaseBudgetParser):
 
             allocations = self._remove_suspicious_duplicates(allocations)
 
+            # Reconcile Section 14 against Section 13. The bill drafting
+            # process can leave duplicate-titled projects in Section 14 that
+            # the Senate did NOT count in Section 13's program totals (e.g.
+            # SD1 SUB501 lists KAUAI WATER twice but only allocates $13M, not
+            # $14.5M). Drop those drafting duplicates here so consumers see
+            # the same totals everywhere.
+            self._reconcile_projects_to_allocations(allocations)
+
             self.logger.info(
                 f"Successfully parsed {len(allocations)} budget allocations "
                 f"and {len(self.projects)} Section 14 projects"
@@ -1336,6 +1344,114 @@ class FastBudgetParser(BaseBudgetParser):
     # ------------------------------------------------------------------
     # Post-processing
     # ------------------------------------------------------------------
+
+    def _reconcile_projects_to_allocations(
+        self, allocations: List[BudgetAllocation]
+    ) -> None:
+        """Reconcile Section 14 (project list) totals against Section 13 (program totals).
+
+        For each (program_id, fund_type, fiscal_year) bucket where the Section 14 sum
+        EXCEEDS the Section 13 program total, find duplicate-titled projects within
+        that bucket and drop later duplicates (by line_number) until the sum matches.
+
+        This handles bill drafting redundancies that the legislature did NOT count
+        in Section 13. Example (HB1800 SD1):
+          - SUB501 fund=C SD1 FY26: Section 13 allocates $13M. Section 14 lists
+            HANAPEPE $3.5M + KAUAI WATER (item 20) $1.5M + VIDINHA $8M + KAUAI
+            WATER (item 21.1, identical text to 20) $1.5M = $14.5M. The duplicate
+            item 21.1 is dropped → reconciled to $13M.
+          - TRN511 fund=E SD1 FY26: Section 13 allocates $6.5M. Section 14 sums
+            to $6.5M (PUAINAKO listed twice as items 32 and 32.4, both COUNTED
+            by the Senate). No reconciliation needed.
+
+        We deliberately ONLY drop duplicates when Section 14 EXCEEDS Section 13.
+        Section 14 lower than Section 13 is a DIFFERENT problem (missing projects)
+        and would require parser fixes, not reconciliation.
+
+        Modifies self.projects in place.
+        """
+        from collections import defaultdict
+        if not self.projects or not allocations:
+            return
+
+        # Section 13 capital totals: dict[(program, fund, fy)] = amount
+        # Only Capital Improvement allocations participate (Section 14 is CIP-only).
+        s13: Dict[tuple, float] = defaultdict(float)
+        for a in allocations:
+            sec_str = str(getattr(a, 'section', '')).upper()
+            if 'CAPITAL' not in sec_str:
+                continue
+            try:
+                fund_val = a.fund_type.value
+            except AttributeError:
+                continue
+            s13[(a.program_id, fund_val, a.fiscal_year)] += a.amount
+
+        # Section 14 buckets: dict[(program, fund, fy)] -> list of project indices
+        s14_buckets: Dict[tuple, List[int]] = defaultdict(list)
+        for i, p in enumerate(self.projects):
+            try:
+                fund_val = p.fund_type.value
+            except AttributeError:
+                continue
+            s14_buckets[(p.program_id, fund_val, p.fiscal_year)].append(i)
+
+        indices_to_remove: set = set()
+        for key, indices in s14_buckets.items():
+            target = s13.get(key, 0)
+            current = sum(self.projects[i].amount for i in indices)
+            excess = current - target
+            # Allow 1-cent rounding tolerance.
+            if excess <= 0.5:
+                continue
+
+            # Group by normalized project name to find duplicates.
+            by_name: Dict[str, List[int]] = defaultdict(list)
+            for i in indices:
+                name_key = self.projects[i].project_name.strip().upper()
+                by_name[name_key].append(i)
+
+            # For each name group with >1 entries, sort by line_number (earliest
+            # is canonical) and drop later copies whose amount fits within the
+            # current excess. Stop once the excess is consumed.
+            for name_key, idx_list in by_name.items():
+                if excess <= 0.5:
+                    break
+                if len(idx_list) <= 1:
+                    continue
+                ordered = sorted(idx_list, key=lambda i: self.projects[i].line_number)
+                for drop_i in ordered[1:]:
+                    if excess <= 0.5:
+                        break
+                    drop_amt = self.projects[drop_i].amount
+                    # Don't drop if it would under-shoot Section 13.
+                    if drop_amt <= excess + 0.5:
+                        indices_to_remove.add(drop_i)
+                        excess -= drop_amt
+                        dp = self.projects[drop_i]
+                        self.logger.debug(
+                            f"Reconcile: drop {dp.program_id} #{dp.project_id} "
+                            f"'{dp.project_name[:40]}' fund={dp.fund_type.value} "
+                            f"fy={dp.fiscal_year} amt=${drop_amt:,.0f} "
+                            f"(excess remaining: ${excess:,.0f})"
+                        )
+
+            # If excess persists after dedup attempts, log a warning — the data
+            # genuinely has Section 14 > Section 13 with no resolvable duplicate.
+            if excess > 0.5:
+                self.logger.warning(
+                    f"Reconcile: ${excess:,.0f} excess remains for "
+                    f"{key[0]} fund={key[1]} fy={key[2]} "
+                    f"(S14={current:,.0f}, S13={target:,.0f}) — no duplicate found"
+                )
+
+        if indices_to_remove:
+            self.projects = [p for i, p in enumerate(self.projects)
+                             if i not in indices_to_remove]
+            self.logger.info(
+                f"Reconciliation removed {len(indices_to_remove)} Section 14 "
+                f"duplicate entries to match Section 13 totals"
+            )
 
     def _remove_suspicious_duplicates(self, allocations: List[BudgetAllocation]) -> List[BudgetAllocation]:
         """Remove suspicious duplicate allocations.
