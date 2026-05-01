@@ -2176,17 +2176,45 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     const byAbs = (a, b) => Math.abs(b.change) - Math.abs(a.change);
     transfers.sort(byAbs); increases.sort(byAbs); reductions.sort(byAbs);
 
+    // Split transfers by direction so we can render two distinct sub-sections
+    // (Moving OUT / Moving IN) instead of one mixed bucket.
+    const transfersOut = transfers.filter(p => p.change < 0);
+    const transfersIn  = transfers.filter(p => p.change > 0);
+
+    // Group transfer rows by counterpart dept (via splitProgramsMap). The result
+    // is an array of [counterpartLabel, programs[]] entries, sorted by gross size.
+    const groupByCounterpart = (bucket) => {
+        const groups = new Map();
+        for (const p of bucket) {
+            const sm = splitProgramsMap ? splitProgramsMap.get(p.program_id) : null;
+            const counterparts = sm ? [...sm.keys()].filter(d => d !== deptCode) : [];
+            const key = counterparts.length ? counterparts.join(', ') : '—';
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(p);
+        }
+        const entries = [...groups.entries()];
+        entries.forEach(([, v]) => v.sort(byAbs));
+        entries.sort((a, b) => {
+            const sa = a[1].reduce((s, p) => s + Math.abs(p.change || 0), 0);
+            const sb = b[1].reduce((s, p) => s + Math.abs(p.change || 0), 0);
+            return sb - sa;
+        });
+        return entries;
+    };
+
     // Single row: PID chip · name · amount (right-rail, tabular) · destination.
     // Transfer rows pick up a directional class (`-xfer-out` / `-xfer-in`) so the
-    // CSS can paint a colored left edge — peripheral cue that mirrors the diagonal
-    // arrow in the dest cell (↗ leaving the dept, ↙ arriving from another).
-    const renderRow = (p, cls) => {
+    // CSS can paint a colored left edge — peripheral cue that mirrors the prose
+    // "to/from DEPT" label. Rows carry data-jump-* attributes so a click jumps
+    // to the matching row in the main table (handler in init...CardHandlers).
+    const renderRow = (p, cls, opts = {}) => {
         const splitMap = splitProgramsMap ? splitProgramsMap.get(p.program_id) : null;
         const dest = splitMap ? [...splitMap.keys()].filter(d => d !== deptCode) : [];
         const isXfer = !!p.isTransfer;
         const xferDir = isXfer ? (p.change < 0 ? 'out' : 'in') : '';
         const destPrefix = xferDir === 'out' ? 'to' : xferDir === 'in' ? 'from' : '';
-        const destStr = dest.length
+        // Hide dest in grouped transfer sections — counterpart already shown in subgroup head.
+        const destStr = (!opts.hideDest && dest.length)
             ? `${destPrefix ? destPrefix + ' ' : ''}${dest.join(', ')}`
             : '';
         const rawName = p.program_name || '';
@@ -2195,7 +2223,10 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
                      : cls === 'positive' ? 'dept-bd-row dept-bd-row-pos'
                      : cls === 'negative' ? 'dept-bd-row dept-bd-row-neg'
                      : 'dept-bd-row';
-        return `<div class="${rowCls}">
+        return `<div class="${rowCls} dept-bd-row-clickable" role="button" tabindex="0"
+                     data-jump-dept="${_escAttr(deptCode)}"
+                     data-jump-prog="${_escAttr(p.program_id)}"
+                     aria-label="Jump to ${_escAttr(p.program_id)} in the table">
             <span class="dept-bd-pid">${_escHtml(p.program_id)}</span>
             <span class="dept-bd-name" title="${_escAttr(rawName)}">${_escHtml(shortName)}</span>
             <span class="dept-bd-amt ${cls}">${fmt(p.change)}</span>
@@ -2203,24 +2234,46 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
         </div>`;
     };
 
-    // Section: header (icon + label + subtotal) followed by rows
-    const ICONS = { up: '▲', down: '▼', xfer: '⇄' };
+    // Section: header (icon + label + subtotal) followed by rows. Used for
+    // Increases and Reductions — straight list, no counterpart grouping.
+    const ICONS = { up: '▲', down: '▼', xferOut: '↗', xferIn: '↙' };
     const renderSection = (label, iconKey, bucket, cls) => {
         if (!bucket.length) return '';
         const subtotal = bucket.reduce((s, p) => s + (p.change || 0), 0);
-        // For transfers, show gross (sum of absolute values) — net is misleading when
-        // both inflows and outflows exist. Direction is shown per-row already.
-        const subStr = iconKey === 'xfer'
-            ? `⇄ ${fmtAbs(bucket.reduce((s, p) => s + Math.abs(p.change || 0), 0))}`
-            : fmt(subtotal);
         return `<div class="dept-bd-section">
             <div class="dept-bd-section-head">
                 <span class="dept-bd-section-icon dept-bd-icon-${iconKey}">${ICONS[iconKey]}</span>
                 <span class="dept-bd-section-label">${label}</span>
-                <span class="dept-bd-section-total ${cls}">${subStr}</span>
+                <span class="dept-bd-section-total ${cls}">${fmt(subtotal)}</span>
             </div>
             ${bucket.map(p => renderRow(p, cls)).join('')}
         </div>`;
+    };
+
+    // Transfer section: section header + counterpart sub-groups + rows.
+    // `prefix` is the prose label ("to" / "from") shown on each subgroup head.
+    const renderTransferSection = (label, iconKey, bucket, prefix) => {
+        if (!bucket.length) return '';
+        const grossTotal = bucket.reduce((s, p) => s + Math.abs(p.change || 0), 0);
+        let html = `<div class="dept-bd-section dept-bd-section-xfer-${iconKey === 'xferOut' ? 'out' : 'in'}">
+            <div class="dept-bd-section-head">
+                <span class="dept-bd-section-icon dept-bd-icon-${iconKey}">${ICONS[iconKey]}</span>
+                <span class="dept-bd-section-label">${label}</span>
+                <span class="dept-bd-section-total transferred">${fmtAbs(grossTotal)}</span>
+            </div>`;
+        for (const [counterpart, progs] of groupByCounterpart(bucket)) {
+            const groupTotal = progs.reduce((s, p) => s + Math.abs(p.change || 0), 0);
+            const word = progs.length === 1 ? 'program' : 'programs';
+            html += `<div class="dept-bd-subgroup">
+                <div class="dept-bd-subgroup-head">
+                    <span class="dept-bd-subgroup-label">${_escHtml(prefix)} <span class="dept-bd-subgroup-dept">${_escHtml(counterpart)}</span></span>
+                    <span class="dept-bd-subgroup-meta">${fmtAbs(groupTotal)} · ${progs.length} ${word}</span>
+                </div>
+                ${progs.map(p => renderRow(p, 'transferred', { hideDest: true })).join('')}
+            </div>`;
+        }
+        html += `</div>`;
+        return html;
     };
 
     // Header: dept chip + dept name
@@ -2229,11 +2282,12 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
         <span class="dept-bd-dept-name" title="${_escAttr(deptName)}">${_escHtml(deptName)}</span>
     </div>`;
 
-    // Body: sections
+    // Body: real changes first, then transfers split into OUT and IN sections.
     let body = '';
     body += renderSection('Increases', 'up', increases, 'positive');
     body += renderSection('Reductions', 'down', reductions, 'negative');
-    body += renderSection('Moved between depts', 'xfer', transfers, 'transferred');
+    body += renderTransferSection('Moving OUT', 'xferOut', transfersOut, 'to');
+    body += renderTransferSection('Moving IN',  'xferIn',  transfersIn,  'from');
     if (!body) {
         body = `<div class="dept-bd-empty">No program-level changes</div>`;
     }
@@ -2311,6 +2365,37 @@ function initDeptBreakdownCardHandlers() {
                    !inCard &&
                    (!activeCell || !activeCell.contains(e.relatedTarget))) {
             hideSoon();
+        }
+    });
+
+    // Click on a row inside the card → jump to the matching row in the main
+    // table. The page-level handler (window._deptBdJumpToRow) lives in
+    // initDraftComparePage's closure where it can mutate expandedDepts and
+    // trigger render(). Keyboard (Enter/Space) gets the same treatment so the
+    // tooltip is operable without a mouse.
+    const tryJump = (target) => {
+        const row = target?.closest?.('[data-jump-prog]');
+        if (!row) return false;
+        const dept = row.getAttribute('data-jump-dept');
+        const prog = row.getAttribute('data-jump-prog');
+        if (typeof window._deptBdJumpToRow !== 'function') return false;
+        // Hide card BEFORE jumping so it doesn't follow scroll/render.
+        card.style.display = 'none';
+        activeCell = null;
+        window._deptBdJumpToRow(dept, prog);
+        return true;
+    };
+    card.addEventListener('click', (e) => {
+        if (tryJump(e.target)) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+    card.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (tryJump(e.target)) {
+            e.preventDefault();
+            e.stopPropagation();
         }
     });
 
@@ -3101,7 +3186,15 @@ window.initDraftComparePage = async function () {
                 p.displayD2  = isSplit ? p.d2DeptScope  : p.d2;
                 p.displayHD1 = isSplit ? p.hd1DeptScope : p.hd1;
                 p.isTransfer = isSplit && p.change !== 0;
-                p.change_type = p.hasAdded && p.d1 === 0 ? 'added' : p.hasRemoved && p.d2 === 0 ? 'removed' : 'modified';
+                // Use dept-scoped values so split programs that are 100%
+                // transferred OUT of this dept (d2DeptScope === 0 here even
+                // though augmented p.d2 picked up sibling-dept rows) are
+                // correctly tagged 'removed' — drives the badge in the
+                // change cell. Non-split programs are unaffected
+                // (displayD1/D2 === d1/d2).
+                p.change_type = p.hasAdded   && p.displayD1 === 0 ? 'added'
+                              : p.hasRemoved && p.displayD2 === 0 ? 'removed'
+                              : 'modified';
                 p.isMixed = p.sections.size > 1;
                 p.section = p.isMixed ? 'Mixed' : [...p.sections][0] || '';
                 p.fundLabel = p.funds.size === 1 ? [...p.funds][0] : `${p.funds.size} funds`;
@@ -3109,6 +3202,15 @@ window.initDraftComparePage = async function () {
                 p.fundTitle = p.funds.size > 1 ? [...p.funds].join(' · ') : '';
                 return p;
             });
+        };
+
+        // Sub-row badge: section/fund rows don't carry change_type, so derive
+        // the "new" / "removed" label from d1/d2 directly. Same visual as the
+        // program-row typeBadge, just computed inline.
+        const subRowBadge = (d1, d2) => {
+            if ((d1 || 0) > 0 && (d2 || 0) === 0) return '<span class="badge badge-remove">removed</span>';
+            if ((d1 || 0) === 0 && (d2 || 0) > 0) return '<span class="badge badge-add">new</span>';
+            return '';
         };
 
         let bodyHtml = '';
@@ -3211,7 +3313,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
                         // For split programs rawRows includes sibling-dept rows (pulled in
@@ -3252,7 +3354,7 @@ window.initDraftComparePage = async function () {
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(secHD1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD2)}</span></td>
-                            <td class="amount-cell ${secTransferCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span>${secTransferNote}</td>
+                            <td class="amount-cell ${secTransferCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span>${subRowBadge(secD1, secD2)}${secTransferNote}</td>
                         </tr>`;
                         if (isSecFundGroup) {
                             const byFund = new Map();
@@ -3281,7 +3383,7 @@ window.initDraftComparePage = async function () {
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
-                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${fTransferNote}</td>
+                                    <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${subRowBadge(f.d1, f.d2)}${fTransferNote}</td>
                                 </tr>`;
                             }
                         }
@@ -3303,7 +3405,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     const byFund = new Map();
                     // Filter to this dept's rows so cross-dept augmentation rows
@@ -3333,7 +3435,7 @@ window.initDraftComparePage = async function () {
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
-                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${fTransferNote}</td>
+                            <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${subRowBadge(f.d1, f.d2)}${fTransferNote}</td>
                         </tr>`;
                     }
                 } else {
@@ -3350,7 +3452,7 @@ window.initDraftComparePage = async function () {
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
-                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${divergenceChipHtml(p)}${progTransferAnnotation}</td>
+                        <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                 }
             }
@@ -4292,6 +4394,29 @@ window.initDraftComparePage = async function () {
             return;
         }
     });
+
+    // Jump-to-row from the dept change-cell breakdown card. Opens the dept,
+    // re-renders, then scrolls the matching program row into view and flashes
+    // it briefly so the user's eye can track where they landed. Exposed on
+    // window so the card click handler (separate closure) can reach in.
+    window._deptBdJumpToRow = (deptCode, programId) => {
+        if (!deptCode) return;
+        expandedDepts.add(deptCode);
+        // Re-run the page-level render that draws the table.
+        if (typeof render === 'function') render();
+        requestAnimationFrame(() => {
+            // Prefer the program row; fall back to the dept group row.
+            const sel = programId
+                ? `.dept-detail-row[data-prog="${deptCode}:${programId}"]`
+                : `.dept-group-row[data-dept="${deptCode}"]`;
+            const row = document.querySelector(sel)
+                     || document.querySelector(`.dept-group-row[data-dept="${deptCode}"]`);
+            if (!row) return;
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('row-flash');
+            setTimeout(() => row.classList.remove('row-flash'), 1500);
+        });
+    };
 
     // --- Fund detail section: expand/collapse + export ---
     document.getElementById('fund-detail-section')?.addEventListener('click', (e) => {

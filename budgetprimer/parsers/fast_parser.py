@@ -476,6 +476,13 @@ class FastBudgetParser(BaseBudgetParser):
         # Deferred dedup: set when a same-title sub-project header fires.
         # Resolved at the next TOTAL FUNDING line by comparing funds.
         pending_fund_dedup: Optional[Dict[str, Any]] = None
+        # Per-program emission index keyed by upper-cased project name. Used to
+        # catch same-title duplicates that are NOT immediately previous — e.g.
+        # SD1 SUB501 has KAUAI WATER (item 20) → VIDINHA (item 21) → KAUAI WATER
+        # AGAIN (item 21.1). The old dedup only checked last_cip_emission and
+        # missed item 21.1 because VIDINHA was in between, causing item 21.1's
+        # amounts to be summed with item 20's by the downstream comparator.
+        cip_emissions_by_name: Dict[str, List[Dict[str, Any]]] = {}
 
         # Section 14 project-parsing state
         cip_program_id: str = ''
@@ -668,6 +675,25 @@ class FastBudgetParser(BaseBudgetParser):
                     self.logger.debug("Entered CIP project list section (Section 14); skipping TOTAL FUNDING lines")
                     continue
 
+                # --- 0c.5. Exit Section 14 at the next bare "SECTION N." marker ---
+                # The bill embeds Section 14 as a quoted amendment inside SECTION 6
+                # ("SECTION 14. CAPITAL IMPROVEMENT PROJECTS AUTHORIZED..."). After
+                # the project list ends, the bill returns to normal numbered sections
+                # (SECTION 7., SECTION 8., etc.). These are NOT quoted, so we can
+                # detect them with `^\s*SECTION\s+\d+\.`. Without this exit, a later
+                # numbered list item like "21. By adding a new section to read:" can
+                # match the cip_project regex and (worse) trigger the same-id dedup
+                # against a real project — which is what was silently deleting
+                # SUB501 #21 (VIDINHA STADIUM) from HD1.
+                if in_cip_project_list and re.match(r'^\s*SECTION\s+\d+\.\s', line):
+                    in_cip_project_list = False
+                    cur_project = None
+                    last_cip_emission = None
+                    pending_fund_dedup = None
+                    self.logger.debug(f"L{line_num}: Exited CIP project list at section marker")
+                    # Don't `continue` — fall through so this SECTION line itself
+                    # gets processed normally if needed (e.g., by other parsers).
+
                 # --- 0d. Section 14 project parsing ---
                 # When inside the CIP project list, parse project-level structure into
                 # self.projects. Do NOT emit BudgetAllocation records here (those come
@@ -689,6 +715,7 @@ class FastBudgetParser(BaseBudgetParser):
                         cur_project = None  # Flush in-progress project
                         last_cip_emission = None  # emission context is per-program
                         pending_fund_dedup = None
+                        cip_emissions_by_name = {}  # per-program index resets too
                         continue
 
                     # TOTAL FUNDING line — emit project(s) for cur_project
@@ -788,6 +815,13 @@ class FastBudgetParser(BaseBudgetParser):
                             'fy2_fund_primary': fy2_fund,
                             'fy1_amount_primary': float(fy1_num) * 1000.0,
                         }
+                        # Register in the per-program by-name index so a later
+                        # same-titled project header in this same program can
+                        # find this emission for dedup, even if other projects
+                        # appear between them.
+                        cip_emissions_by_name.setdefault(
+                            last_cip_emission['project_name_key'], []
+                        ).append(last_cip_emission)
                         cur_project = None
                         continue
 
@@ -965,6 +999,16 @@ class FastBudgetParser(BaseBudgetParser):
                                                if p is not None},
                                 'program_id': cip_program_id,
                             }
+                        # NOTE: deliberately DO NOT auto-dedup against non-immediate
+                        # prior emissions in cip_emissions_by_name (the per-program
+                        # by-name index). The bill itself contains structurally
+                        # identical duplicates that the Senate counted INCONSISTENTLY
+                        # in Section 13 totals — e.g. SUB501 items 20 and 21.1
+                        # (KAUAI WATER) are NOT both counted, but TRN511 items 32
+                        # and 32.4 (PUAINAKO) ARE both counted. We can't tell them
+                        # apart from Section 14 alone, so we faithfully record both
+                        # emissions and let downstream reconciliation against
+                        # Section 13 program totals decide.
                         cur_project = {
                             'project_id': mj.group(1),
                             'project_name': mj.group(2).strip(),
