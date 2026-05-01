@@ -5075,6 +5075,71 @@ mark.search-highlight {
 .dept-bd-row-neg:hover {
     filter: brightness(0.985);
 }
+/* Click-to-jump affordance: rows that wire up to the main table get a
+   pointer cursor + a slightly stronger hover. Keyboard focus is ringed. */
+.dept-bd-row-clickable {
+    cursor: pointer;
+}
+.dept-bd-row-clickable:focus-visible {
+    outline: 2px solid #0f7a5c;
+    outline-offset: 1px;
+}
+/* Sub-group within a transfer section: a "to AGS · $30M · 2 programs" header
+   followed by the rows that move to/from that counterpart dept. Indented
+   slightly so the visual hierarchy reads section → group → row. */
+.dept-bd-subgroup {
+    margin: 4px 0 6px 0;
+}
+.dept-bd-subgroup-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 3px 4px 3px 8px;
+    margin: 2px 0 1px 0;
+    font-size: 0.74rem;
+    color: #6f7d77;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.07);
+}
+.dept-bd-subgroup-label {
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: #5a6964;
+}
+.dept-bd-subgroup-dept {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    margin-left: 2px;
+    border-radius: 3px;
+    background: rgba(40, 60, 50, 0.06);
+    color: #2c3e35;
+    letter-spacing: 0.01em;
+}
+.dept-bd-subgroup-meta {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #7a5c0a;
+    white-space: nowrap;
+}
+
+/* Section icons: directional colors for the OUT/IN sub-section icons. */
+.dept-bd-icon-xferOut { color: #c2410c; }
+.dept-bd-icon-xferIn  { color: #0f7a5c; }
+
+/* Row-flash: brief highlight on the main-table row after a tooltip jump,
+   so the user's eye can lock onto where they landed. */
+@keyframes row-flash-anim {
+    0%   { background-color: rgba(247, 217, 100, 0.45); }
+    100% { background-color: transparent; }
+}
+.row-flash {
+    animation: row-flash-anim 1.4s ease-out;
+}
+.row-flash > td {
+    animation: row-flash-anim 1.4s ease-out;
+}
 .dept-bd-pid {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.69rem;
