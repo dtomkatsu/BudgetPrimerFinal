@@ -4911,96 +4911,240 @@ mark.search-highlight {
 }
 
 /* ── Department breakdown hover card ──────────────────────────────────── */
+/* Refined card: scrollable body, sticky header + net footer, grid-based rows
+   with right-aligned tabular amounts, per-section subtotals. */
 #dept-breakdown-card {
     position: absolute;
     z-index: 200;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.11);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.16);
-    padding: 10px 14px 12px;
-    min-width: 300px;
-    max-width: 460px;
-    max-height: 380px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.04),
+        0 12px 32px rgba(20, 30, 25, 0.18);
     overflow-y: auto;
+    overscroll-behavior: contain;
+    min-width: 380px;
+    max-width: 480px;
+    max-height: min(460px, 75vh);
     font-size: 0.82rem;
-    line-height: 1.4;
-    pointer-events: none;
+    line-height: 1.45;
+    color: #2c3e35;
     display: none;
     font-family: inherit;
+    padding: 0;
 }
+#dept-breakdown-card::-webkit-scrollbar {
+    width: 8px;
+}
+#dept-breakdown-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+#dept-breakdown-card::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 4px;
+    border: 2px solid #fff;
+}
+#dept-breakdown-card::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.28);
+}
+
+/* Sticky header — stays anchored while body scrolls */
 .dept-bd-header {
-    font-weight: 600;
-    font-size: 0.84rem;
-    color: var(--primary-dark);
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-}
-.dept-bd-section-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    margin: 8px 0 3px;
-}
-.dept-bd-row {
+    position: sticky;
+    top: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 2px 0;
+    gap: 9px;
+    padding: 12px 16px 11px;
+    background: linear-gradient(180deg, #fafcfb 0%, #f4f7f5 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px 12px 0 0;
 }
-.dept-bd-pid {
-    font-size: 0.72rem;
+.dept-bd-dept-chip {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-weight: 700;
-    font-family: monospace;
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: rgba(0,0,0,0.06);
-    color: var(--primary-dark);
-    white-space: nowrap;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: #e0eae5;
+    color: #2c3e35;
     flex-shrink: 0;
 }
+.dept-bd-dept-name {
+    font-size: 0.93rem;
+    font-weight: 600;
+    color: #2c3e35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.005em;
+}
+
+/* Body wrapper just provides padding inside the scrollable card */
+.dept-bd-body {
+    padding: 4px 14px 6px;
+}
+
+.dept-bd-section {
+    margin-top: 8px;
+}
+.dept-bd-section:first-child {
+    margin-top: 4px;
+}
+.dept-bd-section-head {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 7px;
+    padding: 5px 0 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 2px;
+}
+.dept-bd-section-icon {
+    font-size: 0.62rem;
+    text-align: center;
+    line-height: 1;
+}
+.dept-bd-icon-up    { color: #1a8050; }
+.dept-bd-icon-down  { color: #b32a2a; }
+.dept-bd-icon-xfer  { color: #b88a14; }
+.dept-bd-section-label {
+    font-size: 0.69rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6f7d77;
+}
+.dept-bd-section-total {
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+.dept-bd-section-total.positive    { color: #1a8050; }
+.dept-bd-section-total.negative    { color: #b32a2a; }
+.dept-bd-section-total.transferred { color: #b88a14; }
+
+/* Grid row keeps amount column on a fixed rail so digits align vertically */
+.dept-bd-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 96px minmax(0, auto);
+    align-items: center;
+    column-gap: 9px;
+    padding: 4px 6px;
+    margin: 0 -6px;
+    border-radius: 5px;
+    transition: background 0.1s ease;
+}
+.dept-bd-row:hover {
+    background: rgba(0, 0, 0, 0.025);
+}
+.dept-bd-pid {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.69rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(40, 60, 50, 0.06);
+    color: #2c3e35;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
 .dept-bd-name {
-    flex: 1;
-    color: var(--text-muted);
+    color: #4a5e57;
+    font-size: 0.80rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 0.80rem;
     min-width: 0;
 }
-.dept-bd-chip {
-    font-size: 0.78rem;
-    padding: 1px 7px;
-    border-radius: 4px;
+.dept-bd-amt {
+    text-align: right;
+    font-size: 0.79rem;
     font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    padding: 2px 8px;
+    border-radius: 5px;
     border: 1px solid transparent;
+    white-space: nowrap;
+    justify-self: end;
 }
-.dept-bd-chip.positive { color: #1a6b3a; background: #eaf7ee; border-color: #b3e6c8; }
-.dept-bd-chip.negative { color: #8b1a1a; background: #fef0f0; border-color: #f5c6c6; }
-.dept-bd-chip.transferred { color: #7a5c0a; background: #fef8e7; border-color: #f5df96; }
+.dept-bd-amt.positive {
+    color: #1a6b3a;
+    background: #eaf7ee;
+    border-color: #c5e6d2;
+}
+.dept-bd-amt.negative {
+    color: #8b1a1a;
+    background: #fdf0f0;
+    border-color: #efcacb;
+}
+.dept-bd-amt.transferred {
+    color: #7a5c0a;
+    background: #fdf6e3;
+    border-color: #ecd998;
+}
 .dept-bd-dest {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 500;
     color: #8b6914;
     white-space: nowrap;
-    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
-.dept-bd-net {
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
+
+.dept-bd-empty {
+    color: #6f7d77;
     font-size: 0.82rem;
-    color: var(--primary-dark);
+    padding: 18px 0;
+    text-align: center;
 }
+
+/* Sticky net footer */
+.dept-bd-net {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    background: linear-gradient(180deg, #f4f7f5 0%, #fafcfb 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.07);
+    border-radius: 0 0 12px 12px;
+    padding: 10px 16px 11px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    column-gap: 12px;
+    row-gap: 4px;
+    margin-top: 4px;
+}
+.dept-bd-net-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #2c3e35;
+    letter-spacing: -0.005em;
+}
+.dept-bd-net-value {
+    font-size: 1.0rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+    text-align: right;
+}
+.dept-bd-net-value.positive { color: #1a8050; }
+.dept-bd-net-value.negative { color: #b32a2a; }
+.dept-bd-net-xfer-line {
+    grid-column: 1 / -1;
+    font-size: 0.72rem;
+    color: #8b6914;
+    font-weight: 500;
+    padding-top: 2px;
+    border-top: 1px dashed rgba(184, 138, 20, 0.25);
+}
+
 /* Cursor hint on the change cell so users know it's hoverable */
 [data-dept-bd] {
     cursor: help;
