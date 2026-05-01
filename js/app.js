@@ -2194,17 +2194,29 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
     };
 
     let html = `<div class="dept-bd-header">${_escHtml(deptCode)} — ${_escHtml(deptName)}</div>`;
-    html += renderSection('Transferred', transfers);
     html += renderSection('Increases', increases);
     html += renderSection('Reductions', reductions);
+    html += renderSection('Transferred (reshuffled between depts)', transfers);
 
     if (!transfers.length && !increases.length && !reductions.length) {
         html += `<div style="color:var(--text-muted);font-size:0.8rem;padding:4px 0">No program-level changes</div>`;
     }
 
-    const net = programs.reduce((s, p) => s + (p.change || 0), 0);
-    const netCls = net > 0 ? 'positive' : net < 0 ? 'negative' : '';
-    html += `<div class="dept-bd-net">Net <span class="dept-bd-chip ${netCls}">${fmt(net)}</span></div>`;
+    const realNet = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
+    const xferNet = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
+    const netCls = realNet > 0 ? 'positive' : realNet < 0 ? 'negative' : '';
+    html += `<div class="dept-bd-net">Real net <span class="dept-bd-chip ${netCls}">${fmt(realNet)}</span>`;
+    if (xferNet !== 0) {
+        const xferFmt = (xferNet < 0 ? '−' : '+') + '$' + (() => {
+            const a = Math.abs(xferNet);
+            if (a >= 1e9) return `${(a/1e9).toFixed(2)}B`;
+            if (a >= 1e6) return `${(a/1e6).toFixed(2)}M`;
+            if (a >= 1e3) return `${Math.round(a/1e3)}K`;
+            return a.toLocaleString();
+        })();
+        html += ` <span class="dept-bd-net-xfer">${xferNet < 0 ? '→' : '←'} ${xferFmt} reshuffled</span>`;
+    }
+    html += `</div>`;
 
     return html;
 }
@@ -3043,11 +3055,20 @@ window.initDraftComparePage = async function () {
             const deptD1 = dept.d1;
             const deptD2 = dept.d2;
             const deptDelta = dept.delta;
-            const deptCls = deptDelta > 0 ? 'positive' : deptDelta < 0 ? 'negative' : '';
             const isOpen = autoExpand || expandedDepts.has(dept.code);
             const arrow = isOpen ? '▼' : '▶';
 
             const programs = aggregatePrograms(dept.rows);
+
+            // Real net = change excluding cross-dept transfers (those net to $0 across
+            // the whole budget — they're reshuffles, not new money or cuts).
+            const realDelta = programs.reduce((s, p) => s + (p.isTransfer ? 0 : (p.change || 0)), 0);
+            const xferDelta = programs.reduce((s, p) => s + (p.isTransfer ? (p.change || 0) : 0), 0);
+            const deptCls   = realDelta > 0 ? 'positive' : realDelta < 0 ? 'negative' : '';
+            // If there are transfers, show a compact amber note below the chip.
+            const deptXferNote = xferDelta !== 0
+                ? `<span class="dept-xfer-note">${xferDelta < 0 ? '→' : '←'} ${_fmtShort(Math.abs(xferDelta))} transferred</span>`
+                : '';
 
             // Dept-level pairing is now communicated via paired ↔ DEPT chips on
             // individual program rows, so no dept-level transfer badge is needed.
@@ -3057,7 +3078,7 @@ window.initDraftComparePage = async function () {
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
-                <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(deptDelta)}</span></td>
+                <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(realDelta)}</span>${deptXferNote}</td>
             </tr>`;
 
             for (const p of programs) {
