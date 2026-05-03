@@ -2563,6 +2563,60 @@ window.initDraftComparePage = async function () {
     let sd1Active = true;
     let showBreakdown = false; // whether Op/Cap sub-chips are visible under each node
 
+    // --- URL state persistence ---
+    // Key filter state is encoded into the hash query string so views can be shared.
+    // Example: #/?fy=27&q=airport&mode=decreases&sort=change&dir=desc
+    // Uses history.replaceState (no popstate fired) so router never re-navigates.
+    const readUrlState = () => {
+        const qs = (typeof window._routeQueryString !== 'undefined')
+            ? window._routeQueryString
+            : (window.location.hash.split('?')[1] || '');
+        const p = new URLSearchParams(qs);
+        return {
+            fy:    p.get('fy')    || '26',
+            q:     p.get('q')    || '',
+            mode:  p.get('mode') || 'all',
+            sort:  p.get('sort') || 'change',
+            dir:   p.get('dir')  || 'asc',
+            nodes: p.get('nodes') || 'gov,hd1,sd1',
+        };
+    };
+    const syncUrlState = () => {
+        const fy = activeData === draftComparisonDataFY27 ? '27' : '26';
+        const q    = document.getElementById('draft-search')?.value || '';
+        const mode = document.getElementById('draft-filter')?.value || 'all';
+        const activeNodes = [govActive && 'gov', hd1Active && 'hd1', sd1Active && 'sd1']
+            .filter(Boolean).join(',');
+        const p = new URLSearchParams();
+        if (fy   !== '26')               p.set('fy',    fy);
+        if (q)                           p.set('q',     q);
+        if (mode !== 'all')              p.set('mode',  mode);
+        if (sortCol !== 'change')        p.set('sort',  sortCol);
+        if (sortDir !== 'asc')           p.set('dir',   sortDir);
+        if (activeNodes !== 'gov,hd1,sd1') p.set('nodes', activeNodes);
+        const qs = p.toString();
+        history.replaceState(null, '', '#/' + (qs ? '?' + qs : ''));
+    };
+    // Read URL on init; pending values applied on the first render call
+    const _initState = readUrlState();
+    let pendingQ    = _initState.q;
+    let pendingMode = _initState.mode !== 'all' ? _initState.mode : '';
+    // Apply URL sort state immediately
+    sortCol = _initState.sort;
+    sortDir = _initState.dir;
+    // Apply URL FY state
+    if (_initState.fy === '27' && draftComparisonDataFY27) {
+        activeData    = draftComparisonDataFY27;
+        activeProjects = projectsDataFY27;
+    }
+    // Apply URL timeline nodes
+    {
+        const ns = new Set(_initState.nodes.split(','));
+        govActive = ns.has('gov');
+        hd1Active = ns.has('hd1');
+        sd1Active = ns.has('sd1');
+    }
+
     // Build baseline lookup from governorRequestData.
     // Key includes department_code + section so that a program which exists
     // under dept A in the governor's request but was moved/added under dept B
@@ -2813,8 +2867,11 @@ window.initDraftComparePage = async function () {
         const meta = activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
         const hd1Key = 'amount_' + meta.draft1.toLowerCase(); // always 'amount_hd1'
-        const mode = document.getElementById('draft-filter')?.value || 'all';
-        const q = (document.getElementById('draft-search')?.value || '').toLowerCase();
+        // On first render, use URL-persisted values before the DOM elements exist
+        const _pq = pendingQ; const _pm = pendingMode;
+        pendingQ = ''; pendingMode = '';
+        const mode = document.getElementById('draft-filter')?.value || _pm || 'all';
+        const q = (document.getElementById('draft-search')?.value || _pq || '').toLowerCase();
 
         let data = [...activeData.comparisons];
 
@@ -2822,18 +2879,19 @@ window.initDraftComparePage = async function () {
         if (checkedSections) data = data.filter(r => checkedSections.has(r.section));
         if (checkedFunds) data = data.filter(r => checkedFunds.has(r.fund_category));
 
-        // Search
-        if (q) data = data.filter(r =>
-            (r.program_name || '').toLowerCase().includes(q) ||
-            (r.program_id || '').toLowerCase().includes(q) ||
-            (r.department_name || '').toLowerCase().includes(q));
-
-        // Change type filter
+        // Change type filter (applied before search so totalBeforeSearch = post-mode count)
         if (mode === 'modified') data = data.filter(r => r.change_type === 'modified' && r.change !== 0);
         else if (mode === 'increases') data = data.filter(r => (r.change || 0) > 0);
         else if (mode === 'decreases') data = data.filter(r => (r.change || 0) < 0);
         else if (mode === 'added') data = data.filter(r => r.change_type === 'added');
         else if (mode === 'removed') data = data.filter(r => r.change_type === 'removed');
+
+        // Search — applied after mode filter so we can show "X of Y" count
+        const totalBeforeSearch = data.length;
+        if (q) data = data.filter(r =>
+            (r.program_name || '').toLowerCase().includes(q) ||
+            (r.program_id || '').toLowerCase().includes(q) ||
+            (r.department_name || '').toLowerCase().includes(q));
 
         // Sort
         const resolveSort = (r) => {
@@ -2865,14 +2923,14 @@ window.initDraftComparePage = async function () {
         // Summary line
         const totalDelta = data.reduce((s, r) => s + (r.change || 0), 0);
         const netCls2 = totalDelta > 0 ? 'positive' : totalDelta < 0 ? 'negative' : '';
-        const filterVal = document.getElementById('draft-filter')?.value || 'all';
-        const searchVal = document.getElementById('draft-search')?.value || '';
+        const filterVal = document.getElementById('draft-filter')?.value || _pm || 'all';
+        const searchVal = document.getElementById('draft-search')?.value || _pq || '';
         const searchWasFocused = document.activeElement?.id === 'draft-search';
         const searchSelStart = document.getElementById('draft-search')?.selectionStart;
         const searchSelEnd = document.getElementById('draft-search')?.selectionEnd;
         document.getElementById('draft-summary').innerHTML =
             `<span class="stat-tag stat-tag-neutral items-filter-tag">
-                <strong>${data.length}</strong> items ▾
+                ${q ? `<strong>${data.length}</strong> of ${totalBeforeSearch}` : `<strong>${data.length}</strong>`} programs ▾
                 <select id="draft-filter" class="items-filter-select">
                     <option value="all"${filterVal==='all'?' selected':''}>All Changes</option>
                     <option value="modified"${filterVal==='modified'?' selected':''}>Modified Only</option>
@@ -3324,7 +3382,7 @@ window.initDraftComparePage = async function () {
 
                 if (p.isMixed) {
                     const progArrow = progOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row prog-group-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
+                    bodyHtml += `<tr class="dept-detail-row prog-group-row change-${p.change_type}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
@@ -3416,7 +3474,7 @@ window.initDraftComparePage = async function () {
                     const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
                     const fundOpen = expandedFunds.has(fundKey);
                     const fundArrow = fundOpen ? '▼' : '▶';
-                    bodyHtml += `<tr class="dept-detail-row prog-fund-group${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
+                    bodyHtml += `<tr class="dept-detail-row prog-fund-group change-${p.change_type}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
                         <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
@@ -3463,7 +3521,7 @@ window.initDraftComparePage = async function () {
                     const progChipHtml = progHasProjects
                         ? `<a class="section-chip section-chip-link" href="javascript:void(0)" data-scroll-projects="${dept.code}">${p.section} →</a>`
                         : `<span class="section-chip">${p.section}</span>`;
-                    bodyHtml += `<tr class="dept-detail-row${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${pairKeyAttr}>
+                    bodyHtml += `<tr class="dept-detail-row change-${p.change_type}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}"${pairKeyAttr}>
                         <td class="detail-indent"><strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
@@ -3634,6 +3692,9 @@ window.initDraftComparePage = async function () {
         window._lastDraftMeta = meta;
 
         renderProjects();
+
+        // Persist current state to URL so the view is shareable
+        syncUrlState();
     };
 
     // --- Render Section 14 capital projects section ---
@@ -4572,6 +4633,12 @@ window.initDraftComparePage = async function () {
         render();
         restoreFYAnchor(anchor);
     });
+    // Reflect URL-persisted FY in the segmented control on page load
+    if (_initState.fy === '27') {
+        document.getElementById('fy-btn-26')?.classList.remove('active');
+        document.getElementById('fy-btn-27')?.classList.add('active');
+        document.querySelector('.fy-seg-ctrl')?.setAttribute('data-active', '27');
+    }
 
     // --- Compare timeline: Gov's Request / HD1 / SD1 checkboxes ---
     const updateTimeline = () => {
@@ -4605,6 +4672,15 @@ window.initDraftComparePage = async function () {
         render();
     };
     document.querySelectorAll('.tl-cb').forEach(cb => cb.addEventListener('change', updateTimeline));
+    // Reflect URL-persisted node state in checkboxes on page load
+    if (_initState.nodes !== 'gov,hd1,sd1') {
+        const ns = new Set(_initState.nodes.split(','));
+        ['gov', 'hd1', 'sd1'].forEach(n => {
+            const cb = document.getElementById(`tl-${n}`);
+            if (cb) cb.checked = ns.has(n);
+        });
+        updateTimeline();
+    }
 
     // Expand caret (left of Gov amount) — toggle Op/Cap breakdown
     const expandBtn = document.getElementById('tl-expand-btn');

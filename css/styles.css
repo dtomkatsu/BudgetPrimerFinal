@@ -1433,6 +1433,15 @@ a.section-chip-link:hover {
 .project-table .project-row.change-removed { border-left: 3px solid #dc3545; }
 .project-table .project-row.change-modified { border-left: 3px solid #e0b341; }
 .project-table .project-row.change-unchanged { border-left: 3px solid transparent; }
+/* Change-type left-edge treatment on main comparison rows (mirrors project table) */
+.dept-detail-row.change-removed {
+    border-left: 3px solid rgba(220,53,69,0.55);
+    background: rgba(248,215,218,0.18);
+}
+.dept-detail-row.change-added {
+    border-left: 3px solid rgba(40,167,69,0.55);
+    background: rgba(212,237,218,0.18);
+}
 .proj-gov-label, .proj-draft-label {
     font-size: 0.79rem;
     font-weight: 400;
