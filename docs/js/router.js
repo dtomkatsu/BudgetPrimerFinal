@@ -77,7 +77,10 @@ class Router {
     }
 
     async handleRoute() {
-        const path = window.location.hash.slice(1) || '/';
+        const fullHash = window.location.hash.slice(1) || '/';
+        const qIdx = fullHash.indexOf('?');
+        const path = qIdx >= 0 ? fullHash.slice(0, qIdx) : fullHash;
+        window._routeQueryString = qIdx >= 0 ? fullHash.slice(qIdx + 1) : '';
         
         // Find matching route (including parameterized routes)
         let route = this.routes.find(r => r.path === path);
