@@ -4686,8 +4686,12 @@ window.initDraftComparePage = async function () {
     const expandBtn = document.getElementById('tl-expand-btn');
     if (expandBtn) {
         expandBtn.addEventListener('click', () => {
+            // Suppress CSS scroll anchoring during expand/collapse so the browser
+            // doesn't adjust scrollY (which makes the summary row appear to jump).
+            document.documentElement.style.overflowAnchor = 'none';
             showBreakdown = !showBreakdown;
             updateSummaryCards();
+            requestAnimationFrame(() => { document.documentElement.style.overflowAnchor = ''; });
         });
     }
 
@@ -4768,6 +4772,17 @@ window.initDraftComparePage = async function () {
     // --- Initial render ---
     updateSummaryCards();
     render();
+
+    // Keep --compare-bar-h in sync with the sticky controls bar height so the
+    // table thead and dept/fund sticky rows offset correctly below the bar.
+    const compareBar = document.querySelector('.compare-controls-bar');
+    const comparePage = document.querySelector('.compare-page');
+    if (compareBar && comparePage) {
+        const syncBarHeight = () =>
+            comparePage.style.setProperty('--compare-bar-h', compareBar.offsetHeight + 'px');
+        syncBarHeight();
+        new ResizeObserver(syncBarHeight).observe(compareBar);
+    }
 };
 
 // ---------------------------------------------------------------------------
