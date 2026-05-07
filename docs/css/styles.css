@@ -3522,18 +3522,10 @@ mark.search-highlight {
     top: 0;
     z-index: 10;
 }
-/* When pinned: slightly heavier bottom shadow separates it from scrolling content */
-.compare-controls-bar::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(to bottom, rgba(16, 24, 40, 0.06), transparent);
-    border-radius: 0 0 12px 12px;
-    pointer-events: none;
-}
+/* (The pinned-shadow ::after pseudo-element used to sit at bottom: -1px
+   and stack visually below the card's own border + box-shadow, creating
+   a visible double-line on the bottom edge.  The card's existing box-shadow
+   already provides enough depth, so the extra gradient was removed.)     */
 /* --compare-bar-h is set by JS (ResizeObserver) so the table header and
    sticky dept/fund rows can account for the pinned controls bar height. */
 .compare-page {
@@ -3653,11 +3645,15 @@ mark.search-highlight {
    Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
     display: grid;
-    /* 7 columns: [flex-spacer] [left-rail] [gov] [hd1] [sd1] [net] [flex-spacer]
+    /* 8 columns: [flex-spacer] [left-rail] [gov] [hd1] [sd1] [cd1] [net] [flex-spacer]
        Flex spacers absorb the slack on both edges so the dot+totals group
-       stays centered. The tl-band uses grid-column: 1 / -1 to span all 7
-       so the zebra tint extends edge-to-edge. */
-    grid-template-columns: 1fr minmax(min-content, auto) repeat(3, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
+       stays centered. The tl-band uses grid-column: 1 / -1 to span all 8
+       so the zebra tint extends edge-to-edge.
+       Column 2 is fixed-width so the "OPERATING"/"CAPITAL" labels (visible
+       when the breakdown is open) don't widen it and shift the row sideways.
+       The 132px is sized to fit "OPERATING" (uppercase, letter-spaced) plus
+       the 14px+14px horizontal padding without clipping the leading 'O'. */
+    grid-template-columns: 1fr 132px repeat(4, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
     grid-template-rows: auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
@@ -3672,7 +3668,8 @@ mark.search-highlight {
 .compare-timeline > [data-col="gov"] { grid-column: 3; }
 .compare-timeline > [data-col="hd1"] { grid-column: 4; }
 .compare-timeline > [data-col="sd1"] { grid-column: 5; }
-.compare-timeline > [data-col="net"] { grid-column: 6; }
+.compare-timeline > [data-col="cd1"] { grid-column: 6; }
+.compare-timeline > [data-col="net"] { grid-column: 7; }
 .compare-timeline > [data-row="labels"] { grid-row: 1; }
 .compare-timeline > [data-row="dots"]   { grid-row: 2; }
 .compare-timeline > [data-row="totals"] { grid-row: 3; }
@@ -3705,9 +3702,9 @@ mark.search-highlight {
     background: #c2cdc7;
     transition: background 0.15s;
 }
-/* First column hides seg-before; SD1 hides seg-after (no line into Net) */
+/* First column hides seg-before; CD1 hides seg-after (no line into Net) */
 .compare-timeline > [data-col="gov"] .tl-seg-before { visibility: hidden; }
-.compare-timeline > [data-col="sd1"] .tl-seg-after  { visibility: hidden; }
+.compare-timeline > [data-col="cd1"] .tl-seg-after  { visibility: hidden; }
 .tl-dot {
     position: relative;
     width: 22px;
@@ -3748,23 +3745,27 @@ mark.search-highlight {
    every cell with the matching data-col attribute. */
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot,
-.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot {
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot,
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot {
     background: #fff;
     border-color: #c2cdc7;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot::after,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot::after,
-.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot::after {
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot::after,
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot::after {
     display: none;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-seg,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-seg,
-.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-seg {
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-seg,
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-seg {
     background: #e3e8e5;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-label,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-label,
-.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-label {
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-label,
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-label {
     color: #aab5b1;
     text-decoration: line-through;
 }
@@ -3993,7 +3994,9 @@ mark.search-highlight {
     text-decoration-color: #b0bab7;
     text-underline-offset: 3px;
 }
-.tl-bd-label[hidden] { display: none; }
+/* Note: legacy [hidden] rule for .tl-bd-label is replaced by the
+   animated collapsed/expanded states defined under .compare-timeline
+   (search "show-breakdown") so the row can transition smoothly. */
 
 /* Values: clean tabular numerals — no pill chip. The band tint already
    groups them into a zone; adding a second outlined chip on top of the
@@ -4068,7 +4071,8 @@ mark.search-highlight {
 .compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 2; }
 .compare-timeline > .tl-band[data-row="op"]  { grid-row: 4; background: #eef3ef; }
 .compare-timeline > .tl-band[data-row="cap"] { grid-row: 5; background: #f6f1e7; }
-.compare-timeline > .tl-band[hidden] { display: none; }
+/* Note: the .tl-band [hidden] rule is replaced by the animated
+   collapsed/expanded states under .compare-timeline (see "show-breakdown"). */
 
 /* Values + labels need position so z-index stacks them above the band. */
 .compare-timeline > [data-row="op"],
@@ -4092,6 +4096,56 @@ mark.search-highlight {
    pills. Because row-gap is 0 globally, use margin on all row-4 items
    (including the .tl-band). */
 .compare-timeline > [data-row="op"] { margin-top: 8px; }
+
+/* ── Breakdown slide-down animation ──────────────────────────────────────
+   The Op/Cap rows animate in/out when the user clicks the expand caret.
+   Approach: every grid item in those rows transitions max-height (clipped
+   by overflow:hidden), padding, margin, and opacity.  Class-driven so a
+   single `.show-breakdown` toggle on the timeline animates all items in
+   sync — display:none can't be transitioned, so we use max-height: 0
+   instead of the old [hidden] attribute.
+   Refs:
+     – CSS-Tricks: "How to Animate Box Shadow" / max-height pattern
+     – web.dev: "Easing animations with cubic-bezier"
+   The cubic-bezier(.2,.8,.2,1) is the Material-style "decelerate" curve
+   so the rows ease into place (fast start, soft landing). */
+.compare-timeline > [data-row="op"],
+.compare-timeline > [data-row="cap"] {
+    overflow: hidden;
+    transition:
+        max-height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+        opacity   0.22s ease,
+        padding   0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+        margin    0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Collapsed (default): zero height, transparent, no padding/margin.
+   Stack the .tl-band below — its grid-column 2/-2 still spans the row
+   tracks but max-height: 0 keeps the row visually empty.            */
+.compare-timeline:not(.show-breakdown) > [data-row="op"],
+.compare-timeline:not(.show-breakdown) > [data-row="cap"] {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    pointer-events: none;
+}
+/* Expanded: enough height to fit one line of text + breathing room.
+   60px comfortably fits the 14.7px line + 11+9 padding without clipping
+   tooltips that sit just above the label. */
+.compare-timeline.show-breakdown > [data-row="op"],
+.compare-timeline.show-breakdown > [data-row="cap"] {
+    max-height: 60px;
+    opacity: 1;
+}
+/* Honor users who set `prefers-reduced-motion: reduce`. */
+@media (prefers-reduced-motion: reduce) {
+    .compare-timeline > [data-row="op"],
+    .compare-timeline > [data-row="cap"] {
+        transition: none;
+    }
+}
 
 /* Tooltip override — wider + left-aligned so "each year." isn't orphaned
    and doesn't inherit text-align:right from the kicker styling. */
@@ -4990,7 +5044,7 @@ mark.search-highlight {
     top: 0;
     z-index: 3;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 9px;
     padding: 12px 16px 11px;
     background: linear-gradient(180deg, #fafcfb 0%, #f4f7f5 100%);
@@ -5007,15 +5061,18 @@ mark.search-highlight {
     background: #e0eae5;
     color: #2c3e35;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 .dept-bd-dept-name {
     font-size: 0.93rem;
     font-weight: 600;
     color: #2c3e35;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     letter-spacing: -0.005em;
+    line-height: 1.35;
 }
 
 /* Body wrapper just provides padding inside the scrollable card */
@@ -5305,3 +5362,4 @@ mark.search-highlight {
     color: #8b6914;
     margin-left: 4px;
 }
+
