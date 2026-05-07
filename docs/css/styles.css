@@ -3530,13 +3530,14 @@ mark.search-highlight {
    sticky dept/fund rows can account for the pinned controls bar height. */
 .compare-page {
     --compare-bar-h: 0px;
+    --compare-thead-h: 39px;
 }
 .compare-page .data-table th {
     top: var(--compare-bar-h, 0px);
 }
 .compare-page .dept-group-row.open td,
 .compare-page .fund-group-row.open td {
-    top: calc(var(--compare-bar-h, 0px) + 39px);
+    top: calc(var(--compare-bar-h, 0px) + var(--compare-thead-h, 39px));
 }
 /* Scope strip — top of card, left-aligned, divided from timeline by a hairline */
 .compare-scope-row {
