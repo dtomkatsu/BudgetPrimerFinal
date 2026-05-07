@@ -5,11 +5,15 @@ let departmentsData = [];
 let summaryStats = null;
 let programsData = [];
 let fyComparisonData = [];
-let draftComparisonData = null;     // FY2026 comparison
-let draftComparisonDataFY27 = null; // FY2027 comparison
-let projectsDataFY26 = null;        // Section 14 CIP projects FY26
-let projectsDataFY27 = null;        // Section 14 CIP projects FY27
-let governorProjectsData = null;    // Governor's supplemental capital projects (S78)
+let draftComparisonData = null;       // FY2026 CD1 comparison (HD1→CD1)
+let draftComparisonDataFY27 = null;   // FY2027 CD1 comparison (HD1→CD1)
+let draftComparisonDataSD1 = null;    // FY2026 SD1 comparison (HD1→SD1)
+let draftComparisonDataSD1FY27 = null;// FY2027 SD1 comparison (HD1→SD1)
+let projectsDataFY26 = null;          // Section 14 CIP projects FY26 (CD1)
+let projectsDataFY27 = null;          // Section 14 CIP projects FY27 (CD1)
+let projectsDataSD1FY26 = null;       // Section 14 CIP projects FY26 (SD1)
+let projectsDataSD1FY27 = null;       // Section 14 CIP projects FY27 (SD1)
+let governorProjectsData = null;      // Governor's supplemental capital projects (S78)
 let historicalTrendsData = null;    // 10-year history of biennial budget acts
 
 // ---------------------------------------------------------------------------
@@ -1622,20 +1626,20 @@ window.aboutPage = async function () {
         <section class="about-page">
             <div class="about-hero">
                 <h2>About This Tracker</h2>
-                <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Senate Draft (SD1) to show how proposed spending changes as the bill moves through the legislature.</p>
+                <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Conference Draft (CD1) to show how proposed spending changed through the legislative process.</p>
                 <p class="about-lead">For historical reference, the <strong>HB300</strong> tab shows the enacted FY2025–26 budget — the appropriations bill that was passed and signed into law last year. HB300 reflects what was actually funded for the current year and serves as a baseline for understanding what HB1800 is building on top of.</p>
                 <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #ddd;">
             </div>
 
             <div class="about-section">
-                <h3>What are HD1 and SD1?</h3>
-                <p><strong>HD1</strong> is the bill as amended by the House. <strong>SD1</strong> is the Senate's version. Comparing them reveals which programs gained or lost funding during crossover.</p>
+                <h3>What are HD1 and CD1?</h3>
+                <p><strong>HD1</strong> is the bill as amended by the House. <strong>CD1</strong> is the Conference Committee's final version. Comparing them reveals which programs gained or lost funding during conference.</p>
             </div>
 
             <div class="about-section">
                 <h3>Features</h3>
                 <ul>
-                    <li>HD1 vs SD1 draft comparison with Operating/Capital breakdown</li>
+                    <li>HD1 vs CD1 draft comparison with Operating/Capital breakdown</li>
                     <li>Collapsible department grouping with fund-type detail tables</li>
                     <li>Multi-select filters for Section, Fund, and change type</li>
                     <li>Sortable columns and full-text search across programs</li>
@@ -1681,14 +1685,18 @@ window.notFoundPage = async function () {
 
 window.loadProjects = async function () {
     try {
-        const [r26, r27, rGov] = await Promise.all([
+        const [r26, r27, rGov, r26sd1, r27sd1] = await Promise.all([
             fetch('./js/projects_fy26.json?v=' + Date.now()).catch(() => null),
             fetch('./js/projects_fy27.json?v=' + Date.now()).catch(() => null),
             fetch('./js/governor_projects.json?v=' + Date.now()).catch(() => null),
+            fetch('./js/projects_fy26_sd1.json?v=' + Date.now()).catch(() => null),
+            fetch('./js/projects_fy27_sd1.json?v=' + Date.now()).catch(() => null),
         ]);
         if (r26 && r26.ok) projectsDataFY26 = await r26.json();
         if (r27 && r27.ok) projectsDataFY27 = await r27.json();
         if (rGov && rGov.ok) governorProjectsData = await rGov.json();
+        if (r26sd1 && r26sd1.ok) projectsDataSD1FY26 = await r26sd1.json();
+        if (r27sd1 && r27sd1.ok) projectsDataSD1FY27 = await r27sd1.json();
         return { fy26: projectsDataFY26, fy27: projectsDataFY27, gov: governorProjectsData };
     } catch (e) {
         console.warn('Projects data not available:', e.message);
@@ -1696,14 +1704,51 @@ window.loadProjects = async function () {
     }
 };
 
+// Merge amount_sd1 from the HD1→SD1 comparison into matching records of the
+// HD1→CD1 comparison.  Match key uses the same identity columns the parser
+// uses (program_id + dept + fund_type + fund_category + section + category).
+// Records with no SD1 match keep amount_sd1 == null (rendered as em-dash).
+function _mergeSD1Amounts(cdData, sdData) {
+    if (!cdData || !cdData.comparisons || !sdData || !sdData.comparisons) return;
+    const keyOf = r => [
+        r.program_id || '', r.department_code || '', r.fund_type || '',
+        r.fund_category || '', r.section || '', r.category || '',
+    ].join('|');
+    const sdMap = new Map();
+    for (const r of sdData.comparisons) sdMap.set(keyOf(r), r.amount_sd1);
+    for (const r of cdData.comparisons) {
+        const v = sdMap.get(keyOf(r));
+        if (v !== undefined) r.amount_sd1 = v;
+    }
+    // Append SD1-only records (programs SD1 changed that CD1 dropped or didn't touch)
+    const cdKeys = new Set(cdData.comparisons.map(keyOf));
+    for (const r of sdData.comparisons) {
+        if (cdKeys.has(keyOf(r))) continue;
+        cdData.comparisons.push({
+            program_id: r.program_id, department_code: r.department_code,
+            fund_type: r.fund_type, fund_category: r.fund_category,
+            section: r.section, category: r.category,
+            program_name: r.program_name, department_name: r.department_name,
+            amount_hd1: r.amount_hd1, amount_sd1: r.amount_sd1, amount_cd1: null,
+            change: 0, pct_change: null, change_type: 'unchanged_in_cd1',
+        });
+    }
+}
+
 window.loadDraftComparison = async function () {
     try {
-        const [r26, r27] = await Promise.all([
+        const [r26, r27, r26sd1, r27sd1] = await Promise.all([
             fetch('./js/draft_comparison_fy26.json?v=' + Date.now()),
             fetch('./js/draft_comparison_fy27.json?v=' + Date.now()),
+            fetch('./js/draft_comparison_fy26_sd1.json?v=' + Date.now()).catch(() => null),
+            fetch('./js/draft_comparison_fy27_sd1.json?v=' + Date.now()).catch(() => null),
         ]);
         if (r26.ok) draftComparisonData = await r26.json();
         if (r27.ok) draftComparisonDataFY27 = await r27.json();
+        if (r26sd1 && r26sd1.ok) draftComparisonDataSD1 = await r26sd1.json();
+        if (r27sd1 && r27sd1.ok) draftComparisonDataSD1FY27 = await r27sd1.json();
+        _mergeSD1Amounts(draftComparisonData, draftComparisonDataSD1);
+        _mergeSD1Amounts(draftComparisonDataFY27, draftComparisonDataSD1FY27);
         return draftComparisonData;
     } catch (e) {
         console.warn('Draft comparison data not available:', e.message);
@@ -1828,7 +1873,8 @@ function _hdSdAmounts(row) {
     // carry the column sum in `d2` (which equals amount_sd1 totals when SD1
     // is active, or amount_hd1 totals when SD1 is toggled off → delta = 0).
     let sd = null;
-    if (row.amount_sd1 != null) sd = row.amount_sd1;
+    if (row.amount_cd1 != null) sd = row.amount_cd1;
+    else if (row.amount_sd1 != null) sd = row.amount_sd1;
     else if (row.d2 != null) sd = row.d2;
     return [hd, sd];
 }
@@ -1883,9 +1929,9 @@ function divergenceChipHtml(row) {
     else short = `$${Math.round(abs).toLocaleString()}`;
     const dirClass = delta > 0 ? 'pos' : 'neg';
     const tipText = delta > 0
-        ? `Senate added ${short} vs House`
-        : `Senate cut ${short} vs House`;
-    return ` <span class="hd-sd-pill ${dirClass}" title="${_escAttr(tipText)}">SD ${sign}${short} <span class="hd-sd-pill-meta">vs HD</span></span>`;
+        ? `Conference added ${short} vs House`
+        : `Conference cut ${short} vs House`;
+    return ` <span class="hd-sd-pill ${dirClass}" title="${_escAttr(tipText)}">CD ${sign}${short} <span class="hd-sd-pill-meta">vs HD</span></span>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1991,7 +2037,7 @@ function _buildReasonPopoverHtml(cell) {
         const items = _bulletizeReason(raw)
             .map(p => `<li>${_escHtml(_softCaseReason(p))}.</li>`)
             .join('');
-        const vsLabel = klass === 'senate' ? 'vs HD' : 'vs SD';
+        const vsLabel = klass === 'cd1' ? 'vs HD' : 'vs CD';
         // Amount badge: show the chamber's total, plus a "net ±$X vs <other>"
         // suffix when there's a computable delta.  Resolves contradictions like
         // "Reduce funds; Add funds" (= fund reallocation, net may be near-zero).
@@ -2013,7 +2059,7 @@ function _buildReasonPopoverHtml(cell) {
            </div>` : '';
 
     const hdSection = buildSection('House', hd, hdAmt, 'house', hdDelta);
-    const sdSection = buildSection('Senate', sd, sdAmt, 'senate', sdDelta);
+    const sdSection = buildSection('Conference', sd, sdAmt, 'cd1', sdDelta);
     // House on top when both — chronological order (House drafts first,
     // Senate amends).  When only one chamber has text, just show that one.
     return header + hdSection + sdSection;
@@ -2452,6 +2498,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-label" data-col="gov" data-row="labels">Gov.</span>
                     <span class="tl-label" data-col="hd1" data-row="labels">HD1</span>
                     <span class="tl-label" data-col="sd1" data-row="labels">SD1</span>
+                    <span class="tl-label" data-col="cd1" data-row="labels">CD1</span>
                     <span class="tl-label" data-col="net" data-row="labels">Net Change</span>
 
                     <!-- Row 2: dots and sparkline -->
@@ -2471,6 +2518,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <label class="tl-dot-lbl" for="tl-sd1"><span class="tl-dot"></span></label>
                         <span class="tl-seg tl-seg-after"></span>
                     </div>
+                    <div class="tl-dot-row" data-col="cd1" data-row="dots">
+                        <span class="tl-seg tl-seg-before"></span>
+                        <label class="tl-dot-lbl" for="tl-cd1"><span class="tl-dot"></span></label>
+                        <span class="tl-seg tl-seg-after"></span>
+                    </div>
                     <div class="tl-net-spark-row" data-col="net" data-row="dots">
                         <svg class="tl-net-spark" id="tl-net-spark" viewBox="0 0 60 20" aria-hidden="true"></svg>
                     </div>
@@ -2482,10 +2534,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-amt" id="tl-amt-gov" data-col="gov" data-row="totals"></span>
                     <span class="tl-amt" id="tl-amt-hd1" data-col="hd1" data-row="totals"></span>
                     <span class="tl-amt" id="tl-amt-sd1" data-col="sd1" data-row="totals"></span>
+                    <span class="tl-amt" id="tl-amt-cd1" data-col="cd1" data-row="totals"></span>
                     <span class="tl-amt tl-net-chip" id="tl-amt-net" data-col="net" data-row="totals"></span>
 
                     <!-- Row 4: Operating breakdown (toggled).
-                         The .tl-band spans all 5 columns and paints the
+                         The .tl-band spans all columns and paints the
                          zebra tint as one continuous rectangle regardless
                          of per-cell width. Values sit above it via z-index. -->
                     <div class="tl-band" data-row="op" hidden></div>
@@ -2493,6 +2546,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-bd-cell" id="tl-bd-op-gov" data-col="gov" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-hd1" data-col="hd1" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-sd1" data-col="sd1" data-row="op" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-op-cd1" data-col="cd1" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-net" data-col="net" data-row="op" hidden></span>
 
                     <!-- Row 5: Capital breakdown (toggled) -->
@@ -2501,12 +2555,14 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-bd-cell" id="tl-bd-cap-gov" data-col="gov" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-hd1" data-col="hd1" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-sd1" data-col="sd1" data-row="cap" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-cap-cd1" data-col="cd1" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-net" data-col="net" data-row="cap" hidden></span>
 
                     <!-- Hidden checkboxes (state toggles; labels for these are the dots above) -->
                     <input type="checkbox" class="tl-cb" id="tl-gov" checked>
-                    <input type="checkbox" class="tl-cb" id="tl-hd1" checked>
-                    <input type="checkbox" class="tl-cb" id="tl-sd1" checked>
+                    <input type="checkbox" class="tl-cb" id="tl-hd1">
+                    <input type="checkbox" class="tl-cb" id="tl-sd1">
+                    <input type="checkbox" class="tl-cb" id="tl-cd1" checked>
                 </div>
             </div>
 
@@ -2557,10 +2613,13 @@ window.initDraftComparePage = async function () {
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
     let expandedFunds = new Set();
-    // Timeline state: which nodes are active (all true = Gov's Request → HD1 → SD1)
+    // Timeline state: defaults to just the endpoints (Gov → CD1) so the
+    // summary bar is uncluttered; HD1/SD1 are off by default but easy to
+    // toggle on via the dots.
     let govActive = true;
-    let hd1Active = true;
-    let sd1Active = true;
+    let hd1Active = false;
+    let sd1Active = false;
+    let cd1Active = true;
     let showBreakdown = false; // whether Op/Cap sub-chips are visible under each node
 
     // --- URL state persistence ---
@@ -2578,14 +2637,14 @@ window.initDraftComparePage = async function () {
             mode:  p.get('mode') || 'all',
             sort:  p.get('sort') || 'change',
             dir:   p.get('dir')  || 'asc',
-            nodes: p.get('nodes') || 'gov,hd1,sd1',
+            nodes: p.get('nodes') || 'gov,cd1',
         };
     };
     const syncUrlState = () => {
         const fy = activeData === draftComparisonDataFY27 ? '27' : '26';
         const q    = document.getElementById('draft-search')?.value || '';
         const mode = document.getElementById('draft-filter')?.value || 'all';
-        const activeNodes = [govActive && 'gov', hd1Active && 'hd1', sd1Active && 'sd1']
+        const activeNodes = [govActive && 'gov', hd1Active && 'hd1', sd1Active && 'sd1', cd1Active && 'cd1']
             .filter(Boolean).join(',');
         const p = new URLSearchParams();
         if (fy   !== '26')               p.set('fy',    fy);
@@ -2593,7 +2652,7 @@ window.initDraftComparePage = async function () {
         if (mode !== 'all')              p.set('mode',  mode);
         if (sortCol !== 'change')        p.set('sort',  sortCol);
         if (sortDir !== 'asc')           p.set('dir',   sortDir);
-        if (activeNodes !== 'gov,hd1,sd1') p.set('nodes', activeNodes);
+        if (activeNodes !== 'gov,cd1') p.set('nodes', activeNodes);
         const qs = p.toString();
         history.replaceState(null, '', '#/' + (qs ? '?' + qs : ''));
     };
@@ -2615,6 +2674,7 @@ window.initDraftComparePage = async function () {
         govActive = ns.has('gov');
         hd1Active = ns.has('hd1');
         sd1Active = ns.has('sd1');
+        cd1Active = ns.has('cd1');
     }
 
     // Build baseline lookup from governorRequestData.
@@ -2669,6 +2729,7 @@ window.initDraftComparePage = async function () {
                 section: g.section,
                 [hd1Key]: 0,
                 [sd1Key]: 0,
+                amount_sd1: 0,
                 change: 0,
                 pct_change: 0,
                 change_type: 'removed',
@@ -2680,18 +2741,42 @@ window.initDraftComparePage = async function () {
     if (draftComparisonData) injectOrphans(draftComparisonData);
     if (draftComparisonDataFY27) injectOrphans(draftComparisonDataFY27);
 
-    // Derived getters: leftmost active = d1, rightmost active = d2
-    const getD1Key = () => govActive ? 'amount_baseline' : 'amount_' + activeData.metadata.draft1.toLowerCase();
-    const getD2Key = () => sd1Active ? 'amount_' + activeData.metadata.draft2.toLowerCase() : 'amount_' + activeData.metadata.draft1.toLowerCase();
-    const getD1Label = () => govActive ? "Gov's Request" : activeData.metadata.draft1;
-    const getD2Label = () => sd1Active ? activeData.metadata.draft2 : activeData.metadata.draft1;
+    // Derived getters: leftmost active = d1, rightmost active = d2.
+    // The four-stage timeline (Gov → HD1 → SD1 → CD1) means the rightmost
+    // active node falls back through CD1 → SD1 → HD1 as columns are toggled off.
+    const getD1Key = () => {
+        if (govActive) return 'amount_baseline';
+        if (hd1Active) return 'amount_hd1';
+        if (sd1Active) return 'amount_sd1';
+        return 'amount_cd1';
+    };
+    const getD2Key = () => {
+        if (cd1Active) return 'amount_cd1';
+        if (sd1Active) return 'amount_sd1';
+        if (hd1Active) return 'amount_hd1';
+        return 'amount_baseline';
+    };
+    const getD1Label = () => {
+        if (govActive) return "Gov's Request";
+        if (hd1Active) return 'HD1';
+        if (sd1Active) return 'SD1';
+        return 'CD1';
+    };
+    const getD2Label = () => {
+        if (cd1Active) return 'CD1';
+        if (sd1Active) return 'SD1';
+        if (hd1Active) return 'HD1';
+        return "Gov's Request";
+    };
     const getChangeLabel = (sortArrowHtml = '') => {
-        const from = govActive ? 'Gov.' : 'HD1';
-        const to = sd1Active ? 'SD1' : 'HD1';
+        const from = getD1Label() === "Gov's Request" ? 'Gov.' : getD1Label();
+        const to = getD2Label() === "Gov's Request" ? 'Gov.' : getD2Label();
         return `Change${sortArrowHtml}<span class="th-sub">${from} → ${to}</span>`;
     };
     // HD1 is a visible middle column only when it is active AND is not itself an endpoint
-    const showHD1Col = () => hd1Active && govActive && sd1Active;
+    const showHD1Col = () => hd1Active && getD1Label() !== 'HD1' && getD2Label() !== 'HD1';
+    // SD1 is a visible middle column when it is active AND is not itself an endpoint
+    const showSD1Col = () => sd1Active && getD1Label() !== 'SD1' && getD2Label() !== 'SD1';
 
     // Shorten fund category names for display (e.g., "General Funds" → "General")
     const shortFund = (cat) => {
@@ -2724,16 +2809,17 @@ window.initDraftComparePage = async function () {
 
         const sumBy = (section) => {
             const sr = recs.filter(r => r.section === section);
-            const hd1AmtKey = 'amount_' + meta.draft1.toLowerCase(); // always amount_hd1
-            const hd1 = sr.reduce((s, r) => s + (r[hd1AmtKey] || 0), 0);
+            const hd1 = sr.reduce((s, r) => s + (r.amount_hd1 || 0), 0);
+            const sd1 = sr.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
+            const cd1 = sr.reduce((s, r) => s + (r.amount_cd1 || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
             // Baseline totals from governorRequestData (full, not joined — avoids missing programs)
             const baseline = (governorRequestData || [])
                 .filter(r => r.section === section)
                 .reduce((s, r) => s + (r[fyKey] || 0), 0);
-            // d1 is either Gov's Request (full baseline) or HD1 depending on leftmost active node
-            const d1 = govActive ? baseline : hd1;
-            return { d1, d2, delta: d2 - d1, baseline, hd1 };
+            // d1 is the leftmost active stage's total
+            const d1 = govActive ? baseline : (hd1Active ? hd1 : (sd1Active ? sd1 : cd1));
+            return { d1, d2, delta: d2 - d1, baseline, hd1, sd1, cd1 };
         };
         const op  = sumBy('Operating');
         const cap = sumBy('Capital Improvement');
@@ -2741,9 +2827,11 @@ window.initDraftComparePage = async function () {
         // Totals (always shown in main chips)
         const totGov = op.baseline + cap.baseline;
         const totHD1 = op.hd1 + cap.hd1;
-        const totSD1 = op.d2 + cap.d2;
+        const totSD1 = op.sd1 + cap.sd1;
+        const totCD1 = op.cd1 + cap.cd1;
+        const totD2  = op.d2 + cap.d2;
         const totD1  = op.d1 + cap.d1;
-        const totNet = totSD1 - totD1;
+        const totNet = totD2 - totD1;
         const netCls = totNet > 0 ? 'positive' : totNet < 0 ? 'negative' : '';
         const netPct = totD1 !== 0 ? (totNet / Math.abs(totD1)) * 100 : (totNet !== 0 ? 100 : 0);
 
@@ -2757,7 +2845,8 @@ window.initDraftComparePage = async function () {
         const nodes = [];
         if (govActive) nodes.push({ val: totGov, label: "Gov's Request" });
         if (hd1Active) nodes.push({ val: totHD1, label: 'HD1' });
-        if (sd1Active) nodes.push({ val: totSD1, label: d2Label });
+        if (sd1Active) nodes.push({ val: totSD1, label: 'SD1' });
+        if (cd1Active) nodes.push({ val: totCD1, label: 'CD1' });
 
         // Compact format for amounts shown directly under each timeline dot
         const fmtShort = (n) => {
@@ -2787,18 +2876,20 @@ window.initDraftComparePage = async function () {
             { id: 'tl-amt-gov', val: totGov },
             { id: 'tl-amt-hd1', val: totHD1 },
             { id: 'tl-amt-sd1', val: totSD1 },
+            { id: 'tl-amt-cd1', val: totCD1 },
         ].forEach(({ id, val }) => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = fmtShortHTML(val);
         });
 
         // Populate per-cell Operating / Capital breakdown values (grid layout).
-        // IDs follow the pattern tl-bd-{op|cap}-{gov|hd1|sd1|net}.
+        // IDs follow the pattern tl-bd-{op|cap}-{gov|hd1|sd1|cd1|net}.
         const signed = (n) => (n > 0 ? '+' : '') + fmtShort(n);
         const cells = [
             { col: 'gov', opV: op.baseline,         capV: cap.baseline,         fmt: fmtShort },
             { col: 'hd1', opV: op.hd1,              capV: cap.hd1,              fmt: fmtShort },
-            { col: 'sd1', opV: op.d2,               capV: cap.d2,               fmt: fmtShort },
+            { col: 'sd1', opV: op.sd1,              capV: cap.sd1,              fmt: fmtShort },
+            { col: 'cd1', opV: op.cd1,              capV: cap.cd1,              fmt: fmtShort },
             { col: 'net', opV: op.d2 - op.d1,       capV: cap.d2 - cap.d1,      fmt: signed   },
         ];
         cells.forEach(({ col, opV, capV, fmt }) => {
@@ -2807,10 +2898,17 @@ window.initDraftComparePage = async function () {
             if (opEl)  opEl.textContent  = fmt(opV);
             if (capEl) capEl.textContent = fmt(capV);
         });
-        // Toggle visibility of every breakdown cell + the two row labels.
-        document.querySelectorAll('.compare-timeline [data-row="op"], .compare-timeline [data-row="cap"]').forEach(el => {
-            el.hidden = !showBreakdown;
-        });
+        // Toggle the .show-breakdown class on the timeline; CSS animates the
+        // breakdown rows in/out via max-height + opacity transitions on each
+        // cell.  We strip the legacy `hidden` attribute that the page HTML
+        // ships with so the rows participate in the transition (display:none
+        // can't be transitioned).
+        const tlCmpForBreakdown = document.getElementById('compare-timeline');
+        if (tlCmpForBreakdown) {
+            tlCmpForBreakdown.querySelectorAll('[data-row="op"][hidden], [data-row="cap"][hidden]')
+                .forEach(el => el.removeAttribute('hidden'));
+            tlCmpForBreakdown.classList.toggle('show-breakdown', showBreakdown);
+        }
 
         // Net-direction state — lives on .compare-timeline and cascades
         // to all [data-col="net"] cells (sparkline + chip + breakdown).
@@ -2831,22 +2929,23 @@ window.initDraftComparePage = async function () {
             netAmtEl.innerHTML =
                 `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
         }
-        // Sparkline: three dots (Gov / HD1 / SD1) with the last highlighted.
-        // Vertically scales to the range of the three totals so visually-tiny
-        // deltas still show a slope.
+        // Sparkline: four dots (Gov / HD1 / SD1 / CD1) with the last highlighted.
+        // Vertically scales to the range of the totals so visually-tiny deltas
+        // still show a slope.
         const spark = document.getElementById('tl-net-spark');
         if (spark) {
-            const vs = [totGov, totHD1, totSD1];
+            const vs = [totGov, totHD1, totSD1, totCD1];
             const mn = Math.min(...vs), mx = Math.max(...vs);
             const range = mx - mn || 1;
             const y = v => (15 - ((v - mn) / range) * 10).toFixed(1);
-            const xs = [6, 30, 54];
+            const xs = [6, 22, 38, 54];
             const pts = vs.map((v, i) => `${xs[i]},${y(v)}`).join(' ');
             spark.innerHTML =
                 `<polyline class="tl-spark-line" points="${pts}"/>` +
                 `<circle class="tl-spark-dot" cx="${xs[0]}" cy="${y(vs[0])}" r="1.7"/>` +
                 `<circle class="tl-spark-dot" cx="${xs[1]}" cy="${y(vs[1])}" r="1.7"/>` +
-                `<circle class="tl-spark-dot tl-spark-dot-end" cx="${xs[2]}" cy="${y(vs[2])}" r="2.7"/>`;
+                `<circle class="tl-spark-dot" cx="${xs[2]}" cy="${y(vs[2])}" r="1.7"/>` +
+                `<circle class="tl-spark-dot tl-spark-dot-end" cx="${xs[3]}" cy="${y(vs[3])}" r="2.7"/>`;
         }
         // Update expand caret on Gov amount row
         const expandBtn = document.getElementById('tl-expand-btn');
@@ -2898,6 +2997,7 @@ window.initDraftComparePage = async function () {
             if (sortCol === 'd1') return r[d1Key] || 0;
             if (sortCol === 'd2') return r[d2Key] || 0;
             if (sortCol === 'hd1') return r[hd1Key] || 0;
+            if (sortCol === 'sd1') return r.amount_sd1 || 0;
             if (sortCol === 'program_name') return (r.program_name || '').toLowerCase();
             return r[sortCol] ?? 0;
         };
@@ -3042,6 +3142,7 @@ window.initDraftComparePage = async function () {
             d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             d.hd1 = d.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
+            d.sd1 = d.rows.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
             d.delta = d.d2 - d.d1;
             return d;
         }).sort((a, b) => {
@@ -3192,7 +3293,7 @@ window.initDraftComparePage = async function () {
                     pMap.set(pid, {
                         program_id: pid, program_name: r.program_name || '',
                         department_code: r.department_code, department_name: r.department_name,
-                        d1: 0, d2: 0, hd1: 0, funds: new Set(), sections: new Set(),
+                        d1: 0, d2: 0, hd1: 0, sd1: 0, funds: new Set(), sections: new Set(),
                         hasAdded: false, hasRemoved: false, rawRows: [],
                         // Worksheet reasons (from extract_worksheet_reasons.py) live on
                         // every raw row of a program; copy onto the aggregated view so
@@ -3205,6 +3306,7 @@ window.initDraftComparePage = async function () {
                 p.d1 += r[d1Key] || 0;
                 p.d2 += r[d2Key] || 0;
                 p.hd1 += r[hd1Key] || 0;
+                p.sd1 += r.amount_sd1 || 0;
                 if (r.fund_category) p.funds.add(r.fund_category);
                 if (r.section) p.sections.add(r.section);
                 if (r.change_type === 'added') p.hasAdded = true;
@@ -3226,6 +3328,7 @@ window.initDraftComparePage = async function () {
                 p.d1DeptScope  = p.d1;
                 p.d2DeptScope  = p.d2;
                 p.hd1DeptScope = p.hd1;
+                p.sd1DeptScope = p.sd1;
                 const mySections = new Set(p.rawRows.map(r => r.section));
                 p.crossDeptAugmented = new Set(); // other depts pulled in
                 for (const r of activeData.comparisons) {
@@ -3235,6 +3338,7 @@ window.initDraftComparePage = async function () {
                     p.d1  += r[d1Key]  || 0;
                     p.d2  += r[d2Key]  || 0;
                     p.hd1 += r[hd1Key] || 0;
+                    p.sd1 += r.amount_sd1 || 0;
                     if (r.fund_category) p.funds.add(r.fund_category);
                     p.rawRows.push(r);
                     p.crossDeptAugmented.add(r.department_code);
@@ -3260,6 +3364,7 @@ window.initDraftComparePage = async function () {
                 p.displayD1  = isSplit ? p.d1DeptScope  : p.d1;
                 p.displayD2  = isSplit ? p.d2DeptScope  : p.d2;
                 p.displayHD1 = isSplit ? p.hd1DeptScope : p.hd1;
+                p.displaySD1 = isSplit ? p.sd1DeptScope : p.sd1;
                 p.isTransfer = isSplit && p.change !== 0;
                 // Use dept-scoped values so split programs that are 100%
                 // transferred OUT of this dept (d2DeptScope === 0 here even
@@ -3321,6 +3426,7 @@ window.initDraftComparePage = async function () {
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.sd1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
                 <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(deptDelta)}</span>${deptXferNote}</td>
             </tr>`;
@@ -3388,6 +3494,7 @@ window.initDraftComparePage = async function () {
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
@@ -3399,6 +3506,7 @@ window.initDraftComparePage = async function () {
                         const secD1 = secRows.reduce((s, r) => s + (r[d1Key] || 0), 0);
                         const secD2 = secRows.reduce((s, r) => s + (r[d2Key] || 0), 0);
                         const secHD1 = secRows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
+                        const secSD1 = secRows.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
                         const secDelta = secD2 - secD1;
                         const secCls = secDelta > 0 ? 'positive' : secDelta < 0 ? 'negative' : '';
                         const secPct = secD1 !== 0 ? ((secD2 - secD1) / Math.abs(secD1)) * 100 : (secD2 !== 0 ? 100 : 0);
@@ -3429,6 +3537,7 @@ window.initDraftComparePage = async function () {
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(secHD1)}</span></td>` : ''}
+                            ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(secSD1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD2)}</span></td>
                             <td class="amount-cell ${secTransferCls}"><span class="figure-chip">${fmtHtml(secDelta)}</span>${subRowBadge(secD1, secD2)}${secTransferNote}</td>
                         </tr>`;
@@ -3436,11 +3545,12 @@ window.initDraftComparePage = async function () {
                             const byFund = new Map();
                             for (const r of secRows) {
                                 const fc = r.fund_category || '(unknown)';
-                                if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
+                                if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0, sd1: 0 });
                                 const f = byFund.get(fc);
                                 f.d1  += r[d1Key]  || 0;
                                 f.d2  += r[d2Key]  || 0;
                                 f.hd1 += r[hd1Key] || 0;
+                                f.sd1 += r.amount_sd1 || 0;
                             }
                             for (const [fc, f] of byFund) {
                                 const fDelta = f.d2 - f.d1;
@@ -3458,6 +3568,7 @@ window.initDraftComparePage = async function () {
                                     <td></td><td></td>
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
+                                    ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.sd1)}</span></td>` : ''}
                                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
                                     <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${subRowBadge(f.d1, f.d2)}${fTransferNote}</td>
                                 </tr>`;
@@ -3480,6 +3591,7 @@ window.initDraftComparePage = async function () {
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
@@ -3488,11 +3600,12 @@ window.initDraftComparePage = async function () {
                     // don't inflate fund sub-row amounts for split programs.
                     for (const r of p.rawRows.filter(r => r.department_code === p.department_code)) {
                         const fc = r.fund_category || '(unknown)';
-                        if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0 });
+                        if (!byFund.has(fc)) byFund.set(fc, { d1: 0, d2: 0, hd1: 0, sd1: 0 });
                         const f = byFund.get(fc);
                         f.d1  += r[d1Key]  || 0;
                         f.d2  += r[d2Key]  || 0;
                         f.hd1 += r[hd1Key] || 0;
+                        f.sd1 += r.amount_sd1 || 0;
                     }
                     for (const [fc, f] of byFund) {
                         const fDelta = f.d2 - f.d1;
@@ -3510,6 +3623,7 @@ window.initDraftComparePage = async function () {
                             <td></td><td></td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d1)}</span></td>
                             ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.hd1)}</span></td>` : ''}
+                            ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(f.sd1)}</span></td>` : ''}
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(f.d2)}</span></td>
                             <td class="amount-cell ${fCls}"><span class="figure-chip">${fmtHtml(fDelta)}</span>${subRowBadge(f.d1, f.d2)}${fTransferNote}</td>
                         </tr>`;
@@ -3527,6 +3641,7 @@ window.initDraftComparePage = async function () {
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
                         ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
                         <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
@@ -3540,6 +3655,7 @@ window.initDraftComparePage = async function () {
             const gD1 = depts.reduce((s, d) => s + d.d1, 0);
             const gD2 = depts.reduce((s, d) => s + d.d2, 0);
             const gHD1 = depts.reduce((s, d) => s + d.hd1, 0);
+            const gSD1 = depts.reduce((s, d) => s + (d.sd1 || 0), 0);
             const gDelta = gD2 - gD1;
             const gCls = gDelta > 0 ? 'positive' : gDelta < 0 ? 'negative' : '';
             const gArrow = gDelta > 0 ? '▲' : gDelta < 0 ? '▼' : '';
@@ -3550,6 +3666,7 @@ window.initDraftComparePage = async function () {
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gHD1)}</span></td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gSD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD2)}</span></td>
                 <td class="amount-cell change-cell ${gCls}">
                     <span class="change-main">${gArrow ? `<span class="change-arrow">${gArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(gDelta)}</span></span>
@@ -3583,6 +3700,7 @@ window.initDraftComparePage = async function () {
             const fgD1 = fg.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const fgD2 = fg.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             const fgHD1 = fg.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
+            const fgSD1 = fg.rows.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
             const fgDelta = fgD2 - fgD1;
             const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
             const isOpen = autoExpandFunds || expandedFundTypes.has(fg.type);
@@ -3604,6 +3722,7 @@ window.initDraftComparePage = async function () {
                 <td><span class="dept-arrow">${arrow}</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` ${fgStackBar}` : ''}</td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgSD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
                 <td class="amount-cell change-cell ${fgCls}">
                     <span class="change-main">${fgArrowSign ? `<span class="change-arrow">${fgArrowSign}</span>` : ''}<span class="figure-chip">${fmtHtml(fgDelta)}</span></span>
@@ -3621,6 +3740,7 @@ window.initDraftComparePage = async function () {
                     <td class="detail-indent"><strong${purposeTooltipAttrs(r.program_id)}>${highlight(r.program_id || '', q)}</strong> ${highlight(r.program_name || '', q)}</td>
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d1Key])}</span></td>
                     ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r[hd1Key] || 0)}</span></td>` : ''}
+                    ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(r.amount_sd1 || 0)}</span></td>` : ''}
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(r[d2Key])}</span></td>
                     <td${changeReasonCellAttrs(delta !== 0 ? r : null, `amount-cell change-cell ${cls}`)}>
                         <span class="change-main">${arrow ? `<span class="change-arrow">${arrow}</span>` : ''}<span class="figure-chip">${fmtHtml(delta)}</span></span>
@@ -3637,6 +3757,7 @@ window.initDraftComparePage = async function () {
             const fgD1 = data.reduce((s, r) => s + (r[d1Key] || 0), 0);
             const fgD2 = data.reduce((s, r) => s + (r[d2Key] || 0), 0);
             const fgHD1 = data.reduce((s, r) => s + (r[hd1Key] || 0), 0);
+            const fgSD1 = data.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
             const fgDelta = fgD2 - fgD1;
             const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
             const fgArrow = fgDelta > 0 ? '▲' : fgDelta < 0 ? '▼' : '';
@@ -3646,6 +3767,7 @@ window.initDraftComparePage = async function () {
                 <td>Total <span class="totals-meta">${fundGroups.length} fund types</span></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgSD1)}</span></td>` : ''}
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD2)}</span></td>
                 <td class="amount-cell change-cell ${fgCls}">
                     <span class="change-main">${fgArrow ? `<span class="change-arrow">${fgArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(fgDelta)}</span></span>
@@ -3664,6 +3786,7 @@ window.initDraftComparePage = async function () {
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
                     ${showHD1Col() ? `<th class="sortable amount-cell" data-sort="hd1">HD1${sortArrow('hd1')}</th>` : ''}
+                    ${showSD1Col() ? `<th class="sortable amount-cell" data-sort="sd1">SD1${sortArrow('sd1')}</th>` : ''}
                     <th class="sortable amount-cell" data-sort="d2">${getD2Label()}${sortArrow('d2')}</th>
                     <th class="sortable amount-cell" data-sort="change">${getChangeLabel(sortArrow('change'))}</th>
                 </tr></thead>
@@ -3678,6 +3801,7 @@ window.initDraftComparePage = async function () {
                     <th>Fund / Program</th>
                     <th class="amount-cell">${getD1Label()}</th>
                     ${showHD1Col() ? '<th class="amount-cell">HD1</th>' : ''}
+                    ${showSD1Col() ? '<th class="amount-cell">SD1</th>' : ''}
                     <th class="amount-cell">${getD2Label()}</th>
                     <th class="amount-cell">${getChangeLabel()}</th>
                 </tr></thead>
@@ -4123,7 +4247,7 @@ window.initDraftComparePage = async function () {
                 const renderRow = ({ pr, change }) => {
                     const cls = change > 0 ? 'positive' : 'negative';
                     const rawName = pr.project_name || '';
-                    const shortName = rawName.length > 36 ? rawName.slice(0, 34) + '…' : rawName;
+                    const shortName = rawName.length > 46 ? rawName.slice(0, 44) + '…' : rawName;
                     const typeBadge = pr.change_type === 'added'
                         ? `<span style="font-size:0.68rem;background:#c8f5da;color:#1a6b3a;border-radius:3px;padding:0 4px;flex-shrink:0">new</span>`
                         : pr.change_type === 'removed'
@@ -4138,7 +4262,10 @@ window.initDraftComparePage = async function () {
                 };
                 const renderSection = (label, bucket) =>
                     bucket.length ? `<div class="dept-bd-section-label">${label}</div>` + bucket.map(renderRow).join('') : '';
-                let html = `<div class="dept-bd-header">${_escHtml(dept.code)} — ${_escHtml(dept.name)}</div>`;
+                let html = `<div class="dept-bd-header">
+                    <span class="dept-bd-dept-chip">${_escHtml(dept.code)}</span>
+                    <span class="dept-bd-dept-name" title="${_escAttr(dept.name)}">${_escHtml(dept.name)}</span>
+                </div>`;
                 html += renderSection('Increases', increases);
                 html += renderSection('Reductions', reductions);
                 const netCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
@@ -4640,19 +4767,20 @@ window.initDraftComparePage = async function () {
         document.querySelector('.fy-seg-ctrl')?.setAttribute('data-active', '27');
     }
 
-    // --- Compare timeline: Gov's Request / HD1 / SD1 checkboxes ---
+    // --- Compare timeline: Gov's Request / HD1 / SD1 / CD1 checkboxes ---
     const updateTimeline = () => {
         govActive  = document.getElementById('tl-gov')?.checked  ?? true;
         hd1Active  = document.getElementById('tl-hd1')?.checked  ?? true;
         sd1Active  = document.getElementById('tl-sd1')?.checked  ?? true;
+        cd1Active  = document.getElementById('tl-cd1')?.checked  ?? true;
 
         // Enforce minimum two active nodes: disable a checkbox if unchecking it
         // would leave only one node active.
-        const activeCount = [govActive, hd1Active, sd1Active].filter(Boolean).length;
-        ['gov', 'hd1', 'sd1'].forEach(node => {
+        const activeCount = [govActive, hd1Active, sd1Active, cd1Active].filter(Boolean).length;
+        ['gov', 'hd1', 'sd1', 'cd1'].forEach(node => {
             const cb = document.getElementById(`tl-${node}`);
             if (!cb) return;
-            const nodeActive = node === 'gov' ? govActive : node === 'hd1' ? hd1Active : sd1Active;
+            const nodeActive = cb.checked;
             // Disable this checkbox if it's currently checked and is the only one keeping count ≥ 2
             cb.disabled = nodeActive && activeCount <= 2;
         });
@@ -4662,7 +4790,7 @@ window.initDraftComparePage = async function () {
         // data-col attribute.
         const tl = document.getElementById('compare-timeline');
         if (tl) {
-            ['gov', 'hd1', 'sd1'].forEach(node => {
+            ['gov', 'hd1', 'sd1', 'cd1'].forEach(node => {
                 const cb = document.getElementById(`tl-${node}`);
                 tl.classList.toggle(`col-${node}-inactive`, !(cb?.checked));
             });
@@ -4673,14 +4801,17 @@ window.initDraftComparePage = async function () {
     };
     document.querySelectorAll('.tl-cb').forEach(cb => cb.addEventListener('change', updateTimeline));
     // Reflect URL-persisted node state in checkboxes on page load
-    if (_initState.nodes !== 'gov,hd1,sd1') {
+    if (_initState.nodes !== 'gov,cd1') {
         const ns = new Set(_initState.nodes.split(','));
-        ['gov', 'hd1', 'sd1'].forEach(n => {
+        ['gov', 'hd1', 'sd1', 'cd1'].forEach(n => {
             const cb = document.getElementById(`tl-${n}`);
             if (cb) cb.checked = ns.has(n);
         });
-        updateTimeline();
     }
+    // Always sync the timeline UI to current checkbox state so the
+    // col-*-inactive classes are applied even on first load (defaults
+    // include HD1/SD1 unchecked).
+    updateTimeline();
 
     // Expand caret (left of Gov amount) — toggle Op/Cap breakdown
     const expandBtn = document.getElementById('tl-expand-btn');
