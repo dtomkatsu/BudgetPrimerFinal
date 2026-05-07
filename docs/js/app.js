@@ -4904,25 +4904,28 @@ window.initDraftComparePage = async function () {
     updateSummaryCards();
     render();
 
-    // Keep --compare-bar-h and --compare-thead-h in sync with the sticky
-    // controls bar + table header heights. Open dept/fund rows stick directly
-    // below the thead, so we need both measurements — hardcoding the thead
-    // height breaks when columns wrap (e.g. when CD1 was added).
+    // Keep --compare-bar-h and per-table --compare-thead-h in sync with the
+    // sticky controls bar + table header heights. Open dept/fund rows stick
+    // directly below their thead, so we need both measurements — and there
+    // are MULTIPLE tables on this page (main comparison, capital projects,
+    // fund detail), each with its own thead height. Setting --compare-thead-h
+    // on each table scopes the CSS var to that table's open rows.
     const compareBar = document.querySelector('.compare-controls-bar');
     const comparePage = document.querySelector('.compare-page');
     if (compareBar && comparePage) {
         const syncBarHeight = () => {
             comparePage.style.setProperty('--compare-bar-h', compareBar.offsetHeight + 'px');
-            const thead = comparePage.querySelector('.data-table thead');
-            if (thead) {
-                comparePage.style.setProperty('--compare-thead-h', thead.offsetHeight + 'px');
-            }
+            comparePage.querySelectorAll('.data-table').forEach(table => {
+                const thead = table.querySelector('thead');
+                if (thead) {
+                    table.style.setProperty('--compare-thead-h', thead.offsetHeight + 'px');
+                }
+            });
         };
         syncBarHeight();
         const ro = new ResizeObserver(syncBarHeight);
         ro.observe(compareBar);
-        const thead = comparePage.querySelector('.data-table thead');
-        if (thead) ro.observe(thead);
+        comparePage.querySelectorAll('.data-table thead').forEach(t => ro.observe(t));
     }
 };
 
