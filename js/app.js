@@ -4904,15 +4904,25 @@ window.initDraftComparePage = async function () {
     updateSummaryCards();
     render();
 
-    // Keep --compare-bar-h in sync with the sticky controls bar height so the
-    // table thead and dept/fund sticky rows offset correctly below the bar.
+    // Keep --compare-bar-h and --compare-thead-h in sync with the sticky
+    // controls bar + table header heights. Open dept/fund rows stick directly
+    // below the thead, so we need both measurements — hardcoding the thead
+    // height breaks when columns wrap (e.g. when CD1 was added).
     const compareBar = document.querySelector('.compare-controls-bar');
     const comparePage = document.querySelector('.compare-page');
     if (compareBar && comparePage) {
-        const syncBarHeight = () =>
+        const syncBarHeight = () => {
             comparePage.style.setProperty('--compare-bar-h', compareBar.offsetHeight + 'px');
+            const thead = comparePage.querySelector('.data-table thead');
+            if (thead) {
+                comparePage.style.setProperty('--compare-thead-h', thead.offsetHeight + 'px');
+            }
+        };
         syncBarHeight();
-        new ResizeObserver(syncBarHeight).observe(compareBar);
+        const ro = new ResizeObserver(syncBarHeight);
+        ro.observe(compareBar);
+        const thead = comparePage.querySelector('.data-table thead');
+        if (thead) ro.observe(thead);
     }
 };
 
