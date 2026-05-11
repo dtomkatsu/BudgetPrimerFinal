@@ -3537,7 +3537,12 @@ mark.search-highlight {
 }
 .compare-page .dept-group-row.open td,
 .compare-page .fund-group-row.open td {
-    top: calc(var(--compare-bar-h, 0px) + var(--compare-thead-h, 39px));
+    /* Subtract 1px so the open row's sticky top sits 1px BEHIND the thead's
+       bottom edge. Sub-pixel rounding can otherwise leave a hairline gap
+       through which scrolling content shows. The thead's z-index (2) is
+       higher than the open row (1), so the thead's last pixel stays on top
+       — the 1px overlap is invisible but plugs the hairline reliably. */
+    top: calc(var(--compare-bar-h, 0px) + var(--compare-thead-h, 39px) - 1px);
 }
 /* Scope strip — top of card, left-aligned, divided from timeline by a hairline */
 .compare-scope-row {
