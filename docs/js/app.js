@@ -2487,18 +2487,18 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
     return `
         <section class="compare-page">
+            <div class="compare-scope-row">
+                <span class="compare-scope-label">Viewing</span>
+                ${fyToggle}
+            </div>
             <div class="compare-controls-bar">
-                <div class="compare-scope-row">
-                    <span class="compare-scope-label">Viewing</span>
-                    ${fyToggle}
-                </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <!-- Row 1: column labels -->
                     <div class="tl-corner tl-corner-labels"></div>
-                    <span class="tl-label" data-col="gov" data-row="labels">Gov.</span>
-                    <span class="tl-label" data-col="hd1" data-row="labels">HD1</span>
-                    <span class="tl-label" data-col="sd1" data-row="labels">SD1</span>
-                    <span class="tl-label" data-col="cd1" data-row="labels">CD1</span>
+                    <span class="tl-label has-tooltip" data-col="gov" data-row="labels" data-tooltip="The original budget proposed by the Governor">Gov.</span>
+                    <span class="tl-label has-tooltip" data-col="hd1" data-row="labels" data-tooltip="The House version of the budget bill">HD1</span>
+                    <span class="tl-label has-tooltip" data-col="sd1" data-row="labels" data-tooltip="The Senate version of the budget bill">SD1</span>
+                    <span class="tl-label has-tooltip" data-col="cd1" data-row="labels" data-tooltip="The budget agreed on by the House and Senate.">CD1</span>
                     <span class="tl-label" data-col="net" data-row="labels">Net Change</span>
 
                     <!-- Row 2: dots and sparkline -->
@@ -4913,8 +4913,12 @@ window.initDraftComparePage = async function () {
     const compareBar = document.querySelector('.compare-controls-bar');
     const comparePage = document.querySelector('.compare-page');
     if (compareBar && comparePage) {
+        const searchRow = comparePage.querySelector(':scope > .search-row');
         const syncBarHeight = () => {
             comparePage.style.setProperty('--compare-bar-h', compareBar.offsetHeight + 'px');
+            if (searchRow) {
+                comparePage.style.setProperty('--compare-search-h', searchRow.offsetHeight + 'px');
+            }
             comparePage.querySelectorAll('.data-table').forEach(table => {
                 const thead = table.querySelector('thead');
                 if (thead) {
@@ -4925,6 +4929,7 @@ window.initDraftComparePage = async function () {
         syncBarHeight();
         const ro = new ResizeObserver(syncBarHeight);
         ro.observe(compareBar);
+        if (searchRow) ro.observe(searchRow);
         comparePage.querySelectorAll('.data-table thead').forEach(t => ro.observe(t));
     }
 };

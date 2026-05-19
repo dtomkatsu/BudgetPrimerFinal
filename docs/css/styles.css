@@ -3530,10 +3530,11 @@ mark.search-highlight {
    sticky dept/fund rows can account for the pinned controls bar height. */
 .compare-page {
     --compare-bar-h: 0px;
+    --compare-search-h: 0px;
     --compare-thead-h: 39px;
 }
 .compare-page .data-table th {
-    top: var(--compare-bar-h, 0px);
+    top: calc(var(--compare-bar-h, 0px) + var(--compare-search-h, 0px));
 }
 .compare-page .dept-group-row.open td,
 .compare-page .fund-group-row.open td {
@@ -3542,16 +3543,28 @@ mark.search-highlight {
        through which scrolling content shows. The thead's z-index (2) is
        higher than the open row (1), so the thead's last pixel stays on top
        — the 1px overlap is invisible but plugs the hairline reliably. */
-    top: calc(var(--compare-bar-h, 0px) + var(--compare-thead-h, 39px) - 1px);
+    top: calc(var(--compare-bar-h, 0px) + var(--compare-search-h, 0px) + var(--compare-thead-h, 39px) - 1px);
 }
-/* Scope strip — top of card, left-aligned, divided from timeline by a hairline */
+/* Sticky search/filter row pinned immediately below the controls card */
+.compare-page > .search-row {
+    position: sticky;
+    top: var(--compare-bar-h, 0px);
+    z-index: 9;
+    background: #fafbfc;
+    margin: 0 -2rem;
+    padding: 0.5rem 2rem 0.6rem;
+    box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+}
+.compare-page > .search-row .search-summary {
+    margin-bottom: 0;
+}
+/* Scope strip — floats above the sticky timeline card and scrolls away with the page */
 .compare-scope-row {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     gap: 0.55rem;
-    padding: 9px 18px 9px;
-    border-bottom: 1px solid rgba(16, 24, 40, 0.05);
+    padding: 4px 4px 10px;
 }
 .compare-scope-label {
     font-size: 0.78rem;
@@ -3560,7 +3573,7 @@ mark.search-highlight {
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
-/* Timeline sits below the scope strip with its own internal padding */
+/* Timeline sits inside the sticky card with its own internal padding */
 .compare-controls-bar > .compare-timeline {
     padding: 14px 18px 16px;
 }
@@ -3746,6 +3759,9 @@ mark.search-highlight {
     display: flex;
     align-items: flex-end;
     justify-content: center;
+}
+.tl-label.has-tooltip {
+    cursor: help;
 }
 /* Inactive state — col-inactive class on .compare-timeline cascades to
    every cell with the matching data-col attribute. */
@@ -3983,11 +3999,11 @@ mark.search-highlight {
     gap: 0.55rem;
     padding-right: 14px;
     padding-left: 14px; /* breathing room between band's left edge and text */
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #3d4a45;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
     white-space: nowrap;
     cursor: help;
     align-self: stretch;
@@ -4018,8 +4034,8 @@ mark.search-highlight {
     justify-content: center;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 600;
+    font-size: 0.92rem;
     color: #2e3a36;
     letter-spacing: -0.01em;
     white-space: nowrap;
@@ -4075,8 +4091,16 @@ mark.search-highlight {
    all columns. */
 .compare-timeline > .tl-bd-label[data-row="op"]  { grid-column: 2; }
 .compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 2; }
-.compare-timeline > .tl-band[data-row="op"]  { grid-row: 4; background: #eef3ef; }
-.compare-timeline > .tl-band[data-row="cap"] { grid-row: 5; background: #f6f1e7; }
+.compare-timeline > .tl-band[data-row="op"]  {
+    grid-row: 4;
+    background: #f4f8f6;
+    box-shadow: inset 3px 0 0 #9bb2a8;
+}
+.compare-timeline > .tl-band[data-row="cap"] {
+    grid-row: 5;
+    background: #faf6ee;
+    box-shadow: inset 3px 0 0 #c7b187;
+}
 /* Note: the .tl-band [hidden] rule is replaced by the animated
    collapsed/expanded states under .compare-timeline (see "show-breakdown"). */
 
