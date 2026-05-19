@@ -2853,9 +2853,9 @@ window.initDraftComparePage = async function () {
             if (n == null) return '';
             const abs = Math.abs(n);
             const sign = n < 0 ? '-' : '';
-            if (abs >= 1e9) return `${sign}$${+(abs / 1e9).toFixed(1)}B`;
-            if (abs >= 1e6) return `${sign}$${+(abs / 1e6).toFixed(0)}M`;
-            if (abs >= 1e3) return `${sign}$${+(abs / 1e3).toFixed(0)}K`;
+            if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+            if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+            if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(0)}K`;
             return `${sign}$${abs.toFixed(0)}`;
         };
 
@@ -4910,12 +4910,12 @@ window.initDraftComparePage = async function () {
     // are MULTIPLE tables on this page (main comparison, capital projects,
     // fund detail), each with its own thead height. Setting --compare-thead-h
     // on each table scopes the CSS var to that table's open rows.
-    const compareBar = document.querySelector('.compare-controls-bar');
     const comparePage = document.querySelector('.compare-page');
-    if (compareBar && comparePage) {
+    if (comparePage) {
+        // Controls bar is no longer sticky; only the search/filter row and
+        // table headers stick. Measure the search row to offset thead/open rows.
         const searchRow = comparePage.querySelector(':scope > .search-row');
         const syncBarHeight = () => {
-            comparePage.style.setProperty('--compare-bar-h', compareBar.offsetHeight + 'px');
             if (searchRow) {
                 comparePage.style.setProperty('--compare-search-h', searchRow.offsetHeight + 'px');
             }
@@ -4928,7 +4928,6 @@ window.initDraftComparePage = async function () {
         };
         syncBarHeight();
         const ro = new ResizeObserver(syncBarHeight);
-        ro.observe(compareBar);
         if (searchRow) ro.observe(searchRow);
         comparePage.querySelectorAll('.data-table thead').forEach(t => ro.observe(t));
     }
