@@ -4177,6 +4177,12 @@ mark.search-highlight {
     }
 }
 
+/* Exempt the label from overflow:hidden so the upward tooltip isn't clipped.
+   opacity:0 already handles visibility during collapse, so this is safe. */
+.compare-timeline > [data-row="op"].tl-bd-label,
+.compare-timeline > [data-row="cap"].tl-bd-label {
+    overflow: visible;
+}
 /* Tooltip override — wider + left-aligned so "each year." isn't orphaned
    and doesn't inherit text-align:right from the kicker styling. */
 .tl-bd-label.has-tooltip::after {
