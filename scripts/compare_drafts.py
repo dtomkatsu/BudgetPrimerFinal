@@ -81,6 +81,26 @@ def compare_drafts(
 
     logger.info(f'FY{fy}: {len(df1)} records in {label1}, {len(df2)} in {label2}')
 
+    # Program-level position lookup per draft. Positions (perm+temp) are a
+    # program-level figure that repeats on every fund/section row, so we dedupe
+    # by program_id with max() — summing would inflate the count by the number
+    # of fund rows. NaN (program with no position line) → None.
+    def _program_positions(df, col):
+        if col not in df.columns:
+            return {}
+        grouped = df.groupby('program_id')[col].max()
+        return {pid: (None if (v is None or (isinstance(v, float) and np.isnan(v))) else v)
+                for pid, v in grouped.items()}
+
+    pos1 = _program_positions(df1, 'positions')
+    pos2 = _program_positions(df2, 'positions')
+    pos1_temp = _program_positions(df1, 'positions_temp')
+    pos2_temp = _program_positions(df2, 'positions_temp')
+    pos1_key = f'positions_{label1.lower()}'
+    pos2_key = f'positions_{label2.lower()}'
+    pos1_temp_key = f'positions_temp_{label1.lower()}'
+    pos2_temp_key = f'positions_temp_{label2.lower()}'
+
     # Aggregate by unique key before comparing to avoid cross-join on duplicates
     # Match keys: exclude program_name and department_name since these can differ
     # between drafts for the same program (e.g. HD1 vs SD1 may use slightly different
@@ -139,6 +159,15 @@ def compare_drafts(
         for k, v in rec.items():
             if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
                 rec[k] = None
+
+    # Attach deduped program-level positions (perm+temp) for each draft, plus
+    # the temporary portion so the frontend can show a perm vs temp breakdown.
+    for rec in records:
+        pid = rec.get('program_id')
+        rec[pos1_key] = pos1.get(pid)
+        rec[pos2_key] = pos2.get(pid)
+        rec[pos1_temp_key] = pos1_temp.get(pid)
+        rec[pos2_temp_key] = pos2_temp.get(pid)
 
     # Build summary
     changes = [r for r in records if r.get('change') and r['change'] != 0]

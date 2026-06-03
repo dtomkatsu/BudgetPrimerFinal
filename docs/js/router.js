@@ -46,6 +46,9 @@ class Router {
             if (window.loadHistoricalTrends) {
                 loadPromises.push(window.loadHistoricalTrends());
             }
+            if (window.loadActuals) {
+                loadPromises.push(window.loadActuals());
+            }
 
             // Wait for both to complete
             await Promise.all(loadPromises);
@@ -162,6 +165,10 @@ class Router {
             '/history': {
                 subtitle: 'Enacted biennial appropriations · FY2016–FY2027. Pick a year for department-level totals.',
                 docTitle: 'Hawaiʻi Budget Tracker · HB300'
+            },
+            '/actuals': {
+                subtitle: 'What was actually spent in FY2025 vs the budget, by department · budgetary basis, appropriated funds. A completed year — separate from the FY2026–27 bills.',
+                docTitle: 'Actual Spending · Hawaiʻi Budget Tracker'
             },
             '/about': {
                 subtitle: 'About this tracker.',

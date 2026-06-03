@@ -141,7 +141,8 @@ class BudgetAllocation:
     fund_type: FundType
     fiscal_year: int
     amount: float
-    positions: Optional[int] = None
+    positions: Optional[int] = None          # permanent + temporary
+    positions_temp: Optional[int] = None     # temporary portion of `positions`
     ceiling: Optional[float] = None
     allocation_type: Optional[str] = None
     category: Optional[str] = None
@@ -163,6 +164,7 @@ class BudgetAllocation:
             fiscal_year=int(data.get('fiscal_year', 0)),
             amount=float(data.get('amount', 0)),
             positions=data.get('positions'),
+            positions_temp=data.get('positions_temp'),
             ceiling=data.get('ceiling'),
             allocation_type=data.get('allocation_type'),
             category=data.get('category'),
@@ -183,6 +185,7 @@ class BudgetAllocation:
             'fiscal_year': self.fiscal_year,
             'amount': self.amount,
             'positions': self.positions,
+            'positions_temp': self.positions_temp,
             'ceiling': self.ceiling,
             'allocation_type': self.allocation_type,
             'category': self.category,

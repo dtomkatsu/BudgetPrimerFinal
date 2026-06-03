@@ -47,6 +47,8 @@ class ParserState:
     category: Optional[str] = None
     positions_fy1: Optional[float] = None
     positions_fy2: Optional[float] = None
+    positions_temp_fy1: Optional[float] = None
+    positions_temp_fy2: Optional[float] = None
 
     def has_context(self) -> bool:
         """Return True if we have enough context to create an allocation."""
@@ -65,6 +67,8 @@ class ParserState:
         self.section = None
         self.positions_fy1 = None
         self.positions_fy2 = None
+        self.positions_temp_fy1 = None
+        self.positions_temp_fy2 = None
 
     @property
     def section_enum(self) -> BudgetSection:
@@ -164,9 +168,14 @@ class FastBudgetParser(BaseBudgetParser):
         _extract_allocations(), not by dict order here.
         """
         return {
-            # --- positions line (e.g., "  10.00*   10.00*") ---
+            # --- permanent positions line (e.g., "  10.00*   10.00*") ---
             'positions': re.compile(
                 r'^\s+([\d,.]+)\*\s+([\d,.]+)\*\s*$',
+            ),
+
+            # --- temporary positions line (e.g., "  1.00#   1.00#") ---
+            'positions_temp': re.compile(
+                r'^\s+([\d,.]+)#\s+([\d,.]+)#\s*$',
             ),
 
             # --- structural markers ---
@@ -405,12 +414,21 @@ class FastBudgetParser(BaseBudgetParser):
         if amount <= 0:
             return None
 
-        # Attach positions for the matching fiscal year
-        pos = None
-        if fiscal_year == self.fy1 and state.positions_fy1 is not None:
-            pos = state.positions_fy1
-        elif fiscal_year == self.fy2 and state.positions_fy2 is not None:
-            pos = state.positions_fy2
+        # Attach positions for the matching fiscal year (permanent + temporary).
+        # Perm and temp arrive on separate lines ("10.00*" vs "1.00#"); either may
+        # be absent. None + None stays None; otherwise missing side counts as 0.
+        if fiscal_year == self.fy1:
+            perm, temp = state.positions_fy1, state.positions_temp_fy1
+        elif fiscal_year == self.fy2:
+            perm, temp = state.positions_fy2, state.positions_temp_fy2
+        else:
+            perm, temp = None, None
+        if perm is None and temp is None:
+            pos = None
+            pos_temp = None
+        else:
+            pos = (perm or 0) + (temp or 0)
+            pos_temp = (temp or 0)
 
         return BudgetAllocation(
             program_id=state.program_id or 'Unknown',
@@ -422,6 +440,7 @@ class FastBudgetParser(BaseBudgetParser):
             fiscal_year=fiscal_year,
             amount=float(amount),
             positions=pos,
+            positions_temp=pos_temp,
             category=state.category or 'Uncategorized',
             line_number=line_number,
             notes=notes,
@@ -527,12 +546,22 @@ class FastBudgetParser(BaseBudgetParser):
                     continue
                 line_num = i + 1  # 1-based
 
-                # --- 0. Position/FTE lines (e.g., "  10.00*   10.00*") ---
+                # --- 0. Permanent position/FTE lines (e.g., "  10.00*   10.00*") ---
                 m = pat['positions'].match(raw_line)
                 if m:
                     try:
                         state.positions_fy1 = float(m.group(1).replace(',', ''))
                         state.positions_fy2 = float(m.group(2).replace(',', ''))
+                    except ValueError:
+                        pass
+                    continue
+
+                # --- 0a. Temporary position/FTE lines (e.g., "  1.00#   1.00#") ---
+                mt = pat['positions_temp'].match(raw_line)
+                if mt:
+                    try:
+                        state.positions_temp_fy1 = float(mt.group(1).replace(',', ''))
+                        state.positions_temp_fy2 = float(mt.group(2).replace(',', ''))
                     except ValueError:
                         pass
                     continue

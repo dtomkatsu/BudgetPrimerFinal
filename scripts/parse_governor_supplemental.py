@@ -286,6 +286,43 @@ def extract_row_values(row_words: list[dict], cols: ColumnMap) -> dict[str, floa
     return values
 
 
+def _parse_pos_num(text: str) -> float | None:
+    """Parse a position count like '169.00*' or '124.00**' or '2.00**'.
+
+    Position values carry '*' (permanent) or '**' (temporary) markers that
+    _parse_num rejects; strip them here so the count survives.
+    """
+    t = text.strip().replace("*", "").replace("#", "").replace(",", "")
+    t = re.sub(r"[-.\s]+$", "", t)
+    if not t or t == "-":
+        return None
+    if re.fullmatch(r"-?\d+(\.\d+)?", t):
+        try:
+            return float(t)
+        except ValueError:
+            return None
+    return None
+
+
+def extract_position_values(row_words: list[dict], cols: ColumnMap) -> dict[str, float]:
+    """Extract position counts from a TOTAL PERM/TEMP POSITIONS row by column.
+
+    Mirrors extract_row_values but strips '*'/'**' markers so the counts parse.
+    """
+    row_words = _coalesce_split_numbers(row_words)
+    values: dict[str, float] = {}
+    for w in row_words:
+        val = _parse_pos_num(w["text"])
+        if val is None:
+            continue
+        col = cols.assign(w["x1"])
+        if col is None:
+            continue
+        if col not in values:
+            values[col] = val
+    return values
+
+
 def match_fund(row_text: str) -> tuple[str, str] | None:
     """Return (fund_type, fund_category) if row starts with a known fund label."""
     # Normalize whitespace
@@ -544,8 +581,13 @@ def parse_s78(path: pathlib.Path, dept_code: str, dept_name: str) -> Iterator[di
 # Main parser
 # ---------------------------------------------------------------------------
 
-def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
-    """Yield records from a single department PDF."""
+def parse_pdf(path: pathlib.Path, positions_out: dict | None = None) -> Iterator[dict]:
+    """Yield records from a single department PDF.
+
+    If ``positions_out`` is provided, it is populated as
+    ``{program_id: {"perm26","perm27","temp26","temp27"}}`` from the program's
+    TOTAL PERM/TEMP POSITIONS rows (recommended-appropriation column).
+    """
     dept_code = path.stem.split("_")[-1]  # e.g. "09_AGS" -> "AGS"
     # Normalize legacy code
     if dept_code == "SUB":
@@ -602,7 +644,29 @@ def parse_pdf(path: pathlib.Path) -> Iterator[dict]:
                 if "TOTAL CAPITAL COST" in row_text_upper:
                     in_capital_funds = True
                     continue
-                if "TOTAL PERM POSITIONS" in row_text_upper or "TOTAL PROGRAM COST" in row_text_upper:
+                if "TOTAL PERM POSITIONS" in row_text_upper:
+                    # Capture permanent positions (recommended column), then keep
+                    # scanning — TOTAL TEMP POSITIONS follows on the next row.
+                    if positions_out is not None:
+                        vals = extract_position_values(row, cols)
+                        acc = positions_out.setdefault(
+                            program_id,
+                            {"perm26": None, "perm27": None, "temp26": None, "temp27": None},
+                        )
+                        acc["perm26"] = vals.get("fy26_rec")
+                        acc["perm27"] = vals.get("fy27_rec")
+                    continue
+                if "TOTAL TEMP POSITIONS" in row_text_upper:
+                    if positions_out is not None:
+                        vals = extract_position_values(row, cols)
+                        acc = positions_out.setdefault(
+                            program_id,
+                            {"perm26": None, "perm27": None, "temp26": None, "temp27": None},
+                        )
+                        acc["temp26"] = vals.get("fy26_rec")
+                        acc["temp27"] = vals.get("fy27_rec")
+                    continue
+                if "TOTAL PROGRAM COST" in row_text_upper:
                     # End of table
                     break
                 # TOTAL OPERATING COST is informational — we use fund rows instead
@@ -676,12 +740,15 @@ def main():
     by_dept: dict[str, int] = defaultdict(int)
     totals = defaultdict(float)
 
+    # Program-level position counts (perm+temp, recommended column) keyed by program_id.
+    positions_by_program: dict[str, dict] = {}
+
     for pdf_path in sorted(pdf_dir.glob("*.pdf")):
         if pdf_path.name.startswith("06_"):  # skip statewide summary if present
             continue
         print(f"Parsing {pdf_path.name}...", end=" ", flush=True)
         page_count = 0
-        for rec in parse_pdf(pdf_path):
+        for rec in parse_pdf(pdf_path, positions_out=positions_by_program):
             page_count += 1
             key = (rec["program_id"], rec["fund_type"], rec["section"])
             if key in accum:
@@ -703,11 +770,41 @@ def main():
             proj_count += 1
         print(f"{page_count} op/cap rows, {proj_count} project rows")
 
+    # Combine perm+temp into a single program-level count per fiscal year.
+    # None+None stays None; otherwise a missing side counts as 0.
+    def _combine(perm, temp):
+        if perm is None and temp is None:
+            return None
+        return (perm or 0) + (temp or 0)
+
+    # Temporary portion alone (None only when there is no position line at all).
+    def _temp_only(perm, temp):
+        if perm is None and temp is None:
+            return None
+        return temp or 0
+
+    program_positions = {
+        pid: {
+            "fy2026": _combine(p["perm26"], p["temp26"]),
+            "fy2027": _combine(p["perm27"], p["temp27"]),
+            "temp_fy2026": _temp_only(p["perm26"], p["temp26"]),
+            "temp_fy2027": _temp_only(p["perm27"], p["temp27"]),
+        }
+        for pid, p in positions_by_program.items()
+    }
+
     all_records = list(accum.values())
     for rec in all_records:
         by_dept[rec["department_code"]] += 1
         totals[f"{rec['section']} FY26"] += rec["amount_fy2026"]
         totals[f"{rec['section']} FY27"] += rec["amount_fy2027"]
+        # Attach program-level positions (repeats across the program's fund rows;
+        # the frontend dedupes per program, so this is not double-counted).
+        pos = program_positions.get(rec["program_id"], {})
+        rec["positions_fy2026"] = pos.get("fy2026")
+        rec["positions_fy2027"] = pos.get("fy2027")
+        rec["positions_temp_fy2026"] = pos.get("temp_fy2026")
+        rec["positions_temp_fy2027"] = pos.get("temp_fy2027")
 
     # Write main governor_request.json
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -98,6 +98,122 @@ window.loadHistoricalTrends = async function () {
     }
 };
 
+// FY2025 actual spending (budgetary basis) by department — ACFR source.
+let actualsData = null;
+window.loadActuals = async function () {
+    try {
+        const response = await fetch('./js/actuals_fy2025.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        actualsData = await response.json();
+        return actualsData;
+    } catch (e) {
+        console.error('Error loading actuals:', e);
+        return null;
+    }
+};
+
+window.actualsPage = async function () {
+    if (!actualsData || !actualsData.departments) {
+        return `
+            <section class="compare-page">
+                <h2>Actual Spending</h2>
+                <div class="empty-state">
+                    <p>No actuals data available yet.</p>
+                    <p>To generate it, run:</p>
+                    <pre>python scripts/extract_actuals.py</pre>
+                </div>
+            </section>`;
+    }
+    const m = actualsData.metadata;
+    return `
+        <section class="compare-page actuals-page">
+            <div class="summary-cards-grid" id="actuals-cards"></div>
+            <p class="actuals-caveat">FY2025 spending on a <strong>budgetary basis</strong>, combining the
+                General Fund and four special revenue funds — i.e. <strong>appropriated funds</strong> under
+                legislative budgetary control (excludes federal aid and most special funds). A completed year,
+                separate from the FY2026–27 bills. Source: ${_escHtml(m.source)}.</p>
+            <div id="actuals-results"></div>
+        </section>`;
+};
+
+window.initActualsPage = function () {
+    if (!actualsData || !actualsData.departments) return;
+    const m = actualsData.metadata;
+    let sortCol = 'actual';
+    let sortDir = 'desc';
+
+    const arrow = (col) => sortCol === col
+        ? `<span class="sort-ind">${sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
+    const varClass = (v) => v > 0 ? 'variance-under' : v < 0 ? 'variance-over' : '';
+    const varWord = (v) => v > 0 ? 'under' : v < 0 ? 'over' : '';
+
+    const render = () => {
+        const rows = [...actualsData.departments].sort((a, b) => {
+            let va, vb;
+            if (sortCol === 'dept') { va = (a.department_name || '').toLowerCase(); vb = (b.department_name || '').toLowerCase(); }
+            else { va = a[sortCol === 'final' ? 'final_budget' : sortCol] || 0; vb = b[sortCol === 'final' ? 'final_budget' : sortCol] || 0; }
+            if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            return sortDir === 'asc' ? va - vb : vb - va;
+        });
+
+        // Summary cards
+        const pctSpent = m.total_final_budget ? (m.total_actual / m.total_final_budget * 100) : 0;
+        const cardsEl = document.getElementById('actuals-cards');
+        if (cardsEl) cardsEl.innerHTML = `
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(m.total_final_budget)}</div><div class="label">Final Budget</div><div class="label-sub">FY2025</div></div>
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(m.total_actual)}</div><div class="label">Actually Spent</div><div class="label-sub">${pctSpent.toFixed(0)}% of budget</div></div>
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(m.total_variance)}</div><div class="label">Left Unspent</div><div class="label-sub">under budget</div></div>`;
+
+        let body = '<tbody>';
+        for (const r of rows) {
+            const v = r.variance || 0;
+            const chip = r.department_code
+                ? `<span class="dept-chip">${r.department_code}</span> ` : '';
+            body += `<tr>
+                <td>${chip}${highlight(r.department_name || '', '')}</td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(r.final_budget)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(r.actual)}</span></td>
+                <td class="amount-cell ${varClass(v)}"><span class="figure-chip">${fmtHtml(Math.abs(v))}</span>${v ? `<span class="var-word">${varWord(v)}${r.pct_variance != null ? ` ${Math.abs(r.pct_variance).toFixed(0)}%` : ''}</span>` : ''}</td>
+            </tr>`;
+        }
+        body += '</tbody>';
+
+        // Totals row
+        const tv = m.total_variance || 0;
+        const totals = `<tbody class="totals-block"><tr class="totals-row">
+            <td>Total <span class="totals-meta">${rows.length} departments</span></td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(m.total_final_budget)}</span></td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(m.total_actual)}</span></td>
+            <td class="amount-cell ${varClass(tv)}"><span class="figure-chip">${fmtHtml(Math.abs(tv))}</span><span class="var-word">${varWord(tv)}</span></td>
+        </tr></tbody>`;
+
+        const el = document.getElementById('actuals-results');
+        if (el) el.innerHTML = `
+            <table class="data-table actuals-table">
+                <thead><tr>
+                    <th class="sortable" data-sort="dept">Department${arrow('dept')}</th>
+                    <th class="sortable amount-cell" data-sort="final">Final Budget${arrow('final')}</th>
+                    <th class="sortable amount-cell" data-sort="actual">Actually Spent${arrow('actual')}</th>
+                    <th class="sortable amount-cell" data-sort="variance">Variance${arrow('variance')}</th>
+                </tr></thead>
+                ${body}
+                ${totals}
+            </table>`;
+    };
+
+    render();
+
+    const resultsEl = document.getElementById('actuals-results');
+    resultsEl?.addEventListener('click', (e) => {
+        const th = e.target.closest('th.sortable');
+        if (!th) return;
+        const col = th.getAttribute('data-sort');
+        if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        else { sortCol = col; sortDir = col === 'dept' ? 'asc' : 'desc'; }
+        render();
+    });
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -120,6 +236,20 @@ const fmtHtml = (amount) => {
     if (abs >= 1e6) return `<span class="fmt-num">${sign}$${(abs / 1e6).toFixed(2)}</span><span class="fmt-unit">M</span>`;
     if (abs >= 1e3) return `<span class="fmt-num">${sign}$${(abs / 1e3).toFixed(0)}</span><span class="fmt-unit">K</span>`;
     return `<span class="fmt-num">${sign}$${abs.toLocaleString()}</span>`;
+};
+// Per-stage position count, rendered as a small sub-figure under a dollar cell.
+// `temp` is the temporary portion of the total `v`; permanent and temporary are
+// shown inline (e.g. "10 perm · 1 temp"). Temp is omitted when zero. Returns ''
+// for null/0 so programs without positions show nothing extra.
+const posChip = (v, temp) => {
+    if (v == null || v === '' || Number(v) === 0 || Number.isNaN(Number(v))) return '';
+    const total = Math.round(Number(v));
+    const t = (temp == null || temp === '' || Number.isNaN(Number(temp))) ? 0 : Math.round(Number(temp));
+    const perm = total - t;
+    const fmtN = (n) => n.toLocaleString();
+    const permPart = `<span class="pos-perm">${fmtN(perm)}<span class="pos-unit">perm</span></span>`;
+    const tempPart = t > 0 ? `<span class="pos-sep">·</span><span class="pos-temp">${fmtN(t)}<span class="pos-unit">temp</span></span>` : '';
+    return `<span class="pos-sub">${permPart}${tempPart}</span>`;
 };
 // Summary-card form: 1 decimal place, short unit (B/M/K)
 const fmtHtmlCard = (amount) => {
@@ -1715,10 +1845,14 @@ function _mergeSD1Amounts(cdData, sdData) {
         r.fund_category || '', r.section || '', r.category || '',
     ].join('|');
     const sdMap = new Map();
-    for (const r of sdData.comparisons) sdMap.set(keyOf(r), r.amount_sd1);
+    for (const r of sdData.comparisons) sdMap.set(keyOf(r), { amt: r.amount_sd1, pos: r.positions_sd1, posTemp: r.positions_temp_sd1 });
     for (const r of cdData.comparisons) {
         const v = sdMap.get(keyOf(r));
-        if (v !== undefined) r.amount_sd1 = v;
+        if (v !== undefined) {
+            r.amount_sd1 = v.amt;
+            r.positions_sd1 = v.pos;
+            r.positions_temp_sd1 = v.posTemp;
+        }
     }
     // Append SD1-only records (programs SD1 changed that CD1 dropped or didn't touch)
     const cdKeys = new Set(cdData.comparisons.map(keyOf));
@@ -1730,6 +1864,8 @@ function _mergeSD1Amounts(cdData, sdData) {
             section: r.section, category: r.category,
             program_name: r.program_name, department_name: r.department_name,
             amount_hd1: r.amount_hd1, amount_sd1: r.amount_sd1, amount_cd1: null,
+            positions_hd1: r.positions_hd1, positions_sd1: r.positions_sd1, positions_cd1: null,
+            positions_temp_hd1: r.positions_temp_hd1, positions_temp_sd1: r.positions_temp_sd1, positions_temp_cd1: null,
             change: 0, pct_change: null, change_type: 'unchanged_in_cd1',
         });
     }
@@ -2065,6 +2201,54 @@ function _buildReasonPopoverHtml(cell) {
     return header + hdSection + sdSection;
 }
 
+// Build the Governor's-Message popover for a Gov's Request cell.  Reads the
+// detail items + concurrence status (from extract_governor_message.py) off
+// the cell's data-* attrs.  Mirrors the reason popover's card structure.
+function _buildGovPopoverHtml(cell) {
+    const detail = cell.getAttribute('data-gov') || '';
+    if (!detail) return '';
+    const title = cell.getAttribute('data-gov-title') || '';
+    const programId = cell.getAttribute('data-program-id') || '';
+    const programName = cell.getAttribute('data-program-name') || '';
+    const items = _bulletizeReason(detail)
+        .map(s => `<li>${_escHtml(_softCaseReason(s))}.</li>`).join('');
+    const titleHtml = title
+        ? `<p class="gov-pop-title">${_escHtml(_softCaseReason(title))}</p>` : '';
+    const header = programId
+        ? `<div class="reason-pop-header">
+             <strong>${_escHtml(programId)}</strong>
+             <span class="reason-pop-prog-name">${_escHtml(programName)}</span>
+           </div>` : '';
+    return `${header}<div class="reason-section reason-gov">
+        <div class="reason-chamber-label">Governor's Request</div>
+        ${titleHtml}<ul class="reason-list">${items}</ul>
+    </div>`;
+}
+
+// Build the CD1 "crossed out" popover — the Governor's-Message items the
+// Legislature declined to fund, rendered struck through.
+function _buildGovCutPopoverHtml(cell) {
+    const detail = cell.getAttribute('data-cut') || '';
+    if (!detail) return '';
+    const title = cell.getAttribute('data-cut-title') || '';
+    const programId = cell.getAttribute('data-program-id') || '';
+    const programName = cell.getAttribute('data-program-name') || '';
+    const items = _bulletizeReason(detail)
+        .map(s => `<li><s>${_escHtml(_softCaseReason(s))}.</s></li>`).join('');
+    const titleHtml = title
+        ? `<p class="gov-pop-title"><s>${_escHtml(_softCaseReason(title))}</s></p>` : '';
+    const header = programId
+        ? `<div class="reason-pop-header">
+             <strong>${_escHtml(programId)}</strong>
+             <span class="reason-pop-prog-name">${_escHtml(programName)}</span>
+           </div>` : '';
+    return `${header}<div class="reason-section reason-govcut">
+        <div class="reason-chamber-label gov-cut-label">Crossed out in CD1</div>
+        <p class="gov-cut-note">Requested by the Governor, not funded by the Legislature:</p>
+        ${titleHtml}<ul class="reason-list gov-cut-list">${items}</ul>
+    </div>`;
+}
+
 // Position the popover relative to the triggering cell.  Three-step
 // fallback to keep tall popovers fully on-screen:
 //   1. Try below-right of the cell.
@@ -2130,17 +2314,24 @@ function initReasonPopoverHandlers() {
     // Find the nearest triggering element — either a change-reason cell
     // or a program-objective ID.  Both share the same popover element.
     const _triggerEl = (target) =>
-        target.closest('.has-reason') || target.closest('.has-purpose');
+        target.closest('.has-reason') || target.closest('.has-purpose')
+        || target.closest('.has-gov') || target.closest('.has-govcut');
 
     const show = (cell) => {
         if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
         if (activeCell === cell) return;
         const html = cell.classList.contains('has-purpose')
             ? _buildPurposePopoverHtml(cell)
-            : _buildReasonPopoverHtml(cell);
+            : cell.classList.contains('has-govcut')
+                ? _buildGovCutPopoverHtml(cell)
+                : cell.classList.contains('has-gov')
+                    ? _buildGovPopoverHtml(cell)
+                    : _buildReasonPopoverHtml(cell);
         if (!html) return;
         // Tag popover type so CSS can style accordingly
-        pop.dataset.popType = cell.classList.contains('has-purpose') ? 'purpose' : 'reason';
+        pop.dataset.popType = cell.classList.contains('has-purpose') ? 'purpose'
+            : cell.classList.contains('has-govcut') ? 'govcut'
+            : cell.classList.contains('has-gov') ? 'gov' : 'reason';
         activeCell = cell;
         pop.innerHTML = html;
         _positionReasonPopover(pop, cell);
@@ -2689,9 +2880,13 @@ window.initDraftComparePage = async function () {
     // Inject amount_baseline into each comparison record (once at init)
     const injectBaseline = (dataset) => {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        const posKey = dataset.metadata.fiscal_year === 2026 ? 'positions_fy2026' : 'positions_fy2027';
+        const posTempKey = dataset.metadata.fiscal_year === 2026 ? 'positions_temp_fy2026' : 'positions_temp_fy2027';
         for (const r of dataset.comparisons) {
             const match = baselineLookup.get(`${r.department_code}_${r.program_id}_${r.fund_type}_${r.section}`);
             r.amount_baseline = match ? (match[fyKey] || 0) : 0;
+            r.positions_baseline = match ? (match[posKey] ?? null) : null;
+            r.positions_temp_baseline = match ? (match[posTempKey] ?? null) : null;
         }
     };
     if (draftComparisonData) injectBaseline(draftComparisonData);
@@ -2708,6 +2903,8 @@ window.initDraftComparePage = async function () {
     const injectOrphans = (dataset) => {
         if (!dataset || !governorRequestData) return;
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        const posKey = dataset.metadata.fiscal_year === 2026 ? 'positions_fy2026' : 'positions_fy2027';
+        const posTempKey = dataset.metadata.fiscal_year === 2026 ? 'positions_temp_fy2026' : 'positions_temp_fy2027';
         const hd1Key = 'amount_' + dataset.metadata.draft1.toLowerCase();
         const sd1Key = 'amount_' + dataset.metadata.draft2.toLowerCase();
         const present = new Set();
@@ -2730,10 +2927,18 @@ window.initDraftComparePage = async function () {
                 [hd1Key]: 0,
                 [sd1Key]: 0,
                 amount_sd1: 0,
+                positions_hd1: null,
+                positions_sd1: null,
+                positions_cd1: null,
+                positions_temp_hd1: null,
+                positions_temp_sd1: null,
+                positions_temp_cd1: null,
                 change: 0,
                 pct_change: 0,
                 change_type: 'removed',
                 amount_baseline: amt,
+                positions_baseline: g[posKey] ?? null,
+                positions_temp_baseline: g[posTempKey] ?? null,
                 _govOrphan: true,
             });
         }
@@ -2773,6 +2978,58 @@ window.initDraftComparePage = async function () {
         const to = getD2Label() === "Gov's Request" ? 'Gov.' : getD2Label();
         return `Change${sortArrowHtml}<span class="th-sub">${from} → ${to}</span>`;
     };
+    // Position counts (perm+temp) parallel the dollar columns. Each amount key
+    // has a matching positions key on the comparison records.
+    const POS_KEY = {
+        amount_baseline: 'positions_baseline',
+        amount_hd1: 'positions_hd1',
+        amount_sd1: 'positions_sd1',
+        amount_cd1: 'positions_cd1',
+    };
+    const POS_TEMP_KEY = {
+        amount_baseline: 'positions_temp_baseline',
+        amount_hd1: 'positions_temp_hd1',
+        amount_sd1: 'positions_temp_sd1',
+        amount_cd1: 'positions_temp_cd1',
+    };
+    const posKeyFor = (amountKey) => POS_KEY[amountKey] || null;
+
+    // Governor's Message detail belongs to the Gov's Request column. These
+    // helpers only fire when Gov is the d1 column (govActive) and the program
+    // has detail. govCellAttrs returns a SINGLE merged class + data-* block
+    // (consumed by the .has-gov popover); govFlag renders the in-cell hint and
+    // the "not funded" chip.
+    const govShows = (p) => !!(p && govActive && getD1Key() === 'amount_baseline' && p.reason_gov);
+    const govCellAttrs = (p, baseClass) => {
+        if (!govShows(p)) return baseClass ? ` class="${baseClass}"` : '';
+        return ` class="${baseClass} has-gov"`
+            + ` data-gov-title="${_escAttr(p.reason_gov_title || '')}"`
+            + ` data-gov="${_escAttr(p.reason_gov)}"`
+            + ` data-gov-concur="${p.gov_not_concur ? '1' : '0'}"`
+            + ` data-program-id="${_escAttr(p.program_id || '')}"`
+            + ` data-program-name="${_escAttr(p.program_name || '')}"`
+            + ` tabindex="0"`;
+    };
+    const govFlag = (p) => govShows(p)
+        ? `<span class="gov-msg-hint" aria-hidden="true">ⓘ</span>` : '';
+
+    // CD1 column: the items the Governor requested that the Legislature crossed
+    // out (gov_not_concur). Shows a "✗ cut" hint + a hover listing those items
+    // struck through. Only when CD1 is the active d2 column.
+    const cd1CutShows = (p) => !!(p && cd1Active && getD2Key() === 'amount_cd1'
+        && p.gov_not_concur && p.reason_gov);
+    const cd1CutCellAttrs = (p, baseClass) => {
+        if (!cd1CutShows(p)) return baseClass ? ` class="${baseClass}"` : '';
+        return ` class="${baseClass} has-govcut"`
+            + ` data-cut="${_escAttr(p.reason_gov)}"`
+            + ` data-cut-title="${_escAttr(p.reason_gov_title || '')}"`
+            + ` data-program-id="${_escAttr(p.program_id || '')}"`
+            + ` data-program-name="${_escAttr(p.program_name || '')}"`
+            + ` tabindex="0"`;
+    };
+    const cd1CutFlag = (p) => cd1CutShows(p)
+        ? `<span class="gov-cut-hint" aria-hidden="true">✗ cut</span>` : '';
+
     // HD1 is a visible middle column only when it is active AND is not itself an endpoint
     const showHD1Col = () => hd1Active && getD1Label() !== 'HD1' && getD2Label() !== 'HD1';
     // SD1 is a visible middle column when it is active AND is not itself an endpoint
@@ -3070,6 +3327,17 @@ window.initDraftComparePage = async function () {
                              <dd>Transfers / Other</dd>
                          </dl>
                      </details>
+                     <div class="rg-chips rg-positions">
+                         <p class="rg-chips-title">Position counts</p>
+                         <p class="rg-positions-intro">Under each stage's dollar figure is that program's authorized headcount (FTE), split into:</p>
+                         <dl class="rg-chips-defs rg-positions-defs">
+                             <dt><span class="pos-sub" style="margin-top:0;"><span class="pos-perm">26<span class="pos-unit">perm</span></span></span></dt>
+                             <dd><strong>Permanent</strong> positions — ongoing, established jobs</dd>
+                             <dt><span class="pos-sub" style="margin-top:0;"><span class="pos-temp">6<span class="pos-unit">temp</span></span></span></dt>
+                             <dd><strong>Temporary</strong> positions — time-limited, often grant- or project-funded</dd>
+                         </dl>
+                         <p class="rg-chips-help">Each column shows the count at that stage (Gov → HD1 → SD1 → CD1), so you can see headcount change through the process. Department rows total their programs.</p>
+                     </div>
                  </div>
              </span>`;
         // Re-attach filter/search listeners after re-render
@@ -3138,11 +3406,38 @@ window.initDraftComparePage = async function () {
         // Pre-compute dept aggregates, then sort by active sortCol/sortDir.
         // Change sort uses the full dept delta so per-dept rankings match the
         // headline-total reconciliation (sum of dept rows = headline total).
+        // Department position total for a stage: dedupe each program's count
+        // (positions repeat across a program's fund rows) then sum across the
+        // department's programs. Returns null when no program has positions.
+        const deptStagePositions = (rows, key) => {
+            if (!key) return null;
+            const byProg = new Map();
+            for (const r of rows) {
+                const v = r[key];
+                if (v == null || v === '' || Number.isNaN(Number(v))) continue;
+                const pid = r.program_id || '';
+                const nv = Number(v);
+                const cur = byProg.get(pid);
+                byProg.set(pid, cur == null ? nv : Math.max(cur, nv));
+            }
+            if (byProg.size === 0) return null;
+            let sum = 0;
+            for (const v of byProg.values()) sum += v;
+            return sum;
+        };
         const depts = [...deptMap.values()].map(d => {
             d.d1 = d.rows.reduce((s, r) => s + (r[d1Key] || 0), 0);
             d.d2 = d.rows.reduce((s, r) => s + (r[d2Key] || 0), 0);
             d.hd1 = d.rows.reduce((s, r) => s + (r[hd1Key] || 0), 0);
             d.sd1 = d.rows.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
+            d.posD1  = deptStagePositions(d.rows, posKeyFor(d1Key));
+            d.posD2  = deptStagePositions(d.rows, posKeyFor(d2Key));
+            d.posHD1 = deptStagePositions(d.rows, 'positions_hd1');
+            d.posSD1 = deptStagePositions(d.rows, 'positions_sd1');
+            d.posTempD1  = deptStagePositions(d.rows, POS_TEMP_KEY[d1Key]);
+            d.posTempD2  = deptStagePositions(d.rows, POS_TEMP_KEY[d2Key]);
+            d.posTempHD1 = deptStagePositions(d.rows, 'positions_temp_hd1');
+            d.posTempSD1 = deptStagePositions(d.rows, 'positions_temp_sd1');
             d.delta = d.d2 - d.d1;
             return d;
         }).sort((a, b) => {
@@ -3284,6 +3579,16 @@ window.initDraftComparePage = async function () {
             return ` <span class="data-note" title="${escaped}" aria-label="Data note: ${escaped}">⚠</span>`;
         };
 
+        // Positions are a program-level figure that repeats on every fund row,
+        // so they are deduped with max() — never summed (that would inflate by the
+        // number of fund rows). null means "no position line for this program".
+        const maxPos = (a, b) => {
+            if (b == null || b === '') return a;
+            const nb = Number(b);
+            if (Number.isNaN(nb)) return a;
+            return a == null ? nb : Math.max(a, nb);
+        };
+
         // Aggregate records by program_id within each department
         const aggregatePrograms = (rows) => {
             const pMap = new Map();
@@ -3294,12 +3599,19 @@ window.initDraftComparePage = async function () {
                         program_id: pid, program_name: r.program_name || '',
                         department_code: r.department_code, department_name: r.department_name,
                         d1: 0, d2: 0, hd1: 0, sd1: 0, funds: new Set(), sections: new Set(),
+                        posBaseline: null, posHd1: null, posSd1: null, posCd1: null,
+                        posTempBaseline: null, posTempHd1: null, posTempSd1: null, posTempCd1: null,
                         hasAdded: false, hasRemoved: false, rawRows: [],
                         // Worksheet reasons (from extract_worksheet_reasons.py) live on
                         // every raw row of a program; copy onto the aggregated view so
                         // changeReasonTooltipAttrs(p) can read them at render time.
                         reason_sd_change: r.reason_sd_change || '',
                         reason_hd_change: r.reason_hd_change || '',
+                        // Governor's Message detail (extract_governor_message.py) —
+                        // surfaced as a tooltip on the Gov's Request cell.
+                        reason_gov: r.reason_gov || '',
+                        reason_gov_title: r.reason_gov_title || '',
+                        gov_not_concur: r.gov_not_concur || false,
                     });
                 }
                 const p = pMap.get(pid);
@@ -3307,6 +3619,14 @@ window.initDraftComparePage = async function () {
                 p.d2 += r[d2Key] || 0;
                 p.hd1 += r[hd1Key] || 0;
                 p.sd1 += r.amount_sd1 || 0;
+                p.posBaseline = maxPos(p.posBaseline, r.positions_baseline);
+                p.posHd1 = maxPos(p.posHd1, r.positions_hd1);
+                p.posSd1 = maxPos(p.posSd1, r.positions_sd1);
+                p.posCd1 = maxPos(p.posCd1, r.positions_cd1);
+                p.posTempBaseline = maxPos(p.posTempBaseline, r.positions_temp_baseline);
+                p.posTempHd1 = maxPos(p.posTempHd1, r.positions_temp_hd1);
+                p.posTempSd1 = maxPos(p.posTempSd1, r.positions_temp_sd1);
+                p.posTempCd1 = maxPos(p.posTempCd1, r.positions_temp_cd1);
                 if (r.fund_category) p.funds.add(r.fund_category);
                 if (r.section) p.sections.add(r.section);
                 if (r.change_type === 'added') p.hasAdded = true;
@@ -3339,6 +3659,14 @@ window.initDraftComparePage = async function () {
                     p.d2  += r[d2Key]  || 0;
                     p.hd1 += r[hd1Key] || 0;
                     p.sd1 += r.amount_sd1 || 0;
+                    p.posBaseline = maxPos(p.posBaseline, r.positions_baseline);
+                    p.posHd1 = maxPos(p.posHd1, r.positions_hd1);
+                    p.posSd1 = maxPos(p.posSd1, r.positions_sd1);
+                    p.posCd1 = maxPos(p.posCd1, r.positions_cd1);
+                    p.posTempBaseline = maxPos(p.posTempBaseline, r.positions_temp_baseline);
+                    p.posTempHd1 = maxPos(p.posTempHd1, r.positions_temp_hd1);
+                    p.posTempSd1 = maxPos(p.posTempSd1, r.positions_temp_sd1);
+                    p.posTempCd1 = maxPos(p.posTempCd1, r.positions_temp_cd1);
                     if (r.fund_category) p.funds.add(r.fund_category);
                     p.rawRows.push(r);
                     p.crossDeptAugmented.add(r.department_code);
@@ -3365,6 +3693,34 @@ window.initDraftComparePage = async function () {
                 p.displayD2  = isSplit ? p.d2DeptScope  : p.d2;
                 p.displayHD1 = isSplit ? p.hd1DeptScope : p.hd1;
                 p.displaySD1 = isSplit ? p.sd1DeptScope : p.sd1;
+                // Position counts are program-level (not dept-scoped); map each
+                // active stage to its deduped count.
+                const posOf = (amountKey) => {
+                    switch (amountKey) {
+                        case 'amount_baseline': return p.posBaseline;
+                        case 'amount_hd1': return p.posHd1;
+                        case 'amount_sd1': return p.posSd1;
+                        case 'amount_cd1': return p.posCd1;
+                        default: return null;
+                    }
+                };
+                const posTempOf = (amountKey) => {
+                    switch (amountKey) {
+                        case 'amount_baseline': return p.posTempBaseline;
+                        case 'amount_hd1': return p.posTempHd1;
+                        case 'amount_sd1': return p.posTempSd1;
+                        case 'amount_cd1': return p.posTempCd1;
+                        default: return null;
+                    }
+                };
+                p.posD1  = posOf(getD1Key());
+                p.posD2  = posOf(getD2Key());
+                p.posHD1 = p.posHd1;
+                p.posSD1 = p.posSd1;
+                p.posTempD1  = posTempOf(getD1Key());
+                p.posTempD2  = posTempOf(getD2Key());
+                p.posTempHD1 = p.posTempHd1;
+                p.posTempSD1 = p.posTempSd1;
                 p.isTransfer = isSplit && p.change !== 0;
                 // Use dept-scoped values so split programs that are 100%
                 // transferred OUT of this dept (d2DeptScope === 0 here even
@@ -3424,10 +3780,10 @@ window.initDraftComparePage = async function () {
             bodyHtml += `<tr class="dept-group-row${isOpen ? ' open' : ''}" data-dept="${dept.code}">
                 <td><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
-                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span></td>
-                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span></td>` : ''}
-                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.sd1)}</span></td>` : ''}
-                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span>${posChip(dept.posD1, dept.posTempD1)}</td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span>${posChip(dept.posHD1, dept.posTempHD1)}</td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.sd1)}</span>${posChip(dept.posSD1, dept.posTempSD1)}</td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD2)}</span>${posChip(dept.posD2, dept.posTempD2)}</td>
                 <td class="amount-cell ${deptCls}" data-dept-bd="${_escAttr(buildDeptBreakdownHTML(dept.code, dept.name, programs, splitPrograms))}"><span class="figure-chip">${fmtHtml(deptDelta)}</span>${deptXferNote}</td>
             </tr>`;
 
@@ -3492,10 +3848,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
-                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
+                        <td${govCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD1)}</span>${posChip(p.posD1, p.posTempD1)}${govFlag(p)}</td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span>${posChip(p.posHD1, p.posTempHD1)}</td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span>${posChip(p.posSD1, p.posTempSD1)}</td>` : ''}
+                        <td${cd1CutCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD2)}</span>${posChip(p.posD2, p.posTempD2)}${cd1CutFlag(p)}</td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     for (const sec of [...p.sections].sort()) {
@@ -3589,10 +3945,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
-                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
+                        <td${govCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD1)}</span>${posChip(p.posD1, p.posTempD1)}${govFlag(p)}</td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span>${posChip(p.posHD1, p.posTempHD1)}</td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span>${posChip(p.posSD1, p.posTempSD1)}</td>` : ''}
+                        <td${cd1CutCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD2)}</span>${posChip(p.posD2, p.posTempD2)}${cd1CutFlag(p)}</td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                     const byFund = new Map();
@@ -3639,10 +3995,10 @@ window.initDraftComparePage = async function () {
                         <td class="detail-indent"><strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD1)}</span></td>
-                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span></td>` : ''}
-                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span></td>` : ''}
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayD2)}</span></td>
+                        <td${govCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD1)}</span>${posChip(p.posD1, p.posTempD1)}${govFlag(p)}</td>
+                        ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displayHD1)}</span>${posChip(p.posHD1, p.posTempHD1)}</td>` : ''}
+                        ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(p.displaySD1)}</span>${posChip(p.posSD1, p.posTempSD1)}</td>` : ''}
+                        <td${cd1CutCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD2)}</span>${posChip(p.posD2, p.posTempD2)}${cd1CutFlag(p)}</td>
                         <td${changeReasonCellAttrs(p, `amount-cell ${cls}`)}><span class="figure-chip">${fmtHtml(p.change)}</span>${typeBadge}${divergenceChipHtml(p)}${progTransferAnnotation}</td>
                     </tr>`;
                 }
@@ -3656,6 +4012,9 @@ window.initDraftComparePage = async function () {
             const gD2 = depts.reduce((s, d) => s + d.d2, 0);
             const gHD1 = depts.reduce((s, d) => s + d.hd1, 0);
             const gSD1 = depts.reduce((s, d) => s + (d.sd1 || 0), 0);
+            const sumPos = (k) => { let s = null; for (const d of depts) { if (d[k] != null) s = (s || 0) + d[k]; } return s; };
+            const gPosD1 = sumPos('posD1'), gPosD2 = sumPos('posD2'), gPosHD1 = sumPos('posHD1'), gPosSD1 = sumPos('posSD1');
+            const gPosTempD1 = sumPos('posTempD1'), gPosTempD2 = sumPos('posTempD2'), gPosTempHD1 = sumPos('posTempHD1'), gPosTempSD1 = sumPos('posTempSD1');
             const gDelta = gD2 - gD1;
             const gCls = gDelta > 0 ? 'positive' : gDelta < 0 ? 'negative' : '';
             const gArrow = gDelta > 0 ? '▲' : gDelta < 0 ? '▼' : '';
@@ -3664,10 +4023,10 @@ window.initDraftComparePage = async function () {
             bodyHtml += `<tbody class="totals-block"><tr class="totals-row">
                 <td>Total <span class="totals-meta">${depts.length} depts</span></td>
                 <td></td><td></td>
-                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD1)}</span></td>
-                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gHD1)}</span></td>` : ''}
-                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gSD1)}</span></td>` : ''}
-                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD2)}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD1)}</span>${posChip(gPosD1, gPosTempD1)}</td>
+                ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gHD1)}</span>${posChip(gPosHD1, gPosTempHD1)}</td>` : ''}
+                ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(gSD1)}</span>${posChip(gPosSD1, gPosTempSD1)}</td>` : ''}
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(gD2)}</span>${posChip(gPosD2, gPosTempD2)}</td>
                 <td class="amount-cell change-cell ${gCls}">
                     <span class="change-main">${gArrow ? `<span class="change-arrow">${gArrow}</span>` : ''}<span class="figure-chip">${fmtHtml(gDelta)}</span></span>
                     ${gArrow ? `<span class="change-pct">${gPctStr}</span>` : ''}
@@ -3777,6 +4136,7 @@ window.initDraftComparePage = async function () {
         }
 
         document.getElementById('draft-results').innerHTML = `
+            <div class="table-scroll">
             <table class="data-table" id="draft-table">
                 <thead><tr>
                     <th class="sortable th-program-col" data-sort="program_name"><div class="th-program-inner"><span class="th-program-label">Program${sortArrow('program_name')}</span>${(draftComparisonData && draftComparisonDataFY27) ? `<span class="fy-inline-toggle" id="fy-inline-toggle"><button class="fy-inline-btn${activeYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>` : ''}</div></th>
@@ -3792,6 +4152,7 @@ window.initDraftComparePage = async function () {
                 </tr></thead>
                 ${bodyHtml}
             </table>
+            </div>
             <div class="table-export-row"><button class="action-link export-btn" id="export-drafts">⬇ Export CSV</button></div>`;
 
         document.getElementById('fund-detail-section').innerHTML = `
@@ -4878,6 +5239,8 @@ window.initDraftComparePage = async function () {
                 department_code: r.department_code, department_name: r.department_name,
                 section: r.section, fund_type: r.fund_type, fund_category: r.fund_category,
                 [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
+                [`${meta.draft1}_positions`]: r[posKeyFor(d1Key)] ?? '',
+                [`${meta.draft2}_positions`]: r[posKeyFor(d2Key)] ?? '',
                 change: r.change, pct_change: r.pct_change, change_type: r.change_type,
             }));
             downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
@@ -4895,6 +5258,8 @@ window.initDraftComparePage = async function () {
             department_code: r.department_code, department_name: r.department_name,
             section: r.section,
             [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
+            [`${meta.draft1}_positions`]: r[posKeyFor(d1Key)] ?? '',
+            [`${meta.draft2}_positions`]: r[posKeyFor(d2Key)] ?? '',
             change: r.change, pct_change: r.pct_change,
         }));
         downloadCSV(rows, `${meta.bill_number}_fund_detail_FY${meta.fiscal_year}.csv`);
