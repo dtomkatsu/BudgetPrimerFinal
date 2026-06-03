@@ -9,7 +9,7 @@
     "capital_budget": 34400000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 4804441975.0,
-    "positions": 2986.8899999999994,
+    "positions": 3136.3899999999994,
     "fund_breakdown": {
       "Federal Funds": 2989775824.0,
       "General Funds": 1440996746.0,
@@ -55,7 +55,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 106838200.0,
-        "positions": 191.0
+        "positions": 195.5
       },
       {
         "program_id": "HMS902",
@@ -64,7 +64,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 96345000.0,
-        "positions": 145.63
+        "positions": 162.13
       },
       {
         "program_id": "HMS903",
@@ -82,7 +82,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 73368975.0,
-        "positions": 34.0
+        "positions": 35.0
       },
       {
         "program_id": "HMS305",
@@ -163,7 +163,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 30104367.0,
-        "positions": 0.87
+        "positions": 5.37
       },
       {
         "program_id": "HMS224",
@@ -181,7 +181,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 27864996.0,
-        "positions": 2.0
+        "positions": 5.0
       },
       {
         "program_id": "HMS211",
@@ -244,7 +244,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 19176876.0,
-        "positions": 73.27
+        "positions": 75.27
       },
       {
         "program_id": "HMS904",
@@ -253,7 +253,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 18703261.0,
-        "positions": 151.59
+        "positions": 159.59
       },
       {
         "program_id": "HMS605",
@@ -271,7 +271,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 17416598.0,
-        "positions": 119.0
+        "positions": 166.0
       },
       {
         "program_id": "HMS904",
@@ -280,7 +280,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 17288921.0,
-        "positions": 31.41
+        "positions": 39.41
       },
       {
         "program_id": "HMS902",
@@ -289,7 +289,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 16133771.0,
-        "positions": 137.0
+        "positions": 141.5
       },
       {
         "program_id": "HMS401",
@@ -316,7 +316,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 10764943.0,
-        "positions": 18.5
+        "positions": 19.5
       },
       {
         "program_id": "HMS904",
@@ -325,7 +325,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 10000000.0,
-        "positions": 31.41
+        "positions": 39.41
       },
       {
         "program_id": "HMS503",
@@ -388,7 +388,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 5134715.0,
-        "positions": 17.0
+        "positions": 21.5
       },
       {
         "program_id": "HMS802",
@@ -397,7 +397,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 5056561.0,
-        "positions": 38.73
+        "positions": 40.73
       },
       {
         "program_id": "HMS220",
@@ -469,7 +469,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 2050000.0,
-        "positions": 0.5
+        "positions": 1.0
       },
       {
         "program_id": "HMS802",
@@ -478,7 +478,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2000000.0,
-        "positions": 73.27
+        "positions": 75.27
       },
       {
         "program_id": "HMS222",
@@ -505,7 +505,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1321390.0,
-        "positions": 7.02
+        "positions": 10.02
       },
       {
         "program_id": "HMS902",
@@ -514,7 +514,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1200000.0,
-        "positions": 145.63
+        "positions": 162.13
       },
       {
         "program_id": "HMS601",
@@ -523,7 +523,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 838010.0,
-        "positions": 7.02
+        "positions": 10.02
       },
       {
         "program_id": "HMS224",
@@ -550,7 +550,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 502838.0,
-        "positions": 2.0
+        "positions": 5.0
       },
       {
         "program_id": "HMS237",
@@ -577,7 +577,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 387560.0,
-        "positions": 7.02
+        "positions": 10.02
       },
       {
         "program_id": "HMS888",
@@ -586,7 +586,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 184462.0,
-        "positions": 1.0
+        "positions": 2.0
       },
       {
         "program_id": "HMS236",
@@ -604,7 +604,7 @@
         "fund_type": "R",
         "fund_category": "Private Contributions",
         "amount": 10000.0,
-        "positions": 7.02
+        "positions": 10.02
       }
     ],
     "path": "/pages/hms.html"
@@ -807,18 +807,18 @@
     "code": "EDN",
     "name": "Department of Education",
     "description": "This statewide system delivers public education for K\u201312, including public charter schools. In addition, the statewide library system is under the administration of EDN. EDN is semi-autonomous, with its own Board of Education. It employs more staff than any other department. The Offices of the Governor and Lieutenant Governor (GOV/LTG) The governor's office is responsible for the highest level of vision and direction for the state and supports intergovernmental relationships with other states and countries through its executive departments and budgetary resources. The lieutenant governor undertakes projects assigned by the governor, and exercises executive power when the governor is out of state or otherwise unable to carry out their duties.",
-    "budget": "$3.6B",
+    "budget": "$3.5B",
     "operating_budget": 3115627838.0,
-    "capital_budget": 498300000.0,
+    "capital_budget": 378300000.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 3613927838.0,
-    "positions": 80815.75,
+    "total_budget": 3493927838.0,
+    "positions": 89116.25,
     "fund_breakdown": {
       "Federal Funds": 314734434.0,
       "General Funds": 2639333109.0,
       "General Obligation Bond Fund": 378300000.0,
       "Interdepartmental Transfers": 7495605.0,
-      "Other Federal Funds": 153125891.0,
+      "Other Federal Funds": 33125891.0,
       "Private Contributions": 150000.0,
       "Revolving Funds": 49062278.0,
       "Special Funds": 58336521.0,
@@ -832,7 +832,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1301966939.0,
-        "positions": 12397.75
+        "positions": 13078.0
       },
       {
         "program_id": "EDN150",
@@ -841,7 +841,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 520838678.0,
-        "positions": 5348.5
+        "positions": 6576.75
       },
       {
         "program_id": "EDN400",
@@ -850,7 +850,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 425299069.0,
-        "positions": 849.5
+        "positions": 854.5
       },
       {
         "program_id": "EDN100",
@@ -859,7 +859,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 323300000.0,
-        "positions": 1.0
+        "positions": 681.25
       },
       {
         "program_id": "EDN100",
@@ -868,7 +868,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 167203642.0,
-        "positions": 12397.75
+        "positions": 13078.0
       },
       {
         "program_id": "EDN600",
@@ -880,22 +880,13 @@
         "positions": null
       },
       {
-        "program_id": "EDN100",
-        "program_name": "SCHOOL-BASED BUDGETING",
-        "section": "Capital Improvement",
-        "fund_type": "P",
-        "fund_category": "Other Federal Funds",
-        "amount": 120000000.0,
-        "positions": 1.0
-      },
-      {
         "program_id": "EDN200",
         "program_name": "INSTRUCTIONAL SUPPORT",
         "section": "Operating",
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 92999004.0,
-        "positions": 457.0
+        "positions": 505.0
       },
       {
         "program_id": "EDN400",
@@ -904,7 +895,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 74600000.0,
-        "positions": 718.5
+        "positions": 817.0
       },
       {
         "program_id": "EDN150",
@@ -913,7 +904,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 60084267.0,
-        "positions": 2.0
+        "positions": 35.0
       },
       {
         "program_id": "EDN450",
@@ -931,7 +922,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 48692750.0,
-        "positions": 422.0
+        "positions": 429.0
       },
       {
         "program_id": "EDN407",
@@ -949,7 +940,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 44200920.0,
-        "positions": 11.0
+        "positions": 16.0
       },
       {
         "program_id": "EDN500",
@@ -958,7 +949,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 23224665.0,
-        "positions": 42.0
+        "positions": 44.0
       },
       {
         "program_id": "EDN100",
@@ -967,7 +958,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 21414657.0,
-        "positions": 1.0
+        "positions": 681.25
       },
       {
         "program_id": "EDN700",
@@ -985,7 +976,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 13390000.0,
-        "positions": 12397.75
+        "positions": 13078.0
       },
       {
         "program_id": "EDN612",
@@ -1003,7 +994,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 11597927.0,
-        "positions": 4.0
+        "positions": 6.0
       },
       {
         "program_id": "EDN150",
@@ -1012,7 +1003,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 11000000.0,
-        "positions": 14.0
+        "positions": 47.0
       },
       {
         "program_id": "EDN100",
@@ -1021,7 +1012,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 7495605.0,
-        "positions": 12397.75
+        "positions": 13078.0
       },
       {
         "program_id": "EDN500",
@@ -1030,7 +1021,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 6296201.0,
-        "positions": 42.0
+        "positions": 48.0
       },
       {
         "program_id": "EDN150",
@@ -1039,7 +1030,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 5950000.0,
-        "positions": 14.0
+        "positions": 47.0
       },
       {
         "program_id": "EDN100",
@@ -1048,7 +1039,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 5251693.0,
-        "positions": 12397.75
+        "positions": 13078.0
       },
       {
         "program_id": "EDN600",
@@ -1075,7 +1066,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 3807440.0,
-        "positions": 422.0
+        "positions": 429.0
       },
       {
         "program_id": "EDN500",
@@ -1084,7 +1075,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 3266757.0,
-        "positions": 42.0
+        "positions": 44.0
       },
       {
         "program_id": "EDN100",
@@ -1093,7 +1084,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 3239686.0,
-        "positions": 9.0
+        "positions": 689.25
       },
       {
         "program_id": "EDN700",
@@ -1138,7 +1129,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 1633908.0,
-        "positions": 42.0
+        "positions": 48.0
       },
       {
         "program_id": "EDN400",
@@ -1147,7 +1138,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1000000.0,
-        "positions": 4.0
+        "positions": 6.0
       },
       {
         "program_id": "EDN200",
@@ -1156,7 +1147,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 500000.0,
-        "positions": 457.0
+        "positions": 459.0
       },
       {
         "program_id": "EDN700",
@@ -1165,7 +1156,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 380000.0,
-        "positions": 281.0
+        "positions": 283.0
       },
       {
         "program_id": "EDN500",
@@ -1174,7 +1165,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 300000.0,
-        "positions": 42.0
+        "positions": 44.0
       },
       {
         "program_id": "EDN200",
@@ -1183,7 +1174,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 273794.0,
-        "positions": 457.0
+        "positions": 458.0
       },
       {
         "program_id": "EDN150",
@@ -1192,7 +1183,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 250000.0,
-        "positions": 5348.5
+        "positions": 6576.75
       },
       {
         "program_id": "EDN400",
@@ -1201,7 +1192,7 @@
         "fund_type": "R",
         "fund_category": "Private Contributions",
         "amount": 150000.0,
-        "positions": 718.5
+        "positions": 817.0
       },
       {
         "program_id": "EDN700",
@@ -1210,7 +1201,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 125628.0,
-        "positions": 281.0
+        "positions": 282.0
       },
       {
         "program_id": "EDN300",
@@ -1219,7 +1210,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 112140.0,
-        "positions": 422.0
+        "positions": 429.0
       }
     ],
     "path": "/pages/edn.html"
@@ -1231,13 +1222,13 @@
     "description": "This department plans, develops and maintains transportation systems including highways, airports and harbors. The Aloha Tower Development Corporation is housed within TRN. The department's capital improvement project budget is larger than its operating budget, and accounts for 60 percent of all executive CIP appropriations. The University of Hawai\u02bbi System (UOH) The UOH is a statewide university system that includes the University of Hawai\u02bbi (UH) at M\u0101noa, UH Hilo, UH West O\u02bbahu, and the statewide community college system. Other UOH programs include the John A. Burns School of Medicine, the UH Cancer Center and the Waik\u012bk\u012b Aquarium. The university system is semi-autonomous and has its own Board of Regents. It also manages its own capital and facilities budgets. Not included in state budget totals or subject to the legislative process are the many competitive grants that the UOH brings into the state.",
     "budget": "$3.4B",
     "operating_budget": 1646163480.0,
-    "capital_budget": 1800245000.0,
+    "capital_budget": 1781045000.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 3446408480.0,
-    "positions": 10793.5,
+    "total_budget": 3427208480.0,
+    "positions": 10788.0,
     "fund_breakdown": {
       "County Funds": 1700000.0,
-      "Federal Funds": 742921000.0,
+      "Federal Funds": 723721000.0,
       "General Funds": 20350000.0,
       "General Obligation Bond Fund": 6445000.0,
       "Other Federal Funds": 1214379.0,
@@ -1254,7 +1245,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 614705000.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN195",
@@ -1290,7 +1281,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 283790642.0,
-        "positions": 661.0
+        "positions": 676.0
       },
       {
         "program_id": "TRN595",
@@ -1299,7 +1290,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 229186637.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN595",
@@ -1308,7 +1299,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 156684000.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN114",
@@ -1317,7 +1308,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 137045000.0,
-        "positions": 110.0
+        "positions": 113.0
       },
       {
         "program_id": "TRN395",
@@ -1344,7 +1335,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 52283111.0,
-        "positions": 183.0
+        "positions": 187.0
       },
       {
         "program_id": "TRN131",
@@ -1353,7 +1344,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 52250000.0,
-        "positions": 183.0
+        "positions": 187.0
       },
       {
         "program_id": "TRN114",
@@ -1362,7 +1353,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 34282904.0,
-        "positions": 110.0
+        "positions": 113.0
       },
       {
         "program_id": "TRN995",
@@ -1371,7 +1362,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 33851577.0,
-        "positions": 110.0
+        "positions": 112.0
       },
       {
         "program_id": "TRN301",
@@ -1389,7 +1380,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 32974694.0,
-        "positions": 115.0
+        "positions": 118.0
       },
       {
         "program_id": "TRN531",
@@ -1398,7 +1389,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 28978093.0,
-        "positions": 90.0
+        "positions": 91.0
       },
       {
         "program_id": "TRN111",
@@ -1407,7 +1398,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 26440201.0,
-        "positions": 85.0
+        "positions": 87.0
       },
       {
         "program_id": "TRN111",
@@ -1416,7 +1407,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 26000000.0,
-        "positions": 85.0
+        "positions": 87.0
       },
       {
         "program_id": "TRN511",
@@ -1452,7 +1443,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 22721000.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN501",
@@ -1482,15 +1473,6 @@
         "positions": 31.0
       },
       {
-        "program_id": "TRN511",
-        "program_name": "HAWAII HIGHWAYS",
-        "section": "Capital Improvement",
-        "fund_type": "N",
-        "fund_category": "Federal Funds",
-        "amount": 19200000.0,
-        "positions": 117.5
-      },
-      {
         "program_id": "TRN395",
         "program_name": "HARBORS ADMINISTRATION",
         "section": "Capital Improvement",
@@ -1506,7 +1488,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 17061000.0,
-        "positions": 661.0
+        "positions": 676.0
       },
       {
         "program_id": "TRN595",
@@ -1515,7 +1497,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 15763634.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN561",
@@ -1542,7 +1524,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 12784696.0,
-        "positions": 1.0
+        "positions": 3.0
       },
       {
         "program_id": "TRN597",
@@ -1560,7 +1542,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 10000000.0,
-        "positions": 110.0
+        "positions": 113.0
       },
       {
         "program_id": "TRN361",
@@ -1578,7 +1560,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 9225000.0,
-        "positions": 115.0
+        "positions": 118.0
       },
       {
         "program_id": "TRN195",
@@ -1632,7 +1614,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 5000000.0,
-        "positions": 183.0
+        "positions": 187.0
       },
       {
         "program_id": "TRN531",
@@ -1641,7 +1623,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 5000000.0,
-        "positions": 90.0
+        "positions": 91.0
       },
       {
         "program_id": "TRN311",
@@ -1686,7 +1668,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 4001000.0,
-        "positions": 90.0
+        "positions": 91.0
       },
       {
         "program_id": "TRN561",
@@ -1794,7 +1776,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 1000000.0,
-        "positions": 90.0
+        "positions": 91.0
       },
       {
         "program_id": "TRN561",
@@ -1812,7 +1794,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 1000000.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN341",
@@ -1839,7 +1821,7 @@
         "fund_type": "R",
         "fund_category": "Private Contributions",
         "amount": 743067.0,
-        "positions": 1.0
+        "positions": 3.0
       },
       {
         "program_id": "TRN595",
@@ -1848,7 +1830,7 @@
         "fund_type": "S",
         "fund_category": "County Funds",
         "amount": 700000.0,
-        "positions": 520.5
+        "positions": 523.5
       },
       {
         "program_id": "TRN143",
@@ -2109,7 +2091,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 1000.0,
-        "positions": 661.0
+        "positions": 676.0
       },
       {
         "program_id": "TRN111",
@@ -2118,7 +2100,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 1000.0,
-        "positions": 85.0
+        "positions": 87.0
       },
       {
         "program_id": "TRN161",
@@ -2127,7 +2109,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 1000.0,
-        "positions": 115.0
+        "positions": 118.0
       }
     ],
     "path": "/pages/trn.html"
@@ -2137,19 +2119,18 @@
     "code": "HTH",
     "name": "Department of Health",
     "description": "This department has wide-ranging responsibilities for public health, the environment, food safety, behavioral health, and communicable and chronic disease prevention and control. The Department of Health includes the Hansen's disease facility at Kalaupapa, the Executive Office on Aging, the State Health Planning and Development Agency, the Disability and Communications Access Board, the Hawai\u02bbi Health Systems Corporation, and the Hawai\u02bbi State Forensic Mental Health Hospital. For FY 2025, the department was given $10,660,000 in emergency state funding. The money will be used to fix problems in the Hale Ho\u2018ola Building at the Hawaii State Hospital. These problems include water leaks, mold, and other construction defects that make the building unsafe for staff and patients. The money will also help pay legal fees related to fixing these issues.",
-    "budget": "$2.4B",
+    "budget": "$2.3B",
     "operating_budget": 2234523494.0,
-    "capital_budget": 137198000.0,
+    "capital_budget": 112198000.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 2371721494.0,
-    "positions": 12684.84,
+    "total_budget": 2346721494.0,
+    "positions": 10774.64,
     "fund_breakdown": {
       "Federal Funds": 157528643.0,
       "General Funds": 930274303.0,
       "General Obligation Bond Fund": 57234000.0,
       "Interdepartmental Transfers": 7812741.0,
       "Other Federal Funds": 60589528.0,
-      "Private Contributions": 25000000.0,
       "Revolving Funds": 263364894.0,
       "Special Funds": 869917385.0
     },
@@ -2170,7 +2151,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 260514599.0,
-        "positions": 43.0
+        "positions": 44.0
       },
       {
         "program_id": "HTH212",
@@ -2188,7 +2169,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 157045865.0,
-        "positions": 853.0
+        "positions": 873.0
       },
       {
         "program_id": "HTH501",
@@ -2197,7 +2178,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 121506572.0,
-        "positions": 211.0
+        "positions": 212.0
       },
       {
         "program_id": "HTH420",
@@ -2206,7 +2187,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 89622044.0,
-        "positions": 343.0
+        "positions": 392.5
       },
       {
         "program_id": "HTH840",
@@ -2215,7 +2196,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 80891943.0,
-        "positions": 59.0
+        "positions": 63.0
       },
       {
         "program_id": "HTH460",
@@ -2224,7 +2205,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 63631355.0,
-        "positions": 159.5
+        "positions": 167.5
       },
       {
         "program_id": "HTH730",
@@ -2233,7 +2214,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 59091232.0,
-        "positions": 10.0
+        "positions": 12.2
       },
       {
         "program_id": "HTH840",
@@ -2242,7 +2223,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 54964000.0,
-        "positions": 7.25
+        "positions": 11.25
       },
       {
         "program_id": "HTH590",
@@ -2251,7 +2232,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 48706356.0,
-        "positions": 46.5
+        "positions": 48.5
       },
       {
         "program_id": "HTH215",
@@ -2269,7 +2250,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 45499911.0,
-        "positions": 114.0
+        "positions": 114.5
       },
       {
         "program_id": "HTH560",
@@ -2278,7 +2259,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 38121215.0,
-        "positions": 99.8
+        "positions": 108.3
       },
       {
         "program_id": "HTH907",
@@ -2287,7 +2268,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 36764229.0,
-        "positions": 180.0
+        "positions": 191.0
       },
       {
         "program_id": "HTH100",
@@ -2296,7 +2277,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 33001090.0,
-        "positions": 236.87
+        "positions": 237.87
       },
       {
         "program_id": "HTH212",
@@ -2308,22 +2289,13 @@
         "positions": 2337.85
       },
       {
-        "program_id": "HTH212",
-        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013  REGIONS",
-        "section": "Capital Improvement",
-        "fund_type": "R",
-        "fund_category": "Private Contributions",
-        "amount": 25000000.0,
-        "positions": 2337.85
-      },
-      {
         "program_id": "HTH730",
         "program_name": "EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM",
         "section": "Operating",
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 22323419.0,
-        "positions": 10.0
+        "positions": 16.0
       },
       {
         "program_id": "HTH440",
@@ -2341,7 +2313,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 20255445.0,
-        "positions": 20.4
+        "positions": 29.4
       },
       {
         "program_id": "HTH560",
@@ -2350,7 +2322,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 17965804.0,
-        "positions": 11.4
+        "positions": 13.4
       },
       {
         "program_id": "HTH210",
@@ -2368,7 +2340,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 15375579.0,
-        "positions": 29.0
+        "positions": 37.0
       },
       {
         "program_id": "HTH904",
@@ -2377,7 +2349,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 12988560.0,
-        "positions": 17.6
+        "positions": 20.950000000000003
       },
       {
         "program_id": "HTH560",
@@ -2386,7 +2358,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 12523019.0,
-        "positions": 15.3
+        "positions": 29.3
       },
       {
         "program_id": "HTH214",
@@ -2404,7 +2376,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 11610000.0,
-        "positions": 343.0
+        "positions": 392.5
       },
       {
         "program_id": "HTH840",
@@ -2413,7 +2385,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 10995000.0,
-        "positions": 7.25
+        "positions": 11.25
       },
       {
         "program_id": "HTH904",
@@ -2422,7 +2394,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 10405377.0,
-        "positions": 7.4
+        "positions": 8.4
       },
       {
         "program_id": "HTH131",
@@ -2431,7 +2403,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 9378970.0,
-        "positions": 1.0
+        "positions": 22.5
       },
       {
         "program_id": "HTH610",
@@ -2467,7 +2439,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 8889111.0,
-        "positions": 7.25
+        "positions": 11.25
       },
       {
         "program_id": "HTH100",
@@ -2476,7 +2448,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 8827137.0,
-        "positions": 236.87
+        "positions": 258.87
       },
       {
         "program_id": "HTH215",
@@ -2494,7 +2466,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 7747738.0,
-        "positions": 5.0
+        "positions": 6.0
       },
       {
         "program_id": "HTH840",
@@ -2503,7 +2475,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 7063978.0,
-        "positions": 90.0
+        "positions": 91.0
       },
       {
         "program_id": "HTH590",
@@ -2512,7 +2484,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 7041748.0,
-        "positions": 46.5
+        "positions": 48.5
       },
       {
         "program_id": "HTH590",
@@ -2521,7 +2493,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 6740166.0,
-        "positions": 9.5
+        "positions": 27.0
       },
       {
         "program_id": "HTH440",
@@ -2530,7 +2502,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 6654376.0,
-        "positions": 1.0
+        "positions": 6.0
       },
       {
         "program_id": "HTH214",
@@ -2566,7 +2538,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 5311894.0,
-        "positions": 11.0
+        "positions": 34.5
       },
       {
         "program_id": "HTH907",
@@ -2575,7 +2547,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 5275000.0,
-        "positions": 8.0
+        "positions": 28.0
       },
       {
         "program_id": "HTH720",
@@ -2584,7 +2556,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 4841562.0,
-        "positions": 21.6
+        "positions": 23.6
       },
       {
         "program_id": "HTH610",
@@ -2602,7 +2574,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 4064084.0,
-        "positions": 33.5
+        "positions": 34.5
       },
       {
         "program_id": "HTH720",
@@ -2611,7 +2583,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4030204.0,
-        "positions": 22.55
+        "positions": 24.55
       },
       {
         "program_id": "HTH849",
@@ -2620,7 +2592,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3878888.0,
-        "positions": 29.5
+        "positions": 30.75
       },
       {
         "program_id": "HTH213",
@@ -2638,7 +2610,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3109260.0,
-        "positions": 21.0
+        "positions": 26.0
       },
       {
         "program_id": "HTH760",
@@ -2647,7 +2619,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3079488.0,
-        "positions": 38.5
+        "positions": 41.5
       },
       {
         "program_id": "HTH840",
@@ -2656,7 +2628,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 3013024.0,
-        "positions": 2.0
+        "positions": 3.0
       },
       {
         "program_id": "HTH849",
@@ -2665,7 +2637,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2826328.0,
-        "positions": 11.0
+        "positions": 11.6
       },
       {
         "program_id": "HTH596",
@@ -2674,7 +2646,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 2578518.0,
-        "positions": 7.0
+        "positions": 12.0
       },
       {
         "program_id": "HTH720",
@@ -2683,7 +2655,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 2355000.0,
-        "positions": 2.85
+        "positions": 4.85
       },
       {
         "program_id": "HTH460",
@@ -2692,7 +2664,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 2339630.0,
-        "positions": 29.0
+        "positions": 34.0
       },
       {
         "program_id": "HTH131",
@@ -2710,7 +2682,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 2333370.0,
-        "positions": 343.0
+        "positions": 344.0
       },
       {
         "program_id": "HTH849",
@@ -2719,7 +2691,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 2330057.0,
-        "positions": 11.95
+        "positions": 14.1
       },
       {
         "program_id": "HTH460",
@@ -2728,7 +2700,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 2281992.0,
-        "positions": 29.0
+        "positions": 31.0
       },
       {
         "program_id": "HTH520",
@@ -2755,7 +2727,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1223791.0,
-        "positions": 7.4
+        "positions": 15.4
       },
       {
         "program_id": "HTH590",
@@ -2764,7 +2736,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 1192408.0,
-        "positions": 1.0
+        "positions": 3.0
       },
       {
         "program_id": "HTH710",
@@ -2773,7 +2745,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 1029222.0,
-        "positions": 0.75
+        "positions": 9.75
       },
       {
         "program_id": "HTH906",
@@ -2818,7 +2790,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 684932.0,
-        "positions": 8.0
+        "positions": 12.0
       },
       {
         "program_id": "HTH100",
@@ -2827,7 +2799,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 637849.0,
-        "positions": 3.0
+        "positions": 25.0
       },
       {
         "program_id": "HTH760",
@@ -2836,7 +2808,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 627294.0,
-        "positions": 5.0
+        "positions": 7.0
       },
       {
         "program_id": "HTH760",
@@ -2845,7 +2817,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 530318.0,
-        "positions": 38.5
+        "positions": 40.5
       },
       {
         "program_id": "HTH905",
@@ -2863,7 +2835,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 429999.0,
-        "positions": 0.25
+        "positions": 2.25
       },
       {
         "program_id": "HTH730",
@@ -2872,7 +2844,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 420000.0,
-        "positions": 10.0
+        "positions": 13.0
       },
       {
         "program_id": "HTH610",
@@ -2908,7 +2880,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 272901.0,
-        "positions": 0.75
+        "positions": 2.75
       },
       {
         "program_id": "HTH610",
@@ -2953,7 +2925,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 189937.0,
-        "positions": 2.15
+        "positions": 2.75
       },
       {
         "program_id": "HTH610",
@@ -2971,7 +2943,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 137363.0,
-        "positions": 343.0
+        "positions": 344.0
       },
       {
         "program_id": "HTH560",
@@ -2980,7 +2952,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 101558.0,
-        "positions": 99.8
+        "positions": 100.8
       },
       {
         "program_id": "HTH710",
@@ -2989,7 +2961,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 23967.0,
-        "positions": 0.25
+        "positions": 9.25
       }
     ],
     "path": "/pages/hth.html"
@@ -3004,7 +2976,7 @@
     "capital_budget": 209206000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 1573156984.0,
-    "positions": 10177.289999999999,
+    "positions": 10537.54,
     "fund_breakdown": {
       "Federal Funds": 13642735.0,
       "General Funds": 655472330.0,
@@ -3021,7 +2993,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 361552962.0,
-        "positions": 368.25
+        "positions": 370.25
       },
       {
         "program_id": "UOH100",
@@ -3030,7 +3002,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 290419091.0,
-        "positions": 2969.64
+        "positions": 3011.89
       },
       {
         "program_id": "UOH800",
@@ -3039,7 +3011,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 192200937.0,
-        "positions": 1825.5
+        "positions": 1871.5
       },
       {
         "program_id": "UOH800",
@@ -3048,7 +3020,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 75650296.0,
-        "positions": 1825.5
+        "positions": 1871.5
       },
       {
         "program_id": "UOH100",
@@ -3057,7 +3029,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 65569059.0,
-        "positions": 28.0
+        "positions": 30.0
       },
       {
         "program_id": "UOH900",
@@ -3066,7 +3038,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 65093776.0,
-        "positions": 424.0
+        "positions": 425.0
       },
       {
         "program_id": "UOH100",
@@ -3075,7 +3047,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 59750000.0,
-        "positions": 28.0
+        "positions": 30.0
       },
       {
         "program_id": "UOH210",
@@ -3084,7 +3056,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 50610150.0,
-        "positions": 534.25
+        "positions": 541.25
       },
       {
         "program_id": "UOH900",
@@ -3093,7 +3065,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 50504000.0,
-        "positions": 2.0
+        "positions": 6.0
       },
       {
         "program_id": "UOH800",
@@ -3102,7 +3074,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 45000000.0,
-        "positions": 34.0
+        "positions": 80.0
       },
       {
         "program_id": "UOH210",
@@ -3111,7 +3083,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 44435015.0,
-        "positions": 25.0
+        "positions": 32.0
       },
       {
         "program_id": "UOH800",
@@ -3120,7 +3092,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 31826332.0,
-        "positions": 34.0
+        "positions": 80.0
       },
       {
         "program_id": "UOH100",
@@ -3129,7 +3101,7 @@
         "fund_type": "E",
         "fund_category": "Revenue Bond Funds",
         "amount": 30750000.0,
-        "positions": 28.0
+        "positions": 30.0
       },
       {
         "program_id": "UOH110",
@@ -3138,7 +3110,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 28917688.0,
-        "positions": 209.03
+        "positions": 212.53
       },
       {
         "program_id": "UOH110",
@@ -3147,7 +3119,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 27613321.0,
-        "positions": 209.03
+        "positions": 212.53
       },
       {
         "program_id": "UOH900",
@@ -3156,7 +3128,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 24242602.0,
-        "positions": 14.0
+        "positions": 15.0
       },
       {
         "program_id": "UOH700",
@@ -3165,7 +3137,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 23838504.0,
-        "positions": 246.5
+        "positions": 248.0
       },
       {
         "program_id": "UOH700",
@@ -3174,7 +3146,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 22028269.0,
-        "positions": 246.5
+        "positions": 248.0
       },
       {
         "program_id": "UOH900",
@@ -3183,7 +3155,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 18501700.0,
-        "positions": 2.0
+        "positions": 6.0
       },
       {
         "program_id": "UOH210",
@@ -3192,7 +3164,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 15000000.0,
-        "positions": 2.0
+        "positions": 9.0
       },
       {
         "program_id": "UOH110",
@@ -3201,7 +3173,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 8010453.0,
-        "positions": 209.03
+        "positions": 212.53
       },
       {
         "program_id": "UOH210",
@@ -3210,7 +3182,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 7489592.0,
-        "positions": 2.0
+        "positions": 9.0
       },
       {
         "program_id": "UOH100",
@@ -3219,7 +3191,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 6873565.0,
-        "positions": 75.06
+        "positions": 77.06
       },
       {
         "program_id": "UOH700",
@@ -3228,7 +3200,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 6500000.0,
-        "positions": 246.5
+        "positions": 248.0
       },
       {
         "program_id": "UOH800",
@@ -3237,7 +3209,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 4428296.0,
-        "positions": 0.5
+        "positions": 46.5
       },
       {
         "program_id": "UOH115",
@@ -3264,7 +3236,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2097704.0,
-        "positions": 246.5
+        "positions": 248.0
       },
       {
         "program_id": "UOH881",
@@ -3282,7 +3254,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 1094875.0,
-        "positions": 4.0
+        "positions": 8.0
       },
       {
         "program_id": "UOH881",
@@ -3300,7 +3272,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 978941.0,
-        "positions": null
+        "positions": 11.0
       },
       {
         "program_id": "UOH881",
@@ -3318,7 +3290,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 802037.0,
-        "positions": 246.5
+        "positions": 248.0
       },
       {
         "program_id": "UOH210",
@@ -3327,7 +3299,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 443962.0,
-        "positions": 25.0
+        "positions": 32.0
       }
     ],
     "path": "/pages/uoh.html"
@@ -3339,14 +3311,14 @@
     "description": "This department is responsible for a wide array of programs: low- and moderate-income housing development via the Hawai\u02bbi Community Development Authority (HCDA) and Hawai\u02bbi Housing Finance & Development Corporation (HHFDC); promoting the visitor industry through the Hawai\u02bbi Tourism Authority; overseeing the Foreign Trade Zone; and managing the Hawai\u02bbi Clean Energy Initiative. The department also researches and publishes Hawai\u02bbi census and population data, information about the state's economic performance, and the State Data Book.",
     "budget": "$659M",
     "operating_budget": 292608072.0,
-    "capital_budget": 366101000.0,
+    "capital_budget": 366146000.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 658709072.0,
-    "positions": 498.5,
+    "total_budget": 658754072.0,
+    "positions": 828.0,
     "fund_breakdown": {
       "Federal Funds": 5141871.0,
       "General Funds": 96932301.0,
-      "General Obligation Bond Fund": 366101000.0,
+      "General Obligation Bond Fund": 366146000.0,
       "Interdepartmental Transfers": 82126.0,
       "Other Federal Funds": 6002826.0,
       "Revolving Funds": 38160421.0,
@@ -3361,7 +3333,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 111201000.0,
-        "positions": 2.0
+        "positions": 8.0
       },
       {
         "program_id": "BED160",
@@ -3370,7 +3342,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 100000000.0,
-        "positions": 23.0
+        "positions": 71.0
       },
       {
         "program_id": "BED138",
@@ -3379,7 +3351,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 86633318.0,
-        "positions": null
+        "positions": 7.25
       },
       {
         "program_id": "HMS220",
@@ -3388,7 +3360,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 68000000.0,
-        "positions": 17.0
+        "positions": 21.5
       },
       {
         "program_id": "BED114",
@@ -3406,7 +3378,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 38000000.0,
-        "positions": 11.0
+        "positions": 12.0
       },
       {
         "program_id": "BED113",
@@ -3433,7 +3405,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 16259661.0,
-        "positions": 2.0
+        "positions": 8.0
       },
       {
         "program_id": "BED160",
@@ -3442,7 +3414,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 16060058.0,
-        "positions": 23.0
+        "positions": 71.0
       },
       {
         "program_id": "BED180",
@@ -3451,7 +3423,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 8772356.0,
-        "positions": 18.0
+        "positions": 19.0
       },
       {
         "program_id": "BED146",
@@ -3460,7 +3432,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 7929310.0,
-        "positions": null
+        "positions": 17.0
       },
       {
         "program_id": "BED116",
@@ -3478,7 +3450,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 7500000.0,
-        "positions": 30.0
+        "positions": 35.0
       },
       {
         "program_id": "BED115",
@@ -3496,7 +3468,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 7146250.0,
-        "positions": 1.0
+        "positions": 26.0
       },
       {
         "program_id": "BED130",
@@ -3505,7 +3477,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 5744533.0,
-        "positions": 18.46
+        "positions": 23.46
       },
       {
         "program_id": "BED101",
@@ -3532,7 +3504,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4701795.0,
-        "positions": 8.0
+        "positions": 12.0
       },
       {
         "program_id": "BED144",
@@ -3541,7 +3513,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4580161.0,
-        "positions": 30.0
+        "positions": 38.0
       },
       {
         "program_id": "BED100",
@@ -3550,7 +3522,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3893040.0,
-        "positions": 10.0
+        "positions": 11.0
       },
       {
         "program_id": "BED142",
@@ -3559,7 +3531,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3802604.0,
-        "positions": 26.0
+        "positions": 30.0
       },
       {
         "program_id": "BED117",
@@ -3595,7 +3567,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 3000000.0,
-        "positions": 23.0
+        "positions": 71.0
       },
       {
         "program_id": "BED107",
@@ -3613,7 +3585,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 2571816.0,
-        "positions": 1.0
+        "positions": 26.0
       },
       {
         "program_id": "BED150",
@@ -3622,7 +3594,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 2554972.0,
-        "positions": 11.0
+        "positions": 12.0
       },
       {
         "program_id": "BED144",
@@ -3631,7 +3603,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 2041871.0,
-        "positions": 30.0
+        "positions": 35.0
       },
       {
         "program_id": "BED143",
@@ -3640,7 +3612,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2017203.0,
-        "positions": 8.0
+        "positions": 12.0
       },
       {
         "program_id": "BED144",
@@ -3649,7 +3621,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2000000.0,
-        "positions": 30.0
+        "positions": 35.0
       },
       {
         "program_id": "BED105",
@@ -3658,7 +3630,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1885986.0,
-        "positions": 15.0
+        "positions": 16.0
       },
       {
         "program_id": "BED100",
@@ -3667,7 +3639,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 1823499.0,
-        "positions": 10.0
+        "positions": 11.0
       },
       {
         "program_id": "BED143",
@@ -3676,7 +3648,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 1604258.0,
-        "positions": 8.0
+        "positions": 12.0
       },
       {
         "program_id": "BED150",
@@ -3685,7 +3657,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1526750.0,
-        "positions": 13.0
+        "positions": 14.0
       },
       {
         "program_id": "BED105",
@@ -3694,7 +3666,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 1080000.0,
-        "positions": 15.0
+        "positions": 16.0
       },
       {
         "program_id": "BED118",
@@ -3712,7 +3684,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 994214.0,
-        "positions": 8.0
+        "positions": 18.0
       },
       {
         "program_id": "BED130",
@@ -3721,7 +3693,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 864351.0,
-        "positions": 8.04
+        "positions": 13.04
       },
       {
         "program_id": "BED120",
@@ -3730,7 +3702,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 795000.0,
-        "positions": 1.0
+        "positions": 26.0
       },
       {
         "program_id": "BED100",
@@ -3739,7 +3711,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 700000.0,
-        "positions": 10.0
+        "positions": 11.0
       },
       {
         "program_id": "BED138",
@@ -3748,7 +3720,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 444261.0,
-        "positions": null
+        "positions": 1.75
       },
       {
         "program_id": "BED101",
@@ -3767,6 +3739,15 @@
         "fund_category": "Interdepartmental Transfers",
         "amount": 82126.0,
         "positions": 0.5
+      },
+      {
+        "program_id": "SUB501",
+        "program_name": "COUNTY OF KAUAI",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 45000.0,
+        "positions": null
       }
     ],
     "path": "/pages/bed.html"
@@ -3781,7 +3762,7 @@
     "capital_budget": 20000000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 483806077.0,
-    "positions": 893.13,
+    "positions": 1041.09,
     "fund_breakdown": {
       "Federal Funds": 42207322.0,
       "General Funds": 33110524.0,
@@ -3809,7 +3790,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 24157551.0,
-        "positions": 11.0
+        "positions": 16.0
       },
       {
         "program_id": "LBR903",
@@ -3818,7 +3799,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 20000000.0,
-        "positions": 13.0
+        "positions": 17.0
       },
       {
         "program_id": "LBR171",
@@ -3863,7 +3844,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 6550000.0,
-        "positions": 57.2
+        "positions": 91.2
       },
       {
         "program_id": "LBR903",
@@ -3872,7 +3853,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 6517000.0,
-        "positions": 13.0
+        "positions": 17.0
       },
       {
         "program_id": "LBR902",
@@ -3881,7 +3862,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 6000000.0,
-        "positions": 32.17
+        "positions": 33.71
       },
       {
         "program_id": "LBR111",
@@ -3899,7 +3880,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4971563.0,
-        "positions": 13.0
+        "positions": 18.0
       },
       {
         "program_id": "LBR902",
@@ -3908,7 +3889,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3937790.0,
-        "positions": 18.83
+        "positions": 22.29
       },
       {
         "program_id": "LBR111",
@@ -3917,7 +3898,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 2891173.0,
-        "positions": 57.2
+        "positions": 91.2
       },
       {
         "program_id": "LBR143",
@@ -3926,7 +3907,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2746105.0,
-        "positions": 19.0
+        "positions": 19.5
       },
       {
         "program_id": "LBR143",
@@ -3935,7 +3916,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 2400000.0,
-        "positions": 19.7
+        "positions": 20.2
       },
       {
         "program_id": "LBR171",
@@ -3962,7 +3943,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1393204.0,
-        "positions": 17.3
+        "positions": 17.8
       },
       {
         "program_id": "LBR152",
@@ -3989,7 +3970,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1138087.0,
-        "positions": 3.0
+        "positions": 10.0
       },
       {
         "program_id": "LBR171",
@@ -4025,7 +4006,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 440322.0,
-        "positions": 4.0
+        "positions": 5.0
       },
       {
         "program_id": "LBR153",
@@ -4034,7 +4015,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 350000.0,
-        "positions": 0.5
+        "positions": 5.5
       },
       {
         "program_id": "LBR111",
@@ -4043,7 +4024,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 300000.0,
-        "positions": 0.7
+        "positions": 34.7
       },
       {
         "program_id": "LBR902",
@@ -4052,7 +4033,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 200000.0,
-        "positions": 18.83
+        "positions": 22.29
       },
       {
         "program_id": "LBR901",
@@ -4070,7 +4051,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 5000.0,
-        "positions": 13.0
+        "positions": 18.0
       }
     ],
     "path": "/pages/lbr.html"
@@ -4085,7 +4066,7 @@
     "capital_budget": 215524000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 476758034.0,
-    "positions": 2882.6800000000003,
+    "positions": 2996.1800000000003,
     "fund_breakdown": {
       "Federal Funds": 622768.0,
       "General Funds": 183137729.0,
@@ -4122,7 +4103,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 35000000.0,
-        "positions": 54.0
+        "positions": 56.0
       },
       {
         "program_id": "EDN407",
@@ -4149,7 +4130,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 25792541.0,
-        "positions": 125.0
+        "positions": 126.0
       },
       {
         "program_id": "AGS203",
@@ -4176,7 +4157,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 23650000.0,
-        "positions": 853.0
+        "positions": 873.0
       },
       {
         "program_id": "AGS891",
@@ -4230,7 +4211,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 8000000.0,
-        "positions": 11.0
+        "positions": 34.5
       },
       {
         "program_id": "AGS223",
@@ -4248,7 +4229,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 7000000.0,
-        "positions": 25.68
+        "positions": 26.68
       },
       {
         "program_id": "AGS807",
@@ -4266,7 +4247,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 6500000.0,
-        "positions": 26.0
+        "positions": 51.0
       },
       {
         "program_id": "AGS879",
@@ -4275,7 +4256,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 6452228.0,
-        "positions": 16.5
+        "positions": 19.5
       },
       {
         "program_id": "AGS131",
@@ -4284,7 +4265,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 6315295.0,
-        "positions": 33.0
+        "positions": 34.0
       },
       {
         "program_id": "AGS901",
@@ -4293,7 +4274,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 5905937.0,
-        "positions": 54.0
+        "positions": 56.0
       },
       {
         "program_id": "AGS223",
@@ -4320,7 +4301,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4383125.0,
-        "positions": 19.0
+        "positions": 20.0
       },
       {
         "program_id": "AGS131",
@@ -4329,7 +4310,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 4000000.0,
-        "positions": 33.0
+        "positions": 34.0
       },
       {
         "program_id": "AGS221",
@@ -4401,7 +4382,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 2578244.0,
-        "positions": 12.0
+        "positions": 13.0
       },
       {
         "program_id": "AGS807",
@@ -4419,7 +4400,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 2203297.0,
-        "positions": 25.0
+        "positions": 26.0
       },
       {
         "program_id": "AGS244",
@@ -4446,7 +4427,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 1699084.0,
-        "positions": 125.0
+        "positions": 126.0
       },
       {
         "program_id": "AGS102",
@@ -4464,7 +4445,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1500000.0,
-        "positions": 26.0
+        "positions": 51.0
       },
       {
         "program_id": "AGS103",
@@ -4509,7 +4490,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1023968.0,
-        "positions": 7.0
+        "positions": 10.0
       },
       {
         "program_id": "AGS211",
@@ -4536,7 +4517,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 521304.0,
-        "positions": 3.0
+        "positions": 4.0
       },
       {
         "program_id": "AGS211",
@@ -4554,7 +4535,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 99694.0,
-        "positions": 0.5
+        "positions": 1.5
       }
     ],
     "path": "/pages/ags.html"
@@ -4569,7 +4550,7 @@
     "capital_budget": 75655000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 400612895.0,
-    "positions": 2449.5,
+    "positions": 2543.0,
     "fund_breakdown": {
       "Federal Funds": 18340874.0,
       "General Funds": 127106903.0,
@@ -4624,7 +4605,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 24483607.0,
-        "positions": 63.0
+        "positions": 64.0
       },
       {
         "program_id": "LNR405",
@@ -4642,7 +4623,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 14000800.0,
-        "positions": null
+        "positions": 13.0
       },
       {
         "program_id": "LNR806",
@@ -4660,7 +4641,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 12537534.0,
-        "positions": 2.0
+        "positions": 8.5
       },
       {
         "program_id": "LNR407",
@@ -4669,7 +4650,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 11709704.0,
-        "positions": 69.5
+        "positions": 73.5
       },
       {
         "program_id": "LNR810",
@@ -4687,7 +4668,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 10500000.0,
-        "positions": 2.5
+        "positions": 9.5
       },
       {
         "program_id": "LNR102",
@@ -4723,7 +4704,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 7731946.0,
-        "positions": 56.0
+        "positions": 57.0
       },
       {
         "program_id": "LNR810",
@@ -4741,7 +4722,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 7200000.0,
-        "positions": 0.5
+        "positions": 4.5
       },
       {
         "program_id": "LNR172",
@@ -4759,7 +4740,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 7011321.0,
-        "positions": 55.0
+        "positions": 56.0
       },
       {
         "program_id": "LNR404",
@@ -4777,7 +4758,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 5526913.0,
-        "positions": 64.0
+        "positions": 64.5
       },
       {
         "program_id": "LNR804",
@@ -4795,7 +4776,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 4864500.0,
-        "positions": 1.0
+        "positions": 2.75
       },
       {
         "program_id": "LNR804",
@@ -4822,7 +4803,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 4571982.0,
-        "positions": 2.5
+        "positions": 9.5
       },
       {
         "program_id": "LNR802",
@@ -4849,7 +4830,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 4239054.0,
-        "positions": 3.0
+        "positions": 3.25
       },
       {
         "program_id": "LNR402",
@@ -4858,7 +4839,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 3679077.0,
-        "positions": 18.5
+        "positions": 19.5
       },
       {
         "program_id": "LNR906",
@@ -4867,7 +4848,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 3475827.0,
-        "positions": 20.0
+        "positions": 21.0
       },
       {
         "program_id": "LNR141",
@@ -4885,7 +4866,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 3355000.0,
-        "positions": 63.0
+        "positions": 64.0
       },
       {
         "program_id": "LNR101",
@@ -4894,7 +4875,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 3200000.0,
-        "positions": 63.0
+        "positions": 64.0
       },
       {
         "program_id": "LNR407",
@@ -4903,7 +4884,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 3000000.0,
-        "positions": 0.5
+        "positions": 4.5
       },
       {
         "program_id": "LNR172",
@@ -4939,7 +4920,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 1845510.0,
-        "positions": 2.0
+        "positions": 16.0
       },
       {
         "program_id": "LNR402",
@@ -4948,7 +4929,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 1686056.0,
-        "positions": 18.5
+        "positions": 25.5
       },
       {
         "program_id": "LNR801",
@@ -4975,7 +4956,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 1150000.0,
-        "positions": 2.0
+        "positions": 8.5
       },
       {
         "program_id": "LNR405",
@@ -5056,7 +5037,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 440000.0,
-        "positions": 69.5
+        "positions": 73.5
       },
       {
         "program_id": "LNR907",
@@ -5083,7 +5064,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 180000.0,
-        "positions": 69.5
+        "positions": 73.5
       },
       {
         "program_id": "LNR101",
@@ -5092,7 +5073,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 177872.0,
-        "positions": null
+        "positions": 1.0
       },
       {
         "program_id": "LNR906",
@@ -5101,7 +5082,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 116466.0,
-        "positions": 20.0
+        "positions": 21.0
       },
       {
         "program_id": "LNR810",
@@ -5119,7 +5100,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 106475.0,
-        "positions": 18.5
+        "positions": 19.5
       },
       {
         "program_id": "LNR405",
@@ -5152,7 +5133,7 @@
     "capital_budget": 10000000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 330439082.0,
-    "positions": 2832.6,
+    "positions": 2875.6,
     "fund_breakdown": {
       "Federal Funds": 1045989.0,
       "General Funds": 305056004.0,
@@ -5251,7 +5232,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 10884725.0,
-        "positions": 2.0
+        "positions": 44.0
       },
       {
         "program_id": "PSD900",
@@ -5350,7 +5331,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 859315.0,
-        "positions": 13.0
+        "positions": 14.0
       },
       {
         "program_id": "PSD611",
@@ -5383,7 +5364,7 @@
     "capital_budget": 106121000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 219325466.0,
-    "positions": 675.25,
+    "positions": 1207.75,
     "fund_breakdown": {
       "Federal Funds": 4156958.0,
       "General Funds": 37586014.0,
@@ -5409,7 +5390,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 40051745.0,
-        "positions": 99.25
+        "positions": 119.25
       },
       {
         "program_id": "DEF112",
@@ -5427,7 +5408,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 22497034.0,
-        "positions": 26.0
+        "positions": 51.0
       },
       {
         "program_id": "DEF118",
@@ -5436,7 +5417,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 14097375.0,
-        "positions": 26.0
+        "positions": 116.0
       },
       {
         "program_id": "DEF110",
@@ -5445,7 +5426,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 10455364.0,
-        "positions": 100.25
+        "positions": 101.25
       },
       {
         "program_id": "DEF114",
@@ -5454,7 +5435,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 8000000.0,
-        "positions": null
+        "positions": 73.5
       },
       {
         "program_id": "DEF116",
@@ -5472,7 +5453,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 6482477.0,
-        "positions": null
+        "positions": 73.5
       },
       {
         "program_id": "DEF118",
@@ -5481,7 +5462,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 4156958.0,
-        "positions": 26.0
+        "positions": 116.0
       },
       {
         "program_id": "DEF114",
@@ -5490,7 +5471,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3885050.0,
-        "positions": null
+        "positions": 24.5
       },
       {
         "program_id": "DEF116",
@@ -5499,7 +5480,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 3223000.0,
-        "positions": 99.25
+        "positions": 119.25
       },
       {
         "program_id": "DEF112",
@@ -5517,7 +5498,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 1430238.0,
-        "positions": 21.75
+        "positions": 23.25
       },
       {
         "program_id": "DEF116",
@@ -5526,7 +5507,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 1173000.0,
-        "positions": 99.25
+        "positions": 119.25
       },
       {
         "program_id": "DEF110",
@@ -5535,7 +5516,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 725000.0,
-        "positions": 21.75
+        "positions": 23.25
       },
       {
         "program_id": "DEF118",
@@ -5544,7 +5525,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 500000.0,
-        "positions": 26.0
+        "positions": 116.0
       },
       {
         "program_id": "DEF118",
@@ -5553,7 +5534,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 500000.0,
-        "positions": 26.0
+        "positions": 28.0
       }
     ],
     "path": "/pages/def.html"
@@ -5568,7 +5549,7 @@
     "capital_budget": 20000000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 185159472.0,
-    "positions": 220.0,
+    "positions": 250.0,
     "fund_breakdown": {
       "Federal Funds": 24126731.0,
       "General Funds": 28032234.0,
@@ -5595,7 +5576,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 24126731.0,
-        "positions": 4.0
+        "positions": 12.0
       },
       {
         "program_id": "HHL602",
@@ -5604,7 +5585,7 @@
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
         "amount": 20000000.0,
-        "positions": 4.0
+        "positions": 7.0
       },
       {
         "program_id": "HHL625",
@@ -5631,7 +5612,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 7000000.0,
-        "positions": 4.0
+        "positions": 12.0
       },
       {
         "program_id": "HHL602",
@@ -5640,7 +5621,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 3740534.0,
-        "positions": 4.0
+        "positions": 12.0
       },
       {
         "program_id": "HHL602",
@@ -5649,7 +5630,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 393600.0,
-        "positions": 4.0
+        "positions": 7.0
       }
     ],
     "path": "/pages/hhl.html"
@@ -5664,7 +5645,7 @@
     "capital_budget": 0.0,
     "one_time_appropriations": 0.0,
     "total_budget": 135475160.0,
-    "positions": 874.3800000000001,
+    "positions": 925.45,
     "fund_breakdown": {
       "Federal Funds": 11641670.0,
       "General Funds": 55275505.0,
@@ -5682,7 +5663,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 47212444.0,
-        "positions": 321.74
+        "positions": 340.41
       },
       {
         "program_id": "ATG100",
@@ -5691,7 +5672,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 21765719.0,
-        "positions": 111.6
+        "positions": 128.7
       },
       {
         "program_id": "ATG500",
@@ -5700,7 +5681,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 20006088.0,
-        "positions": 135.3
+        "positions": 135.96
       },
       {
         "program_id": "ATG100",
@@ -5709,7 +5690,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 11641670.0,
-        "positions": 32.9
+        "positions": 38.129999999999995
       },
       {
         "program_id": "ATG100",
@@ -5718,7 +5699,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 6484008.0,
-        "positions": 32.9
+        "positions": 33.9
       },
       {
         "program_id": "ATG500",
@@ -5727,7 +5708,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 5448469.0,
-        "positions": 69.7
+        "positions": 70.04
       },
       {
         "program_id": "ATG100",
@@ -5736,7 +5717,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 4890531.0,
-        "positions": 21.44
+        "positions": 21.94
       },
       {
         "program_id": "ATG231",
@@ -5754,7 +5735,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 4065177.0,
-        "positions": 1.0
+        "positions": 6.23
       },
       {
         "program_id": "ATG100",
@@ -5763,7 +5744,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 3539882.0,
-        "positions": 5.6
+        "positions": 7.6
       },
       {
         "program_id": "ATG231",
@@ -5781,7 +5762,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 2231224.0,
-        "positions": 69.7
+        "positions": 70.04
       },
       {
         "program_id": "ATG231",
@@ -5805,7 +5786,7 @@
     "capital_budget": 0.0,
     "one_time_appropriations": 0.0,
     "total_budget": 119071633.0,
-    "positions": 694.0,
+    "positions": 713.0,
     "fund_breakdown": {
       "Special Funds": 115588696.0,
       "Trust Funds": 3482937.0
@@ -5818,7 +5799,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 24860659.0,
-        "positions": 54.0
+        "positions": 55.0
       },
       {
         "program_id": "CCA106",
@@ -5854,7 +5835,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 9909730.0,
-        "positions": 72.0
+        "positions": 83.0
       },
       {
         "program_id": "CCA112",
@@ -5863,7 +5844,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 8930940.0,
-        "positions": 66.0
+        "positions": 67.0
       },
       {
         "program_id": "CCA104",
@@ -5890,7 +5871,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 3833679.0,
-        "positions": 20.0
+        "positions": 21.0
       },
       {
         "program_id": "CCA105",
@@ -5899,7 +5880,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 2880256.0,
-        "positions": 8.0
+        "positions": 12.0
       },
       {
         "program_id": "CCA102",
@@ -5944,7 +5925,7 @@
         "fund_type": "T",
         "fund_category": "Trust Funds",
         "amount": 100681.0,
-        "positions": 20.0
+        "positions": 21.0
       }
     ],
     "path": "/pages/cca.html"
@@ -5959,7 +5940,7 @@
     "capital_budget": 3000000.0,
     "one_time_appropriations": 0.0,
     "total_budget": 104676615.0,
-    "positions": 1250.0,
+    "positions": 1286.5,
     "fund_breakdown": {
       "Federal Funds": 4324886.0,
       "General Funds": 60193319.0,
@@ -6003,7 +5984,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 9405469.0,
-        "positions": 14.0
+        "positions": 22.5
       },
       {
         "program_id": "LAW900",
@@ -6021,7 +6002,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4113508.0,
-        "positions": 16.0
+        "positions": 22.0
       },
       {
         "program_id": "LAW901",
@@ -6030,7 +6011,7 @@
         "fund_type": "N",
         "fund_category": "Federal Funds",
         "amount": 3724886.0,
-        "positions": 14.0
+        "positions": 22.5
       },
       {
         "program_id": "LAW900",
@@ -6057,7 +6038,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 2362031.0,
-        "positions": 14.0
+        "positions": 22.5
       },
       {
         "program_id": "LAW502",
@@ -6093,7 +6074,7 @@
         "fund_type": "U",
         "fund_category": "Interdepartmental Transfers",
         "amount": 731972.0,
-        "positions": 2.0
+        "positions": 7.0
       },
       {
         "program_id": "LAW503",
@@ -6122,17 +6103,17 @@
     "name": "Department of Agriculture and Biosecurity",
     "description": "This department carries out programs to conserve, develop, and use lands and resources for agricultural use. It continues to help Hawai\u02bbi transition from plantation-era agricultural practices toward a diversified agriculture model, and supports the development of new programs such as aquaculture. The department is also responsible for plant and animal pest and disease control, including managing animal quarantine.",
     "budget": "$81M",
-    "operating_budget": 75873376.0,
+    "operating_budget": 75708926.0,
     "capital_budget": 5001000.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 80874376.0,
-    "positions": 1396.8600000000001,
+    "total_budget": 80709926.0,
+    "positions": 1369.8600000000001,
     "fund_breakdown": {
       "Federal Funds": 2152568.0,
       "General Funds": 42824495.0,
       "General Obligation Bond Fund": 5000000.0,
       "Interdepartmental Transfers": 212095.0,
-      "Other Federal Funds": 6729809.0,
+      "Other Federal Funds": 6565359.0,
       "Revolving Funds": 11082369.0,
       "Special Funds": 12060078.0,
       "Trust Funds": 812962.0
@@ -6244,7 +6225,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 2729255.0,
-        "positions": 37.0
+        "positions": 39.0
       },
       {
         "program_id": "AGR846",
@@ -6253,7 +6234,7 @@
         "fund_type": "W",
         "fund_category": "Revolving Funds",
         "amount": 2598038.0,
-        "positions": 37.0
+        "positions": 39.0
       },
       {
         "program_id": "AGR171",
@@ -6325,7 +6306,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 464629.0,
-        "positions": 2.0
+        "positions": 3.0
       },
       {
         "program_id": "AGR122",
@@ -6343,7 +6324,7 @@
         "fund_type": "P",
         "fund_category": "Other Federal Funds",
         "amount": 306941.0,
-        "positions": 25.68
+        "positions": 26.68
       },
       {
         "program_id": "AGR151",
@@ -6371,15 +6352,6 @@
         "fund_category": "Revolving Funds",
         "amount": 186848.0,
         "positions": 23.5
-      },
-      {
-        "program_id": "AGR192",
-        "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
-        "section": "Operating",
-        "fund_type": "P",
-        "fund_category": "Other Federal Funds",
-        "amount": 164450.0,
-        "positions": 33.0
       },
       {
         "program_id": "AGR151",
@@ -6466,7 +6438,7 @@
     "capital_budget": 0.0,
     "one_time_appropriations": 0.0,
     "total_budget": 43315613.0,
-    "positions": 493.0,
+    "positions": 516.0,
     "fund_breakdown": {
       "General Funds": 39685987.0,
       "Special Funds": 3629626.0
@@ -6479,7 +6451,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 18528791.0,
-        "positions": 86.0
+        "positions": 93.0
       },
       {
         "program_id": "TAX100",
@@ -6506,7 +6478,7 @@
         "fund_type": "B",
         "fund_category": "Special Funds",
         "amount": 3629626.0,
-        "positions": 86.0
+        "positions": 101.0
       },
       {
         "program_id": "TAX103",
@@ -6515,7 +6487,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 3427288.0,
-        "positions": 43.0
+        "positions": 44.0
       }
     ],
     "path": "/pages/tax.html"
@@ -6583,13 +6555,13 @@
     "description": "The County of Kaua\u02bbi is the local government entity for the island of Kaua\u02bbi.",
     "budget": "$26M",
     "operating_budget": 0.0,
-    "capital_budget": 26000000.0,
+    "capital_budget": 26000375.0,
     "one_time_appropriations": 0.0,
-    "total_budget": 26000000.0,
+    "total_budget": 26000375.0,
     "positions": 0.0,
     "fund_breakdown": {
       "County Funds": 13000000.0,
-      "General Obligation Bond Fund": 13000000.0
+      "General Obligation Bond Fund": 13000375.0
     },
     "programs": [
       {
@@ -6598,7 +6570,7 @@
         "section": "Capital Improvement",
         "fund_type": "C",
         "fund_category": "General Obligation Bond Fund",
-        "amount": 13000000.0,
+        "amount": 13000375.0,
         "positions": null
       },
       {
@@ -6697,7 +6669,7 @@
     "capital_budget": 0.0,
     "one_time_appropriations": 0.0,
     "total_budget": 4701872.0,
-    "positions": 24.0,
+    "positions": 47.0,
     "fund_breakdown": {
       "General Funds": 4701872.0
     },
@@ -6709,7 +6681,7 @@
         "fund_type": "A",
         "fund_category": "General Funds",
         "amount": 4701872.0,
-        "positions": 24.0
+        "positions": 47.0
       }
     ],
     "path": "/pages/gov.html"
