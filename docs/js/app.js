@@ -2882,9 +2882,12 @@ window.initDraftComparePage = async function () {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
         const posKey = dataset.metadata.fiscal_year === 2026 ? 'positions_fy2026' : 'positions_fy2027';
         const posTempKey = dataset.metadata.fiscal_year === 2026 ? 'positions_temp_fy2026' : 'positions_temp_fy2027';
+        // Governor's Message mid-session amendments count toward the Gov's
+        // Request — fold the signed GM delta into the baseline amount.
+        const gmKey = dataset.metadata.fiscal_year === 2026 ? 'gm_delta_fy2026' : 'gm_delta_fy2027';
         for (const r of dataset.comparisons) {
             const match = baselineLookup.get(`${r.department_code}_${r.program_id}_${r.fund_type}_${r.section}`);
-            r.amount_baseline = match ? (match[fyKey] || 0) : 0;
+            r.amount_baseline = match ? ((match[fyKey] || 0) + (match[gmKey] || 0)) : 0;
             r.positions_baseline = match ? (match[posKey] ?? null) : null;
             r.positions_temp_baseline = match ? (match[posTempKey] ?? null) : null;
         }
@@ -2905,6 +2908,7 @@ window.initDraftComparePage = async function () {
         const fyKey = dataset.metadata.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
         const posKey = dataset.metadata.fiscal_year === 2026 ? 'positions_fy2026' : 'positions_fy2027';
         const posTempKey = dataset.metadata.fiscal_year === 2026 ? 'positions_temp_fy2026' : 'positions_temp_fy2027';
+        const gmKey = dataset.metadata.fiscal_year === 2026 ? 'gm_delta_fy2026' : 'gm_delta_fy2027';
         const hd1Key = 'amount_' + dataset.metadata.draft1.toLowerCase();
         const sd1Key = 'amount_' + dataset.metadata.draft2.toLowerCase();
         const present = new Set();
@@ -2914,7 +2918,7 @@ window.initDraftComparePage = async function () {
         for (const g of governorRequestData) {
             const key = `${g.department_code}_${g.program_id}_${g.fund_type}_${g.section}`;
             if (present.has(key)) continue;
-            const amt = g[fyKey] || 0;
+            const amt = (g[fyKey] || 0) + (g[gmKey] || 0);
             if (amt === 0) continue;
             dataset.comparisons.push({
                 program_id: g.program_id,
@@ -3063,6 +3067,7 @@ window.initDraftComparePage = async function () {
         const d2Label = getD2Label();
         const recs = activeData.comparisons;
         const fyKey = meta.fiscal_year === 2026 ? 'amount_fy2026' : 'amount_fy2027';
+        const gmKey = meta.fiscal_year === 2026 ? 'gm_delta_fy2026' : 'gm_delta_fy2027';
 
         const sumBy = (section) => {
             const sr = recs.filter(r => r.section === section);
@@ -3070,10 +3075,11 @@ window.initDraftComparePage = async function () {
             const sd1 = sr.reduce((s, r) => s + (r.amount_sd1 || 0), 0);
             const cd1 = sr.reduce((s, r) => s + (r.amount_cd1 || 0), 0);
             const d2 = sr.reduce((s, r) => s + (r[d2Key] || 0), 0);
-            // Baseline totals from governorRequestData (full, not joined — avoids missing programs)
+            // Baseline totals from governorRequestData (full, not joined — avoids missing programs).
+            // Includes the Governor's Message mid-session amendments (gm_delta).
             const baseline = (governorRequestData || [])
                 .filter(r => r.section === section)
-                .reduce((s, r) => s + (r[fyKey] || 0), 0);
+                .reduce((s, r) => s + (r[fyKey] || 0) + (r[gmKey] || 0), 0);
             // d1 is the leftmost active stage's total
             const d1 = govActive ? baseline : (hd1Active ? hd1 : (sd1Active ? sd1 : cd1));
             return { d1, d2, delta: d2 - d1, baseline, hd1, sd1, cd1 };

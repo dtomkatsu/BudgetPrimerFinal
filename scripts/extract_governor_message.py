@@ -35,6 +35,11 @@ REPO_ROOT = pathlib.Path(__file__).parent.parent
 DEFAULT_PDF = pathlib.Path.home() / "Downloads" / "HB1800 CD1 FINAL WORKSHEETS.pdf"
 JSON_DIR = REPO_ROOT / "docs" / "js"
 TARGET_FILES = ["draft_comparison_fy26.json", "draft_comparison_fy27.json"]
+GOV_REQUEST_FILE = JSON_DIR / "governor_request.json"
+
+# Signed per-item GM amount embedded in the detail text, e.g.
+# "(FY27: 500,000)" or "(FY27: -14,500,000)".
+FY_AMT_RE = re.compile(r"\(FY(\d{2,4}):\s*(-?[\d,]+)\)")
 
 PROG_RE = re.compile(r"Program ID:\s*([A-Z]{2,4}\d{2,4})")
 # Headline under "GOVERNOR'S MESSAGE (mm/dd/yy):" up to the next separator.
@@ -120,6 +125,60 @@ def merge(records: dict[str, dict]) -> None:
         print(f"  merged into {fname}: {n} rows tagged")
 
 
+def gm_deltas(details: list[str]) -> dict[int, int]:
+    """Net signed GM dollar delta per fiscal year, parsed from the detail text."""
+    out: dict[int, int] = {}
+    for d in details:
+        for fy_s, amt_s in FY_AMT_RE.findall(d):
+            fy = int(fy_s)
+            fy = 2000 + fy if fy < 100 else fy
+            out[fy] = out.get(fy, 0) + int(amt_s.replace(",", ""))
+    return {fy: v for fy, v in out.items() if v}
+
+
+def fold_into_gov_request(records: dict[str, dict]) -> None:
+    """Attach gm_delta_fy{2026,2027} to one representative governor_request
+    record per program (General/Operating preferred), so the dashboard's Gov's
+    Request column reflects the Governor's mid-session Message amendments.
+
+    Idempotent: clears any prior gm_delta_* first, then re-applies — a separate
+    field, so the underlying supplemental amounts are never mutated.
+    """
+    if not GOV_REQUEST_FILE.exists():
+        print("  skip gov_request fold (file missing)")
+        return
+    gov = json.loads(GOV_REQUEST_FILE.read_text())
+    for r in gov:
+        r.pop("gm_delta_fy2026", None)
+        r.pop("gm_delta_fy2027", None)
+    by_prog: dict[str, list] = defaultdict(list)
+    for r in gov:
+        by_prog[r.get("program_id")].append(r)
+
+    folded = 0
+    for pid, rec in records.items():
+        deltas = gm_deltas(rec["details"])
+        if not deltas:
+            continue
+        rows = by_prog.get(pid)
+        if not rows:
+            print(f"  (no gov record for {pid}; GM delta {deltas} dropped)")
+            continue
+        target = (
+            next((r for r in rows if r.get("fund_type") == "A" and r.get("section") == "Operating"), None)
+            or next((r for r in rows if r.get("section") == "Operating"), None)
+            or rows[0]
+        )
+        if 2026 in deltas:
+            target["gm_delta_fy2026"] = deltas[2026]
+        if 2027 in deltas:
+            target["gm_delta_fy2027"] = deltas[2027]
+        folded += 1
+
+    GOV_REQUEST_FILE.write_text(json.dumps(gov, separators=(",", ":")))
+    print(f"  folded GM deltas into governor_request.json for {folded} programs")
+
+
 def main() -> int:
     pdf_path = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PDF
     if not pdf_path.exists():
@@ -129,6 +188,7 @@ def main() -> int:
     records = {pid: r for pid, r in extract(pdf_path).items() if r["details"]}
     print(f"Found Governor's Message detail for {len(records)} programs.")
     merge(records)
+    fold_into_gov_request(records)
     return 0
 
 
