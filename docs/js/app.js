@@ -253,7 +253,7 @@ window.schoolFoodServicePage = async function () {
                     Cash basis. Source: ${_escHtml(m.source)}.</p>
             </div>
             <div class="summary-cards-grid" id="sfs-cards"></div>
-            <div class="fy-seg-ctrl" id="sfs-fund-ctrl" data-active="All">
+            <div class="seg-ctrl sfs-fund-ctrl" id="sfs-fund-ctrl">
                 <button class="active" data-fund="All">All Funds</button>
                 <button data-fund="General">General</button>
                 <button data-fund="Federal">Federal</button>
