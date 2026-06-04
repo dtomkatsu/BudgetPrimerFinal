@@ -49,6 +49,9 @@ class Router {
             if (window.loadActuals) {
                 loadPromises.push(window.loadActuals());
             }
+            if (window.loadSchoolFoodService) {
+                loadPromises.push(window.loadSchoolFoodService());
+            }
 
             // Wait for both to complete
             await Promise.all(loadPromises);
@@ -169,6 +172,10 @@ class Router {
             '/actuals': {
                 subtitle: 'What was actually spent in FY2025 vs the budget, by department · budgetary basis, appropriated funds. A completed year — separate from the FY2026–27 bills.',
                 docTitle: 'Actual Spending · Hawaiʻi Budget Tracker'
+            },
+            '/school-food-service': {
+                subtitle: 'School Food Service revenues vs. expenditures · cash basis, FY2021–FY2025 · HIDOE.',
+                docTitle: 'School Food Service · Hawaiʻi Budget Tracker'
             },
             '/about': {
                 subtitle: 'About this tracker.',

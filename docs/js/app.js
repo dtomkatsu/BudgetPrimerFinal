@@ -215,6 +215,171 @@ window.initActualsPage = function () {
 };
 
 // ---------------------------------------------------------------------------
+// School Food Service — revenues vs expenditures (HIDOE, cash basis).
+// Linked only from the DOE department page. Source: school_food_service.json.
+// ---------------------------------------------------------------------------
+let schoolFoodServiceData = null;
+window.loadSchoolFoodService = async function () {
+    try {
+        const response = await fetch('./js/school_food_service.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        schoolFoodServiceData = await response.json();
+        return schoolFoodServiceData;
+    } catch (e) {
+        console.error('Error loading school food service data:', e);
+        return null;
+    }
+};
+
+window.schoolFoodServicePage = async function () {
+    if (!schoolFoodServiceData || !schoolFoodServiceData.rows) {
+        return `
+            <section class="compare-page">
+                <a href="#/department/edn" class="back-button">← Back to Department of Education</a>
+                <h2>School Food Service</h2>
+                <div class="empty-state">
+                    <p>No School Food Service data available yet.</p>
+                    <pre>python scripts/extract_school_food_service.py</pre>
+                </div>
+            </section>`;
+    }
+    const m = schoolFoodServiceData.metadata;
+    return `
+        <section class="compare-page sfs-page">
+            <a href="#/department/edn" class="back-button">← Back to Department of Education</a>
+            <div class="department-header">
+                <h2>School Food Service — Revenues vs. Expenditures</h2>
+                <p class="dept-desc">Hawaiʻi Department of Education school meal programs, ${m.fy_range}.
+                    Cash basis. Source: ${_escHtml(m.source)}.</p>
+            </div>
+            <div class="summary-cards-grid" id="sfs-cards"></div>
+            <div class="fy-seg-ctrl" id="sfs-fund-ctrl" data-active="All">
+                <button class="active" data-fund="All">All Funds</button>
+                <button data-fund="General">General</button>
+                <button data-fund="Federal">Federal</button>
+                <button data-fund="Special">Special</button>
+            </div>
+            <div class="dept-history-chart-wrap"><canvas id="sfs-chart"></canvas></div>
+            <div id="sfs-results"></div>
+        </section>`;
+};
+
+window.initSchoolFoodServicePage = function () {
+    if (!schoolFoodServiceData || !schoolFoodServiceData.rows) return;
+    const m = schoolFoodServiceData.metadata;
+    const years = schoolFoodServiceData.years;
+    let fund = 'All';
+    let chart = null;
+
+    const row = (fy, fnd) => schoolFoodServiceData.rows.find(r => r.fy === fy && r.fund === fnd);
+    const subLine = (cell) => {
+        if (cell.payroll == null && cell.other == null) return '';
+        const p = cell.payroll || 0, o = cell.other || 0;
+        return `<span class="sfs-sub">Payroll ${fmt(p)} · Other ${fmt(o)}</span>`;
+    };
+
+    const renderCards = () => {
+        const r = row(2025, fund);
+        const net = r.net.total || 0;
+        const netCls = net >= 0 ? 'positive' : 'negative';
+        const netLbl = net >= 0 ? 'surplus' : 'deficit';
+        document.getElementById('sfs-cards').innerHTML = `
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(r.revenue.total)}</div><div class="label">Revenues</div><div class="label-sub">FY2025 · ${fund}</div></div>
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(r.expenditure.total)}</div><div class="label">Expenditures</div><div class="label-sub">FY2025 · ${fund}</div></div>
+            <div class="summary-card sfs-net-card ${netCls}"><div class="amount">${fmtHtmlCard(net)}</div><div class="label">Net ${netLbl}</div><div class="label-sub">FY2025</div></div>`;
+    };
+
+    const renderChart = () => {
+        const canvas = document.getElementById('sfs-chart');
+        if (!canvas) return;
+        if (chart) chart.destroy();
+        const labels = years.map(y => `FY${y}`);
+        const rev = years.map(y => row(y, fund).revenue.total || 0);
+        const exp = years.map(y => row(y, fund).expenditure.total || 0);
+        chart = new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels, datasets: [
+                { label: 'Revenues', data: rev, backgroundColor: '#5a7b68', borderWidth: 0 },
+                { label: 'Expenditures', data: exp, backgroundColor: '#b07560', borderWidth: 0 },
+            ]},
+            options: {
+                maintainAspectRatio: false, responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { callback: (v) => `$${(v / 1e6).toFixed(0)}M` } },
+                },
+            },
+        });
+    };
+
+    const renderTable = () => {
+        let body = '<tbody>';
+        for (const y of years) {
+            const r = row(y, fund);
+            const net = r.net.total || 0;
+            const netCls = net >= 0 ? 'variance-under' : 'variance-over';
+            body += `<tr>
+                <td><strong>FY${y}</strong></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(r.revenue.total)}</span>${subLine(r.revenue)}</td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(r.expenditure.total)}</span>${subLine(r.expenditure)}</td>
+                <td class="amount-cell ${netCls}"><span class="figure-chip">${fmtHtml(net)}</span><span class="var-word">${net >= 0 ? 'surplus' : 'deficit'}</span></td>
+            </tr>`;
+        }
+        body += '</tbody>';
+
+        // Cash rollforward (Federal & Special) — only meaningful for those funds / All.
+        const cf = schoolFoodServiceData.cash_rollforward || {};
+        let cashHtml = '';
+        const cashFunds = fund === 'All' ? ['Federal', 'Special'] : (cf[fund] ? [fund] : []);
+        if (cashFunds.length) {
+            const head = years.map(y => `<th class="amount-cell">FY${y}</th>`).join('');
+            let crows = '';
+            for (const cfn of cashFunds) {
+                const cells = cf[cfn].series.map(s => `<td class="amount-cell"><span class="figure-chip">${fmtHtml(s.cash_end)}</span></td>`).join('');
+                crows += `<tr><td><strong>${cfn}</strong> year-end cash <span class="totals-meta">avail ${fmt(cf[cfn].available)}</span></td>${cells}</tr>`;
+            }
+            cashHtml = `
+                <h3 class="sfs-cash-head">Cash Rollforward — year-end balances</h3>
+                <table class="data-table sfs-cash-table">
+                    <thead><tr><th>Fund</th>${head}</tr></thead>
+                    <tbody>${crows}</tbody>
+                </table>`;
+        }
+
+        document.getElementById('sfs-results').innerHTML = `
+            <table class="data-table sfs-table">
+                <thead><tr>
+                    <th>Fiscal Year</th>
+                    <th class="amount-cell">Revenues</th>
+                    <th class="amount-cell">Expenditures</th>
+                    <th class="amount-cell">Net</th>
+                </tr></thead>
+                ${body}
+            </table>
+            ${cashHtml}
+            <ul class="sfs-notes">${(m.notes || []).map(n => `<li>${_escHtml(n)}</li>`).join('')}</ul>`;
+    };
+
+    const renderAll = () => { renderCards(); renderChart(); renderTable(); };
+    renderAll();
+
+    document.getElementById('sfs-fund-ctrl')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-fund]');
+        if (!btn) return;
+        fund = btn.getAttribute('data-fund');
+        document.querySelectorAll('#sfs-fund-ctrl button').forEach(b => b.classList.toggle('active', b === btn));
+        document.getElementById('sfs-fund-ctrl').setAttribute('data-active', fund);
+        renderAll();
+    });
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -816,6 +981,23 @@ window.departmentDetailPage = async function (params) {
                 <h2>${dept.name} (${dept.code})</h2>
                 ${dept.description ? `<p class="dept-desc">${dept.description}</p>` : ''}
             </div>
+
+            ${dept.code === 'EDN' ? `
+            <a href="#/school-food-service" class="sfs-link-card">
+                <span class="sfs-link-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="21" x2="21" y2="21"/>
+                        <rect x="5" y="11" width="3.5" height="8"/>
+                        <rect x="10.25" y="6" width="3.5" height="13"/>
+                        <rect x="15.5" y="14" width="3.5" height="5"/>
+                    </svg>
+                </span>
+                <span class="sfs-link-text">
+                    <strong>School Food Service — Revenues vs. Expenditures</strong>
+                    <span class="sfs-link-sub">Cash-basis revenues, expenditures &amp; net by fund, FY2021–FY2025</span>
+                </span>
+                <span class="sfs-link-arrow">→</span>
+            </a>` : ''}
 
             ${deptYearPicker}
 
