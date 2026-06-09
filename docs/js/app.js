@@ -249,8 +249,24 @@ window.schoolFoodServicePage = async function () {
             <a href="#/department/edn" class="back-button">← Back to Department of Education</a>
             <div class="department-header">
                 <h2>School Food Service — Revenues vs. Expenditures</h2>
-                <p class="dept-desc">Hawaiʻi Department of Education school meal programs, ${m.fy_range}.
-                    Cash basis. Source: ${_escHtml(m.source)}.</p>
+                <p class="dept-desc">Hawaiʻi Department of Education school meal programs.</p>
+                <div class="sfs-source-card">
+                    <span class="sfs-source-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </span>
+                    <div class="sfs-source-body">
+                        <span class="sfs-source-label">Data Source</span>
+                        <a class="sfs-source-name" href="https://hawaiipublicschools.org/data-reports/fiscal/" target="_blank" rel="noopener">
+                            HIDOE School Food Services
+                            <svg class="sfs-source-ext" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
+                        <div class="sfs-source-badges">
+                            <span class="sfs-badge">${_escHtml(m.fy_range)}</span>
+                            <span class="sfs-badge">Cash basis</span>
+                            <span class="sfs-badge">As of June 30, 2025</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="summary-cards-grid" id="sfs-cards"></div>
             <div class="seg-ctrl sfs-fund-ctrl" id="sfs-fund-ctrl">
@@ -275,7 +291,10 @@ window.initSchoolFoodServicePage = function () {
     const subLine = (cell) => {
         if (cell.payroll == null && cell.other == null) return '';
         const p = cell.payroll || 0, o = cell.other || 0;
-        return `<span class="sfs-sub">Payroll ${fmt(p)} · Other ${fmt(o)}</span>`;
+        return `<span class="sfs-breakdown">
+            <span class="sfs-mini-badge"><span class="sfs-mini-label">Payroll</span><span class="sfs-mini-val">${fmt(p)}</span></span>
+            <span class="sfs-mini-badge"><span class="sfs-mini-label">Other</span><span class="sfs-mini-val">${fmt(o)}</span></span>
+        </span>`;
     };
 
     const renderCards = () => {
@@ -338,18 +357,45 @@ window.initSchoolFoodServicePage = function () {
         let cashHtml = '';
         const cashFunds = fund === 'All' ? ['Federal', 'Special'] : (cf[fund] ? [fund] : []);
         if (cashFunds.length) {
-            const head = years.map(y => `<th class="amount-cell">FY${y}</th>`).join('');
-            let crows = '';
-            for (const cfn of cashFunds) {
-                const cells = cf[cfn].series.map(s => `<td class="amount-cell"><span class="figure-chip">${fmtHtml(s.cash_end)}</span></td>`).join('');
-                crows += `<tr><td><strong>${cfn}</strong> year-end cash <span class="totals-meta">avail ${fmt(cf[cfn].available)}</span></td>${cells}</tr>`;
-            }
+            // Sign-prefixed formatter so negatives read "−$3.27 million"
+            // rather than the global fmt's "$-3.27 million".
+            const fmtSigned = (v) => (v < 0 ? '−' : '') + fmt(Math.abs(v));
+            const cards = cashFunds.map((cfn) => {
+                const data = cf[cfn];
+                const avail = data.available || 0;
+                const availCls = avail >= 0 ? 'positive' : 'negative';
+                const steps = data.series.map((s) => {
+                    const endCls = s.cash_end >= 0 ? 'positive' : 'negative';
+                    const netCls = s.net >= 0 ? 'positive' : 'negative';
+                    const netSign = s.net >= 0 ? '+' : '−';
+                    return `<div class="sfs-cf-step">
+                        <span class="sfs-cf-fy">FY${s.fy}</span>
+                        <span class="sfs-cf-net ${netCls}">${netSign}${fmt(Math.abs(s.net))}</span>
+                        <span class="sfs-cf-end ${endCls}">${fmtSigned(s.cash_end)}</span>
+                    </div>`;
+                }).join('');
+                return `<div class="sfs-cf-card">
+                    <div class="sfs-cf-card-head">
+                        <span class="sfs-cf-fund">${cfn} Fund</span>
+                        <span class="sfs-cf-avail-block">
+                            <span class="sfs-cf-avail-label">Available cash (FY2025)</span>
+                            <span class="sfs-cf-avail-val ${availCls}">${fmtSigned(avail)}</span>
+                        </span>
+                    </div>
+                    <div class="sfs-cf-steps-head">
+                        <span class="sfs-cf-fy">Year</span>
+                        <span class="sfs-cf-net">Net change</span>
+                        <span class="sfs-cf-end">Year-end cash</span>
+                    </div>
+                    <div class="sfs-cf-steps">${steps}</div>
+                </div>`;
+            }).join('');
             cashHtml = `
-                <h3 class="sfs-cash-head">Cash Rollforward — year-end balances</h3>
-                <table class="data-table sfs-cash-table">
-                    <thead><tr><th>Fund</th>${head}</tr></thead>
-                    <tbody>${crows}</tbody>
-                </table>`;
+                <div class="sfs-cash-block">
+                    <h3 class="sfs-cash-head">Cash Rollforward</h3>
+                    <p class="sfs-cash-intro">Each year's net change carried forward into the year-end cash balance. <strong>Available cash</strong> is the FY2025 year-end balance net of encumbrances.</p>
+                    <div class="sfs-cf-grid">${cards}</div>
+                </div>`;
         }
 
         document.getElementById('sfs-results').innerHTML = `

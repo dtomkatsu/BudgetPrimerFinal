@@ -193,6 +193,17 @@ class Router {
         const subtitleEl = document.querySelector('.app-header-subtitle');
         if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
         document.title = cfg.docTitle;
+
+        // Page-specific footer source line. The School Food Service page draws
+        // from HIDOE rather than the HB1800 bill, so override the footnote there.
+        const footerSourceEl = document.querySelector('.app-footer-source');
+        if (footerSourceEl) {
+            if (path === '/school-food-service') {
+                footerSourceEl.innerHTML = 'Data Source: <a href="https://hawaiipublicschools.org/data-reports/fiscal/" target="_blank" rel="noopener">HIDOE School Food Services</a> · cash basis, FY2021–FY2025 (as of June 30, 2025)';
+            } else {
+                footerSourceEl.innerHTML = 'Data Source: <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_HD1_.HTM" target="_blank" rel="noopener">HB1800</a> Supplemental Appropriations (HD1, <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_SD1_.HTM" target="_blank" rel="noopener">SD1</a>)';
+            }
+        }
     }
 
     updateActiveLink(currentPath) {
