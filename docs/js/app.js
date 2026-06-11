@@ -2948,7 +2948,10 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
                     <!-- Row 3: total amounts; caret sits in the left rail -->
                     <div class="tl-corner tl-corner-caret">
-                        <button class="tl-expand-caret" id="tl-expand-btn" aria-label="Show breakdown">▾</button>
+                        <button class="tl-expand-btn" id="tl-expand-btn" aria-expanded="false" aria-label="Show operating and capital breakdown">
+                            <span class="tl-expand-kicker">Breakdown</span>
+                            <span class="tl-expand-caret" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 4.25 6 7.75l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        </button>
                     </div>
                     <span class="tl-amt" id="tl-amt-gov" data-col="gov" data-row="totals"></span>
                     <span class="tl-amt" id="tl-amt-hd1" data-col="hd1" data-row="totals"></span>
@@ -3388,6 +3391,19 @@ window.initDraftComparePage = async function () {
             const capEl = document.getElementById(`tl-bd-cap-${col}`);
             if (opEl)  opEl.textContent  = fmt(opV);
             if (capEl) capEl.textContent = fmt(capV);
+            // Net cells color by their own sign — Operating can rise while
+            // the overall net falls, so the container-level direction class
+            // can't drive these.
+            if (col === 'net') {
+                if (opEl) {
+                    opEl.classList.toggle('bd-net-pos', opV > 0);
+                    opEl.classList.toggle('bd-net-neg', opV < 0);
+                }
+                if (capEl) {
+                    capEl.classList.toggle('bd-net-pos', capV > 0);
+                    capEl.classList.toggle('bd-net-neg', capV < 0);
+                }
+            }
         });
         // Toggle the .show-breakdown class on the timeline; CSS animates the
         // breakdown rows in/out via max-height + opacity transitions on each
@@ -3440,7 +3456,12 @@ window.initDraftComparePage = async function () {
         }
         // Update expand caret on Gov amount row
         const expandBtn = document.getElementById('tl-expand-btn');
-        if (expandBtn) expandBtn.classList.toggle('open', showBreakdown);
+        if (expandBtn) {
+            expandBtn.classList.toggle('open', showBreakdown);
+            expandBtn.setAttribute('aria-expanded', showBreakdown ? 'true' : 'false');
+            expandBtn.setAttribute('aria-label',
+                `${showBreakdown ? 'Hide' : 'Show'} operating and capital breakdown`);
+        }
 
         // draft-cards is now empty (toggle lives on the Net Change label)
         cardsEl.innerHTML = '';

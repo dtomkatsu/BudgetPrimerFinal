@@ -4122,13 +4122,21 @@ mark.search-highlight {
     line-height: 1.25;
     transition: color 0.15s, text-decoration 0.15s;
     white-space: nowrap;
-    min-height: 2.5em;
+    min-height: 2em;
     display: flex;
     align-items: flex-end;
     justify-content: center;
 }
 .tl-label.has-tooltip {
     cursor: help;
+}
+/* Dotted underline on hover — same tooltip affordance as the breakdown
+   row labels, so the whole bar signals "hover me" consistently. */
+.tl-label.has-tooltip:hover {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: #b0bab7;
+    text-underline-offset: 3px;
 }
 /* Inactive state — col-inactive class on .compare-timeline cascades to
    every cell with the matching data-col attribute. */
@@ -4155,8 +4163,10 @@ mark.search-highlight {
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-label,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-label,
 .compare-timeline.col-cd1-inactive [data-col="cd1"].tl-label {
+    /* Muted color only — no line-through. On a legislative site struck
+       text reads as "deleted from the bill"; the hollow dot already
+       signals the off state. */
     color: #aab5b1;
-    text-decoration: line-through;
 }
 /* Checkbox is hidden — the dot label is the interactive toggle */
 .tl-cb {
@@ -4225,31 +4235,30 @@ mark.search-highlight {
 /* Inactive chip state — muted, no gradient */
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-amt,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-amt,
-.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-amt {
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-amt,
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-amt {
     color: #aab5b1;
     background: #f9fafa;
     border-color: #ebeeed;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-amt-suffix,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-amt-suffix,
-.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-amt-suffix {
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-amt-suffix,
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-amt-suffix {
     color: #c1c8c5;
 }
 
-/* Stage-based emphasis — Gov / HD1 / SD1 get the filled sage chip when
-   active. Visually maps the legislative timeline onto the chips. */
-.compare-timeline:not(.col-gov-inactive) [data-col="gov"].tl-amt,
-.compare-timeline:not(.col-hd1-inactive) [data-col="hd1"].tl-amt,
-.compare-timeline:not(.col-sd1-inactive) [data-col="sd1"].tl-amt {
+/* Stage-based emphasis — CD1, the final agreed budget, carries the filled
+   sage chip when active; earlier drafts keep the quiet outlined pill so
+   the timeline reads as progress toward the enacted number. */
+.compare-timeline:not(.col-cd1-inactive) [data-col="cd1"].tl-amt {
     background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
     border-color: transparent;
     color: #ffffff;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20),
                 0 2px 8px rgba(80, 105, 95, 0.18);
 }
-.compare-timeline:not(.col-gov-inactive) [data-col="gov"] .tl-amt-suffix,
-.compare-timeline:not(.col-hd1-inactive) [data-col="hd1"] .tl-amt-suffix,
-.compare-timeline:not(.col-sd1-inactive) [data-col="sd1"] .tl-amt-suffix {
+.compare-timeline:not(.col-cd1-inactive) [data-col="cd1"] .tl-amt-suffix {
     color: rgba(255, 255, 255, 0.80);
 }
 
@@ -4414,9 +4423,12 @@ mark.search-highlight {
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
     color: #aab5b1;
 }
-/* Net breakdown cells inherit direction color for emphasis */
-.compare-timeline.net-positive [data-col="net"].tl-bd-cell { color: #1e7e34; }
-.compare-timeline.net-negative [data-col="net"].tl-bd-cell { color: #c62828; }
+/* Net breakdown cells color by their own sign (Operating can rise while
+   the overall net falls — JS toggles bd-net-pos/neg per cell); heavier
+   weight echoes the Net chip above so the column reads as one unit. */
+.compare-timeline [data-col="net"].tl-bd-cell { font-weight: 700; }
+.compare-timeline [data-col="net"].tl-bd-cell.bd-net-pos { color: #1e7e34; }
+.compare-timeline [data-col="net"].tl-bd-cell.bd-net-neg { color: #c62828; }
 
 /* Hairline column dividers between every number cell in the breakdown rows.
    Rule appears between Gov/HD1, HD1/SD1, SD1/CD1, CD1/Net — never between
@@ -4480,7 +4492,9 @@ mark.search-highlight {
 }
 .compare-timeline > .tl-band[data-row="cap"] {
     grid-row: 5;
-    background: #faf6ee;
+    /* Near-neutral tint — the ochre accent bar alone carries the category
+       hue; a warm band fill clashed with the cool sage page. */
+    background: #f8f7f4;
     box-shadow: inset 3px 0 0 #c7b187;
 }
 /* Note: the .tl-band [hidden] rule is replaced by the animated
@@ -4581,32 +4595,123 @@ mark.search-highlight {
 #draft-cards:empty {
     display: none;
 }
-/* Expand caret — sits in the left rail at the totals row. Circular
-   button signals interactivity; rotates 180° when the breakdown is open. */
+/* Expand control — kicker label + circular caret in the left rail at the
+   totals row. The label names what the caret reveals; it fades once the
+   breakdown is open (the Operating/Capital row labels take over). The
+   chevron is inline SVG so it centers crisply, rotating 180° when open. */
+.tl-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+.tl-expand-kicker {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a9199;
+    transition: opacity 0.18s ease;
+}
+.tl-expand-btn.open .tl-expand-kicker {
+    opacity: 0;
+}
 .tl-expand-caret {
     width: 26px;
     height: 26px;
     border-radius: 50%;
     background: #f0f4f2;
     border: 1px solid #d1ddd8;
-    padding: 0;
-    font-size: 0.9rem;
-    line-height: 1;
     color: #5a7468;
-    cursor: pointer;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s, border-color 0.15s, transform 0.18s ease, color 0.12s;
 }
-.tl-expand-caret:hover {
+.tl-expand-btn:hover .tl-expand-caret {
     background: #dfeae5;
     border-color: #a8c0b8;
     color: #3d5249;
 }
-.tl-expand-caret.open {
+.tl-expand-btn:focus-visible {
+    outline: none;
+}
+.tl-expand-btn:focus-visible .tl-expand-caret {
+    box-shadow: 0 0 0 3px rgba(90, 123, 104, 0.25);
+}
+.tl-expand-btn.open .tl-expand-caret {
     transform: rotate(180deg);
+}
+
+/* ── Small screens: contain the timeline inside the card ────────────────
+   Below ~640px the chip row is wider than the viewport. Tracks switch to
+   max-content so chips can never overlap, the grid grows to its content
+   width, and the card scrolls horizontally instead of pushing the whole
+   page wide. column-gap stays 0 so the dot connector line is continuous;
+   chips get small side margins for separation instead. */
+@media (max-width: 640px) {
+    .compare-controls-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .compare-controls-bar > .compare-timeline {
+        width: max-content;
+        min-width: 100%;
+        padding: 10px 10px 12px;
+        grid-template-columns: 1fr max-content repeat(4, max-content) max-content 1fr;
+    }
+    .tl-expand-kicker { display: none; }
+    .tl-label { font-size: 0.92rem; }
+    .tl-amt {
+        padding: 4px 10px;
+        margin: 0 3px;
+    }
+    .tl-amt-num { font-size: 1rem; }
+    .tl-net-chip {
+        padding: 4px 10px;
+        gap: 4px;
+    }
+    .tl-bd-label {
+        font-size: 0.92rem;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .tl-bd-cell {
+        font-size: 0.92rem;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+
+/* The page tint's edge-to-edge bleed assumes #app's 2rem padding; at
+   ≤768px #app drops to 1rem, so match it or the page scrolls sideways. */
+@media (max-width: 768px) {
+    .compare-page {
+        margin: -1rem -1rem 0;
+        padding: 1rem 1rem 1.5rem;
+    }
+    .compare-page > .search-row {
+        margin: 0 -1rem;
+        padding: 0.5rem 1rem 0.6rem;
+    }
+    /* Tables without an internal scroll pane (capital projects, fund
+       detail) scroll inside their card instead of widening the page. */
+    .compare-page .projects-section,
+    .compare-page #fund-detail-section {
+        overflow-x: auto;
+    }
+    /* The filter/search cluster is flex-shrink: 0 for desktop layout;
+       on narrow screens let it shrink and wrap instead of widening
+       the page. */
+    .compare-page > .search-row .search-summary {
+        flex-shrink: 1;
+        min-width: 0;
+    }
 }
 
 .hb300-ref-bar {
