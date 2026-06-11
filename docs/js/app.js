@@ -2911,6 +2911,19 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                 ${fyToggle}
             </div>
             <div class="compare-controls-bar">
+                <!-- Mobile-only stage picker. Hidden ≥640px (the dots are the
+                     toggle on desktop). Pinned via position:sticky so it stays
+                     put while the timeline scrolls horizontally beneath it.
+                     Each chip proxies the matching hidden #tl-* checkbox, so
+                     all downstream state (col-*-inactive, captions, URL
+                     persistence, scroll fades) flows from the existing change
+                     event — no separate state machine. -->
+                <div class="tl-stage-picker" role="group" aria-label="Choose which budget stages to compare">
+                    <button type="button" class="tl-stage-chip" data-node="gov">Gov.</button>
+                    <button type="button" class="tl-stage-chip" data-node="hd1">HD1</button>
+                    <button type="button" class="tl-stage-chip" data-node="sd1">SD1</button>
+                    <button type="button" class="tl-stage-chip" data-node="cd1">CD1</button>
+                </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <!-- Row 1: column labels -->
                     <div class="tl-corner tl-corner-labels"></div>
@@ -2959,12 +2972,21 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-amt" id="tl-amt-cd1" data-col="cd1" data-row="totals"></span>
                     <span class="tl-amt tl-net-chip" id="tl-amt-net" data-col="net" data-row="totals"></span>
 
+                    <!-- Row 4: context captions — the totals all round to the same
+                         $23.1B, so the captions carry the story (anchor word /
+                         stage-to-stage delta / destination word / net scope). -->
+                    <span class="tl-sub" id="tl-sub-gov" data-col="gov" data-row="subs"></span>
+                    <span class="tl-sub" id="tl-sub-hd1" data-col="hd1" data-row="subs"></span>
+                    <span class="tl-sub" id="tl-sub-sd1" data-col="sd1" data-row="subs"></span>
+                    <span class="tl-sub" id="tl-sub-cd1" data-col="cd1" data-row="subs"></span>
+                    <span class="tl-sub" id="tl-sub-net" data-col="net" data-row="subs"></span>
+
                     <!-- Row 4: Operating breakdown (toggled).
                          The .tl-band spans all columns and paints the
                          zebra tint as one continuous rectangle regardless
                          of per-cell width. Values sit above it via z-index. -->
                     <div class="tl-band" data-row="op" hidden></div>
-                    <div class="tl-bd-label has-tooltip" data-row="op" data-tooltip="The operating budget pays for the state&rsquo;s ongoing, day-to-day services like salaries, programs, and utilities each year." hidden>Operating</div>
+                    <div class="tl-bd-label has-tooltip" data-row="op" data-tooltip="The operating budget pays for the state&rsquo;s ongoing, day-to-day services like salaries, programs, and utilities each year." hidden><span class="tl-bd-name-full">Operating</span><span class="tl-bd-name-abbr">Op.</span><span class="tl-bd-share" id="tl-bd-share-op"></span></div>
                     <span class="tl-bd-cell" id="tl-bd-op-gov" data-col="gov" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-hd1" data-col="hd1" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-sd1" data-col="sd1" data-row="op" hidden></span>
@@ -2973,7 +2995,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
 
                     <!-- Row 5: Capital breakdown (toggled) -->
                     <div class="tl-band" data-row="cap" hidden></div>
-                    <div class="tl-bd-label has-tooltip" data-row="cap" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities." hidden>Capital</div>
+                    <div class="tl-bd-label has-tooltip" data-row="cap" data-tooltip="The capital budget pays for building and fixing long-term physical projects like schools, roads, and other facilities." hidden><span class="tl-bd-name-full">Capital</span><span class="tl-bd-name-abbr">Cap.</span><span class="tl-bd-share" id="tl-bd-share-cap"></span></div>
                     <span class="tl-bd-cell" id="tl-bd-cap-gov" data-col="gov" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-hd1" data-col="hd1" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-sd1" data-col="sd1" data-row="cap" hidden></span>
@@ -3342,13 +3364,16 @@ window.initDraftComparePage = async function () {
         if (sd1Active) nodes.push({ val: totSD1, label: 'SD1' });
         if (cd1Active) nodes.push({ val: totCD1, label: 'CD1' });
 
-        // Compact format for amounts shown directly under each timeline dot
+        // Compact format for amounts shown directly under each timeline dot.
+        // Phones get one decimal — the second decimal is what pushes the
+        // pill row past 375px (a matchMedia listener re-renders on change).
+        const dec = window.matchMedia('(max-width: 640px)').matches ? 1 : 2;
         const fmtShort = (n) => {
             if (n == null) return '';
             const abs = Math.abs(n);
             const sign = n < 0 ? '-' : '';
-            if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
-            if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+            if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(dec)}B`;
+            if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(dec)}M`;
             if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(0)}K`;
             return `${sign}$${abs.toFixed(0)}`;
         };
@@ -3376,6 +3401,39 @@ window.initDraftComparePage = async function () {
             if (el) el.innerHTML = fmtShortHTML(val);
         });
 
+        // Context captions under each pill. Whole millions are enough
+        // precision for a caption — the exact figures live in the chips.
+        const fmtCaption = (n) => {
+            const abs = Math.abs(n), sign = n < 0 ? '−' : '+';
+            if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`;
+            if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(0)}M`;
+            if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(0)}K`;
+            return `${sign}$${abs.toFixed(0)}`;
+        };
+        const setSub = (id, text, cls = '') => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = text; el.className = 'tl-sub' + (cls ? ' ' + cls : ''); }
+        };
+        const subCls = (n) => n > 0 ? 'tl-sub-up' : n < 0 ? 'tl-sub-down' : '';
+        const dHd1 = totHD1 - totGov;
+        const dSd1 = totSD1 - totHD1;
+        setSub('tl-sub-gov', 'baseline');
+        setSub('tl-sub-hd1', dHd1 === 0 ? 'no change vs Gov.' : `${fmtCaption(dHd1)} vs Gov.`, subCls(dHd1));
+        setSub('tl-sub-sd1', dSd1 === 0 ? 'no change vs HD1' : `${fmtCaption(dSd1)} vs HD1`, subCls(dSd1));
+        setSub('tl-sub-cd1', 'final budget', 'tl-sub-final');
+        // Net scope caption: percent + which two stages the net spans.
+        const fromLbl = getD1Label() === "Gov's Request" ? 'Gov.' : getD1Label();
+        const toLbl = getD2Label() === "Gov's Request" ? 'Gov.' : getD2Label();
+        const absPct = Math.abs(netPct);
+        const pctStr = tabNet === 0 ? '0%'
+            : `${tabNet > 0 ? '+' : '−'}${absPct >= 0.01 ? absPct.toFixed(2) : absPct.toFixed(3)}%`;
+        // Scope half lives in its own span so phones can drop it (CSS).
+        const netSubEl = document.getElementById('tl-sub-net');
+        if (netSubEl) {
+            netSubEl.className = 'tl-sub';
+            netSubEl.innerHTML = `${pctStr}<span class="tl-sub-scope"> · ${fromLbl} → ${toLbl}</span>`;
+        }
+
         // Populate per-cell Operating / Capital breakdown values (grid layout).
         // IDs follow the pattern tl-bd-{op|cap}-{gov|hd1|sd1|cd1|net}.
         const signed = (n) => (n > 0 ? '+' : '') + fmtShort(n);
@@ -3386,11 +3444,17 @@ window.initDraftComparePage = async function () {
             { col: 'cd1', opV: op.cd1,              capV: cap.cd1,              fmt: fmtShort },
             { col: 'net', opV: op.d2 - op.d1,       capV: cap.d2 - cap.d1,      fmt: signed   },
         ];
+        // Two-tone suffix for breakdown values, matching the totals pills.
+        // Net cells stay single-tone so the direction color isn't diluted.
+        const twoTone = (s) => {
+            const m = s.match(/^(-?\$[0-9.]+)([BMK])$/);
+            return m ? `${m[1]}<span class="tl-bd-suffix">${m[2]}</span>` : s;
+        };
         cells.forEach(({ col, opV, capV, fmt }) => {
             const opEl  = document.getElementById(`tl-bd-op-${col}`);
             const capEl = document.getElementById(`tl-bd-cap-${col}`);
-            if (opEl)  opEl.textContent  = fmt(opV);
-            if (capEl) capEl.textContent = fmt(capV);
+            if (opEl)  opEl.innerHTML  = col === 'net' ? fmt(opV) : twoTone(fmt(opV));
+            if (capEl) capEl.innerHTML = col === 'net' ? fmt(capV) : twoTone(fmt(capV));
             // Net cells color by their own sign — Operating can rise while
             // the overall net falls, so the container-level direction class
             // can't drive these.
@@ -3405,6 +3469,13 @@ window.initDraftComparePage = async function () {
                 }
             }
         });
+        // Share-of-total chips on the Operating/Capital row labels, based
+        // on the current comparison endpoint (d2).
+        const shareTot = op.d2 + cap.d2;
+        const opShareEl = document.getElementById('tl-bd-share-op');
+        const capShareEl = document.getElementById('tl-bd-share-cap');
+        if (opShareEl)  opShareEl.textContent  = shareTot ? `${Math.round(op.d2 / shareTot * 100)}%` : '';
+        if (capShareEl) capShareEl.textContent = shareTot ? `${Math.round(cap.d2 / shareTot * 100)}%` : '';
         // Toggle the .show-breakdown class on the timeline; CSS animates the
         // breakdown rows in/out via max-height + opacity transitions on each
         // cell.  We strip the legacy `hidden` attribute that the page HTML
@@ -3433,8 +3504,11 @@ window.initDraftComparePage = async function () {
             const pct = Math.abs(netPct) < 0.01 && tabNet === 0
                 ? '0%'
                 : `${sign}${netPct.toFixed(netPct > -10 && netPct < 10 ? 2 : 1)}%`;
-            netAmtEl.innerHTML =
-                `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
+            const netM = fmtShort(tabNet).match(/^(-?\$[0-9.]+)([BMK]?)$/);
+            netAmtEl.innerHTML = netM
+                ? `<span class="tl-net-val">${sign}${netM[1]}</span>` +
+                  (netM[2] ? `<span class="tl-net-suffix">${netM[2]}</span>` : '')
+                : `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
         }
         // Sparkline: four dots (Gov / HD1 / SD1 / CD1) with the last highlighted.
         // Vertically scales to the range of the totals so visually-tiny deltas
@@ -5384,6 +5458,10 @@ window.initDraftComparePage = async function () {
     }
 
     // --- Compare timeline: Gov's Request / HD1 / SD1 / CD1 checkboxes ---
+    // Assigned by the scroll-hint setup further down; called on every stage
+    // toggle so the mobile edge-fades update when columns are added/removed
+    // (a ResizeObserver alone misses some of these transitions).
+    let refreshScrollHints = () => {};
     const updateTimeline = () => {
         govActive  = document.getElementById('tl-gov')?.checked  ?? true;
         hd1Active  = document.getElementById('tl-hd1')?.checked  ?? true;
@@ -5412,10 +5490,33 @@ window.initDraftComparePage = async function () {
             });
         }
 
+        // Mirror checkbox state onto the mobile stage-picker chips (active fill
+        // + disabled when toggling off would drop below the 2-stage minimum).
+        document.querySelectorAll('.tl-stage-chip').forEach(chip => {
+            const cb = document.getElementById(`tl-${chip.dataset.node}`);
+            const on = !!cb?.checked;
+            chip.classList.toggle('active', on);
+            chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+            chip.disabled = !!cb?.disabled;
+        });
+
         updateSummaryCards();
         render();
+        // Recompute edge-fades after the columns reflow. setTimeout (not rAF)
+        // so it still fires if the tab is backgrounded.
+        setTimeout(refreshScrollHints, 0);
     };
     document.querySelectorAll('.tl-cb').forEach(cb => cb.addEventListener('change', updateTimeline));
+    // Mobile stage chips proxy the hidden checkboxes — flip + dispatch change
+    // so the exact same path the desktop dots use drives everything downstream.
+    document.querySelectorAll('.tl-stage-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const cb = document.getElementById(`tl-${chip.dataset.node}`);
+            if (!cb || cb.disabled) return; // guard: keeps ≥2 stages active
+            cb.checked = !cb.checked;
+            cb.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
     // Reflect URL-persisted node state in checkboxes on page load
     if (_initState.nodes !== 'gov,cd1') {
         const ns = new Set(_initState.nodes.split(','));
@@ -5428,6 +5529,41 @@ window.initDraftComparePage = async function () {
     // col-*-inactive classes are applied even on first load (defaults
     // include HD1/SD1 unchecked).
     updateTimeline();
+
+    // Re-render the summary when the phone breakpoint flips so amounts
+    // switch between 1- and 2-decimal precision. The MQL must be retained
+    // (an unreferenced one can be GC'd and never fire), and a resize
+    // fallback covers environments where the change event doesn't dispatch.
+    const phoneMq = window.matchMedia('(max-width: 640px)');
+    let phoneMqWas = phoneMq.matches;
+    const onPhoneMqMaybeChanged = () => {
+        if (phoneMq.matches !== phoneMqWas) {
+            phoneMqWas = phoneMq.matches;
+            updateSummaryCards();
+        }
+    };
+    phoneMq.addEventListener('change', onPhoneMqMaybeChanged);
+    window.addEventListener('resize', onPhoneMqMaybeChanged);
+
+    // Scroll-hint classes on the (mobile) horizontally scrolling card —
+    // CSS fades the clipped edge so it's obvious there's more content.
+    const hintBar = document.querySelector('.compare-controls-bar');
+    if (hintBar) {
+        const updateScrollHints = () => {
+            const maxScroll = hintBar.scrollWidth - hintBar.clientWidth;
+            hintBar.classList.toggle('scroll-right', maxScroll > 1 && hintBar.scrollLeft < maxScroll - 1);
+            hintBar.classList.toggle('scroll-left', hintBar.scrollLeft > 1);
+        };
+        hintBar.addEventListener('scroll', updateScrollHints, { passive: true });
+        // Watch the inner timeline too — toggling stage columns changes the
+        // content width without resizing the bar's own box.
+        const hintRo = new ResizeObserver(updateScrollHints);
+        hintRo.observe(hintBar);
+        const hintTl = hintBar.querySelector('.compare-timeline');
+        if (hintTl) hintRo.observe(hintTl);
+        refreshScrollHints = updateScrollHints; // let updateTimeline drive it too
+        updateScrollHints();
+    }
 
     // Expand caret (left of Gov amount) — toggle Op/Cap breakdown
     const expandBtn = document.getElementById('tl-expand-btn');

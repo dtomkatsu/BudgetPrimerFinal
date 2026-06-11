@@ -4035,12 +4035,12 @@ mark.search-highlight {
        Flex spacers absorb the slack on both edges so the dot+totals group
        stays centered. The tl-band uses grid-column: 1 / -1 to span all 8
        so the zebra tint extends edge-to-edge.
-       Column 2 is fixed-width so the "OPERATING"/"CAPITAL" labels (visible
+       Column 2 is fixed-width so the "Operating"/"Capital" labels (visible
        when the breakdown is open) don't widen it and shift the row sideways.
-       The 132px is sized to fit "OPERATING" (uppercase, letter-spaced) plus
-       the 14px+14px horizontal padding without clipping the leading 'O'. */
-    grid-template-columns: 1fr 132px repeat(4, minmax(84px, 140px)) minmax(130px, max-content) 1fr;
-    grid-template-rows: auto auto auto auto auto;
+       The 158px is sized to fit "Operating" plus its share-of-total chip
+       and the 14px+14px horizontal padding without overflowing the band. */
+    grid-template-columns: 1fr 158px repeat(4, minmax(118px, 158px)) minmax(130px, max-content) 1fr;
+    grid-template-rows: auto auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
     padding: 4px 0 0;
@@ -4059,8 +4059,9 @@ mark.search-highlight {
 .compare-timeline > [data-row="labels"] { grid-row: 1; }
 .compare-timeline > [data-row="dots"]   { grid-row: 2; }
 .compare-timeline > [data-row="totals"] { grid-row: 3; }
-.compare-timeline > [data-row="op"]     { grid-row: 4; }
-.compare-timeline > [data-row="cap"]    { grid-row: 5; }
+.compare-timeline > [data-row="subs"]   { grid-row: 4; }
+.compare-timeline > [data-row="op"]     { grid-row: 5; }
+.compare-timeline > [data-row="cap"]    { grid-row: 6; }
 /* Left-rail corner cells — col 2 (col 1 is flex spacer) */
 .compare-timeline > .tl-corner { grid-column: 2; }
 .compare-timeline > .tl-corner-labels { grid-row: 1; }
@@ -4203,9 +4204,11 @@ mark.search-highlight {
 /* Amount beneath each timeline dot — chip styling (consistent w/ figure-chip in table) */
 .tl-amt {
     display: inline-block;
-    padding: 5px 14px;
-    background: #f4f6f8;
-    border: 1px solid #e5e7eb;
+    padding: 6px 16px;
+    /* Near-white fill + hairline border — the pill is a frame, not a
+       button. The numeral carries the visual weight. */
+    background: #fafbfa;
+    border: 1px solid #e8ecea;
     border-radius: 999px;
     color: #1a2330;
     text-align: center;
@@ -4221,12 +4224,12 @@ mark.search-highlight {
 /* Two-tone typography — number is the visual hero, suffix is a quieter
    trailing letter so the eye lands on the magnitude first. */
 .tl-amt-num {
-    font-size: 1.1rem;
+    font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.015em;
 }
 .tl-amt-suffix {
-    font-size: 0.78rem;
+    font-size: 0.84rem;
     font-weight: 500;
     color: #7a8590;
     margin-left: 1px;
@@ -4260,6 +4263,34 @@ mark.search-highlight {
 }
 .compare-timeline:not(.col-cd1-inactive) [data-col="cd1"] .tl-amt-suffix {
     color: rgba(255, 255, 255, 0.80);
+}
+
+/* ── Context captions under the pills (row 4) ──────────────────────────
+   Gov/CD1 get anchor words ("baseline" / "final budget"); the middle
+   drafts get stage-to-stage deltas; Net gets percent + scope. These carry
+   the story the rounded totals can't — three of the four pills usually
+   render the same $23.1B. */
+.compare-timeline > [data-row="subs"] { margin-top: 5px; }
+.tl-sub {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8a9199;
+    text-align: center;
+    justify-self: center;
+    white-space: nowrap;
+    line-height: 1.2;
+    min-height: 1em;          /* keeps the row height when a caption is empty */
+    font-variant-numeric: tabular-nums;
+}
+.tl-sub-up   { color: #4f8862; }
+.tl-sub-down { color: #b3614f; }
+.tl-sub-final { color: #5a7468; font-weight: 600; }
+/* Captions mute with their column */
+.compare-timeline.col-gov-inactive [data-col="gov"].tl-sub,
+.compare-timeline.col-hd1-inactive [data-col="hd1"].tl-sub,
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-sub,
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-sub {
+    color: #c1c8c5;
 }
 
 /* ── Card section sub-headers (inside combined Operating & Capital collapse) ── */
@@ -4311,8 +4342,8 @@ mark.search-highlight {
 .tl-net-chip {
     display: inline-flex;
     align-items: baseline;
-    gap: 6px;
-    padding: 5px 14px;
+    gap: 1px;
+    padding: 6px 16px;
     font-weight: 700;
     letter-spacing: -0.015em;
     background: #f1f5f2;
@@ -4326,6 +4357,17 @@ mark.search-highlight {
     line-height: 1;
     transform: translateY(-1px);
     opacity: 0.85;
+}
+/* Net value scales with the totals numerals; the unit suffix steps down
+   the same way the B/M/K does inside the draft pills. */
+.tl-net-val {
+    font-size: 1.35rem;
+    letter-spacing: -0.015em;
+}
+.tl-net-suffix {
+    font-size: 0.84rem;
+    font-weight: 600;
+    opacity: 0.75;
 }
 .compare-timeline.net-positive [data-col="net"].tl-net-chip {
     background: #eaf2ec;
@@ -4371,19 +4413,42 @@ mark.search-highlight {
 .tl-bd-label {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 0.55rem;
-    padding-right: 14px;
-    padding-left: 14px; /* breathing room between band's left edge and text */
-    font-size: 0.95rem;
+    justify-content: flex-start;
+    gap: 7px;
+    padding-right: 8px;
+    padding-left: 14px;
+    font-size: 0.74rem;
     font-weight: 600;
-    color: #3d4a45;
-    letter-spacing: 0;
-    text-transform: none;
+    color: #5f6e68;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     white-space: nowrap;
     cursor: help;
     align-self: stretch;
 }
+/* Category color dot — replaces the old inset accent bar on the bands.
+   Tooltips use ::after, so ::before is free. */
+.tl-bd-label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.tl-bd-label[data-row="op"]::before  { background: #7d9a8d; }
+.tl-bd-label[data-row="cap"]::before { background: #c7b187; }
+/* Phone-width swap: full name on desktop, abbreviation under 640px */
+.tl-bd-name-abbr { display: none; }
+/* Share-of-total beside the row label — answers "how does the budget
+   split?" without the reader doing mental division. Plain muted text;
+   a capsule here competed with the pills above. */
+.tl-bd-share {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #9aa5a0;
+    letter-spacing: 0;
+}
+.tl-bd-share:empty { display: none; }
 /* Dotted underline appears on hover as tooltip affordance */
 .tl-bd-label:hover,
 .tl-bd-label:focus {
@@ -4406,22 +4471,35 @@ mark.search-highlight {
    via flexbox/text-align, not via self-alignment shrinking. */
 .tl-bd-cell {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: center;
     text-align: center;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: 1rem;
     color: #2e3a36;
     letter-spacing: -0.01em;
     white-space: nowrap;
 }
+/* Small dim unit letter — same two-tone treatment as the totals pills,
+   so the breakdown reads as part of the same component. */
+.tl-bd-suffix {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #7a8590;
+    margin-left: 1px;
+}
 .tl-bd-cell[hidden] { display: none; }
-/* Inactive column mutes its breakdown cells */
+/* Inactive column mutes its breakdown cells (suffix included) */
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
     color: #aab5b1;
+}
+.compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell .tl-bd-suffix,
+.compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell .tl-bd-suffix,
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell .tl-bd-suffix {
+    color: #c1c8c5;
 }
 /* Net breakdown cells color by their own sign (Operating can rise while
    the overall net falls — JS toggles bd-net-pos/neg per cell); heavier
@@ -4485,17 +4563,20 @@ mark.search-highlight {
    all columns. */
 .compare-timeline > .tl-bd-label[data-row="op"]  { grid-column: 2; }
 .compare-timeline > .tl-bd-label[data-row="cap"] { grid-column: 2; }
+/* Borderless-ledger treatment: no tinted strips. The op "band" carries
+   only the dashed rule that marks the start of the breakdown zone; the
+   category hue moved to a small dot beside each label (::before below). */
 .compare-timeline > .tl-band[data-row="op"]  {
-    grid-row: 4;
-    background: #f4f8f6;
-    box-shadow: inset 3px 0 0 #9bb2a8;
+    grid-row: 5;
+    background: none;
+    box-shadow: none;
+    border-top: 1px dashed #dde3e0;
+    border-radius: 0;
 }
 .compare-timeline > .tl-band[data-row="cap"] {
-    grid-row: 5;
-    /* Near-neutral tint — the ochre accent bar alone carries the category
-       hue; a warm band fill clashed with the cool sage page. */
-    background: #f8f7f4;
-    box-shadow: inset 3px 0 0 #c7b187;
+    grid-row: 6;
+    background: none;
+    box-shadow: none;
 }
 /* Note: the .tl-band [hidden] rule is replaced by the animated
    collapsed/expanded states under .compare-timeline (see "show-breakdown"). */
@@ -4516,12 +4597,12 @@ mark.search-highlight {
    a grid item itself, it takes its height from the row, which in turn
    is sized by its children — so padding on the cells determines the
    band height. */
-.compare-timeline > [data-row="op"]  { padding-top: 11px; padding-bottom: 9px; }
-.compare-timeline > [data-row="cap"] { padding-top: 9px;  padding-bottom: 11px; }
-/* Small gap above the first band so it doesn't crash into the totals
-   pills. Because row-gap is 0 globally, use margin on all row-4 items
-   (including the .tl-band). */
-.compare-timeline > [data-row="op"] { margin-top: 8px; }
+.compare-timeline > [data-row="op"]  { padding-top: 13px; padding-bottom: 6px; }
+.compare-timeline > [data-row="cap"] { padding-top: 5px;  padding-bottom: 8px; }
+/* Gap between the caption row and the dashed rule that opens the
+   breakdown zone. Margin (not row-gap) so the collapse animation can
+   zero it. */
+.compare-timeline > [data-row="op"] { margin-top: 10px; }
 
 /* ── Breakdown slide-down animation ──────────────────────────────────────
    The Op/Cap rows animate in/out when the user clicks the expand caret.
@@ -4648,16 +4729,81 @@ mark.search-highlight {
     transform: rotate(180deg);
 }
 
+/* ── Mobile stage picker ────────────────────────────────────────────────
+   Hidden on desktop (the dots are the toggle there). Revealed ≤640px,
+   where the dots are frozen and inactive columns are hidden. Each chip
+   proxies a hidden #tl-* checkbox via JS. Sticky to the scrollport's left
+   edge so it stays usable while the timeline scrolls horizontally beneath
+   it; width:100% resolves against the bar's client box (not its scroll
+   width), so the picker itself never adds horizontal scroll. */
+.tl-stage-picker {
+    display: none;
+    position: sticky;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 4px 10px;
+    background: #ffffff;
+    z-index: 2;
+}
+.tl-stage-chip {
+    flex: 0 0 auto;
+    min-width: 56px;
+    padding: 6px 0;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #5a6e66;
+    background: #ffffff;
+    border: 1px solid #d1ddd8;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+.tl-stage-chip.active {
+    background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20),
+                0 1px 4px rgba(80, 105, 95, 0.18);
+}
+.tl-stage-chip:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+.tl-stage-chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(90, 123, 104, 0.25);
+}
+
 /* ── Small screens: contain the timeline inside the card ────────────────
    Below ~640px the chip row is wider than the viewport. Tracks switch to
    max-content so chips can never overlap, the grid grows to its content
    width, and the card scrolls horizontally instead of pushing the whole
    page wide. column-gap stays 0 so the dot connector line is continuous;
    chips get small side margins for separation instead. */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .compare-controls-bar {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+    .compare-timeline > [data-row="dots"] { scroll-snap-align: center; }
+    /* Edge fades — JS toggles scroll-left/right on the card so the fade
+       only shows when there genuinely is clipped content on that side. */
+    .compare-controls-bar.scroll-right {
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    }
+    .compare-controls-bar.scroll-left {
+        -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+        mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+    }
+    .compare-controls-bar.scroll-left.scroll-right {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+        mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
     }
     .compare-controls-bar > .compare-timeline {
         width: max-content;
@@ -4671,21 +4817,51 @@ mark.search-highlight {
         padding: 4px 10px;
         margin: 0 3px;
     }
-    .tl-amt-num { font-size: 1rem; }
-    .tl-net-chip {
-        padding: 4px 10px;
-        gap: 4px;
-    }
+    .tl-amt-num { font-size: 1.1rem; }
+    .tl-net-chip { padding: 4px 10px; }
+    .tl-net-val { font-size: 1.1rem; }
+    .tl-sub { font-size: 0.78rem; }
     .tl-bd-label {
-        font-size: 0.92rem;
         padding-left: 10px;
-        padding-right: 10px;
+        padding-right: 8px;
     }
     .tl-bd-cell {
         font-size: 0.92rem;
         padding-left: 8px;
         padding-right: 8px;
     }
+    /* Touch screens can't hover; the opacity-hidden tooltip boxes are
+       280px wide and silently inflate the scroll area, so drop them. */
+    .compare-timeline .has-tooltip::after { display: none; }
+}
+
+/* Phones: show only the ACTIVE stages — the default Gov → CD1 → Net view
+   fits 375px with no sideways scroll, which beats panning for the answer.
+   The dots become read-only state indicators here; the labeled stage
+   picker above is the toggle (a frozen dot can't be re-enabled by tapping
+   the column it just hid). Adding stages falls back to the internal
+   scroll + edge fades above. */
+@media (max-width: 640px) {
+    .tl-stage-picker { display: flex; }
+    .compare-timeline.col-gov-inactive [data-col="gov"],
+    .compare-timeline.col-hd1-inactive [data-col="hd1"],
+    .compare-timeline.col-sd1-inactive [data-col="sd1"],
+    .compare-timeline.col-cd1-inactive [data-col="cd1"] {
+        display: none;
+    }
+    .tl-dot-lbl { pointer-events: none; }
+    .tl-sub-scope { display: none; }
+    .tl-bd-name-full { display: none; }
+    .tl-bd-name-abbr { display: inline; }
+    .compare-controls-bar > .compare-timeline {
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+    .tl-amt { padding: 4px 8px; margin: 0 1px; }
+    .tl-net-chip { padding: 4px 8px; }
+    .tl-amt-num, .tl-net-val { font-size: 1rem; }
+    .tl-sub { padding: 0 3px; }
+    .tl-bd-label { padding-left: 4px; padding-right: 2px; }
 }
 
 /* The page tint's edge-to-edge bleed assumes #app's 2rem padding; at
