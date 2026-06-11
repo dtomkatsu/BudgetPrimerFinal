@@ -34,6 +34,11 @@ ENV/
 data/raw/*
 !data/raw/HB 300 CD 1.txt
 !data/raw/vetoes/
+# Draft bill texts are the source-of-truth inputs for the draft-compare JSONs;
+# track them so the comparison pipeline is reproducible from a fresh clone.
+# (HB1800_CD1.txt also carries hand-applied corrections for markup the RTF→text
+#  conversion dropped — see commit 08c5f83.)
+!data/raw/drafts/
 data/processed/*
 !data/processed/budget_parsed*.csv
 !data/processed/budget_allocations*.csv

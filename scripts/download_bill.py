@@ -231,16 +231,66 @@ def rtf_to_text(rtf: str) -> str:
     return text.strip() + '\n'
 
 
-def convert_rtf(bill: str, draft: str, rtf_path: Path) -> Path:
+# ---------------------------------------------------------------------------
+# Overwrite guard for hand-corrected drafts
+# ---------------------------------------------------------------------------
+#
+# The RTF→text conversion silently drops a few pieces of markup the parser
+# relies on (e.g. Section 14 program headers, struck-through project lines).
+# Some draft texts therefore carry hand-applied corrections that a fresh
+# download/convert would wipe out. Such drafts are flagged `"protected": true`
+# in metadata.json; the guard below refuses to overwrite them unless --force is
+# given. See data/raw/drafts/CORRECTIONS.md for the full record.
+
+def _is_protected(label: str) -> tuple:
+    """Return (protected: bool, note: str) for a draft label from metadata."""
+    if not METADATA_FILE.exists():
+        return False, ''
+    try:
+        meta = json.loads(METADATA_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return False, ''
+    info = meta.get('drafts', {}).get(label, {})
+    return bool(info.get('protected')), info.get('correction_note', '')
+
+
+def _guard_protected(label: str, force: bool) -> bool:
+    """Check whether it is safe to overwrite `label`.
+
+    Returns True to proceed, False if the caller must abort because the draft is
+    protected and --force was not given.
+    """
+    protected, note = _is_protected(label)
+    if not protected:
+        return True
+    if force:
+        print(f'WARNING: --force is overwriting protected draft "{label}". '
+              'Its hand-applied corrections will be lost and must be '
+              're-applied (see data/raw/drafts/CORRECTIONS.md).')
+        return True
+    print(f'REFUSING to overwrite protected draft "{label}": it carries '
+          'hand-applied corrections that re-conversion would silently destroy.')
+    if note:
+        print(f'  {note}')
+    print('  To regenerate from source anyway, pass --force and then re-apply '
+          'the corrections in data/raw/drafts/CORRECTIONS.md.')
+    return False
+
+
+def convert_rtf(bill: str, draft: str, rtf_path: Path, force: bool = False) -> Path:
     """Convert a locally-saved RTF file to plain text and save it.
 
-    Returns the path to the saved .txt file.
+    Returns the path to the saved .txt file, or None if a protected draft was
+    not overwritten.
     """
     DRAFTS_DIR.mkdir(parents=True, exist_ok=True)
 
     label = draft if draft.lower() != 'introduced' and draft else 'introduced'
     out_name = f'{bill.upper()}_{label}.txt'
     out_path = DRAFTS_DIR / out_name
+
+    if not _guard_protected(label, force):
+        return None
 
     print(f'Converting RTF: {rtf_path} ...')
     raw = rtf_path.read_bytes()
@@ -263,10 +313,12 @@ def convert_rtf(bill: str, draft: str, rtf_path: Path) -> Path:
 # Download logic
 # ---------------------------------------------------------------------------
 
-def download_draft(bill: str, draft: str, session: int = 2026) -> Path:
+def download_draft(bill: str, draft: str, session: int = 2026,
+                   force: bool = False) -> Path:
     """Download a bill draft and save as plain text.
 
-    Returns the path to the saved file.
+    Returns the path to the saved file, or None if a protected draft was not
+    overwritten.
     Raises HTTPError on 404 (draft not yet available).
     """
     DRAFTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -275,6 +327,9 @@ def download_draft(bill: str, draft: str, session: int = 2026) -> Path:
     label = draft if draft.lower() != 'introduced' and draft else 'introduced'
     out_name = f'{bill.upper()}_{label}.txt'
     out_path = DRAFTS_DIR / out_name
+
+    if not _guard_protected(label, force):
+        return None
 
     print(f'Downloading {url} ...')
     req = Request(url, headers={'User-Agent': 'BudgetPrimer/1.0'})
@@ -316,12 +371,19 @@ def _update_metadata(bill: str, label: str, url: str, filename: str,
     meta.setdefault('session', session)
     meta.setdefault('drafts', {})
 
-    meta['drafts'][label] = {
+    entry = {
         'filename': filename,
         'source_url': url,
         'downloaded_at': datetime.now().isoformat(),
         'line_count': line_count,
     }
+    # Preserve protection markers across a forced re-download so the draft stays
+    # guarded even after its corrections are re-applied.
+    existing = meta['drafts'].get(label, {})
+    for key in ('protected', 'correction_note'):
+        if key in existing:
+            entry[key] = existing[key]
+    meta['drafts'][label] = entry
 
     METADATA_FILE.write_text(json.dumps(meta, indent=2) + '\n')
 
@@ -367,6 +429,10 @@ def main():
     parser.add_argument('--from-rtf', metavar='RTF_FILE',
                         help='Convert a locally-saved RTF file instead of '
                              'downloading (use with --draft to set the label)')
+    parser.add_argument('--force', action='store_true',
+                        help='Overwrite drafts marked "protected" in '
+                             'metadata.json (these carry hand-applied '
+                             'corrections; see data/raw/drafts/CORRECTIONS.md)')
     args = parser.parse_args()
 
     if args.list:
@@ -382,8 +448,8 @@ def main():
         if not rtf_path.exists():
             print(f'Error: RTF file not found: {rtf_path}')
             return 1
-        convert_rtf(args.bill, args.draft, rtf_path)
-        return 0
+        result = convert_rtf(args.bill, args.draft, rtf_path, force=args.force)
+        return 0 if result is not None else 1
 
     if args.all:
         drafts_to_get = KNOWN_DRAFTS
@@ -393,8 +459,9 @@ def main():
     success = 0
     for draft in drafts_to_get:
         try:
-            download_draft(args.bill, draft, args.session)
-            success += 1
+            if download_draft(args.bill, draft, args.session,
+                              force=args.force) is not None:
+                success += 1
         except HTTPError:
             continue
         except Exception as e:

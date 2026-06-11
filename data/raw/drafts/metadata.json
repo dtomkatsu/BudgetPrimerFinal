@@ -24,7 +24,9 @@
       "filename": "HB1800_CD1.txt",
       "source_url": "file:///Users/dtomkatsu/Downloads/HB 1800 CD1.rtf",
       "downloaded_at": "2026-05-06T13:22:03.321319",
-      "line_count": 10839
+      "line_count": 10829,
+      "protected": true,
+      "correction_note": "Hand-applied corrections for markup the RTF→text conversion dropped (commit 08c5f83): (1) restored the 'TRN102 - DANIEL K. INOUYE INTERNATIONAL AIRPORT' Section 14 program header; (2) removed the struck 'STADIUM IMPROVEMENTS, KAUAI' ($700K C, FY26) project. Re-downloading/re-converting will lose these — see data/raw/drafts/CORRECTIONS.md."
     }
   }
 }
