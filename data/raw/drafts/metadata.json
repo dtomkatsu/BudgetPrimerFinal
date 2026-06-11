@@ -1,0 +1,30 @@
+{
+  "bill_number": "HB1800",
+  "session": 2026,
+  "drafts": {
+    "introduced": {
+      "filename": "HB1800_introduced.txt",
+      "source_url": "https://data.capitol.hawaii.gov/sessions/session2026/bills/HB1800_.HTM",
+      "downloaded_at": "2026-04-14T08:18:13.650781",
+      "line_count": 1451
+    },
+    "HD1": {
+      "filename": "HB1800_HD1.txt",
+      "source_url": "file:///Users/dtomkatsu/Downloads/HB 1800 HD1.rtf",
+      "downloaded_at": "2026-04-14T13:16:00.650623",
+      "line_count": 7882
+    },
+    "SD1": {
+      "filename": "HB1800_SD1.txt",
+      "source_url": "file:///Users/dtomkatsu/Downloads/HB 1800 SD1.rtf",
+      "downloaded_at": "2026-04-14T13:16:00.724969",
+      "line_count": 7322
+    },
+    "CD1": {
+      "filename": "HB1800_CD1.txt",
+      "source_url": "file:///Users/dtomkatsu/Downloads/HB 1800 CD1.rtf",
+      "downloaded_at": "2026-05-06T13:22:03.321319",
+      "line_count": 10839
+    }
+  }
+}
