@@ -3415,10 +3415,6 @@ window.initDraftComparePage = async function () {
             if (el) { el.textContent = text; el.className = 'tl-sub' + (cls ? ' ' + cls : ''); }
         };
         const subCls = (n) => n > 0 ? 'tl-sub-up' : n < 0 ? 'tl-sub-down' : '';
-        setSub('tl-sub-gov', 'baseline');
-        setSub('tl-sub-hd1', '');
-        setSub('tl-sub-sd1', '');
-        setSub('tl-sub-cd1', 'final budget', 'tl-sub-final');
 
         // ── Connector deltas ──────────────────────────────────────────────
         // Stage-to-stage changes render as dimension lines spanning the gap
@@ -3436,7 +3432,18 @@ window.initDraftComparePage = async function () {
         tlEl?.querySelectorAll('.tl-delta').forEach(el => el.remove());
         const activeStages = ['gov', 'hd1', 'sd1', 'cd1']
             .filter(n => document.getElementById(`tl-${n}`)?.checked);
-        if (tlEl && activeStages.length >= 3) {
+        const showDeltas = activeStages.length >= 3;
+
+        // Anchor captions ("baseline" / "final budget") share the subs row with
+        // the connector deltas, so they only render when NO deltas are drawn —
+        // otherwise the gov/cd1 anchors collide with the first/last delta chips.
+        // In the multi-stage view the delta progression IS the caption row.
+        setSub('tl-sub-gov', showDeltas ? '' : 'baseline');
+        setSub('tl-sub-hd1', '');
+        setSub('tl-sub-sd1', '');
+        setSub('tl-sub-cd1', showDeltas ? '' : 'final budget', showDeltas ? '' : 'tl-sub-final');
+
+        if (tlEl && showDeltas) {
             for (let i = 1; i < activeStages.length; i++) {
                 const a = activeStages[i - 1], b = activeStages[i];
                 const d = stageVals[b] - stageVals[a];
@@ -3551,23 +3558,26 @@ window.initDraftComparePage = async function () {
                   (netM[2] ? `<span class="tl-net-suffix">${netM[2]}</span>` : '')
                 : `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
         }
-        // Sparkline: four dots (Gov / HD1 / SD1 / CD1) with the last highlighted.
-        // Vertically scales to the range of the totals so visually-tiny deltas
-        // still show a slope.
+        // Sparkline: one dot per ACTIVE stage with the last highlighted, so the
+        // spark always matches the journey being compared (muted stages don't
+        // add phantom kinks). Vertically scales to the range of the plotted
+        // totals so visually-tiny deltas still show a slope.
         const spark = document.getElementById('tl-net-spark');
         if (spark) {
-            const vs = [totGov, totHD1, totSD1, totCD1];
+            const stageTotals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1 };
+            const sparkStages = activeStages.length >= 2 ? activeStages : ['gov', 'cd1'];
+            const vs = sparkStages.map(n => stageTotals[n]);
             const mn = Math.min(...vs), mx = Math.max(...vs);
             const range = mx - mn || 1;
             const y = v => (15 - ((v - mn) / range) * 10).toFixed(1);
-            const xs = [6, 22, 38, 54];
+            const xs = vs.map((_, i) => (6 + 48 * i / (vs.length - 1)).toFixed(1));
             const pts = vs.map((v, i) => `${xs[i]},${y(v)}`).join(' ');
             spark.innerHTML =
                 `<polyline class="tl-spark-line" points="${pts}"/>` +
-                `<circle class="tl-spark-dot" cx="${xs[0]}" cy="${y(vs[0])}" r="1.7"/>` +
-                `<circle class="tl-spark-dot" cx="${xs[1]}" cy="${y(vs[1])}" r="1.7"/>` +
-                `<circle class="tl-spark-dot" cx="${xs[2]}" cy="${y(vs[2])}" r="1.7"/>` +
-                `<circle class="tl-spark-dot tl-spark-dot-end" cx="${xs[3]}" cy="${y(vs[3])}" r="2.7"/>`;
+                vs.map((v, i) => {
+                    const end = i === vs.length - 1;
+                    return `<circle class="tl-spark-dot${end ? ' tl-spark-dot-end' : ''}" cx="${xs[i]}" cy="${y(v)}" r="${end ? 2.7 : 1.7}"/>`;
+                }).join('');
         }
         // Update expand caret on Gov amount row
         const expandBtn = document.getElementById('tl-expand-btn');
@@ -4509,9 +4519,9 @@ window.initDraftComparePage = async function () {
             <table class="data-table" id="draft-table">
                 <thead><tr>
                     <th class="sortable th-program-col" data-sort="program_name"><div class="th-program-inner"><span class="th-program-label">Program${sortArrow('program_name')}</span>${(draftComparisonData && draftComparisonDataFY27) ? `<span class="fy-inline-toggle" id="fy-inline-toggle"><button class="fy-inline-btn${activeYear === 26 ? ' active' : ''}" data-fy-inline="26">2026</button><button class="fy-inline-btn${activeYear === 27 ? ' active' : ''}" data-fy-inline="27">2027</button></span>` : ''}</div></th>
-                    <th class="th-dropdown" id="th-section"><span class="th-dropdown-btn">${secLabel}</span>
+                    <th class="th-dropdown" id="th-section"><span class="th-dropdown-btn${checkedSections ? ' th-filtered' : ''}">${secLabel}</span>
                         <div class="th-dropdown-menu">${secChecks}</div></th>
-                    <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn">${fundLabel}</span>
+                    <th class="th-dropdown" id="th-fund"><span class="th-dropdown-btn${checkedFunds ? ' th-filtered' : ''}">${fundLabel}</span>
                         <div class="th-dropdown-menu">${fundChecks}</div></th>
                     <th class="sortable amount-cell" data-sort="d1">${getD1Label()}${sortArrow('d1')}</th>
                     ${showHD1Col() ? `<th class="sortable amount-cell" data-sort="hd1">HD1${sortArrow('hd1')}</th>` : ''}
@@ -5534,6 +5544,23 @@ window.initDraftComparePage = async function () {
                 tl.classList.toggle(`col-${node}-inactive`, !(cb?.checked));
             });
         }
+
+        // Tint the dot-connector between ADJACENT active stages sage so the
+        // dot row shows which hand-offs are in the comparison. Gaps touching a
+        // muted stage stay gray — the connector-delta dimension line below
+        // carries the story of spans that skip over a muted stage. Each gap
+        // between dot i and dot i+1 is drawn by two segments: i's seg-after +
+        // (i+1)'s seg-before.
+        const segOrder = ['gov', 'hd1', 'sd1', 'cd1'];
+        const stageOn = n => !!document.getElementById(`tl-${n}`)?.checked;
+        const segOf = (n, side) =>
+            document.querySelector(`.tl-dot-row[data-col="${n}"] .tl-seg-${side}`);
+        segOrder.forEach((n, i) => {
+            const next = segOrder[i + 1];
+            const pairOn = !!next && stageOn(n) && stageOn(next);
+            segOf(n, 'after')?.classList.toggle('tl-seg-on', pairOn);
+            if (next) segOf(next, 'before')?.classList.toggle('tl-seg-on', pairOn);
+        });
 
         // Mirror checkbox state onto the mobile stage-picker chips (active fill
         // + disabled when toggling off would drop below the 2-stage minimum).
