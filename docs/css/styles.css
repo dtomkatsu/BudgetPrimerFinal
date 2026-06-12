@@ -2155,6 +2155,13 @@ th.sortable .sort-hint {
     width: 1em;
     font-size: 0.88em;
     color: #666;
+    transition: transform 0.18s ease;
+}
+/* Expand carets render a fixed ▶ glyph and rotate to point down when open,
+   so the open/close gesture animates instead of swapping characters.
+   (The tax-calculator table still swaps glyphs — it never gets .open.) */
+.dept-arrow.open {
+    transform: rotate(90deg);
 }
 .dept-count {
     font-weight: 400;
@@ -2164,6 +2171,17 @@ th.sortable .sort-hint {
 .dept-detail-row.hidden,
 .project-row.hidden {
     display: none;
+}
+/* Entrance fade for compare-page table rows. JS sets --ri (0–14) on the
+   first screenful after each render, cascading them in; rows revealed later
+   by expand/collapse replay the animation at --ri 0 (display:none → shown
+   restarts CSS animations), which is what eases expanded children in. */
+@keyframes row-enter {
+    from { opacity: 0; }
+}
+.compare-page .data-table tbody tr {
+    animation: row-enter 0.22s ease-out backwards;
+    animation-delay: calc(var(--ri, 0) * 18ms);
 }
 .dept-detail-row .detail-indent,
 .fund-detail-row .detail-indent {
@@ -4157,12 +4175,26 @@ mark.search-highlight {
     flex: 1;
     height: 2px;
     background: #c2cdc7;
+    position: relative;
     transition: background 0.15s;
 }
 /* Segment joins two ADJACENT active stages (JS toggles the class) — sage to
-   show the hand-off is part of the active comparison. */
-.tl-seg.tl-seg-on {
+   show the hand-off is part of the active comparison. The sage layer is a
+   scaleX overlay so it sweeps in/out; each half-segment grows out of the dot
+   it's attached to, so a newly-joined pair reads as the two stages reaching
+   toward each other and meeting in the middle. */
+.tl-seg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
     background: #8fae9f;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+.tl-seg-after::after  { transform-origin: left; }
+.tl-seg-before::after { transform-origin: right; }
+.tl-seg.tl-seg-on::after {
+    transform: scaleX(1);
 }
 /* First column hides seg-before; CD1 hides seg-after (no line into Net) */
 .compare-timeline > [data-col="gov"] .tl-seg-before { visibility: hidden; }
@@ -4176,6 +4208,20 @@ mark.search-highlight {
     flex-shrink: 0;
     border: 2px solid #5a7468;
     transition: background 0.15s, border-color 0.15s;
+}
+/* Pop-in when a stage becomes active: the animation declaration only applies
+   while the column is NOT inactive, so re-checking a stage re-attaches the
+   animation and replays it (and all active dots pop once on page load). */
+@keyframes tl-dot-pop {
+    0%   { transform: scale(0.65); }
+    60%  { transform: scale(1.14); }
+    100% { transform: scale(1); }
+}
+.compare-timeline:not(.col-gov-inactive) > [data-col="gov"] .tl-dot,
+.compare-timeline:not(.col-hd1-inactive) > [data-col="hd1"] .tl-dot,
+.compare-timeline:not(.col-sd1-inactive) > [data-col="sd1"] .tl-dot,
+.compare-timeline:not(.col-cd1-inactive) > [data-col="cd1"] .tl-dot {
+    animation: tl-dot-pop 0.3s ease-out;
 }
 /* Checkmark on active dots */
 .tl-dot::after {
@@ -4414,6 +4460,9 @@ mark.search-highlight {
     align-items: center;
     background: #ffffff;
     padding: 0 9px;
+    /* Connector chips are rebuilt on every summary update, so this entrance
+       fade replays in step with the count-up and sparkline draw. */
+    animation: row-enter 0.3s ease-out;
 }
 .tl-delta-amt {
     font-size: 0.82rem;
@@ -4472,8 +4521,26 @@ mark.search-highlight {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+    /* Draw-on: the polyline carries pathLength="100", so a 100-unit dash
+       offset hides it and the animation reveals it left-to-right. Replays
+       naturally because the SVG is rebuilt on every summary update. */
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: tl-spark-draw 0.55s ease-out 0.05s forwards;
 }
-.tl-spark-dot { fill: #c9d1cd; }
+@keyframes tl-spark-draw {
+    to { stroke-dashoffset: 0; }
+}
+/* Dots fade in as the line's drawing edge reaches them — per-dot
+   animation-delay is set inline at render time. */
+.tl-spark-dot {
+    fill: #c9d1cd;
+    opacity: 0;
+    animation: tl-spark-dot-in 0.2s ease-out forwards;
+}
+@keyframes tl-spark-dot-in {
+    to { opacity: 1; }
+}
 .tl-spark-dot-end { fill: #7a8a85; }
 /* Net direction drives sparkline + chip hue; class lives on .compare-timeline */
 .compare-timeline.net-positive [data-col="net"] .tl-spark-line { stroke: #b5cfc0; }
@@ -4798,6 +4865,20 @@ mark.search-highlight {
     .compare-timeline > [data-row="cap"] {
         transition: none;
     }
+    .tl-seg::after,
+    .dept-arrow {
+        transition: none;
+    }
+    .tl-dot,
+    .tl-spark-line,
+    .tl-spark-dot,
+    .tl-delta-chip,
+    .compare-page .data-table tbody tr {
+        animation: none !important;
+    }
+    /* With their animations disabled, these must land in their end state. */
+    .tl-spark-line { stroke-dashoffset: 0; }
+    .tl-spark-dot { opacity: 1; }
 }
 
 /* Exempt the label from overflow:hidden so the upward tooltip isn't clipped.

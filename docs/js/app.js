@@ -3314,6 +3314,50 @@ window.initDraftComparePage = async function () {
 
     // --- Summary cards ---
 
+    // Animated count-up for the summary-bar money chips: on value change the
+    // number ticks from its previous value to the new one (ease-out cubic,
+    // ~550ms) instead of snapping. Keyed per element id so each chip animates
+    // independently; an in-flight tick is cancelled when a newer value lands.
+    // First paint counts up from $0 as a page-load entrance.
+    const _amtAnim = { prev: {}, raf: {}, tmo: {} };
+    const _reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const setAnimatedAmount = (id, val, toHTML) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const from = _amtAnim.prev[id] ?? 0;
+        if (from === val) {
+            // Same value: leave a running entrance tick alone; otherwise
+            // re-render directly (formatting may have changed, e.g. the
+            // phone-breakpoint decimal count).
+            if (!(id in _amtAnim.raf)) el.innerHTML = toHTML(val);
+            return;
+        }
+        _amtAnim.prev[id] = val;
+        if (id in _amtAnim.raf) cancelAnimationFrame(_amtAnim.raf[id]);
+        clearTimeout(_amtAnim.tmo[id]);
+        const finish = () => {
+            delete _amtAnim.raf[id];
+            clearTimeout(_amtAnim.tmo[id]);
+            delete _amtAnim.tmo[id];
+            el.innerHTML = toHTML(val);
+        };
+        if (_reducedMotion.matches) { finish(); return; }
+        const t0 = performance.now(), dur = 550;
+        const tick = (t) => {
+            const p = Math.min((t - t0) / dur, 1);
+            if (p >= 1) { finish(); return; }
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.innerHTML = toHTML(from + (val - from) * eased);
+            _amtAnim.raf[id] = requestAnimationFrame(tick);
+        };
+        _amtAnim.raf[id] = requestAnimationFrame(tick);
+        // rAF never fires while the tab is hidden/backgrounded — without this
+        // backstop the chip would sit on its stale value until the next frame.
+        _amtAnim.tmo[id] = setTimeout(() => {
+            if (id in _amtAnim.raf) { cancelAnimationFrame(_amtAnim.raf[id]); finish(); }
+        }, dur + 200);
+    };
+
     const updateSummaryCards = () => {
         const meta = activeData.metadata;
         const d2Key = getD2Key();
@@ -3396,10 +3440,7 @@ window.initDraftComparePage = async function () {
             { id: 'tl-amt-hd1', val: totHD1 },
             { id: 'tl-amt-sd1', val: totSD1 },
             { id: 'tl-amt-cd1', val: totCD1 },
-        ].forEach(({ id, val }) => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = fmtShortHTML(val);
-        });
+        ].forEach(({ id, val }) => setAnimatedAmount(id, val, fmtShortHTML));
 
         // Context captions under each pill. Whole millions are enough
         // precision for a caption — the exact figures live in the chips.
@@ -3545,19 +3586,15 @@ window.initDraftComparePage = async function () {
         }
         // Inline arrow + amount + percentage inside a single chip.
         // The arrow replaces the old circle-in-dot-row marker.
-        const netAmtEl  = document.getElementById('tl-amt-net');
-        if (netAmtEl) {
-            const sign = tabNet > 0 ? '+' : '';
-            const arrow = tabNet > 0 ? '▲' : tabNet < 0 ? '▼' : '●';
-            const pct = Math.abs(netPct) < 0.01 && tabNet === 0
-                ? '0%'
-                : `${sign}${netPct.toFixed(netPct > -10 && netPct < 10 ? 2 : 1)}%`;
-            const netM = fmtShort(tabNet).match(/^(-?\$[0-9.]+)([BMK]?)$/);
-            netAmtEl.innerHTML = netM
-                ? `<span class="tl-net-val">${sign}${netM[1]}</span>` +
-                  (netM[2] ? `<span class="tl-net-suffix">${netM[2]}</span>` : '')
-                : `<span class="tl-net-val">${sign}${fmtShort(tabNet)}</span>`;
-        }
+        const netHTML = (n) => {
+            const sign = n > 0 ? '+' : '';
+            const m = fmtShort(n).match(/^(-?\$[0-9.]+)([BMK]?)$/);
+            return m
+                ? `<span class="tl-net-val">${sign}${m[1]}</span>` +
+                  (m[2] ? `<span class="tl-net-suffix">${m[2]}</span>` : '')
+                : `<span class="tl-net-val">${sign}${fmtShort(n)}</span>`;
+        };
+        setAnimatedAmount('tl-amt-net', tabNet, netHTML);
         // Sparkline: one dot per ACTIVE stage with the last highlighted, so the
         // spark always matches the journey being compared (muted stages don't
         // add phantom kinks). Vertically scales to the range of the plotted
@@ -3572,11 +3609,15 @@ window.initDraftComparePage = async function () {
             const y = v => (15 - ((v - mn) / range) * 10).toFixed(1);
             const xs = vs.map((_, i) => (6 + 48 * i / (vs.length - 1)).toFixed(1));
             const pts = vs.map((v, i) => `${xs[i]},${y(v)}`).join(' ');
+            // pathLength=100 normalizes the polyline for the CSS draw-on
+            // animation (stroke-dasharray 100 → dashoffset 100 → 0). Each dot
+            // fades in as the line's drawing edge reaches it.
             spark.innerHTML =
-                `<polyline class="tl-spark-line" points="${pts}"/>` +
+                `<polyline class="tl-spark-line" pathLength="100" points="${pts}"/>` +
                 vs.map((v, i) => {
                     const end = i === vs.length - 1;
-                    return `<circle class="tl-spark-dot${end ? ' tl-spark-dot-end' : ''}" cx="${xs[i]}" cy="${y(v)}" r="${end ? 2.7 : 1.7}"/>`;
+                    const delay = (0.05 + 0.5 * i / (vs.length - 1)).toFixed(2);
+                    return `<circle class="tl-spark-dot${end ? ' tl-spark-dot-end' : ''}" cx="${xs[i]}" cy="${y(v)}" r="${end ? 2.7 : 1.7}" style="animation-delay:${delay}s"/>`;
                 }).join('');
         }
         // Update expand caret on Gov amount row
@@ -4135,7 +4176,7 @@ window.initDraftComparePage = async function () {
             const deptD2 = dept.d2;
             const deptDelta = dept.delta;
             const isOpen = autoExpand || expandedDepts.has(dept.code);
-            const arrow = isOpen ? '▼' : '▶';
+            const arrow = isOpen ? ' open' : '';
 
             const programs = aggregatePrograms(dept.rows);
 
@@ -4157,7 +4198,7 @@ window.initDraftComparePage = async function () {
                 : '';
 
             bodyHtml += `<tr class="dept-group-row${isOpen ? ' open' : ''}" data-dept="${dept.code}">
-                <td><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${programs.length} programs)</span></td>
+                <td><span class="dept-arrow${arrow}">▶</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${programs.length} programs)</span></td>
                 <td></td><td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(deptD1)}</span>${posChip(dept.posD1, dept.posTempD1)}</td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(dept.hd1)}</span>${posChip(dept.posHD1, dept.posTempHD1)}</td>` : ''}
@@ -4222,9 +4263,9 @@ window.initDraftComparePage = async function () {
                 const dataNoteHtml = buildDataNote(p.program_id, activeYear);
 
                 if (p.isMixed) {
-                    const progArrow = progOpen ? '▼' : '▶';
+                    const progArrow = progOpen ? ' open' : '';
                     bodyHtml += `<tr class="dept-detail-row prog-group-row change-${p.change_type}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${progArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow${progArrow}">▶</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td><span class="section-chip">Mixed</span></td>
                         <td>${p.fundShort ? `<span class="fund-chip${p.fundTitle ? ' fund-chip-multi' : ''}"${p.fundTitle ? ` data-funds="${p.fundTitle}"` : ''}${p.funds.size === 1 ? ` data-fund-cat="${[...p.funds][0]}"` : ''}>${p.fundShort}</span>` : ''}</td>
                         <td${govCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD1)}</span>${posChip(p.posD1, p.posTempD1)}${govFlag(p)}</td>
@@ -4256,7 +4297,7 @@ window.initDraftComparePage = async function () {
                         const isSecFundGroup = secFunds.size > 1;
                         const secFundKey = `${dept.code}:${p.program_id}:${sec}`;
                         const secFundOpen = expandedFunds.has(secFundKey);
-                        const secFundArrow = secFundOpen ? '▼' : '▶';
+                        const secFundArrow = secFundOpen ? ' open' : '';
                         // Section-level transfer detection
                         const secSplitMap = splitBySection.get(`${p.program_id}|${sec}`);
                         const secIsTransfer = !!secSplitMap && secDelta !== 0;
@@ -4267,7 +4308,7 @@ window.initDraftComparePage = async function () {
                         const secTransferNote = secIsTransfer
                             ? transferAnnotation(p.program_id, dept.code, secSplitMap, secDelta) : '';
                         bodyHtml += `<tr class="prog-section-row${isSecFundGroup ? ' prog-fund-group' : ''}${isOpen && progOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-prog="${progKey}"${isSecFundGroup ? ` data-fund-key="${secFundKey}"` : ''}>
-                            <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow">${secFundArrow}</span> ` : ''}${secChipHtml}${secPairChips}</td>
+                            <td class="section-indent">${isSecFundGroup ? `<span class="dept-arrow${secFundArrow}">▶</span> ` : ''}${secChipHtml}${secPairChips}</td>
                             <td></td>
                             <td>${secFundLabel ? `<span class="fund-chip${secFundTitle ? ' fund-chip-multi' : ''}"${secFundTitle ? ` data-funds="${secFundTitle}"` : ''}>${secFundLabel}</span>` : ''}</td>
                             <td class="amount-cell"><span class="figure-chip">${fmtHtml(secD1)}</span></td>
@@ -4319,9 +4360,9 @@ window.initDraftComparePage = async function () {
                         : `<span class="section-chip">${p.section}</span>`;
                     const fundKey = `${dept.code}:${p.program_id}:${p.section}`;
                     const fundOpen = expandedFunds.has(fundKey);
-                    const fundArrow = fundOpen ? '▼' : '▶';
+                    const fundArrow = fundOpen ? ' open' : '';
                     bodyHtml += `<tr class="dept-detail-row prog-fund-group change-${p.change_type}${isOpen ? '' : ' hidden'}" data-dept="${dept.code}" data-fund-key="${fundKey}"${pairKeyAttr}>
-                        <td class="detail-indent"><span class="dept-arrow">${fundArrow}</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
+                        <td class="detail-indent"><span class="dept-arrow${fundArrow}">▶</span> <strong${purposeTooltipAttrs(p.program_id)}>${highlight(p.program_id, q)}</strong> ${highlight(p.program_name, q)}${sparklineSvg([p.displayD1, p.displayHD1, p.displayD2])}${pairChips}${dataNoteHtml}</td>
                         <td>${progChipHtml}</td>
                         <td><span class="fund-chip fund-chip-multi" data-funds="${p.fundTitle}">${p.fundShort}</span></td>
                         <td${govCellAttrs(p, 'amount-cell')}><span class="figure-chip">${fmtHtml(p.displayD1)}</span>${posChip(p.posD1, p.posTempD1)}${govFlag(p)}</td>
@@ -4442,7 +4483,7 @@ window.initDraftComparePage = async function () {
             const fgDelta = fgD2 - fgD1;
             const fgCls = fgDelta > 0 ? 'positive' : fgDelta < 0 ? 'negative' : '';
             const isOpen = autoExpandFunds || expandedFundTypes.has(fg.type);
-            const arrow = isOpen ? '▼' : '▶';
+            const arrow = isOpen ? ' open' : '';
 
             const fundNote = fg.type === 'C'
                 ? ` <span class="fund-note" title="General obligation bonds are loans the state repays over time. Changes here reflect shifts in which capital projects get bond financing — not cuts to the underlying programs.">ℹ bond-financed capital projects</span>`
@@ -4457,7 +4498,7 @@ window.initDraftComparePage = async function () {
             }));
             const fgStackBar = stackedBarSvg(fgStackSegs, fgD2);
             fundHtml += `<tr class="fund-group-row${isOpen ? ' open' : ''}" data-fund-type="${fg.type}">
-                <td><span class="dept-arrow">${arrow}</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` ${fgStackBar}` : ''}</td>
+                <td><span class="dept-arrow${arrow}">▶</span> <span class="fund-chip" data-fund-cat="${fg.category}">${fg.type}</span> ${fg.category}${fundNote} <span class="dept-count">(${fg.rows.length})</span>${fgStackBar ? ` ${fgStackBar}` : ''}</td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(fgD1)}</span></td>
                 ${showHD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgHD1)}</span></td>` : ''}
                 ${showSD1Col() ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(fgSD1)}</span></td>` : ''}
@@ -4551,6 +4592,19 @@ window.initDraftComparePage = async function () {
 
         // Re-attach header dropdown events after render
         attachHeaderDropdowns();
+
+        // Stagger the entrance fade of the first screenful of rows (the CSS
+        // row-enter animation reads --ri for its delay). Rows beyond the cap
+        // keep the default --ri of 0 and fade in together — staggering a
+        // long tail would just make deep tables feel slow.
+        {
+            let ri = 0;
+            for (const tr of document.querySelectorAll('#draft-results tbody tr')) {
+                if (tr.classList.contains('hidden')) continue;
+                tr.style.setProperty('--ri', ri);
+                if (++ri >= 15) break;
+            }
+        }
 
         window._lastDraftResults = data;
         window._lastDraftMeta = meta;
@@ -4965,7 +5019,7 @@ window.initDraftComparePage = async function () {
             const delta = d2Total - d1Total;
             const deltaCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
             const isOpen = expandedProjectPrograms.has(dept.code);
-            const arrow = isOpen ? '▼' : '▶';
+            const arrow = isOpen ? ' open' : '';
 
             // Pre-build breakdown HTML for the dept change cell hover card.
             // Uses the same data-dept-bd attribute + initDeptBreakdownCardHandlers
@@ -5020,7 +5074,7 @@ window.initDraftComparePage = async function () {
 
             // Dept group row — individual cells matching first table's dept row pattern
             bodyRows += `<tr class="dept-group-row project-dept-row${isOpen ? ' open' : ''}" data-project-dept="${dept.code}">
-                <td colspan="3"><span class="dept-arrow">${arrow}</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
+                <td colspan="3"><span class="dept-arrow${arrow}">▶</span> <span class="dept-chip">${highlight(dept.code, q)}</span> ${highlight(dept.name, q)} <span class="dept-count">(${filteredProjects.length} project${filteredProjects.length === 1 ? '' : 's'})</span></td>
                 <td></td>
                 <td class="amount-cell"><span class="figure-chip">${fmtHtml(d1Total)}</span></td>
                 ${showProjHD1 ? `<td class="amount-cell"><span class="figure-chip">${fmtHtml(hd1Total)}</span></td>` : ''}
@@ -5200,7 +5254,7 @@ window.initDraftComparePage = async function () {
             else expandedProjectPrograms.add(deptCode);
             const isOpen = expandedProjectPrograms.has(deptCode);
             const arrow = deptRow.querySelector('.dept-arrow');
-            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            if (arrow) { arrow.textContent = '▶'; arrow.classList.toggle('open', isOpen); }
             deptRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.project-row[data-project-dept="${deptCode}"]`)
                 .forEach(r => r.classList.toggle('hidden', !isOpen));
@@ -5292,7 +5346,7 @@ window.initDraftComparePage = async function () {
             else expandedDepts.add(dept);
             const arrow = groupRow.querySelector('.dept-arrow');
             const isOpen = expandedDepts.has(dept);
-            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            if (arrow) { arrow.textContent = '▶'; arrow.classList.toggle('open', isOpen); }
             groupRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.dept-detail-row[data-dept="${dept}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
@@ -5320,7 +5374,7 @@ window.initDraftComparePage = async function () {
             else expandedFunds.add(fk);
             const arrow = fundGroupRow.querySelector('.dept-arrow');
             const isOpen = expandedFunds.has(fk);
-            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            if (arrow) { arrow.textContent = '▶'; arrow.classList.toggle('open', isOpen); }
             document.querySelectorAll(`.prog-fund-row[data-fund-key="${fk}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
             });
@@ -5334,7 +5388,7 @@ window.initDraftComparePage = async function () {
             else expandedPrograms.add(progKey);
             const arrow = progRow.querySelector('.dept-arrow');
             const isOpen = expandedPrograms.has(progKey);
-            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            if (arrow) { arrow.textContent = '▶'; arrow.classList.toggle('open', isOpen); }
             document.querySelectorAll(`.prog-section-row[data-prog="${progKey}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
             });
@@ -5378,7 +5432,7 @@ window.initDraftComparePage = async function () {
             else expandedFundTypes.add(ft);
             const arrow = fundRow.querySelector('.dept-arrow');
             const isOpen = expandedFundTypes.has(ft);
-            if (arrow) arrow.textContent = isOpen ? '▼' : '▶';
+            if (arrow) { arrow.textContent = '▶'; arrow.classList.toggle('open', isOpen); }
             fundRow.classList.toggle('open', isOpen);
             document.querySelectorAll(`.fund-detail-row[data-fund-type="${ft}"]`).forEach(row => {
                 row.classList.toggle('hidden', !isOpen);
