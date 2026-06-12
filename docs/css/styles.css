@@ -6328,3 +6328,196 @@ mark.search-highlight {
     background: linear-gradient(135deg, #79a092 0%, #62867a 100%);
     box-shadow: 0 4px 14px rgba(60, 82, 73, 0.38);
 }
+
+/* ---------------------------------------------------------------------------
+   County budgets — State|Counties scope pill, county selector tabs, and the
+   counties page (summary cards reuse existing .summary-card styles).
+   --------------------------------------------------------------------------- */
+
+/* Scope pill: sits between the subtitle and the main nav. Smaller-scale echo
+   of the .main-nav segmented control so it reads as chrome, not a sibling. */
+.scope-toggle {
+    display: inline-flex;
+    gap: 0.2rem;
+    margin: 1.1rem auto 0;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.scope-btn {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    padding: 0.3rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background 0.28s cubic-bezier(0.2, 0, 0.2, 1), color 0.22s ease;
+}
+.scope-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.scope-btn.active {
+    background: #fff;
+    color: #3d5249;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* In county mode the state bill tabs don't apply — hide all but About so the
+   header shows scope pill + About only. */
+body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
+
+/* County selector tabs on the counties page */
+.county-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 1.2rem;
+}
+.county-tab {
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    color: #3d5249;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.county-tab:hover { background: #eef3ef; }
+.county-tab.active {
+    background: #3d5249;
+    border-color: #3d5249;
+    color: #fff;
+}
+.county-tab-disabled {
+    color: #9aa6a0;
+    background: #f4f6f5;
+    cursor: default;
+}
+.county-tab-soon {
+    margin-left: 0.45em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #b3beb8;
+}
+.county-title { margin: 0 0 1rem; }
+
+/* Coverage caveat + source line */
+.county-caveat {
+    font-size: 0.92rem;
+    color: #5c6b63;
+    background: #f4f6f1;
+    border-left: 3px solid #c8cfa8;
+    padding: 0.7rem 1rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+}
+.county-source {
+    font-size: 0.88rem;
+    color: #6b7a72;
+    margin-top: 1.2rem;
+}
+
+/* Fund-category stacked bar */
+.fund-cat-bar-wrap { margin: 1.2rem 0 1.6rem; }
+.fund-cat-bar {
+    display: flex;
+    height: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #d4ddd6;
+}
+.fund-cat-seg { display: block; height: 100%; }
+.fund-cat-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin-top: 0.55rem;
+    font-size: 0.88rem;
+    color: #4a5a52;
+}
+.fund-cat-legend-item { display: inline-flex; align-items: center; gap: 0.4em; }
+.fund-cat-legend-amt { color: #7c8a83; }
+
+/* Department table: expandable rows + share bars */
+.county-table .county-dept-row { cursor: pointer; }
+.county-table .county-dept-row:hover td { background: #f5f8f6; }
+.county-row-chevron {
+    display: inline-block;
+    width: 1.1em;
+    color: #8aa595;
+    font-size: 0.85em;
+}
+.county-share-cell { min-width: 130px; }
+.county-share-bar {
+    display: inline-block;
+    vertical-align: middle;
+    width: 80px;
+    height: 9px;
+    border-radius: 5px;
+    background: #edf1ee;
+    overflow: hidden;
+    margin-right: 0.5em;
+}
+.county-share-fill {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #5a7b68, #7da48d);
+}
+.county-share-pct { font-size: 0.85rem; color: #6b7a72; }
+.county-prog-row td {
+    background: #fafbfa;
+    font-size: 0.92rem;
+    border-top: none;
+}
+.county-prog-name { padding-left: 2.1em !important; color: #4a5a52; }
+.county-prog-fund {
+    margin-left: 0.7em;
+    font-size: 0.8rem;
+    color: #8a978f;
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+    .scope-btn { padding: 0.28rem 0.8rem; font-size: 0.78rem; }
+    .county-tab { padding: 0.4rem 0.85rem; font-size: 0.88rem; }
+    .county-share-cell { display: none; }
+    .county-table th:nth-child(3) { display: none; }
+}
+
+/* Program-level detail inside expanded department rows */
+.county-prog-count {
+    margin-left: 0.7em;
+    font-size: 0.8rem;
+    color: #9aa6a0;
+    white-space: nowrap;
+}
+.county-prog-funds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.4rem;
+    margin-top: 0.35rem;
+}
+.county-fund-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    padding: 0.12rem 0.55rem;
+    border-radius: 999px;
+    background: #eef3ef;
+    border: 1px solid #dde6df;
+    font-size: 0.78rem;
+    color: #4a5a52;
+    font-variant: normal;
+    letter-spacing: 0;
+}
+.county-fund-chip .fmt-num { font-weight: 600; }
+.county-fund-chip .fmt-unit { color: #8a978f; }

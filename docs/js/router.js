@@ -52,6 +52,9 @@ class Router {
             if (window.loadSchoolFoodService) {
                 loadPromises.push(window.loadSchoolFoodService());
             }
+            if (window.loadCountyBudgets) {
+                loadPromises.push(window.loadCountyBudgets());
+            }
 
             // Wait for both to complete
             await Promise.all(loadPromises);
@@ -140,8 +143,9 @@ class Router {
                     await route.init();
                 }
                 
-                // Update active nav link and header text
+                // Update active nav link, scope pill, and header text
                 this.updateActiveLink(path);
+                if (window.updateScopeToggle) window.updateScopeToggle(path);
                 this.updateHeaderText(path);
 
                 // Notify parent if in iframe
@@ -188,7 +192,15 @@ class Router {
             docTitle: 'Hawaiʻi Budget Tracker · HB1800'
         };
 
-        const cfg = configs[path] || defaults;
+        // County routes are parameterized (/counties/honolulu …) so they're
+        // matched by prefix rather than the exact-path config table.
+        const isCounties = path.startsWith('/counties');
+        const cfg = isCounties
+            ? {
+                subtitle: 'County operating budgets · what each county government plans to spend.',
+                docTitle: 'County Budgets · Hawaiʻi Budget Tracker'
+            }
+            : (configs[path] || defaults);
 
         const subtitleEl = document.querySelector('.app-header-subtitle');
         if (subtitleEl) subtitleEl.textContent = cfg.subtitle;
@@ -198,7 +210,9 @@ class Router {
         // from HIDOE rather than the HB1800 bill, so override the footnote there.
         const footerSourceEl = document.querySelector('.app-footer-source');
         if (footerSourceEl) {
-            if (path === '/school-food-service') {
+            if (isCounties) {
+                footerSourceEl.innerHTML = 'Data Source: county budget documents — Honolulu via <a href="https://data.honolulu.gov" target="_blank" rel="noopener">data.honolulu.gov</a>; Maui, Hawaiʻi, and Kauaʻi county budget ordinances (coming soon)';
+            } else if (path === '/school-food-service') {
                 footerSourceEl.innerHTML = 'Data Source: <a href="https://hawaiipublicschools.org/data-reports/fiscal/" target="_blank" rel="noopener">HIDOE School Food Services</a> · cash basis, FY2021–FY2025 (as of June 30, 2025)';
             } else {
                 footerSourceEl.innerHTML = 'Data Source: <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_HD1_.HTM" target="_blank" rel="noopener">HB1800</a> Supplemental Appropriations (HD1, <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_SD1_.HTM" target="_blank" rel="noopener">SD1</a>)';

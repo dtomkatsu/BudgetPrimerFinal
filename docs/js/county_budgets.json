@@ -1,0 +1,2826 @@
+{
+  "fiscal_year": 2026,
+  "generated_at": "2026-06-12T10:12:25.038408",
+  "counties": {
+    "honolulu": {
+      "name": "City & County of Honolulu",
+      "available": true,
+      "total_budget": 2258845332.0,
+      "operating_budget": 2258845332.0,
+      "capital_budget": 0.0,
+      "capital_note": "CIP not yet included",
+      "coverage_note": "Executive departments' operating budget only \u2014 excludes debt service, employee benefits and provisions, the legislative branch, and capital improvements, which are published only in the budget ordinance PDFs.",
+      "fund_breakdown": {
+        "General Fund": 1045425963.0,
+        "Special / Enterprise Funds": 989923436.0,
+        "Trust & Other Funds": 165382423.0,
+        "Federal Funds": 58113510.0
+      },
+      "source": {
+        "label": "FY2026 Proposed Operating Budget \u00b7 data.honolulu.gov",
+        "url": "https://data.honolulu.gov/d/7sq2-y9vx"
+      },
+      "num_departments": 25,
+      "num_programs": 109,
+      "num_records": 193,
+      "departments": [
+        {
+          "code": "dts",
+          "name": "Transportation Services",
+          "budget": "$488M",
+          "operating_budget": 487561540.0,
+          "capital_budget": 0.0,
+          "total_budget": 487561540.0,
+          "fund_breakdown": {
+            "Special / Enterprise Funds": 465874276.0,
+            "Federal Funds": 21120000.0,
+            "General Fund": 567264.0
+          },
+          "num_programs": 6,
+          "programs": [
+            {
+              "program_name": "Transportation Mobility",
+              "total_budget": 350565314.0,
+              "operating_budget": 350565314.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 329565314.0,
+                "Federal Funds": 21000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 329565314.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 21000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Transportation Rail",
+              "total_budget": 107982934.0,
+              "operating_budget": 107982934.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 107982934.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 107982934.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 14973925.0,
+              "operating_budget": 14973925.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 14406661.0,
+                "General Fund": 567264.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 12690246.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1716415.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 567264.0
+                }
+              ]
+            },
+            {
+              "program_name": "Transportation Technology",
+              "total_budget": 7148829.0,
+              "operating_budget": 7148829.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 7028829.0,
+                "Federal Funds": 120000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 7028829.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 120000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Transportation Engineering",
+              "total_budget": 3690368.0,
+              "operating_budget": 3690368.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 3690368.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 2999374.0
+                },
+                {
+                  "fund_name": "Bikeway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 690994.0
+                }
+              ]
+            },
+            {
+              "program_name": "Transportation Performance & Development",
+              "total_budget": 3200170.0,
+              "operating_budget": 3200170.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 3200170.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 2852146.0
+                },
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 348024.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "env",
+          "name": "Environmental Services",
+          "budget": "$416M",
+          "operating_budget": 415578640.0,
+          "capital_budget": 0.0,
+          "total_budget": 415578640.0,
+          "fund_breakdown": {
+            "Special / Enterprise Funds": 253101602.0,
+            "Trust & Other Funds": 162477038.0
+          },
+          "num_programs": 6,
+          "programs": [
+            {
+              "program_name": "Refuse Collection and Disposal",
+              "total_budget": 226492299.0,
+              "operating_budget": 226492299.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 162477038.0,
+                "Special / Enterprise Funds": 64015261.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sld Wst Dis Fac Acct - SWSF",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 141495279.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 64015261.0
+                },
+                {
+                  "fund_name": "Recycling Account - SWSF",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 20281759.0
+                },
+                {
+                  "fund_name": "Glass Incentive Account - SWSF",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 700000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Treatment and Disposal",
+              "total_budget": 104047857.0,
+              "operating_budget": 104047857.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 104047857.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 103922857.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 125000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Collection System Maintenance",
+              "total_budget": 33305002.0,
+              "operating_budget": 33305002.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 33305002.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 33305002.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 28737702.0,
+              "operating_budget": 28737702.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 28737702.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 28451702.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 286000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wastewater Engineering and Construction",
+              "total_budget": 12341354.0,
+              "operating_budget": 12341354.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 12341354.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 12341354.0
+                }
+              ]
+            },
+            {
+              "program_name": "Environmental Quality",
+              "total_budget": 10654426.0,
+              "operating_budget": 10654426.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 10654426.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 10654426.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "hpd",
+          "name": "Police",
+          "budget": "$390M",
+          "operating_budget": 390467396.0,
+          "capital_budget": 0.0,
+          "total_budget": 390467396.0,
+          "fund_breakdown": {
+            "General Fund": 372165698.0,
+            "Special / Enterprise Funds": 18301698.0
+          },
+          "num_programs": 7,
+          "programs": [
+            {
+              "program_name": "Patrol",
+              "total_budget": 197238511.0,
+              "operating_budget": 197238511.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 197238511.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 197238511.0
+                }
+              ]
+            },
+            {
+              "program_name": "Support Services",
+              "total_budget": 62688934.0,
+              "operating_budget": 62688934.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 62688934.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 62688934.0
+                }
+              ]
+            },
+            {
+              "program_name": "Investigations",
+              "total_budget": 55798622.0,
+              "operating_budget": 55798622.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 37496924.0,
+                "Special / Enterprise Funds": 18301698.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 37496924.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 18301698.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administrative Services",
+              "total_budget": 45294782.0,
+              "operating_budget": 45294782.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 45294782.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 45294782.0
+                }
+              ]
+            },
+            {
+              "program_name": "Special Field Operations",
+              "total_budget": 17979091.0,
+              "operating_budget": 17979091.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 17979091.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 17979091.0
+                }
+              ]
+            },
+            {
+              "program_name": "Office of the Chief of Police",
+              "total_budget": 10600997.0,
+              "operating_budget": 10600997.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 10600997.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 10600997.0
+                }
+              ]
+            },
+            {
+              "program_name": "Police Commission",
+              "total_budget": 866459.0,
+              "operating_budget": 866459.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 866459.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 866459.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dcs",
+          "name": "Community Services",
+          "budget": "$174M",
+          "operating_budget": 173595217.0,
+          "capital_budget": 0.0,
+          "total_budget": 173595217.0,
+          "fund_breakdown": {
+            "Special / Enterprise Funds": 121148125.0,
+            "Federal Funds": 30306342.0,
+            "General Fund": 22140750.0
+          },
+          "num_programs": 6,
+          "programs": [
+            {
+              "program_name": "Community Assistance",
+              "total_budget": 105631759.0,
+              "operating_budget": 105631759.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 104036451.0,
+                "General Fund": 885124.0,
+                "Federal Funds": 710184.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Housing & Comm Dev Sec 8 Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 101973355.0
+                },
+                {
+                  "fund_name": "Housing & Comm Dev Rehab Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 2000000.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 885124.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 283852.0
+                },
+                {
+                  "fund_name": "Rental Assistance Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 233000.0
+                },
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 193332.0
+                },
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 63096.0
+                }
+              ]
+            },
+            {
+              "program_name": "Community Based Development",
+              "total_budget": 21129167.0,
+              "operating_budget": 21129167.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 17711260.0,
+                "Special / Enterprise Funds": 1964218.0,
+                "Federal Funds": 1453689.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 17711260.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1638813.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 1216237.0
+                },
+                {
+                  "fund_name": "Affordable Housing Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 325405.0
+                },
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 237452.0
+                }
+              ]
+            },
+            {
+              "program_name": "Elderly Affairs",
+              "total_budget": 20777599.0,
+              "operating_budget": 20777599.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 15019747.0,
+                "Federal Funds": 5055004.0,
+                "General Fund": 702848.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 15019747.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 5055004.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 702848.0
+                }
+              ]
+            },
+            {
+              "program_name": "WorkHawaii",
+              "total_budget": 12534252.0,
+              "operating_budget": 12534252.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Federal Funds": 11868195.0,
+                "General Fund": 538348.0,
+                "Special / Enterprise Funds": 127709.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 10511461.0
+                },
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 1356734.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 538348.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 127709.0
+                }
+              ]
+            },
+            {
+              "program_name": "Office of Grants Management",
+              "total_budget": 11897360.0,
+              "operating_budget": 11897360.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Federal Funds": 11219270.0,
+                "General Fund": 678090.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Grants in Aid Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 11219270.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 678090.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 1625080.0,
+              "operating_budget": 1625080.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1625080.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1625080.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "hfd",
+          "name": "Fire",
+          "budget": "$160M",
+          "operating_budget": 159915067.0,
+          "capital_budget": 0.0,
+          "total_budget": 159915067.0,
+          "fund_breakdown": {
+            "General Fund": 159804511.0,
+            "Special / Enterprise Funds": 110556.0
+          },
+          "num_programs": 10,
+          "programs": [
+            {
+              "program_name": "Fire Operations",
+              "total_budget": 134230750.0,
+              "operating_budget": 134230750.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 134230750.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 134230750.0
+                }
+              ]
+            },
+            {
+              "program_name": "Fire Prevention",
+              "total_budget": 6336003.0,
+              "operating_budget": 6336003.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 6225447.0,
+                "Special / Enterprise Funds": 110556.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 6225447.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 110556.0
+                }
+              ]
+            },
+            {
+              "program_name": "Fire Communication Center",
+              "total_budget": 4765569.0,
+              "operating_budget": 4765569.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 4765569.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 4765569.0
+                }
+              ]
+            },
+            {
+              "program_name": "Training and Research",
+              "total_budget": 4454108.0,
+              "operating_budget": 4454108.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 4454108.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 4454108.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 4361421.0,
+              "operating_budget": 4361421.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 4361421.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 4361421.0
+                }
+              ]
+            },
+            {
+              "program_name": "Mechanic Shop",
+              "total_budget": 3732875.0,
+              "operating_budget": 3732875.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3732875.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3732875.0
+                }
+              ]
+            },
+            {
+              "program_name": "Planning and Development",
+              "total_budget": 1105659.0,
+              "operating_budget": 1105659.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1105659.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1105659.0
+                }
+              ]
+            },
+            {
+              "program_name": "Radio Shop",
+              "total_budget": 553307.0,
+              "operating_budget": 553307.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 553307.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 553307.0
+                }
+              ]
+            },
+            {
+              "program_name": "City Radio System",
+              "total_budget": 352643.0,
+              "operating_budget": 352643.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 352643.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 352643.0
+                }
+              ]
+            },
+            {
+              "program_name": "Fire Commission",
+              "total_budget": 22732.0,
+              "operating_budget": 22732.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 22732.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 22732.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dfm",
+          "name": "Facility Maintenance",
+          "budget": "$134M",
+          "operating_budget": 133951735.0,
+          "capital_budget": 0.0,
+          "total_budget": 133951735.0,
+          "fund_breakdown": {
+            "General Fund": 66674595.0,
+            "Special / Enterprise Funds": 65090655.0,
+            "Trust & Other Funds": 2186485.0
+          },
+          "num_programs": 5,
+          "programs": [
+            {
+              "program_name": "Road Maintenance",
+              "total_budget": 48070770.0,
+              "operating_budget": 48070770.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 43036559.0,
+                "General Fund": 5034211.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 42735959.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5034211.0
+                },
+                {
+                  "fund_name": "Highway Beautification Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 267500.0
+                },
+                {
+                  "fund_name": "Bikeway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 33100.0
+                }
+              ]
+            },
+            {
+              "program_name": "Public Building and Electrical Maintenance",
+              "total_budget": 44775045.0,
+              "operating_budget": 44775045.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 28651373.0,
+                "Special / Enterprise Funds": 16123672.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 28651373.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 15996928.0
+                },
+                {
+                  "fund_name": "Transportation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 126744.0
+                }
+              ]
+            },
+            {
+              "program_name": "Automotive Equipment Services",
+              "total_budget": 22816342.0,
+              "operating_budget": 22816342.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 16131920.0,
+                "Special / Enterprise Funds": 4497937.0,
+                "Trust & Other Funds": 2186485.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 16131920.0
+                },
+                {
+                  "fund_name": "Recycling Account - SWSF",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 2186485.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 2186485.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1723320.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 588132.0
+                }
+              ]
+            },
+            {
+              "program_name": "Storm Water Quality",
+              "total_budget": 15668148.0,
+              "operating_budget": 15668148.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 15668148.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 15668148.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 2621430.0,
+              "operating_budget": 2621430.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1432487.0,
+                "General Fund": 1188943.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1432487.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1188943.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dpr",
+          "name": "Parks and Recreation",
+          "budget": "$118M",
+          "operating_budget": 118002290.0,
+          "capital_budget": 0.0,
+          "total_budget": 118002290.0,
+          "fund_breakdown": {
+            "General Fund": 111532925.0,
+            "Special / Enterprise Funds": 5450465.0,
+            "Trust & Other Funds": 718900.0,
+            "Federal Funds": 300000.0
+          },
+          "num_programs": 5,
+          "programs": [
+            {
+              "program_name": "Grounds Maintenance",
+              "total_budget": 49790891.0,
+              "operating_budget": 49790891.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 47861122.0,
+                "Special / Enterprise Funds": 1210869.0,
+                "Trust & Other Funds": 718900.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 47861122.0
+                },
+                {
+                  "fund_name": "Hanauma Bay Nature Preserve Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1210869.0
+                },
+                {
+                  "fund_name": "Waipio Peninsula Soccer Park Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 491100.0
+                },
+                {
+                  "fund_name": "Patsy T. Mink Central Oahu Regional Park Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "section": "Operating",
+                  "amount": 227800.0
+                }
+              ]
+            },
+            {
+              "program_name": "Recreation Services",
+              "total_budget": 30645278.0,
+              "operating_budget": 30645278.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 26798682.0,
+                "Special / Enterprise Funds": 3546596.0,
+                "Federal Funds": 300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 26798682.0
+                },
+                {
+                  "fund_name": "Hanauma Bay Nature Preserve Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 3546596.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Urban Forestry Program",
+              "total_budget": 18089321.0,
+              "operating_budget": 18089321.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 17456321.0,
+                "Special / Enterprise Funds": 633000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 17456321.0
+                },
+                {
+                  "fund_name": "Highway Beautification Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 610000.0
+                },
+                {
+                  "fund_name": "Hanauma Bay Nature Preserve Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 23000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 10290897.0,
+              "operating_budget": 10290897.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 10290897.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 10290897.0
+                }
+              ]
+            },
+            {
+              "program_name": "Maintenance Support Services",
+              "total_budget": 9185903.0,
+              "operating_budget": 9185903.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 9125903.0,
+                "Special / Enterprise Funds": 60000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 9125903.0
+                },
+                {
+                  "fund_name": "Hanauma Bay Nature Preserve Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 60000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "hesd",
+          "name": "Emergency Services",
+          "budget": "$51M",
+          "operating_budget": 51304200.0,
+          "capital_budget": 0.0,
+          "total_budget": 51304200.0,
+          "fund_breakdown": {
+            "General Fund": 51304200.0
+          },
+          "num_programs": 3,
+          "programs": [
+            {
+              "program_name": "Emergency Medical Services",
+              "total_budget": 42150480.0,
+              "operating_budget": 42150480.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 42150480.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 42150480.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 7693394.0,
+              "operating_budget": 7693394.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 7693394.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 7693394.0
+                }
+              ]
+            },
+            {
+              "program_name": "Health Services",
+              "total_budget": 1460326.0,
+              "operating_budget": 1460326.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1460326.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1460326.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dit",
+          "name": "Information Technology",
+          "budget": "$41M",
+          "operating_budget": 40676472.0,
+          "capital_budget": 0.0,
+          "total_budget": 40676472.0,
+          "fund_breakdown": {
+            "General Fund": 40079304.0,
+            "Special / Enterprise Funds": 520980.0,
+            "Federal Funds": 76188.0
+          },
+          "num_programs": 6,
+          "programs": [
+            {
+              "program_name": "Administration",
+              "total_budget": 28026467.0,
+              "operating_budget": 28026467.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 28026467.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 28026467.0
+                }
+              ]
+            },
+            {
+              "program_name": "ERP-CSR",
+              "total_budget": 3887116.0,
+              "operating_budget": 3887116.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3366136.0,
+                "Special / Enterprise Funds": 520980.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3366136.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 378864.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 73836.0
+                },
+                {
+                  "fund_name": "Liquor Commission Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 68280.0
+                }
+              ]
+            },
+            {
+              "program_name": "Applications",
+              "total_budget": 3054586.0,
+              "operating_budget": 3054586.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3054586.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3054586.0
+                }
+              ]
+            },
+            {
+              "program_name": "Operations",
+              "total_budget": 2112884.0,
+              "operating_budget": 2112884.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2036696.0,
+                "Federal Funds": 76188.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2036696.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 76188.0
+                }
+              ]
+            },
+            {
+              "program_name": "Communications and Network",
+              "total_budget": 1876745.0,
+              "operating_budget": 1876745.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1876745.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1876745.0
+                }
+              ]
+            },
+            {
+              "program_name": "Technical Support",
+              "total_budget": 1718674.0,
+              "operating_budget": 1718674.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1718674.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1718674.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dpp",
+          "name": "Planning and Permitting",
+          "budget": "$39M",
+          "operating_budget": 38602461.0,
+          "capital_budget": 0.0,
+          "total_budget": 38602461.0,
+          "fund_breakdown": {
+            "General Fund": 32368801.0,
+            "Special / Enterprise Funds": 6233660.0
+          },
+          "num_programs": 6,
+          "programs": [
+            {
+              "program_name": "Building",
+              "total_budget": 11119447.0,
+              "operating_budget": 11119447.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 11119447.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 11119447.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 9904696.0,
+              "operating_budget": 9904696.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 9592794.0,
+                "Special / Enterprise Funds": 311902.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 9592794.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 311902.0
+                }
+              ]
+            },
+            {
+              "program_name": "Site Development",
+              "total_budget": 6936634.0,
+              "operating_budget": 6936634.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 5921758.0,
+                "General Fund": 1014876.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 4505921.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1415837.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1014876.0
+                }
+              ]
+            },
+            {
+              "program_name": "Customer Service",
+              "total_budget": 5382702.0,
+              "operating_budget": 5382702.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 5382702.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5382702.0
+                }
+              ]
+            },
+            {
+              "program_name": "Planning",
+              "total_budget": 3535472.0,
+              "operating_budget": 3535472.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3535472.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3535472.0
+                }
+              ]
+            },
+            {
+              "program_name": "Land Use Permits",
+              "total_budget": 1723510.0,
+              "operating_budget": 1723510.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1723510.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1723510.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "bfs",
+          "name": "Budget and Fiscal Services",
+          "budget": "$36M",
+          "operating_budget": 36389128.0,
+          "capital_budget": 0.0,
+          "total_budget": 36389128.0,
+          "fund_breakdown": {
+            "General Fund": 26717193.0,
+            "Special / Enterprise Funds": 7035823.0,
+            "Federal Funds": 2636112.0
+          },
+          "num_programs": 9,
+          "programs": [
+            {
+              "program_name": "Accounting and Fiscal Services",
+              "total_budget": 7936265.0,
+              "operating_budget": 7936265.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 5984940.0,
+                "Special / Enterprise Funds": 1380048.0,
+                "Federal Funds": 571277.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5984940.0
+                },
+                {
+                  "fund_name": "Housing Development Special Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 698382.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 404188.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 303615.0
+                },
+                {
+                  "fund_name": "Housing & Comm Dev Sec 8 Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 205556.0
+                },
+                {
+                  "fund_name": "Refuse Genl Operating Acct -SWSF",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 127279.0
+                },
+                {
+                  "fund_name": "Grants in Aid Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 98437.0
+                },
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 68652.0
+                },
+                {
+                  "fund_name": "Special Events Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 45216.0
+                }
+              ]
+            },
+            {
+              "program_name": "Real Property",
+              "total_budget": 7885626.0,
+              "operating_budget": 7885626.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 7885626.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 7885626.0
+                }
+              ]
+            },
+            {
+              "program_name": "Treasury",
+              "total_budget": 5365074.0,
+              "operating_budget": 5365074.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 5345074.0,
+                "Special / Enterprise Funds": 20000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5345074.0
+                },
+                {
+                  "fund_name": "Housing & Comm Dev Sec 8 Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 20000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Liquor Commission",
+              "total_budget": 4950747.0,
+              "operating_budget": 4950747.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 4950747.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Liquor Commission Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 4950747.0
+                }
+              ]
+            },
+            {
+              "program_name": "Purchasing and General Services",
+              "total_budget": 4128485.0,
+              "operating_budget": 4128485.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3743457.0,
+                "Special / Enterprise Funds": 385028.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3743457.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 385028.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 2220700.0,
+              "operating_budget": 2220700.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1190394.0,
+                "Federal Funds": 730306.0,
+                "Special / Enterprise Funds": 300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1190394.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 730306.0
+                },
+                {
+                  "fund_name": "Transit Construction Mitigation Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Fiscal/CIP Administration",
+              "total_budget": 2109905.0,
+              "operating_budget": 2109905.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Federal Funds": 1334529.0,
+                "General Fund": 775376.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 1309543.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 775376.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 24986.0
+                }
+              ]
+            },
+            {
+              "program_name": "Budgetary Administration",
+              "total_budget": 1211437.0,
+              "operating_budget": 1211437.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1211437.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1211437.0
+                }
+              ]
+            },
+            {
+              "program_name": "Internal Control",
+              "total_budget": 580889.0,
+              "operating_budget": 580889.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 580889.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 580889.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "ddc",
+          "name": "Design and Construction",
+          "budget": "$32M",
+          "operating_budget": 32493384.0,
+          "capital_budget": 0.0,
+          "total_budget": 32493384.0,
+          "fund_breakdown": {
+            "General Fund": 20610686.0,
+            "Special / Enterprise Funds": 9722698.0,
+            "Federal Funds": 2160000.0
+          },
+          "num_programs": 3,
+          "programs": [
+            {
+              "program_name": "Project and Construction Management",
+              "total_budget": 27163297.0,
+              "operating_budget": 27163297.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 15587299.0,
+                "Special / Enterprise Funds": 9415998.0,
+                "Federal Funds": 2160000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 15587299.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 9415998.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 2160000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Land Services",
+              "total_budget": 3747575.0,
+              "operating_budget": 3747575.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3449175.0,
+                "Special / Enterprise Funds": 298400.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3449175.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 183484.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 114916.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 1582512.0,
+              "operating_budget": 1582512.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1574212.0,
+                "Special / Enterprise Funds": 8300.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1574212.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 8300.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "csd",
+          "name": "Customer Services",
+          "budget": "$32M",
+          "operating_budget": 31699659.0,
+          "capital_budget": 0.0,
+          "total_budget": 31699659.0,
+          "fund_breakdown": {
+            "General Fund": 28812370.0,
+            "Special / Enterprise Funds": 2887289.0
+          },
+          "num_programs": 4,
+          "programs": [
+            {
+              "program_name": "Division of Motor Vehicles",
+              "total_budget": 23025857.0,
+              "operating_budget": 23025857.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 20138568.0,
+                "Special / Enterprise Funds": 2887289.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 20138568.0
+                },
+                {
+                  "fund_name": "Highway Beautification Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 2887289.0
+                }
+              ]
+            },
+            {
+              "program_name": "Satellite City Hall",
+              "total_budget": 6064070.0,
+              "operating_budget": 6064070.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 6064070.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 6064070.0
+                }
+              ]
+            },
+            {
+              "program_name": "Public Communication",
+              "total_budget": 1821258.0,
+              "operating_budget": 1821258.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1821258.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1821258.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 788474.0,
+              "operating_budget": 788474.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 788474.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 788474.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "pat",
+          "name": "Prosecuting Attorney",
+          "budget": "$31M",
+          "operating_budget": 30900697.0,
+          "capital_budget": 0.0,
+          "total_budget": 30900697.0,
+          "fund_breakdown": {
+            "General Fund": 27913722.0,
+            "Federal Funds": 1514868.0,
+            "Special / Enterprise Funds": 1472107.0
+          },
+          "num_programs": 3,
+          "programs": [
+            {
+              "program_name": "Prosecution",
+              "total_budget": 20082889.0,
+              "operating_budget": 20082889.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 18541151.0,
+                "Special / Enterprise Funds": 1199688.0,
+                "Federal Funds": 342050.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 18541151.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1199688.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 342050.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 7828117.0,
+              "operating_budget": 7828117.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 7828117.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 7828117.0
+                }
+              ]
+            },
+            {
+              "program_name": "Victim/Witness Assistance",
+              "total_budget": 2989691.0,
+              "operating_budget": 2989691.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1544454.0,
+                "Federal Funds": 1172818.0,
+                "Special / Enterprise Funds": 272419.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1544454.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Operating",
+                  "amount": 1172818.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 272419.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "des",
+          "name": "Enterprise Services",
+          "budget": "$30M",
+          "operating_budget": 30488562.0,
+          "capital_budget": 0.0,
+          "total_budget": 30488562.0,
+          "fund_breakdown": {
+            "Special / Enterprise Funds": 30488562.0
+          },
+          "num_programs": 4,
+          "programs": [
+            {
+              "program_name": "Golf Courses",
+              "total_budget": 12402478.0,
+              "operating_budget": 12402478.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 12402478.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Golf Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 12402478.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honolulu Zoo",
+              "total_budget": 9057653.0,
+              "operating_budget": 9057653.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 9057653.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Honolulu Zoo Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 9057653.0
+                }
+              ]
+            },
+            {
+              "program_name": "Auditoriums",
+              "total_budget": 7895781.0,
+              "operating_budget": 7895781.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 7895781.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Special Events Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 7895781.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 1132650.0,
+              "operating_budget": 1132650.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1132650.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Special Events Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 1132650.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "ocean",
+          "name": "Ocean Safety",
+          "budget": "$28M",
+          "operating_budget": 27933958.0,
+          "capital_budget": 0.0,
+          "total_budget": 27933958.0,
+          "fund_breakdown": {
+            "General Fund": 27317494.0,
+            "Special / Enterprise Funds": 616464.0
+          },
+          "num_programs": 1,
+          "programs": [
+            {
+              "program_name": "Ocean Safety",
+              "total_budget": 27933958.0,
+              "operating_budget": 27933958.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 27317494.0,
+                "Special / Enterprise Funds": 616464.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 27317494.0
+                },
+                {
+                  "fund_name": "Hanauma Bay Nature Preserve Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 616464.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "cor",
+          "name": "Corporation Counsel",
+          "budget": "$17M",
+          "operating_budget": 16801013.0,
+          "capital_budget": 0.0,
+          "total_budget": 16801013.0,
+          "fund_breakdown": {
+            "General Fund": 16076392.0,
+            "Special / Enterprise Funds": 724621.0
+          },
+          "num_programs": 2,
+          "programs": [
+            {
+              "program_name": "Legal Services",
+              "total_budget": 15632924.0,
+              "operating_budget": 15632924.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 14908303.0,
+                "Special / Enterprise Funds": 724621.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 14908303.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 471826.0
+                },
+                {
+                  "fund_name": "Liquor Commission Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 252795.0
+                }
+              ]
+            },
+            {
+              "program_name": "Ethics Commission",
+              "total_budget": 1168089.0,
+              "operating_budget": 1168089.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1168089.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1168089.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "housing-and-land-management",
+          "name": "Housing and Land Management",
+          "budget": "$12M",
+          "operating_budget": 12089362.0,
+          "capital_budget": 0.0,
+          "total_budget": 12089362.0,
+          "fund_breakdown": {
+            "General Fund": 11035507.0,
+            "Special / Enterprise Funds": 1053855.0
+          },
+          "num_programs": 7,
+          "programs": [
+            {
+              "program_name": "Administration",
+              "total_budget": 5346736.0,
+              "operating_budget": 5346736.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 5105056.0,
+                "Special / Enterprise Funds": 241680.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5105056.0
+                },
+                {
+                  "fund_name": "Clean Water and Natural Lands Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 241680.0
+                }
+              ]
+            },
+            {
+              "program_name": "Housing Property/Asset Management",
+              "total_budget": 2442435.0,
+              "operating_budget": 2442435.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2442435.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2442435.0
+                }
+              ]
+            },
+            {
+              "program_name": "Land Transactions",
+              "total_budget": 1560502.0,
+              "operating_budget": 1560502.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1560502.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1560502.0
+                }
+              ]
+            },
+            {
+              "program_name": "Housing Development",
+              "total_budget": 919346.0,
+              "operating_budget": 919346.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 919346.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 919346.0
+                }
+              ]
+            },
+            {
+              "program_name": "Conservation Office",
+              "total_budget": 674007.0,
+              "operating_budget": 674007.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 674007.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Clean Water and Natural Lands Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 674007.0
+                }
+              ]
+            },
+            {
+              "program_name": "Housing Finance",
+              "total_budget": 588588.0,
+              "operating_budget": 588588.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 450420.0,
+                "Special / Enterprise Funds": 138168.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 450420.0
+                },
+                {
+                  "fund_name": "Affordable Housing Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 138168.0
+                }
+              ]
+            },
+            {
+              "program_name": "Housing Policy",
+              "total_budget": 557748.0,
+              "operating_budget": 557748.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 557748.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 557748.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "md",
+          "name": "Managing Director",
+          "budget": "$9M",
+          "operating_budget": 8881467.0,
+          "capital_budget": 0.0,
+          "total_budget": 8881467.0,
+          "fund_breakdown": {
+            "General Fund": 8881467.0
+          },
+          "num_programs": 5,
+          "programs": [
+            {
+              "program_name": "City Management",
+              "total_budget": 2807016.0,
+              "operating_budget": 2807016.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2807016.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2807016.0
+                }
+              ]
+            },
+            {
+              "program_name": "Office of Climate Change, Sustainability and Resiliency",
+              "total_budget": 2606138.0,
+              "operating_budget": 2606138.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2606138.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2606138.0
+                }
+              ]
+            },
+            {
+              "program_name": "Office of Economic Revitalization",
+              "total_budget": 2431517.0,
+              "operating_budget": 2431517.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2431517.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2431517.0
+                }
+              ]
+            },
+            {
+              "program_name": "Culture and the Arts",
+              "total_budget": 938512.0,
+              "operating_budget": 938512.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 938512.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 938512.0
+                }
+              ]
+            },
+            {
+              "program_name": "Office of Housing",
+              "total_budget": 98284.0,
+              "operating_budget": 98284.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 98284.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 98284.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dhr",
+          "name": "Human Resources",
+          "budget": "$9M",
+          "operating_budget": 8662835.0,
+          "capital_budget": 0.0,
+          "total_budget": 8662835.0,
+          "fund_breakdown": {
+            "General Fund": 8662835.0
+          },
+          "num_programs": 5,
+          "programs": [
+            {
+              "program_name": "Employment and Personnel Services",
+              "total_budget": 2686299.0,
+              "operating_budget": 2686299.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 2686299.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 2686299.0
+                }
+              ]
+            },
+            {
+              "program_name": "Administration",
+              "total_budget": 1850954.0,
+              "operating_budget": 1850954.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1850954.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1850954.0
+                }
+              ]
+            },
+            {
+              "program_name": "Labor Relations and Training",
+              "total_budget": 1677683.0,
+              "operating_budget": 1677683.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1677683.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1677683.0
+                }
+              ]
+            },
+            {
+              "program_name": "Industrial Safety and Workers' Compensation",
+              "total_budget": 1482736.0,
+              "operating_budget": 1482736.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1482736.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1482736.0
+                }
+              ]
+            },
+            {
+              "program_name": "Classification and Pay",
+              "total_budget": 965163.0,
+              "operating_budget": 965163.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 965163.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 965163.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "med",
+          "name": "Medical Examiner",
+          "budget": "$5M",
+          "operating_budget": 5350081.0,
+          "capital_budget": 0.0,
+          "total_budget": 5350081.0,
+          "fund_breakdown": {
+            "General Fund": 5350081.0
+          },
+          "num_programs": 1,
+          "programs": [
+            {
+              "program_name": "Investigation of Deaths",
+              "total_budget": 5350081.0,
+              "operating_budget": 5350081.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 5350081.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 5350081.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "rhb",
+          "name": "Royal Hawaiian Band",
+          "budget": "$3M",
+          "operating_budget": 3430124.0,
+          "capital_budget": 0.0,
+          "total_budget": 3430124.0,
+          "fund_breakdown": {
+            "General Fund": 3430124.0
+          },
+          "num_programs": 1,
+          "programs": [
+            {
+              "program_name": "Royal Hawaiian Band",
+              "total_budget": 3430124.0,
+              "operating_budget": 3430124.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 3430124.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 3430124.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "dem",
+          "name": "Emergency Management",
+          "budget": "$2M",
+          "operating_budget": 1714359.0,
+          "capital_budget": 0.0,
+          "total_budget": 1714359.0,
+          "fund_breakdown": {
+            "General Fund": 1624359.0,
+            "Special / Enterprise Funds": 90000.0
+          },
+          "num_programs": 1,
+          "programs": [
+            {
+              "program_name": "Emergency Management Coordination",
+              "total_budget": 1714359.0,
+              "operating_budget": 1714359.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1624359.0,
+                "Special / Enterprise Funds": 90000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1624359.0
+                },
+                {
+                  "fund_name": "Special Projects Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Operating",
+                  "amount": 90000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "neighborhood-commission",
+          "name": "Neighborhood Commission",
+          "budget": "$1M",
+          "operating_budget": 1314650.0,
+          "capital_budget": 0.0,
+          "total_budget": 1314650.0,
+          "fund_breakdown": {
+            "General Fund": 1314650.0
+          },
+          "num_programs": 1,
+          "programs": [
+            {
+              "program_name": "Neighborhood Commission",
+              "total_budget": 1314650.0,
+              "operating_budget": 1314650.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1314650.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1314650.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "mayor",
+          "name": "Mayor",
+          "budget": "$1M",
+          "operating_budget": 1041035.0,
+          "capital_budget": 0.0,
+          "total_budget": 1041035.0,
+          "fund_breakdown": {
+            "General Fund": 1041035.0
+          },
+          "num_programs": 2,
+          "programs": [
+            {
+              "program_name": "Administration",
+              "total_budget": 1001035.0,
+              "operating_budget": 1001035.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 1001035.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 1001035.0
+                }
+              ]
+            },
+            {
+              "program_name": "Contingency Fund",
+              "total_budget": 40000.0,
+              "operating_budget": 40000.0,
+              "capital_budget": 0.0,
+              "fund_breakdown": {
+                "General Fund": 40000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Operating",
+                  "amount": 40000.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "maui": {
+      "name": "County of Maui",
+      "available": false
+    },
+    "hawaii": {
+      "name": "County of Hawai\u02bbi",
+      "available": false
+    },
+    "kauai": {
+      "name": "County of Kaua\u02bbi",
+      "available": false
+    }
+  }
+}

@@ -6834,3 +6834,230 @@ window.initTaxCalculatorPage = async function () {
     document.addEventListener('focusin', handler, true);
 })();
 
+// ---------------------------------------------------------------------------
+// County budgets — the counties' own operating budgets (separate documents
+// from the state bills; HB300 §13 only carries state grants TO counties).
+// Phase 1 covers Honolulu via data.honolulu.gov; the neighbor island counties
+// publish PDF ordinances and appear as "coming soon" until their parsers
+// land. Data: county_budgets.json from scripts/process_county_budgets.py.
+// ---------------------------------------------------------------------------
+let countyBudgetsData = null;
+let countySelected = null;
+
+window.loadCountyBudgets = async function () {
+    try {
+        const response = await fetch('./js/county_budgets.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        countyBudgetsData = await response.json();
+        return countyBudgetsData;
+    } catch (e) {
+        // Missing county data must never break state mode — the Counties tab
+        // just renders its empty state.
+        console.error('Error loading county budgets:', e);
+        return null;
+    }
+};
+
+// Keep the State|Counties scope pill and body class in sync with the route.
+window.updateScopeToggle = function (path) {
+    const isCounty = path.startsWith('/counties');
+    document.body.classList.toggle('scope-county', isCounty);
+    document.querySelector('.scope-btn-state')?.classList.toggle('active', !isCounty);
+    document.querySelector('.scope-btn-county')?.classList.toggle('active', isCounty);
+};
+
+const COUNTY_ORDER = ['honolulu', 'maui', 'hawaii', 'kauai'];
+const countyShortName = (name) =>
+    name.replace('City & County of ', '').replace('County of ', '');
+
+// Stacked single-row bar of fund categories with a legend underneath.
+const fundCategoryBar = (fundBreakdown, total) => {
+    if (!total || !fundBreakdown) return '';
+    const palette = {
+        'General Fund': '#5a7b68',
+        'Special / Enterprise Funds': '#7da48d',
+        'Federal Funds': '#c9a87b',
+        'Bond / Debt Funds': '#a68c68',
+        'Trust & Other Funds': '#cdd3d8',
+    };
+    const entries = Object.entries(fundBreakdown).filter(([, v]) => v > 0);
+    const sum = entries.reduce((s, [, v]) => s + v, 0) || 1;
+    const segments = entries.map(([k, v]) =>
+        `<span class="fund-cat-seg" style="width:${(v / sum * 100).toFixed(2)}%;background:${palette[k] || '#cdd3d8'}" title="${escapeHtml(k)} — ${fmt(v)}"></span>`
+    ).join('');
+    const legend = entries.map(([k, v]) =>
+        `<span class="fund-cat-legend-item"><span class="legend-swatch" style="background:${palette[k] || '#cdd3d8'}"></span>${escapeHtml(k)} <span class="fund-cat-legend-amt">${fmt(v)}</span></span>`
+    ).join('');
+    return `<div class="fund-cat-bar-wrap">
+        <div class="fund-cat-bar">${segments}</div>
+        <div class="fund-cat-legend">${legend}</div>
+    </div>`;
+};
+
+window.countiesPage = async function (params) {
+    if (!countyBudgetsData || !countyBudgetsData.counties) {
+        return `
+            <section class="compare-page">
+                <h2>County Budgets</h2>
+                <div class="empty-state">
+                    <p>No county budget data available yet.</p>
+                    <p>To generate it, run:</p>
+                    <pre>python scripts/fetch_county_budgets.py --county honolulu
+python scripts/process_county_budgets.py --county all</pre>
+                </div>
+            </section>`;
+    }
+
+    const counties = countyBudgetsData.counties;
+    let selected = params?.county;
+    if (!selected || !counties[selected]) {
+        selected = COUNTY_ORDER.find(c => counties[c]?.available) || 'honolulu';
+    }
+    countySelected = selected;
+
+    const tabs = COUNTY_ORDER.map(slug => {
+        const c = counties[slug];
+        if (!c) return '';
+        const label = escapeHtml(countyShortName(c.name));
+        if (!c.available) {
+            return `<span class="county-tab county-tab-disabled" title="${escapeHtml(c.name)} — coming soon">${label}<span class="county-tab-soon">soon</span></span>`;
+        }
+        return `<a href="#/counties/${slug}" class="county-tab ${slug === selected ? 'active' : ''}" title="${escapeHtml(c.name)}">${label}</a>`;
+    }).join('');
+
+    const c = counties[selected];
+    let content;
+    if (!c.available) {
+        content = `
+            <div class="empty-state">
+                <p>${escapeHtml(c.name)} budget data is coming soon.</p>
+                <p>The county publishes its budget as ordinance PDFs; a parser for it is planned.</p>
+            </div>`;
+    } else {
+        const fy = countyBudgetsData.fiscal_year;
+        content = `
+            <div class="summary-cards-grid" id="county-cards"></div>
+            ${c.coverage_note ? `<p class="county-caveat">${escapeHtml(c.coverage_note)}</p>` : ''}
+            ${fundCategoryBar(c.fund_breakdown, c.total_budget)}
+            <div id="county-results"></div>
+            <p class="county-source">Source: <a href="${escapeHtml(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.label)}</a> · FY${fy}</p>`;
+    }
+
+    return `
+        <section class="compare-page counties-page">
+            <nav class="county-tabs" aria-label="County">${tabs}</nav>
+            <h2 class="county-title">${escapeHtml(c.name)}</h2>
+            ${content}
+        </section>`;
+};
+
+window.initCountiesPage = function () {
+    const counties = countyBudgetsData?.counties;
+    const c = counties?.[countySelected];
+    if (!c || !c.available) return;
+
+    let sortCol = 'budget';
+    let sortDir = 'desc';
+    const expanded = new Set();
+
+    const arrow = (col) => sortCol === col
+        ? `<span class="sort-ind">${sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
+
+    // Summary cards
+    const cardsEl = document.getElementById('county-cards');
+    if (cardsEl) {
+        const capitalCell = c.capital_budget > 0
+            ? `<div class="amount">${fmtHtmlCard(c.capital_budget)}</div><div class="label">Capital (CIP)</div><div class="label-sub">FY${countyBudgetsData.fiscal_year}</div>`
+            : `<div class="amount">—</div><div class="label">Capital (CIP)</div><div class="label-sub">${escapeHtml(c.capital_note || 'not included')}</div>`;
+        cardsEl.innerHTML = `
+            <div class="summary-card"><div class="amount">${fmtHtmlCard(c.operating_budget)}</div><div class="label">Operating Budget</div><div class="label-sub">FY${countyBudgetsData.fiscal_year}</div></div>
+            <div class="summary-card"><div class="amount">${c.num_departments}</div><div class="label">Departments</div><div class="label-sub">${c.num_programs ? c.num_programs + ' programs' : countyShortName(c.name)}</div></div>
+            <div class="summary-card">${capitalCell}</div>`;
+    }
+
+    const render = () => {
+        const rows = [...c.departments].sort((a, b) => {
+            if (sortCol === 'dept') {
+                const va = a.name.toLowerCase(), vb = b.name.toLowerCase();
+                return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+            }
+            return sortDir === 'asc'
+                ? a.total_budget - b.total_budget
+                : b.total_budget - a.total_budget;
+        });
+        const maxBudget = Math.max(...c.departments.map(d => d.total_budget), 1);
+
+        let body = '<tbody>';
+        for (const d of rows) {
+            const pct = c.total_budget ? (d.total_budget / c.total_budget * 100) : 0;
+            const isOpen = expanded.has(d.code);
+            body += `<tr class="county-dept-row ${isOpen ? 'open' : ''}" data-dept="${escapeHtml(d.code)}">
+                <td><span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>${escapeHtml(d.name)}<span class="county-prog-count">${d.num_programs || d.programs.length} program${(d.num_programs || d.programs.length) === 1 ? '' : 's'}</span></td>
+                <td class="amount-cell"><span class="figure-chip">${fmtHtml(d.total_budget)}</span></td>
+                <td class="county-share-cell">
+                    <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%"></span></span>
+                    <span class="county-share-pct">${pct >= 1 ? pct.toFixed(0) + '%' : '<1%'}</span>
+                </td>
+            </tr>`;
+            if (isOpen) {
+                // Program/activity level: one row per program with its total,
+                // plus the program's fund detail as a sub-line. Single-fund
+                // programs inline the fund name instead of repeating it.
+                body += d.programs.map(p => {
+                    const fundDetail = p.funds.length === 1
+                        ? `<span class="county-prog-fund">${escapeHtml(p.funds[0].fund_name)}</span>`
+                        : `<span class="county-prog-funds">${p.funds.map(f =>
+                            `<span class="county-fund-chip">${escapeHtml(f.fund_name)} ${fmtHtml(f.amount)}</span>`
+                          ).join('')}</span>`;
+                    return `
+                    <tr class="county-prog-row">
+                        <td class="county-prog-name">${escapeHtml(p.program_name)}${fundDetail}</td>
+                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.total_budget)}</span></td>
+                        <td></td>
+                    </tr>`;
+                }).join('');
+            }
+        }
+        body += '</tbody>';
+
+        const totals = `<tbody class="totals-block"><tr class="totals-row">
+            <td>Total <span class="totals-meta">${c.num_departments} departments</span></td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(c.total_budget)}</span></td>
+            <td></td>
+        </tr></tbody>`;
+
+        const el = document.getElementById('county-results');
+        if (el) el.innerHTML = `
+            <table class="data-table county-table">
+                <thead><tr>
+                    <th class="sortable" data-sort="dept">Department${arrow('dept')}</th>
+                    <th class="sortable amount-cell" data-sort="budget">Budget${arrow('budget')}</th>
+                    <th>Share</th>
+                </tr></thead>
+                ${body}
+                ${totals}
+            </table>`;
+    };
+
+    render();
+
+    const resultsEl = document.getElementById('county-results');
+    resultsEl?.addEventListener('click', (e) => {
+        const th = e.target.closest('th.sortable');
+        if (th) {
+            const col = th.getAttribute('data-sort');
+            if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            else { sortCol = col; sortDir = col === 'dept' ? 'asc' : 'desc'; }
+            render();
+            return;
+        }
+        const row = e.target.closest('tr.county-dept-row');
+        if (row) {
+            const code = row.getAttribute('data-dept');
+            if (expanded.has(code)) expanded.delete(code);
+            else expanded.add(code);
+            render();
+        }
+    });
+};
+

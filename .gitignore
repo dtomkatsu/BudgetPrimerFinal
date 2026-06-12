@@ -39,10 +39,15 @@ data/raw/*
 # (HB1800_CD1.txt also carries hand-applied corrections for markup the RTF→text
 #  conversion dropped — see commit 08c5f83.)
 !data/raw/drafts/
+# County budget source files (Honolulu Socrata JSON, county ordinance PDFs).
+# Committed so scripts/process_county_budgets.py runs offline from a fresh
+# clone, mirroring the HB300 convention above.
+!data/raw/counties/
 data/processed/*
 !data/processed/budget_parsed*.csv
 !data/processed/budget_allocations*.csv
 !data/processed/department_descriptions.json
+!data/processed/counties/
 data/output/*
 !data/output/departmental_reports/
 
