@@ -3415,23 +3415,64 @@ window.initDraftComparePage = async function () {
             if (el) { el.textContent = text; el.className = 'tl-sub' + (cls ? ' ' + cls : ''); }
         };
         const subCls = (n) => n > 0 ? 'tl-sub-up' : n < 0 ? 'tl-sub-down' : '';
-        const dHd1 = totHD1 - totGov;
-        const dSd1 = totSD1 - totHD1;
         setSub('tl-sub-gov', 'baseline');
-        setSub('tl-sub-hd1', dHd1 === 0 ? 'no change vs Gov.' : `${fmtCaption(dHd1)} vs Gov.`, subCls(dHd1));
-        setSub('tl-sub-sd1', dSd1 === 0 ? 'no change vs HD1' : `${fmtCaption(dSd1)} vs HD1`, subCls(dSd1));
+        setSub('tl-sub-hd1', '');
+        setSub('tl-sub-sd1', '');
         setSub('tl-sub-cd1', 'final budget', 'tl-sub-final');
-        // Net scope caption: percent + which two stages the net spans.
+
+        // ── Connector deltas ──────────────────────────────────────────────
+        // Stage-to-stage changes render as dimension lines spanning the gap
+        // between consecutive ACTIVE pills (line from pill-center to
+        // pill-center, arrowhead into the destination, amount + "Gov. → HD1"
+        // kicker breaking the line). The geometry + kicker make the basis of
+        // each delta explicit. A muted (toggled-off) stage is skipped — the
+        // line passes over its column, spanning the two stages actually being
+        // compared. With fewer than 3 active stages the single delta would
+        // duplicate the Net Change pill, so no connectors are drawn.
+        const stageVals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1 };
+        const stageCols = { gov: 3, hd1: 4, sd1: 5, cd1: 6 };
+        const stageLbls = { gov: 'Gov.', hd1: 'HD1', sd1: 'SD1', cd1: 'CD1' };
+        const tlEl = document.getElementById('compare-timeline');
+        tlEl?.querySelectorAll('.tl-delta').forEach(el => el.remove());
+        const activeStages = ['gov', 'hd1', 'sd1', 'cd1']
+            .filter(n => document.getElementById(`tl-${n}`)?.checked);
+        if (tlEl && activeStages.length >= 3) {
+            for (let i = 1; i < activeStages.length; i++) {
+                const a = activeStages[i - 1], b = activeStages[i];
+                const d = stageVals[b] - stageVals[a];
+                const span = document.createElement('span');
+                span.className = 'tl-delta';
+                span.dataset.row = 'subs';
+                const c1 = stageCols[a], c2 = stageCols[b];
+                span.style.gridColumn = `${c1} / ${c2 + 1}`;
+                // Inset so the hairline runs pill-center to pill-center.
+                span.style.setProperty('--tl-ins', `${100 / (2 * (c2 - c1 + 1))}%`);
+                const amt = d === 0 ? 'no change' : fmtCaption(d);
+                span.innerHTML =
+                    `<span class="tl-delta-chip">` +
+                    `<span class="tl-delta-amt ${subCls(d)}">${amt}</span>` +
+                    `<span class="tl-delta-kicker">${stageLbls[a]} → ${stageLbls[b]}</span>` +
+                    `</span>`;
+                span.title = `${stageLbls[b]} is ${amt === 'no change' ? 'unchanged' : amt} vs ${stageLbls[a]}`;
+                tlEl.appendChild(span);
+            }
+        }
+
+        // Net caption: percent + scope, stacked in the same chip language as
+        // the connector deltas (amount over a "from → to" kicker).
         const fromLbl = getD1Label() === "Gov's Request" ? 'Gov.' : getD1Label();
         const toLbl = getD2Label() === "Gov's Request" ? 'Gov.' : getD2Label();
         const absPct = Math.abs(netPct);
         const pctStr = tabNet === 0 ? '0%'
             : `${tabNet > 0 ? '+' : '−'}${absPct >= 0.01 ? absPct.toFixed(2) : absPct.toFixed(3)}%`;
-        // Scope half lives in its own span so phones can drop it (CSS).
         const netSubEl = document.getElementById('tl-sub-net');
         if (netSubEl) {
             netSubEl.className = 'tl-sub';
-            netSubEl.innerHTML = `${pctStr}<span class="tl-sub-scope"> · ${fromLbl} → ${toLbl}</span>`;
+            netSubEl.innerHTML =
+                `<span class="tl-delta-chip tl-delta-chip-net">` +
+                `<span class="tl-delta-amt">${pctStr}</span>` +
+                `<span class="tl-delta-kicker">${fromLbl} → ${toLbl}</span>` +
+                `</span>`;
         }
 
         // Populate per-cell Operating / Capital breakdown values (grid layout).
@@ -3656,17 +3697,16 @@ window.initDraftComparePage = async function () {
                              <dd>Transfers / Other</dd>
                          </dl>
                      </details>
-                     <div class="rg-chips rg-positions">
-                         <p class="rg-chips-title">Position counts</p>
-                         <p class="rg-positions-intro">Under each stage's dollar figure is that program's authorized headcount (FTE), split into:</p>
+                     <details class="rg-chips rg-funds rg-positions">
+                         <summary>Position counts</summary>
                          <dl class="rg-chips-defs rg-positions-defs">
                              <dt><span class="pos-sub" style="margin-top:0;"><span class="pos-perm">26<span class="pos-unit">perm</span></span></span></dt>
-                             <dd><strong>Permanent</strong> positions — ongoing, established jobs</dd>
+                             <dd><strong>Permanent</strong> — ongoing established jobs (FTE)</dd>
                              <dt><span class="pos-sub" style="margin-top:0;"><span class="pos-temp">6<span class="pos-unit">temp</span></span></span></dt>
-                             <dd><strong>Temporary</strong> positions — time-limited, often grant- or project-funded</dd>
+                             <dd><strong>Temporary</strong> — time-limited, often grant-funded</dd>
                          </dl>
-                         <p class="rg-chips-help">Each column shows the count at that stage (Gov → HD1 → SD1 → CD1), so you can see headcount change through the process. Department rows total their programs.</p>
-                     </div>
+                         <p class="rg-chips-help">Shown under each stage's dollars, so headcount changes track Gov → CD1.</p>
+                     </details>
                  </div>
              </span>`;
         // Re-attach filter/search listeners after re-render
@@ -4509,6 +4549,11 @@ window.initDraftComparePage = async function () {
 
         // Persist current state to URL so the view is shareable
         syncUrlState();
+
+        // Re-evaluate whether each table needs its own scroll pane (deferred:
+        // syncTableScrollMode is defined in the init block below, and the
+        // toggle needs post-layout widths anyway).
+        setTimeout(() => window.syncTableScrollMode?.(), 0);
     };
 
     // --- Render Section 14 capital projects section ---
@@ -5686,6 +5731,50 @@ window.initDraftComparePage = async function () {
         const ro = new ResizeObserver(syncBarHeight);
         if (searchRow) ro.observe(searchRow);
         comparePage.querySelectorAll('.data-table thead').forEach(t => ro.observe(t));
+
+        // Decide per render whether the main table needs its own scroll pane.
+        // Default (table fits the card): the pane has no overflow and the page
+        // is the only vertical scroller — no nested-scroll trap, and the thead
+        // pins below the sticky search row at page level. Only when the table
+        // is genuinely wider than the card (3–4 stages on) does .is-wide
+        // restore the contained pane with its own sticky context.
+        window.syncTableScrollMode = () => {
+            comparePage.querySelectorAll('.table-scroll').forEach(pane => {
+                const t = pane.querySelector('table');
+                if (t) pane.classList.toggle('is-wide', t.scrollWidth > pane.clientWidth + 4);
+            });
+            syncBarHeight();
+        };
+        syncTableScrollMode();
+        window.addEventListener('resize', () => syncTableScrollMode());
+
+        // Floating back-to-top — the compare page is a single long scroll;
+        // give deep scrollers a one-tap way home. Created once, page-global.
+        if (!document.querySelector('.back-to-top')) {
+            const topBtn = document.createElement('button');
+            topBtn.className = 'back-to-top';
+            topBtn.setAttribute('aria-label', 'Back to top');
+            topBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.75 6 4.25l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            document.body.appendChild(topBtn);
+            topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            const onTopBtnScroll = () => topBtn.classList.toggle('show', window.scrollY > window.innerHeight * 1.25);
+            window.addEventListener('scroll', onTopBtnScroll, { passive: true });
+            onTopBtnScroll();
+        }
+
+        // Cap the reading-guide panel to the space below its pill so it never
+        // extends past the fold; with overflow-y:auto it scrolls internally
+        // instead of forcing a page scroll. Delegated on the page wrapper
+        // because render() recreates the pill on every pass.
+        const capReadingGuide = (e) => {
+            const pill = e.target.closest?.('.reading-guide-pill');
+            const panel = pill?.querySelector('.reading-guide-panel');
+            if (!panel) return;
+            const below = window.innerHeight - pill.getBoundingClientRect().bottom - 24;
+            panel.style.maxHeight = Math.min(380, Math.max(200, below)) + 'px';
+        };
+        comparePage.addEventListener('mouseover', capReadingGuide);
+        comparePage.addEventListener('focusin', capReadingGuide);
     }
 };
 

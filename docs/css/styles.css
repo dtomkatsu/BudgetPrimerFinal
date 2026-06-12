@@ -265,6 +265,14 @@ body {
     opacity: 1;
     font-weight: 500;
 }
+/* Responsive nav: the inline sub-labels ("2026 budget bill" …) roughly double
+   each pill's width, so the four-item row only fits on one line at ≥960px.
+   Below that, collapse to short labels (HB1800 · HB300 · Actuals · About) so
+   the nav stays a single row instead of wrapping. The descriptive text lives
+   on as each link's `title` tooltip. */
+@media (max-width: 959px) {
+    .nav-sub { display: none; }
+}
 
 /* HD1/SD1 links in draft comparison title */
 .draft-title-link {
@@ -2593,6 +2601,17 @@ th.sortable .sort-hint {
     z-index: 1000;
     pointer-events: none;
     white-space: normal;
+    /* Never taller than the viewport allows — scroll internally instead of
+       forcing the user to scroll the page to read the bottom of the panel. */
+    max-height: min(380px, 70vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;   /* don't bubble scroll to page */
+}
+/* Slim scrollbar, matching .reason-popover */
+.reading-guide-panel::-webkit-scrollbar { width: 8px; }
+.reading-guide-panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 4px;
 }
 .reading-guide-pill:hover .reading-guide-panel,
 .reading-guide-pill:focus .reading-guide-panel,
@@ -3888,30 +3907,47 @@ mark.search-highlight {
        — the 1px overlap is invisible but plugs the hairline reliably. */
     top: calc(var(--compare-bar-h, 0px) + var(--compare-search-h, 0px) + var(--compare-thead-h, 39px) - 1px);
 }
-/* Internal scroll pane for the comparison table. With all stages on, the
-   per-stage perm/temp position breakdowns make the table wider than the
-   viewport; this contains the horizontal (and vertical) overflow inside the
-   table card instead of letting it push the whole page off-screen. Because the
-   pane is its own scroll context, the thead and open dept rows pin to the
-   pane's top (0) rather than the page-level controls/search offset. */
-.compare-page .table-scroll {
+/* Scroll pane for the comparison table — TWO MODES, toggled by JS
+   (syncTableScrollMode) per render:
+
+   Default (table fits the card): the pane is a plain in-flow wrapper with no
+   overflow of its own. The page is the only vertical scroller — no
+   nested-scroll trap capturing the wheel mid-page — and the thead/open rows
+   pin below the sticky search row via the page-level rules above.
+
+   .is-wide (3–4 stages on; position columns push the table wider than the
+   card): the pane becomes its own scroll context containing both axes, with
+   thead/open rows pinning to the pane's top instead. ANY overflow value other
+   than visible would create a sticky containment that silently breaks the
+   page-level pinning, which is why this is a JS-measured class and not a
+   blanket overflow-x rule. */
+.compare-page .table-scroll.is-wide {
     overflow: auto;
     max-height: calc(100vh - var(--compare-search-h, 56px) - 16px);
 }
-.compare-page .table-scroll .data-table th {
+.compare-page .table-scroll.is-wide .data-table th {
     top: 0;
 }
-.compare-page .table-scroll .dept-group-row.open td,
-.compare-page .table-scroll .fund-group-row.open td {
+.compare-page .table-scroll.is-wide .dept-group-row.open td,
+.compare-page .table-scroll.is-wide .fund-group-row.open td {
     top: calc(var(--compare-thead-h, 39px) - 1px);
 }
 /* Slim, unobtrusive scrollbars for the pane */
-.compare-page .table-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
-.compare-page .table-scroll::-webkit-scrollbar-thumb {
+.compare-page .table-scroll.is-wide::-webkit-scrollbar { height: 10px; width: 10px; }
+.compare-page .table-scroll.is-wide::-webkit-scrollbar-thumb {
     background: rgba(16, 24, 40, 0.22);
     border-radius: 6px;
 }
-.compare-page .table-scroll::-webkit-scrollbar-track { background: transparent; }
+.compare-page .table-scroll.is-wide::-webkit-scrollbar-track { background: transparent; }
+/* Jump targets (dept links, FY-swap anchor restore, project rows) land below
+   the sticky chrome instead of underneath it — applies to every
+   scrollIntoView call site at once. */
+.compare-page .dept-group-row,
+.compare-page .dept-detail-row,
+.compare-page .fund-group-row,
+.compare-page .project-dept-row {
+    scroll-margin-top: calc(var(--compare-search-h, 56px) + var(--compare-thead-h, 39px) + 10px);
+}
 /* Sticky search/filter row pinned immediately below the controls card */
 .compare-page > .search-row {
     position: sticky;
@@ -4291,6 +4327,73 @@ mark.search-highlight {
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-sub,
 .compare-timeline.col-cd1-inactive [data-col="cd1"].tl-sub {
     color: #c1c8c5;
+}
+
+/* ── Connector deltas (dimension lines between consecutive active pills) ──
+   Each stage-to-stage change renders in the subs row as a hairline running
+   pill-center to pill-center (--tl-ins insets the line by half a column on
+   each side), an arrowhead into the destination stage, and a centered chip —
+   colored amount over a tiny "GOV. → HD1" kicker — breaking the line. The
+   span's grid-column is set inline by JS from the active-stage chain, so a
+   toggled-off stage is simply passed over. */
+.compare-timeline > .tl-delta {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    padding: 1px 0;
+    min-width: 0;
+}
+.compare-timeline > .tl-delta::before {
+    content: '';
+    position: absolute;
+    left: var(--tl-ins, 25%);
+    right: calc(var(--tl-ins, 25%) + 4px);   /* stop short of the arrowhead */
+    top: 50%;
+    border-top: 1px solid #c6d2cb;
+}
+.compare-timeline > .tl-delta::after {
+    content: '▸';
+    position: absolute;
+    right: calc(var(--tl-ins, 25%) - 3px);
+    top: 50%;
+    transform: translateY(-54%);
+    font-size: 0.7rem;
+    line-height: 1;
+    color: #aabdb2;
+}
+.tl-delta-chip {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    padding: 0 9px;
+}
+.tl-delta-amt {
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    color: #6b7672;
+    white-space: nowrap;
+}
+.tl-delta-kicker {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #a7b1ac;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+/* Net caption reuses the chip but needs no line-breaking background,
+   and its percent stays neutral (the Net pill above carries the color). */
+.tl-delta-chip-net {
+    background: transparent;
+    padding: 0;
 }
 
 /* ── Card section sub-headers (inside combined Operating & Capital collapse) ── */
@@ -4850,7 +4953,9 @@ mark.search-highlight {
         display: none;
     }
     .tl-dot-lbl { pointer-events: none; }
-    .tl-sub-scope { display: none; }
+    /* Connector deltas need the full pill row geometry; on phones (hidden
+       inactive columns + horizontal scroll) the Net chip carries the story. */
+    .compare-timeline > .tl-delta { display: none; }
     .tl-bd-name-full { display: none; }
     .tl-bd-name-abbr { display: inline; }
     .compare-controls-bar > .compare-timeline {
@@ -4862,6 +4967,9 @@ mark.search-highlight {
     .tl-amt-num, .tl-net-val { font-size: 1rem; }
     .tl-sub { padding: 0 3px; }
     .tl-bd-label { padding-left: 4px; padding-right: 2px; }
+    /* The pinned search row eats too much of a small screen; let it
+       scroll away with the page. */
+    .compare-page > .search-row { position: static; }
 }
 
 /* The page tint's edge-to-edge bleed assumes #app's 2rem padding; at
@@ -6062,3 +6170,37 @@ mark.search-highlight {
     margin-left: 4px;
 }
 
+
+/* ── Floating back-to-top ────────────────────────────────────────────────
+   Appears after ~1.25 viewports of scroll (JS toggles .show). Sage circle in
+   the same family as the timeline chips; sits clear of the table export row. */
+.back-to-top {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(60, 82, 73, 0.30);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 50;
+}
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.back-to-top:hover {
+    background: linear-gradient(135deg, #79a092 0%, #62867a 100%);
+    box-shadow: 0 4px 14px rgba(60, 82, 73, 0.38);
+}
