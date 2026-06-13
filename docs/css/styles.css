@@ -6448,6 +6448,9 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 /* Department table: expandable rows + share bars */
 .county-table .county-dept-row { cursor: pointer; }
 .county-table .county-dept-row:hover td { background: #f5f8f6; }
+/* Flat rows have no program detail to expand (e.g. Hawaiʻi fund-level). */
+.county-table .county-dept-flat { cursor: default; }
+.county-table .county-dept-flat:hover td { background: transparent; }
 .county-row-chevron {
     display: inline-block;
     width: 1.1em;

@@ -147,6 +147,9 @@ def p_key(df: pd.DataFrame):
 def _build_county_entry(df: pd.DataFrame, county: str, parser) -> Dict[str, Any]:
     """Build one county/fiscal-year block: operating + cip split."""
     operating = _build_operating(df)
+    # Some counties (e.g. Hawaiʻi, from a scanned source) only break operating
+    # out by fund, not department — let the parser relabel the operating table.
+    operating['row_label'] = getattr(parser, 'operating_row_label', 'Department')
     cip = _build_cip(df)
     return {
         'name': COUNTY_NAMES[county],

@@ -211,7 +211,7 @@ class Router {
         const footerSourceEl = document.querySelector('.app-footer-source');
         if (footerSourceEl) {
             if (isCounties) {
-                footerSourceEl.innerHTML = 'Data Source: county budget documents — Honolulu via <a href="https://data.honolulu.gov" target="_blank" rel="noopener">data.honolulu.gov</a> + capital budget ordinance; Kauaʻi operating &amp; capital budget ordinances; Maui FY2026 Mayor’s Proposed budget; Hawaiʻi county budget coming soon';
+                footerSourceEl.innerHTML = 'Data Source: county budget documents — Honolulu via <a href="https://data.honolulu.gov" target="_blank" rel="noopener">data.honolulu.gov</a> + capital budget ordinance; Kauaʻi operating &amp; capital budget ordinances; Maui FY2026 Mayor’s Proposed budget; Hawaiʻi FY2026-27 operating budget (Bill 135, by fund)';
             } else if (path === '/school-food-service') {
                 footerSourceEl.innerHTML = 'Data Source: <a href="https://hawaiipublicschools.org/data-reports/fiscal/" target="_blank" rel="noopener">HIDOE School Food Services</a> · cash basis, FY2021–FY2025 (as of June 30, 2025)';
             } else {

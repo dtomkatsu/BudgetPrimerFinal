@@ -4,7 +4,7 @@
     2027
   ],
   "default_fiscal_year": 2026,
-  "generated_at": "2026-06-12T18:44:11.877882",
+  "generated_at": "2026-06-12T21:30:08.590282",
   "years": {
     "2026": {
       "honolulu": {
@@ -2335,7 +2335,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "row_label": "Department"
         },
         "cip": {
           "total": 1283140979.0,
@@ -7492,7 +7493,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "row_label": "Department"
         },
         "cip": {
           "total": 461429000.0,
@@ -10759,7 +10761,385 @@
       },
       "hawaii": {
         "name": "County of Hawai\u02bbi",
-        "available": false
+        "available": true,
+        "total_budget": 953414000.0,
+        "operating_budget": 953414000.0,
+        "capital_budget": 0.0,
+        "capital_note": "CIP not yet published for this year",
+        "coverage_note": "Operating budget by fund, from the County's published OPERATING BUDGET BY FUND summary. FY2026 is the FY2025-26 adopted budget; FY2027 is the FY2026-27 proposed budget. The detailed budget is a scanned/OCR'd document, so department-level figures are not broken out here. Capital improvement projects are published as a separate volume and are not included.",
+        "fund_breakdown": {
+          "General Fund": 742815000.0,
+          "Special / Enterprise Funds": 203715000.0,
+          "Trust & Other Funds": 6884000.0
+        },
+        "source": {
+          "label": "FY2026-27 Proposed Operating Budget (Bill 135) \u00b7 hawaiicounty.gov",
+          "url": "https://records.hawaiicounty.gov/WebLink/Browse.aspx?id=65&dbid=1"
+        },
+        "operating": {
+          "total": 953414000.0,
+          "fund_breakdown": {
+            "General Fund": 742815000.0,
+            "Special / Enterprise Funds": 203715000.0,
+            "Trust & Other Funds": 6884000.0
+          },
+          "num_departments": 14,
+          "num_programs": 14,
+          "departments": [
+            {
+              "code": "general-fund",
+              "name": "General Fund",
+              "total_budget": 667815000.0,
+              "fund_breakdown": {
+                "General Fund": 667815000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 667815000.0,
+                  "fund_breakdown": {
+                    "General Fund": 667815000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 667815000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "general-excise-tax-fund",
+              "name": "General Excise Tax Fund",
+              "total_budget": 75000000.0,
+              "fund_breakdown": {
+                "General Fund": 75000000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 75000000.0,
+                  "fund_breakdown": {
+                    "General Fund": 75000000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Excise Tax Fund",
+                      "fund_category": "General Fund",
+                      "amount": 75000000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "highway-fund",
+              "name": "Highway Fund",
+              "total_budget": 63324000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 63324000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 63324000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 63324000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 63324000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "housing-fund",
+              "name": "Housing Fund",
+              "total_budget": 54455000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 54455000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 54455000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 54455000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 54455000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "solid-waste-fund",
+              "name": "Solid Waste Fund",
+              "total_budget": 53716000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 53716000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 53716000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 53716000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 53716000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "sewer-fund",
+              "name": "Sewer Fund",
+              "total_budget": 29723000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 29723000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 29723000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 29723000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 29723000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "vehicle-disposal-fund",
+              "name": "Vehicle Disposal Fund",
+              "total_budget": 4682000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 4682000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 4682000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 4682000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Vehicle Disposal Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 4682000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "golf-course-fund",
+              "name": "Golf Course Fund",
+              "total_budget": 2288000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 2288000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 2288000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 2288000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Golf Course Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2288000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "geothermal-royalty-fund",
+              "name": "Geothermal Royalty Fund",
+              "total_budget": 1000000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 1000000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 1000000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 1000000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Geothermal Royalty Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1000000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "short-term-vacation-rental-enforcement-fund",
+              "name": "Short Term Vacation Rental Enforcement Fund",
+              "total_budget": 929000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 929000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 929000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 929000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Short Term Vacation Rental Enforcement Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 929000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "beautification-fund",
+              "name": "Beautification Fund",
+              "total_budget": 213000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 213000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 213000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 213000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Beautification Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 213000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "bikeway-fund",
+              "name": "Bikeway Fund",
+              "total_budget": 209000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 209000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 209000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 209000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Bikeway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 209000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "geothermal-asset-fund",
+              "name": "Geothermal Asset Fund",
+              "total_budget": 50000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 50000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 50000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 50000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Geothermal Asset Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 50000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "cemetery-fund",
+              "name": "Cemetery Fund",
+              "total_budget": 10000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 10000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 10000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 10000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Cemetery Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 10000.0
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "row_label": "Fund"
+        },
+        "cip": null
       },
       "kauai": {
         "name": "County of Kaua\u02bbi",
@@ -11993,7 +12373,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "row_label": "Department"
         },
         "cip": {
           "total": 135592413.0,
@@ -19375,7 +19756,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "row_label": "Department"
         },
         "cip": null
       },
@@ -19385,7 +19767,385 @@
       },
       "hawaii": {
         "name": "County of Hawai\u02bbi",
-        "available": false
+        "available": true,
+        "total_budget": 966892000.0,
+        "operating_budget": 966892000.0,
+        "capital_budget": 0.0,
+        "capital_note": "CIP not yet published for this year",
+        "coverage_note": "Operating budget by fund, from the County's published OPERATING BUDGET BY FUND summary. FY2026 is the FY2025-26 adopted budget; FY2027 is the FY2026-27 proposed budget. The detailed budget is a scanned/OCR'd document, so department-level figures are not broken out here. Capital improvement projects are published as a separate volume and are not included.",
+        "fund_breakdown": {
+          "General Fund": 752908000.0,
+          "Special / Enterprise Funds": 206981000.0,
+          "Trust & Other Funds": 7003000.0
+        },
+        "source": {
+          "label": "FY2026-27 Proposed Operating Budget (Bill 135) \u00b7 hawaiicounty.gov",
+          "url": "https://records.hawaiicounty.gov/WebLink/Browse.aspx?id=65&dbid=1"
+        },
+        "operating": {
+          "total": 966892000.0,
+          "fund_breakdown": {
+            "General Fund": 752908000.0,
+            "Special / Enterprise Funds": 206981000.0,
+            "Trust & Other Funds": 7003000.0
+          },
+          "num_departments": 14,
+          "num_programs": 14,
+          "departments": [
+            {
+              "code": "general-fund",
+              "name": "General Fund",
+              "total_budget": 682908000.0,
+              "fund_breakdown": {
+                "General Fund": 682908000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 682908000.0,
+                  "fund_breakdown": {
+                    "General Fund": 682908000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 682908000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "general-excise-tax-fund",
+              "name": "General Excise Tax Fund",
+              "total_budget": 70000000.0,
+              "fund_breakdown": {
+                "General Fund": 70000000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 70000000.0,
+                  "fund_breakdown": {
+                    "General Fund": 70000000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Excise Tax Fund",
+                      "fund_category": "General Fund",
+                      "amount": 70000000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "highway-fund",
+              "name": "Highway Fund",
+              "total_budget": 62147000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 62147000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 62147000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 62147000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 62147000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "solid-waste-fund",
+              "name": "Solid Waste Fund",
+              "total_budget": 56603000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 56603000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 56603000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 56603000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 56603000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "housing-fund",
+              "name": "Housing Fund",
+              "total_budget": 53754000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 53754000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 53754000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 53754000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 53754000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "sewer-fund",
+              "name": "Sewer Fund",
+              "total_budget": 31977000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 31977000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 31977000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 31977000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 31977000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "vehicle-disposal-fund",
+              "name": "Vehicle Disposal Fund",
+              "total_budget": 4701000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 4701000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 4701000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 4701000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Vehicle Disposal Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 4701000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "golf-course-fund",
+              "name": "Golf Course Fund",
+              "total_budget": 2291000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 2291000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 2291000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 2291000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Golf Course Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2291000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "geothermal-royalty-fund",
+              "name": "Geothermal Royalty Fund",
+              "total_budget": 1000000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 1000000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 1000000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 1000000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Geothermal Royalty Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1000000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "short-term-vacation-rental-enforcement-fund",
+              "name": "Short Term Vacation Rental Enforcement Fund",
+              "total_budget": 929000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 929000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 929000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 929000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Short Term Vacation Rental Enforcement Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 929000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "beautification-fund",
+              "name": "Beautification Fund",
+              "total_budget": 213000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 213000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 213000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 213000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Beautification Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 213000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "bikeway-fund",
+              "name": "Bikeway Fund",
+              "total_budget": 209000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 209000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 209000.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 209000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Bikeway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 209000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "geothermal-asset-fund",
+              "name": "Geothermal Asset Fund",
+              "total_budget": 150000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 150000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 150000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 150000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Geothermal Asset Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 150000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "cemetery-fund",
+              "name": "Cemetery Fund",
+              "total_budget": 10000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 10000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 10000.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 10000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Cemetery Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 10000.0
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "row_label": "Fund"
+        },
+        "cip": null
       },
       "kauai": {
         "name": "County of Kaua\u02bbi",
@@ -20605,7 +21365,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "row_label": "Department"
         },
         "cip": {
           "total": 132843449.0,

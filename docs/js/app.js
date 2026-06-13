@@ -6968,13 +6968,19 @@ python scripts/process_county_budgets.py --county all</pre>
 // Render the operating department table (expandable to program → fund detail).
 function renderCountyOperating(op, expanded) {
     if (!op || !op.departments?.length) return '';
+    const rowLabel = op.row_label || 'Department';
+    const rowLabelPlural = rowLabel === 'Fund' ? 'funds' : 'departments';
     const maxBudget = Math.max(...op.departments.map(d => d.total_budget), 1);
     let body = '<tbody>';
     for (const d of op.departments) {
         const pct = op.total ? (d.total_budget / op.total * 100) : 0;
-        const isOpen = expanded.has('op:' + d.code);
-        body += `<tr class="county-dept-row ${isOpen ? 'open' : ''}" data-key="op:${escapeHtml(d.code)}">
-            <td><span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>${escapeHtml(d.name)}<span class="county-prog-count">${d.num_programs} program${d.num_programs === 1 ? '' : 's'}</span></td>
+        // A single synthetic "(department-wide)" program means there's no real
+        // program detail to drill into (Maui dept-level, Hawaiʻi fund-level).
+        const hasDetail = !(d.num_programs <= 1
+            && d.programs?.[0]?.program_name === '(department-wide)');
+        const isOpen = hasDetail && expanded.has('op:' + d.code);
+        body += `<tr class="county-dept-row ${hasDetail ? '' : 'county-dept-flat'} ${isOpen ? 'open' : ''}" ${hasDetail ? `data-key="op:${escapeHtml(d.code)}"` : ''}>
+            <td>${hasDetail ? `<span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>` : ''}${escapeHtml(d.name)}${hasDetail ? `<span class="county-prog-count">${d.num_programs} program${d.num_programs === 1 ? '' : 's'}</span>` : ''}</td>
             <td class="amount-cell"><span class="figure-chip">${fmtHtml(d.total_budget)}</span></td>
             <td class="county-share-cell">
                 <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%"></span></span>
@@ -7006,13 +7012,13 @@ function renderCountyOperating(op, expanded) {
             ${fundCategoryBar(op.fund_breakdown, { title: 'Where the operating budget comes from' })}
             <table class="data-table county-table">
                 <thead><tr>
-                    <th>Department</th>
+                    <th>${escapeHtml(rowLabel)}</th>
                     <th class="amount-cell">Budget</th>
                     <th>Share</th>
                 </tr></thead>
                 ${body}
                 <tbody class="totals-block"><tr class="totals-row">
-                    <td>Total <span class="totals-meta">${op.num_departments} departments</span></td>
+                    <td>Total <span class="totals-meta">${op.num_departments} ${rowLabelPlural}</span></td>
                     <td class="amount-cell"><span class="figure-chip">${fmtHtml(op.total)}</span></td>
                     <td></td>
                 </tr></tbody>
@@ -7133,6 +7139,7 @@ window.initCountiesPage = function () {
         const deptRow = e.target.closest('tr.county-dept-row');
         if (deptRow) {
             const key = deptRow.getAttribute('data-key');
+            if (!key) return;                 // flat rows (no program detail)
             const ex = countyState.ui.expanded;
             ex.has(key) ? ex.delete(key) : ex.add(key);
             renderCountyBody();
