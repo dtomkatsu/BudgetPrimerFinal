@@ -3319,7 +3319,14 @@ window.initDraftComparePage = async function () {
     // ~550ms) instead of snapping. Keyed per element id so each chip animates
     // independently; an in-flight tick is cancelled when a newer value lands.
     // First paint counts up from $0 as a page-load entrance.
-    const _amtAnim = { prev: {}, raf: {}, tmo: {} };
+    //
+    // `prev` (the last-shown values) persists across page visits on window so
+    // the entrance plays once — on the very first load and whenever a value
+    // genuinely changes (e.g. the FY toggle) — instead of replaying the
+    // $0 → $23B count-up every time the user switches back to this tab, which
+    // read as lag. raf/tmo stay per-init so a stale in-flight tick from a prior
+    // visit can never blank a freshly rendered chip.
+    const _amtAnim = { prev: (window._draftAmtPrev ||= {}), raf: {}, tmo: {} };
     const _reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const setAnimatedAmount = (id, val, toHTML) => {
         const el = document.getElementById(id);
@@ -5668,6 +5675,14 @@ window.initDraftComparePage = async function () {
             updateSummaryCards();
         }
     };
+    // The router has no teardown hook, so this init re-runs on every visit to
+    // the tab. Drop the previous visit's window/MQL listeners before adding
+    // fresh ones, or they pile up and every resize fires N stale handlers.
+    if (window._draftPhoneMqHandler) {
+        phoneMq.removeEventListener('change', window._draftPhoneMqHandler);
+        window.removeEventListener('resize', window._draftPhoneMqHandler);
+    }
+    window._draftPhoneMqHandler = onPhoneMqMaybeChanged;
     phoneMq.addEventListener('change', onPhoneMqMaybeChanged);
     window.addEventListener('resize', onPhoneMqMaybeChanged);
 
@@ -5827,7 +5842,13 @@ window.initDraftComparePage = async function () {
             syncBarHeight();
         };
         syncTableScrollMode();
-        window.addEventListener('resize', () => syncTableScrollMode());
+        // Same teardown guard as the phone-MQL listener above — replace the
+        // prior visit's resize handler rather than stacking another one.
+        if (window._draftScrollModeHandler) {
+            window.removeEventListener('resize', window._draftScrollModeHandler);
+        }
+        window._draftScrollModeHandler = () => syncTableScrollMode();
+        window.addEventListener('resize', window._draftScrollModeHandler);
 
         // Floating back-to-top — the compare page is a single long scroll;
         // give deep scrollers a one-tap way home. Created once, page-global.
