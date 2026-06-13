@@ -6696,3 +6696,97 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
     .county-toolbar { gap: 0.6rem; }
     .cip-table th:nth-child(2), .cip-table td.cip-proj-fund { display: none; }
 }
+
+/* ── County data-viz: hero, fund donut, treemap, function bars ─────────────── */
+
+/* "Budget at a glance" hero — total + an Operating/Capital proportion bar. */
+.county-hero {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) 2fr;
+    gap: 1.4rem 2.2rem;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem 1.7rem;
+    margin: 1.5rem 0;
+}
+.chero-total-amt { font-size: 2.4rem; font-weight: 700; color: #2f3f37; line-height: 1; }
+.chero-total-amt .fmt-unit { font-size: 0.5em; color: #7a8fa6; margin-left: 0.12em; }
+.chero-total-lbl { margin-top: 0.45rem; font-size: 0.92rem; color: #6b7a72; letter-spacing: 0.02em; }
+.chero-fy {
+    display: inline-block; margin-left: 0.3em; padding: 0.05em 0.5em;
+    border-radius: 999px; background: #eef3ef; color: #3d5249;
+    font-weight: 700; font-size: 0.82em;
+}
+.chero-bar { display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: #edf1ee; }
+.chero-seg { height: 100%; transition: width 0.5s cubic-bezier(0.2, 0, 0.2, 1); }
+.chero-seg-op  { background: linear-gradient(90deg, #5a7b68, #6f9580); }
+.chero-seg-cap { background: linear-gradient(90deg, #b89a6f, #c9a87b); }
+.chero-figs { display: flex; flex-wrap: wrap; gap: 1.1rem 2rem; margin-top: 0.9rem; }
+.chero-fig { display: flex; align-items: flex-start; gap: 0.5rem; }
+.chero-fig-dot { width: 11px; height: 11px; border-radius: 3px; margin-top: 0.32rem; flex: none; }
+.chero-fig.is-op  .chero-fig-dot { background: #6f9580; }
+.chero-fig.is-cap .chero-fig-dot { background: #c9a87b; }
+.chero-fig-amt { font-size: 1.35rem; font-weight: 700; color: #2f3f37; line-height: 1.05; }
+.chero-fig-amt .fmt-unit { font-size: 0.55em; color: #7a8fa6; margin-left: 0.1em; }
+.chero-dash { color: #b6c0ba; }
+.chero-fig-lbl { font-size: 0.85rem; color: #6b7a72; margin-top: 0.12rem; }
+
+/* Two-up overview row: fund donut + treemap (operating) / function bars (CIP). */
+.county-overview {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.35fr);
+    gap: 1.4rem;
+    margin: 0.9rem 0 1.2rem;
+}
+.county-viz {
+    background: #fff; border: 1px solid var(--border-color);
+    border-radius: 10px; padding: 1rem 1.1rem 1.1rem;
+}
+.county-viz-title {
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #7a8a80; margin-bottom: 0.7rem;
+}
+
+/* Fund doughnut + legend */
+.cdonut { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.cdonut-chart { position: relative; width: 150px; height: 150px; flex: none; }
+.cdonut-center {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.cdonut-center-amt { font-size: 1.15rem; font-weight: 700; color: #2f3f37; }
+.cdonut-center-lbl { font-size: 0.66rem; color: #8a978f; text-transform: uppercase; letter-spacing: 0.06em; }
+.cdonut-legend { list-style: none; margin: 0; padding: 0; flex: 1 1 150px; min-width: 0; }
+.cdonut-legend-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; font-size: 0.9rem; color: #3f4f47; }
+.cdonut-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.cdonut-legend-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdonut-legend-amt { font-variant-numeric: tabular-nums; color: #2f3f37; font-weight: 600; white-space: nowrap; }
+.cdonut-legend-amt em { font-style: normal; color: #93a199; font-weight: 500; margin-left: 0.4em; }
+
+/* Treemap canvas */
+.ctreemap { width: 100%; height: 230px; }
+.county-viz-treemap { display: flex; flex-direction: column; }
+
+/* CIP "by function" bars */
+.cfn-list { list-style: none; margin: 0; padding: 0; }
+.cfn-row {
+    display: grid; grid-template-columns: minmax(84px, 1.1fr) 2fr auto;
+    align-items: center; gap: 0.6rem; padding: 0.3rem 0; font-size: 0.9rem;
+}
+.cfn-name { color: #3f4f47; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cfn-bar { height: 9px; border-radius: 5px; background: #edf1ee; overflow: hidden; }
+.cfn-fill { display: block; height: 100%; border-radius: 5px; }
+.cfn-amt { font-variant-numeric: tabular-nums; font-weight: 600; color: #2f3f37; white-space: nowrap; }
+
+/* Fund-color dot before each CIP project name (keeps fund visible when the
+   funding-source column is hidden on phones). */
+.cip-fund-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.5em; vertical-align: middle; }
+
+@media (max-width: 760px) {
+    .county-hero { grid-template-columns: 1fr; gap: 1rem; }
+    .county-overview { grid-template-columns: 1fr; }
+    .cdonut-chart { margin: 0 auto; }
+}

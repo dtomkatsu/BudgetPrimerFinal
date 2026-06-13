@@ -6926,6 +6926,179 @@ const fundCategoryBar = (fundBreakdown, opts = {}) => {
     </div>`;
 };
 
+// ── County data-viz: shared palette, compact formatter, Chart.js mount/destroy ─
+const COUNTY_FUND_PALETTE = {
+    'General Fund': '#5a7b68',
+    'Special / Enterprise Funds': '#7da48d',
+    'Federal Funds': '#c9a87b',
+    'Bond / Debt Funds': '#a68c68',
+    'Trust & Other Funds': '#cdd3d8',
+};
+const countyFundColor = (cat) => COUNTY_FUND_PALETTE[cat] || '#cdd3d8';
+const _dominantFund = (fb) => Object.entries(fb || {}).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+// Compact plain-text money for chart centers / tile labels ($2.3B · $461M · $12K).
+const fmtCompact = (n) => {
+    if (n == null) return '$0';
+    const a = Math.abs(n), s = n < 0 ? '-' : '';
+    if (a >= 1e9) return `${s}$${(a / 1e9).toFixed(a >= 1e10 ? 0 : 1)}B`;
+    if (a >= 1e6) return `${s}$${(a / 1e6).toFixed(a >= 1e8 ? 0 : 1)}M`;
+    if (a >= 1e3) return `${s}$${Math.round(a / 1e3)}K`;
+    return `${s}$${Math.round(a)}`;
+};
+const _countyReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Live Chart.js instances for the county view — destroyed before each full
+// re-render (FY toggle / county switch) so detached canvases never leak.
+let _countyCharts = [];
+function destroyCountyCharts() {
+    _countyCharts.forEach(ch => { try { ch.destroy(); } catch (e) { /* already gone */ } });
+    _countyCharts = [];
+}
+
+// Fund-category doughnut: canvas + a centered total + a labelled legend. The
+// Chart itself is created in mountCountyCharts once this markup is in the DOM.
+function fundDonutBlock(canvasId, fundBreakdown, opts = {}) {
+    const entries = Object.entries(fundBreakdown || {}).filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return '';
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    const legend = entries.map(([k, v]) => `
+        <li class="cdonut-legend-row">
+            <span class="cdonut-swatch" style="background:${countyFundColor(k)}"></span>
+            <span class="cdonut-legend-name">${escapeHtml(k)}</span>
+            <span class="cdonut-legend-amt">${fmtCompact(v)}<em>${(v / total * 100).toFixed(0)}%</em></span>
+        </li>`).join('');
+    return `<div class="county-viz">
+        <div class="county-viz-title">${escapeHtml(opts.title || 'Where it comes from')}</div>
+        <div class="cdonut">
+            <div class="cdonut-chart">
+                <canvas id="${canvasId}" role="img" aria-label="${escapeHtml(opts.aria || 'Fund breakdown')}"></canvas>
+                <div class="cdonut-center"><span class="cdonut-center-amt">${fmtCompact(total)}</span><span class="cdonut-center-lbl">${escapeHtml(opts.centerLabel || '')}</span></div>
+            </div>
+            <ul class="cdonut-legend">${legend}</ul>
+        </div>
+    </div>`;
+}
+
+// Treemap canvas (departments / funds sized by budget, tinted by dominant fund).
+function treemapBlock(canvasId, title, aria) {
+    return `<div class="county-viz county-viz-treemap">
+        <div class="county-viz-title">${escapeHtml(title)}</div>
+        <div class="ctreemap"><canvas id="${canvasId}" role="img" aria-label="${escapeHtml(aria)}"></canvas></div>
+    </div>`;
+}
+
+function _mountDonut(canvasId, fundBreakdown) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined') return;
+    const entries = Object.entries(fundBreakdown || {}).filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return;
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    _countyCharts.push(new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: entries.map(([k]) => k),
+            datasets: [{
+                data: entries.map(([, v]) => v),
+                backgroundColor: entries.map(([k]) => countyFundColor(k)),
+                borderColor: '#fff', borderWidth: 2, hoverOffset: 6,
+            }],
+        },
+        options: {
+            cutout: '64%', maintainAspectRatio: false, responsive: true,
+            animation: _countyReducedMotion() ? false : { duration: 500 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: false },
+                tooltip: { callbacks: {
+                    label: (ctx) => `${ctx.label}: ${fmtCompact(ctx.parsed)} (${(ctx.parsed / total * 100).toFixed(0)}%)`,
+                } },
+            },
+        },
+    }));
+}
+
+function _mountTreemap(canvasId, rows, rowLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined' || !rows?.length) return;
+    // Top tiles + an aggregated "Other" so tiny slivers don't clutter the map.
+    const sorted = [...rows].sort((a, b) => b.total_budget - a.total_budget);
+    const TOP = 14;
+    let tree = sorted.slice(0, TOP).map(d => ({
+        name: d.name, value: d.total_budget, color: countyFundColor(_dominantFund(d.fund_breakdown)),
+    }));
+    const rest = sorted.slice(TOP);
+    if (rest.length) tree.push({ name: `Other (${rest.length})`,
+        value: rest.reduce((s, d) => s + d.total_budget, 0), color: '#b9c4bd' });
+    tree = tree.filter(t => t.value > 0);
+    if (!tree.length) return;
+    const grand = tree.reduce((s, t) => s + t.value, 0) || 1;
+    _countyCharts.push(new Chart(canvas.getContext('2d'), {
+        type: 'treemap',
+        data: { datasets: [{
+            tree, key: 'value', borderWidth: 1, borderColor: '#fff', spacing: 1,
+            backgroundColor: (ctx) => ctx?.raw?._data?.color || '#ccc',
+            labels: {
+                display: true, color: '#fff', font: { size: 11, weight: '600' },
+                align: 'center', position: 'middle',
+                formatter: (ctx) => { const d = ctx?.raw?._data; return d ? [d.name, fmtCompact(d.value)] : ''; },
+            },
+        }] },
+        options: {
+            maintainAspectRatio: false, responsive: true,
+            animation: _countyReducedMotion() ? false : { duration: 500 },
+            plugins: {
+                legend: { display: false }, datalabels: { display: false },
+                tooltip: { callbacks: {
+                    title: (items) => items[0]?.raw?._data?.name || '',
+                    label: (ctx) => { const d = ctx?.raw?._data; return d ? `${fmtCompact(d.value)} (${(d.value / grand * 100).toFixed(1)}%)` : ''; },
+                } },
+            },
+        },
+    }));
+}
+
+// Create every chart for the current county entry (called after a full render).
+function mountCountyCharts(c) {
+    destroyCountyCharts();
+    if (!c || !c.available) return;
+    if (c.operating && c.operating.total > 0) {
+        _mountDonut('cdonut-op', c.operating.fund_breakdown);
+        _mountTreemap('ctreemap-op', c.operating.departments, c.operating.row_label);
+    }
+    if (c.cip) _mountDonut('cdonut-cip', c.cip.fund_breakdown);
+}
+
+// "Budget at a glance" hero — total + an Operating/Capital proportion bar.
+function renderCountyHero(c, fy) {
+    const op = c.operating_budget || 0, cap = c.capital_budget || 0, tot = c.total_budget || 0;
+    const opPct = tot ? op / tot * 100 : 0, capPct = tot ? cap / tot * 100 : 0;
+    const seg = (cls, pct) => pct > 0 ? `<span class="chero-seg ${cls}" style="width:${pct.toFixed(1)}%"></span>` : '';
+    const fig = (label, val, pct, cls, note) => `
+        <div class="chero-fig ${cls}">
+            <span class="chero-fig-dot"></span>
+            <div class="chero-fig-body">
+                <div class="chero-fig-amt">${val > 0 ? fmtHtmlCard(val) : '<span class="chero-dash">—</span>'}</div>
+                <div class="chero-fig-lbl">${escapeHtml(label)}${val > 0 ? ` · ${pct.toFixed(0)}%` : (note ? ` · ${escapeHtml(note)}` : '')}</div>
+            </div>
+        </div>`;
+    return `<div class="county-hero">
+        <div class="chero-total">
+            <div class="chero-total-amt">${fmtHtmlCard(tot)}</div>
+            <div class="chero-total-lbl">Total budget <span class="chero-fy">FY${fy}</span></div>
+        </div>
+        <div class="chero-split">
+            <div class="chero-bar">${seg('chero-seg-op', opPct)}${seg('chero-seg-cap', capPct)}</div>
+            <div class="chero-figs">
+                ${fig('Operating', op, opPct, 'is-op', 'not yet parsed')}
+                ${fig('Capital (CIP)', cap, capPct, 'is-cap', c.capital_note || 'not included')}
+            </div>
+        </div>
+    </div>`;
+}
+
 window.countiesPage = async function (params) {
     if (!countyBudgetsData || !countyBudgetsData.years) {
         return `
@@ -6990,11 +7163,34 @@ python scripts/process_county_budgets.py --county all</pre>
 function renderCountyOperating(op, expanded) {
     if (!op || !op.departments?.length) return '';
     const rowLabel = op.row_label || 'Department';
+    const lc = rowLabel.toLowerCase();
+    return `
+        <div class="county-section county-operating-section">
+            <div class="county-section-head">
+                <h3 class="county-section-title">Operating budget</h3>
+                <span class="county-section-total">${fmt(op.total)}</span>
+            </div>
+            <div class="county-overview">
+                ${fundDonutBlock('cdonut-op', op.fund_breakdown,
+                    { title: 'Where it comes from · by fund', centerLabel: 'operating',
+                      aria: 'Operating budget by fund category' })}
+                ${treemapBlock('ctreemap-op', `Where it goes · by ${lc}`,
+                    `Operating budget by ${lc}`)}
+            </div>
+            <div class="county-op-table-wrap">${countyOpTableHTML(op, expanded)}</div>
+        </div>`;
+}
+
+// The operating department/fund table — re-rendered on its own when a row is
+// expanded, so the charts above it aren't torn down and rebuilt each click.
+function countyOpTableHTML(op, expanded) {
+    const rowLabel = op.row_label || 'Department';
     const rowLabelPlural = rowLabel === 'Fund' ? 'funds' : 'departments';
     const maxBudget = Math.max(...op.departments.map(d => d.total_budget), 1);
     let body = '<tbody>';
     for (const d of op.departments) {
         const pct = op.total ? (d.total_budget / op.total * 100) : 0;
+        const barColor = countyFundColor(_dominantFund(d.fund_breakdown));
         // A single synthetic "(department-wide)" program means there's no real
         // program detail to drill into (Maui dept-level, Hawaiʻi fund-level).
         const hasDetail = !(d.num_programs <= 1
@@ -7004,7 +7200,7 @@ function renderCountyOperating(op, expanded) {
             <td>${hasDetail ? `<span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>` : ''}${escapeHtml(d.name)}${hasDetail ? `<span class="county-prog-count">${d.num_programs} program${d.num_programs === 1 ? '' : 's'}</span>` : ''}</td>
             <td class="amount-cell"><span class="figure-chip">${fmtHtml(d.total_budget)}</span></td>
             <td class="county-share-cell">
-                <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%"></span></span>
+                <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%;background:${barColor}"></span></span>
                 <span class="county-share-pct">${pct >= 1 ? pct.toFixed(0) + '%' : '<1%'}</span>
             </td>
         </tr>`;
@@ -7024,32 +7220,54 @@ function renderCountyOperating(op, expanded) {
         }
     }
     body += '</tbody>';
+    return `<table class="data-table county-table">
+        <thead><tr>
+            <th>${escapeHtml(rowLabel)}</th>
+            <th class="amount-cell">Budget</th>
+            <th>Share</th>
+        </tr></thead>
+        ${body}
+        <tbody class="totals-block"><tr class="totals-row">
+            <td>Total <span class="totals-meta">${op.num_departments} ${rowLabelPlural}</span></td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(op.total)}</span></td>
+            <td></td>
+        </tr></tbody>
+    </table>`;
+}
+
+// Render the CIP block: fund donut + by-function bars, then a searchable,
+// sortable project list (the list re-renders on its own — see cipResultsHTML).
+function renderCountyCip(cip, ui) {
+    if (!cip) return '';
+    const maxFn = Math.max(...cip.functions.map(f => f.total_budget), 1);
+    const fnBars = cip.functions.slice().sort((a, b) => b.total_budget - a.total_budget).map(f => `
+        <li class="cfn-row">
+            <span class="cfn-name">${escapeHtml(f.name)}</span>
+            <span class="cfn-bar"><span class="cfn-fill" style="width:${(f.total_budget / maxFn * 100).toFixed(1)}%;background:${countyFundColor(_dominantFund(f.fund_breakdown))}"></span></span>
+            <span class="cfn-amt">${fmtCompact(f.total_budget)}</span>
+        </li>`).join('');
     return `
-        <div class="county-section">
+        <div class="county-section county-cip-section">
             <div class="county-section-head">
-                <h3 class="county-section-title">Operating budget</h3>
-                <span class="county-section-total">${fmt(op.total)}</span>
+                <h3 class="county-section-title">Capital improvement program <span class="county-section-tag">CIP</span></h3>
+                <span class="county-section-total">${fmt(cip.total)}</span>
             </div>
-            ${fundCategoryBar(op.fund_breakdown, { title: 'Where the operating budget comes from' })}
-            <table class="data-table county-table">
-                <thead><tr>
-                    <th>${escapeHtml(rowLabel)}</th>
-                    <th class="amount-cell">Budget</th>
-                    <th>Share</th>
-                </tr></thead>
-                ${body}
-                <tbody class="totals-block"><tr class="totals-row">
-                    <td>Total <span class="totals-meta">${op.num_departments} ${rowLabelPlural}</span></td>
-                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(op.total)}</span></td>
-                    <td></td>
-                </tr></tbody>
-            </table>
+            <div class="county-overview">
+                ${fundDonutBlock('cdonut-cip', cip.fund_breakdown,
+                    { title: 'How it’s financed · by fund', centerLabel: 'capital',
+                      aria: 'Capital program by fund category' })}
+                <div class="county-viz county-viz-fns">
+                    <div class="county-viz-title">Where it goes · by function</div>
+                    <ul class="cfn-list">${fnBars}</ul>
+                </div>
+            </div>
+            <div class="cip-results-wrap">${cipResultsHTML(cip, ui)}</div>
         </div>`;
 }
 
-// Render the CIP block: fund bar + a searchable, sortable project list.
-function renderCountyCip(cip, ui) {
-    if (!cip) return '';
+// Toolbar + filtered/sorted project table — swapped in place on search/sort so
+// the donut and function bars above are never rebuilt.
+function cipResultsHTML(cip, ui) {
     const q = (ui.cipQuery || '').trim().toLowerCase();
     let projects = cip.projects.filter(p =>
         !q || p.project_name.toLowerCase().includes(q) || p.function.toLowerCase().includes(q)
@@ -7064,36 +7282,29 @@ function renderCountyCip(cip, ui) {
             ? escapeHtml(p.primary_fund || '—')
             : `${escapeHtml(p.primary_fund)} <span class="cip-fund-more">+${funds.length - 1}</span>`;
         return `<tr class="cip-project-row" title="${escapeHtml(funds.map(f => f.fund_name + ' ' + fmt(f.amount)).join(' · '))}">
-            <td class="cip-proj-name">${highlight(p.project_name, q)}<span class="cip-proj-func">${escapeHtml(p.function)}</span></td>
+            <td class="cip-proj-name"><span class="cip-fund-dot" style="background:${countyFundColor(p.fund_category)}"></span>${highlight(p.project_name, q)}<span class="cip-proj-func">${escapeHtml(p.function)}</span></td>
             <td class="cip-proj-fund">${fundCell}</td>
             <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.total_budget)}</span></td>
         </tr>`;
     }).join('') || `<tr><td colspan="3" class="cip-empty">No projects match “${escapeHtml(ui.cipQuery)}”.</td></tr>`;
 
     return `
-        <div class="county-section county-cip-section">
-            <div class="county-section-head">
-                <h3 class="county-section-title">Capital improvement program <span class="county-section-tag">CIP</span></h3>
-                <span class="county-section-total">${fmt(cip.total)}</span>
+        <div class="cip-toolbar">
+            <input type="search" id="cip-search" class="cip-search" placeholder="Search ${cip.num_projects} projects…" value="${escapeHtml(ui.cipQuery || '')}" aria-label="Search CIP projects">
+            <div class="cip-sort" role="group" aria-label="Sort">
+                <button type="button" class="cip-sort-btn ${ui.cipSort !== 'name' ? 'active' : ''}" data-sort="amount">Largest</button>
+                <button type="button" class="cip-sort-btn ${ui.cipSort === 'name' ? 'active' : ''}" data-sort="name">A–Z</button>
             </div>
-            ${fundCategoryBar(cip.fund_breakdown, { title: 'How the capital program is financed' })}
-            <div class="cip-toolbar">
-                <input type="search" id="cip-search" class="cip-search" placeholder="Search ${cip.num_projects} projects…" value="${escapeHtml(ui.cipQuery || '')}" aria-label="Search CIP projects">
-                <div class="cip-sort" role="group" aria-label="Sort">
-                    <button type="button" class="cip-sort-btn ${ui.cipSort !== 'name' ? 'active' : ''}" data-sort="amount">Largest</button>
-                    <button type="button" class="cip-sort-btn ${ui.cipSort === 'name' ? 'active' : ''}" data-sort="name">A–Z</button>
-                </div>
-            </div>
-            <table class="data-table cip-table">
-                <thead><tr>
-                    <th>Project</th>
-                    <th>Funding source</th>
-                    <th class="amount-cell">Amount</th>
-                </tr></thead>
-                <tbody>${rows}</tbody>
-            </table>
-            <p class="cip-note">${cip.num_projects} projects across ${cip.num_functions} budget functions${q ? ` · ${projects.length} shown` : ''}. Capital figures are parsed from the budget ordinance PDF and reconcile to the published total within ~0.3%.</p>
-        </div>`;
+        </div>
+        <table class="data-table cip-table">
+            <thead><tr>
+                <th>Project</th>
+                <th>Funding source</th>
+                <th class="amount-cell">Amount</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <p class="cip-note">${cip.num_projects} projects across ${cip.num_functions} budget functions${q ? ` · ${projects.length} shown` : ''}. Capital figures are parsed from the budget ordinance PDF and reconcile to the published total within ~0.3%.</p>`;
 }
 
 function renderCountyBody() {
@@ -7107,6 +7318,7 @@ function renderCountyBody() {
         titleEl.textContent = name;
     }
     if (!c || !c.available) {
+        destroyCountyCharts();
         const ever = countyEverAvailable(county);
         bodyEl.innerHTML = `<div class="empty-state">
             <p>${ever
@@ -7120,23 +7332,16 @@ function renderCountyBody() {
     }
 
     const ui = countyState.ui || (countyState.ui = { expanded: new Set(), cipQuery: '', cipSort: 'amount' });
-    const cards = `
-        <div class="summary-cards-grid">
-            <div class="summary-card">${c.operating_budget > 0
-                ? `<div class="amount">${fmtHtmlCard(c.operating_budget)}</div><div class="label">Operating</div><div class="label-sub">FY${fy}</div>`
-                : `<div class="amount">—</div><div class="label">Operating</div><div class="label-sub">not yet parsed</div>`}</div>
-            <div class="summary-card">${c.capital_budget > 0
-                ? `<div class="amount">${fmtHtmlCard(c.capital_budget)}</div><div class="label">Capital (CIP)</div><div class="label-sub">FY${fy}</div>`
-                : `<div class="amount">—</div><div class="label">Capital (CIP)</div><div class="label-sub">${escapeHtml(c.capital_note || 'not included')}</div>`}</div>
-            <div class="summary-card county-total-card"><div class="amount">${fmtHtmlCard(c.total_budget)}</div><div class="label">Total budget</div><div class="label-sub">FY${fy}</div></div>
-        </div>`;
-
     bodyEl.innerHTML = `
-        ${cards}
+        ${renderCountyHero(c, fy)}
         ${c.coverage_note ? `<p class="county-caveat">${escapeHtml(c.coverage_note)}</p>` : ''}
         ${renderCountyOperating(c.operating, ui.expanded)}
         ${renderCountyCip(c.cip, ui)}
         <p class="county-source">Source: <a href="${escapeHtml(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.label)}</a> · FY${fy}</p>`;
+
+    // Charts are created after their canvases land in the DOM; this also
+    // destroys the previous render's instances so detached canvases never leak.
+    mountCountyCharts(c);
 }
 
 window.initCountiesPage = function () {
@@ -7154,8 +7359,11 @@ window.initCountiesPage = function () {
         renderCountyBody();
     });
 
-    // Body interactions: operating expand, CIP search + sort.
+    // Body interactions. Expand / sort / search re-render only their own table
+    // region — never the whole body — so the Chart.js charts above survive.
     const bodyEl = document.getElementById('county-body');
+    const curEntry = () => countyEntryFor(countyState.fy, countyState.county);
+
     bodyEl?.addEventListener('click', (e) => {
         const deptRow = e.target.closest('tr.county-dept-row');
         if (deptRow) {
@@ -7163,28 +7371,29 @@ window.initCountiesPage = function () {
             if (!key) return;                 // flat rows (no program detail)
             const ex = countyState.ui.expanded;
             ex.has(key) ? ex.delete(key) : ex.add(key);
-            renderCountyBody();
+            const c = curEntry();
+            const wrap = document.querySelector('.county-op-table-wrap');
+            if (wrap && c?.operating) wrap.innerHTML = countyOpTableHTML(c.operating, ex);
             return;
         }
         const sortBtn = e.target.closest('.cip-sort-btn');
         if (sortBtn) {
             countyState.ui.cipSort = sortBtn.getAttribute('data-sort');
-            renderCountyBody();
-            // keep focus/caret out of the way; search box value persists in state
+            const c = curEntry();
+            const wrap = document.querySelector('.cip-results-wrap');
+            if (wrap && c?.cip) wrap.innerHTML = cipResultsHTML(c.cip, countyState.ui);
         }
     });
     bodyEl?.addEventListener('input', (e) => {
         const search = e.target.closest('#cip-search');
         if (!search) return;
         countyState.ui.cipQuery = search.value;
-        // Re-render only the CIP table region to keep the input focused.
-        const c = countyEntryFor(countyState.fy, countyState.county);
-        const section = document.querySelector('.county-cip-section');
-        if (section && c?.cip) {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = renderCountyCip(c.cip, countyState.ui);
-            const fresh = tmp.firstElementChild;
-            section.replaceWith(fresh);
+        // Re-render only the CIP results so the donut/function bars and the
+        // input's focus/caret are preserved.
+        const c = curEntry();
+        const wrap = document.querySelector('.cip-results-wrap');
+        if (wrap && c?.cip) {
+            wrap.innerHTML = cipResultsHTML(c.cip, countyState.ui);
             const input = document.getElementById('cip-search');
             if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
         }
