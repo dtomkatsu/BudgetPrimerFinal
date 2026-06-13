@@ -1,28 +1,29 @@
 {
   "fiscal_year": 2026,
-  "generated_at": "2026-06-12T10:12:25.038408",
+  "generated_at": "2026-06-12T14:06:03.338601",
   "counties": {
     "honolulu": {
       "name": "City & County of Honolulu",
       "available": true,
-      "total_budget": 2258845332.0,
+      "total_budget": 3541986311.0,
       "operating_budget": 2258845332.0,
-      "capital_budget": 0.0,
-      "capital_note": "CIP not yet included",
-      "coverage_note": "Executive departments' operating budget only \u2014 excludes debt service, employee benefits and provisions, the legislative branch, and capital improvements, which are published only in the budget ordinance PDFs.",
+      "capital_budget": 1283140979.0,
+      "capital_note": null,
+      "coverage_note": "Operating figures cover executive departments only (from the open-data portal) \u2014 they exclude debt service, employee benefits and provisions, and the legislative branch, which appear only in the operating budget ordinance. Capital (CIP) is the full executive capital budget parsed from the ordinance PDF.",
       "fund_breakdown": {
-        "General Fund": 1045425963.0,
-        "Special / Enterprise Funds": 989923436.0,
-        "Trust & Other Funds": 165382423.0,
-        "Federal Funds": 58113510.0
+        "Special / Enterprise Funds": 1140811557.0,
+        "General Fund": 1045625963.0,
+        "Bond / Debt Funds": 969835420.0,
+        "Federal Funds": 220330948.0,
+        "Trust & Other Funds": 165382423.0
       },
       "source": {
         "label": "FY2026 Proposed Operating Budget \u00b7 data.honolulu.gov",
         "url": "https://data.honolulu.gov/d/7sq2-y9vx"
       },
-      "num_departments": 25,
-      "num_programs": 109,
-      "num_records": 193,
+      "num_departments": 32,
+      "num_programs": 257,
+      "num_records": 393,
       "departments": [
         {
           "code": "dts",
@@ -176,6 +177,399 @@
                   "fund_category": "Special / Enterprise Funds",
                   "section": "Operating",
                   "amount": 348024.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "sanitation",
+          "name": "Sanitation",
+          "budget": "$476M",
+          "operating_budget": 0.0,
+          "capital_budget": 475901900.0,
+          "total_budget": 475901900.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 374411000.0,
+            "Special / Enterprise Funds": 101490900.0
+          },
+          "num_programs": 21,
+          "programs": [
+            {
+              "program_name": "Honouliuliwwtp Headworks, Ps, Energy",
+              "total_budget": 166251000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 166251000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 166251000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 166251000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honouliuliwwtp Effluenttreatment &",
+              "total_budget": 52501000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 52501000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 52501000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 52501000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Sand Islandwastewater Treatmentplant",
+              "total_budget": 43901000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 43901000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 30900000.0,
+                "Special / Enterprise Funds": 13001000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 30900000.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 13001000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Ewa Beach Sewers, Section4, Improvement",
+              "total_budget": 38402000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 38402000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 37001000.0,
+                "Special / Enterprise Funds": 1401000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 37001000.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1401000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kailuawastewater Treatment Plant-Solids",
+              "total_budget": 37300000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 37300000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 37300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 37300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Sewer Mainline And Lateral Projects",
+              "total_budget": 28075000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 28075000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 28075000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 28075000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Oahu Sanitary Landfill",
+              "total_budget": 21000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 21000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 21000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 21000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wastewater Facilities Replacement",
+              "total_budget": 20000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 20000000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 20000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 20000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kapaatransfer Station Renovation",
+              "total_budget": 19453000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 19453000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 19453000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 19453000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wastewater Equipment",
+              "total_budget": 13666400.0,
+              "operating_budget": 0.0,
+              "capital_budget": 13666400.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 13666400.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 13666400.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wastewater Treatment Plant, Pump",
+              "total_budget": 12039500.0,
+              "operating_budget": 0.0,
+              "capital_budget": 12039500.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 12039500.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 12039500.0
+                }
+              ]
+            },
+            {
+              "program_name": "Ewa Refuse Convenience Center",
+              "total_budget": 6002000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6002000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6002000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6002000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Sand Island Solids System",
+              "total_budget": 5500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5500000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 5500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waianae Wastewatertreatment Plant",
+              "total_budget": 2701000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2701000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 2701000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2701000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Refuse Facilities Improvements Atvarious",
+              "total_budget": 2301000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2301000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2301000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2301000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waimalu Wastewater Pump Station Force",
+              "total_budget": 1902000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1902000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1902000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1902000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waipahurefusefacility&Convenience",
+              "total_budget": 1601000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1601000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1601000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1601000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wahiawa, Whitmore Village, And Makakilo",
+              "total_budget": 1001000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1001000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1001000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1001000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waipahuwastewater Pump Station Force",
+              "total_budget": 902000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 902000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 902000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 902000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Rehabilitation/",
+              "total_budget": 801000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 801000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 801000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 801000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kamehameha Hwy/Whitmore Avenue Sewer",
+              "total_budget": 602000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 602000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 501000.0,
+                "Bond / Debt Funds": 101000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 501000.0
+                },
+                {
+                  "fund_name": "Sewer Revenue Bond Improvement Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 101000.0
                 }
               ]
             }
@@ -465,6 +859,562 @@
                   "fund_category": "General Fund",
                   "section": "Operating",
                   "amount": 866459.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "highways-and-streets",
+          "name": "Highways And Streets",
+          "budget": "$233M",
+          "operating_budget": 0.0,
+          "capital_budget": 233009000.0,
+          "total_budget": 233009000.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 179546000.0,
+            "Federal Funds": 52173000.0,
+            "Special / Enterprise Funds": 1290000.0
+          },
+          "num_programs": 29,
+          "programs": [
+            {
+              "program_name": "Salt Lake Boulevardwidening",
+              "total_budget": 76010000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 76010000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 43010000.0,
+                "Federal Funds": 33000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 43010000.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 33000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Rehabilitation Of Streets",
+              "total_budget": 38470000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 38470000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 35670000.0,
+                "Federal Funds": 2800000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 34970000.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2800000.0
+                },
+                {
+                  "fund_name": "Capital Projects Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 700000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Of",
+              "total_budget": 32700000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 32700000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 32700000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 32700000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waipio Pointaccess Road Improvements",
+              "total_budget": 20817000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 20817000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 14517000.0,
+                "Federal Funds": 6300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 13517000.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6300000.0
+                },
+                {
+                  "fund_name": "Capital Projects Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Affordable Housing Infrastructure",
+              "total_budget": 20000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 20000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 20000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 20000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Intermodalconnectivity Improvements",
+              "total_budget": 7391000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 7391000.0,
+              "fund_breakdown": {
+                "Federal Funds": 5513000.0,
+                "Bond / Debt Funds": 1878000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5513000.0
+                },
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1878000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Bikeway Improvements",
+              "total_budget": 5850000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5850000.0,
+              "fund_breakdown": {
+                "Federal Funds": 4560000.0,
+                "Special / Enterprise Funds": 1290000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4560000.0
+                },
+                {
+                  "fund_name": "Bikeway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1290000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kakaako Sidewalk Improvements",
+              "total_budget": 5000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 5000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Erosion Control Improvements",
+              "total_budget": 3195000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3195000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3195000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3195000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Rehabilitation/Reconstructionof Storm",
+              "total_budget": 3010000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3010000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3010000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3010000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Storm Drainage Best Management",
+              "total_budget": 2820000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2820000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2820000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2820000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Npdes Ms4 Tmdlstructural Bmp",
+              "total_budget": 2300000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2300000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Best",
+              "total_budget": 2250000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2250000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2250000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2250000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Npdes Ms4 Structuralbmps Fortrash",
+              "total_budget": 2100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Npdes Ms4 Retrofitstructural Bmp",
+              "total_budget": 2000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Guardrail",
+              "total_budget": 1515000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1515000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1515000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1515000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Drainage Improvements At Various",
+              "total_budget": 1190000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1190000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1190000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1190000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Npdes Ms4 Erosion Prone Area",
+              "total_budget": 1100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Curb Rampsatvarious Locations, Oahu",
+              "total_budget": 1000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Drainage Improvements At Kulaaupuni St.",
+              "total_budget": 1000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Reconstruction Of Sidewalks",
+              "total_budget": 1000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Npdes Ms4 Structural Bmps For City",
+              "total_budget": 800000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 800000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 800000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 800000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Reconstruction Of Guardrails",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Street Light Meter Cabinets, Transformers,",
+              "total_budget": 315000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 315000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 315000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 315000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Tantalus Drive Shoulders",
+              "total_budget": 250000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 250000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 250000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 250000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waikiki Drain Outfall Improvements",
+              "total_budget": 250000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 250000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 250000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 250000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Pacific Palisades Emergencyaccess Road",
+              "total_budget": 100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Pedestrian Walkways Judd St.",
+              "total_budget": 75000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 75000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 75000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 75000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Utility Share Expenses",
+              "total_budget": 1000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Capital Projects Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000.0
                 }
               ]
             }
@@ -886,6 +1836,1091 @@
           ]
         },
         {
+          "code": "culture-recreation",
+          "name": "Culture-Recreation",
+          "budget": "$152M",
+          "operating_budget": 0.0,
+          "capital_budget": 152296221.0,
+          "total_budget": 152296221.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 114571000.0,
+            "Special / Enterprise Funds": 37725221.0
+          },
+          "num_programs": 51,
+          "programs": [
+            {
+              "program_name": "And Conservation Lands",
+              "total_budget": 29301000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 29301000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 29301000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Clean Water and Natural Lands Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 29301000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Renovate Recreational Facilities",
+              "total_budget": 14000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 14000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 7000000.0,
+                "Special / Enterprise Funds": 7000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 7000000.0
+                },
+                {
+                  "fund_name": "Parks and Playgrounds Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 7000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Comfort Station Improvements At Various",
+              "total_budget": 11100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 11100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 11100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 11100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Puu Hulu Park",
+              "total_budget": 9315000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 9315000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 9315000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 9315000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Blaisdellcenter Redevelopment",
+              "total_budget": 6600000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6600000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6600000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6600000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kaupuni Neighborhood Park,Waianae",
+              "total_budget": 6210000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6210000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6210000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6210000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Plan",
+              "total_budget": 6090000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6090000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6090000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6090000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Herbert K. Pilila\u2019Au Community Park",
+              "total_budget": 5565000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5565000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 5565000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5565000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Alawai Community Parkcanoe Halau",
+              "total_budget": 5000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 5000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Departmentof Parks And Recreation Npdes",
+              "total_budget": 4850000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4850000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4850000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4850000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waikiki Surf Racks",
+              "total_budget": 4810000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4810000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4810000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4810000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kapolei Regional Park",
+              "total_budget": 4300000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4300000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Royal Kunia District Park",
+              "total_budget": 4000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kaneohe District Park",
+              "total_budget": 3790896.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3790896.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3550000.0,
+                "Special / Enterprise Funds": 240896.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3550000.0
+                },
+                {
+                  "fund_name": "Parks and Playgrounds Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 240896.0
+                }
+              ]
+            },
+            {
+              "program_name": "Golf Course Improvements",
+              "total_budget": 3180000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3180000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3180000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3180000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Palolo Valley District Park",
+              "total_budget": 2702526.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2702526.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2700000.0,
+                "Special / Enterprise Funds": 2526.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2700000.0
+                },
+                {
+                  "fund_name": "Parks and Playgrounds Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2526.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honolulu Zoo Veterinary Clinic",
+              "total_budget": 2410000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2410000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2410000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2410000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Koko Head Shooting Complex",
+              "total_budget": 2401000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2401000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2401000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2401000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Sandy Beach Park (Wawamalu)",
+              "total_budget": 2000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waialua Communitycenter",
+              "total_budget": 2000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honoluluzoo Hawaii Island Exhibit",
+              "total_budget": 1985000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1985000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1985000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1985000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Oneula Beach Park, Ewa Beach",
+              "total_budget": 1650000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1650000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1650000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1650000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kualoa Regional Park",
+              "total_budget": 1517387.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1517387.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1500000.0,
+                "Special / Enterprise Funds": 17387.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1500000.0
+                },
+                {
+                  "fund_name": "Parks and Playgrounds Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 17387.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kahalu\u2019U Beach Park Canoe Halau",
+              "total_budget": 1500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Maunalua Bay Beach Parkcanoehalau And",
+              "total_budget": 1500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waiktktwater Fountain Improvements",
+              "total_budget": 1200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1200000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1200000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Mccully District Park",
+              "total_budget": 1163412.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1163412.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1163412.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Parks and Playgrounds Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1163412.0
+                }
+              ]
+            },
+            {
+              "program_name": "Mililani Mauka District Park",
+              "total_budget": 1100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Poka\u2019Ibayroadwaypavingandparking",
+              "total_budget": 1010000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1010000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1010000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1010000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Park Improvements Council District",
+              "total_budget": 1000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Koko Head District Park",
+              "total_budget": 950000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 950000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 950000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 950000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Patsyt. Mink Centraloahu Regional Park",
+              "total_budget": 900000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 900000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 900000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 900000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kamamalu Neighborhood Park",
+              "total_budget": 875000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 875000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 875000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 875000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Alewa Neighborhood Park",
+              "total_budget": 750000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 750000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 750000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 750000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kahuku Swimming Pooland Recreation",
+              "total_budget": 750000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 750000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 750000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 750000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kalaeloa Regionalpark",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kuilei Cliffs Irrigation System Upgrades",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Makiki District Park",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waimanalo Beach Park Improvements",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Nehu Neighborhood Park Playapparatus And",
+              "total_budget": 425000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 425000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 425000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 425000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honoluluzoo Bird Facility",
+              "total_budget": 370000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 370000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 370000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 370000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Alawai Community Parkcomfortstation",
+              "total_budget": 350000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 350000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 350000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 350000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Koko Head Riding Stables",
+              "total_budget": 350000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 350000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 350000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 350000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Darrellt. Youngwaikele Community Park,",
+              "total_budget": 300000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 300000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 300000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 300000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Makiki District Park Communitygarden",
+              "total_budget": 250000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 250000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 250000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 250000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Haleiwa Beach Park Mauka-Canoe Halau",
+              "total_budget": 200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 200000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 200000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Ho\u2019Ae\u2019Ae Community Park",
+              "total_budget": 200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 200000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 200000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Enterprise Facilities Improvements",
+              "total_budget": 125000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 125000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 125000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 125000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Dog Park Improvementsat Various Parks",
+              "total_budget": 100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Playcourtsatvarious Parks",
+              "total_budget": 100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wai\u2019Alae Beach Park Comfortstation Gate",
+              "total_budget": 50000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 50000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 50000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 50000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "human-services",
+          "name": "Human Services",
+          "budget": "$149M",
+          "operating_budget": 0.0,
+          "capital_budget": 148929438.0,
+          "total_budget": 148929438.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 130910000.0,
+            "Special / Enterprise Funds": 10382000.0,
+            "Federal Funds": 7637438.0
+          },
+          "num_programs": 9,
+          "programs": [
+            {
+              "program_name": "Housing",
+              "total_budget": 100000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 100000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 100000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 90000000.0
+                },
+                {
+                  "fund_name": "Taxable General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 10000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Transit Oriented Development",
+              "total_budget": 25000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 25000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 25000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 25000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Affordable Housing Development",
+              "total_budget": 10382000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 10382000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 10382000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Affordable Housing Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "section": "Capital Improvement",
+                  "amount": 10382000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Community Development Blockgrant (Cdbg)",
+              "total_budget": 5848460.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5848460.0,
+              "fund_breakdown": {
+                "Federal Funds": 5848460.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Community Development Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5848460.0
+                }
+              ]
+            },
+            {
+              "program_name": "Homeless Facilities",
+              "total_budget": 5700000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5700000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 5700000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5700000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Housing Opportunities For Personswith",
+              "total_budget": 731020.0,
+              "operating_budget": 0.0,
+              "capital_budget": 731020.0,
+              "fund_breakdown": {
+                "Federal Funds": 731020.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 731020.0
+                }
+              ]
+            },
+            {
+              "program_name": "Emergencysolutions Grants (Esg)",
+              "total_budget": 644670.0,
+              "operating_budget": 0.0,
+              "capital_budget": 644670.0,
+              "fund_breakdown": {
+                "Federal Funds": 644670.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 644670.0
+                }
+              ]
+            },
+            {
+              "program_name": "Home Investment Partnerships (Home)",
+              "total_budget": 413288.0,
+              "operating_budget": 0.0,
+              "capital_budget": 413288.0,
+              "fund_breakdown": {
+                "Federal Funds": 413288.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 413288.0
+                }
+              ]
+            },
+            {
+              "program_name": "Chinatown Bathrooms",
+              "total_budget": 210000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 210000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 210000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 210000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
           "code": "dfm",
           "name": "Facility Maintenance",
           "budget": "$134M",
@@ -1202,6 +3237,784 @@
                   "fund_category": "Special / Enterprise Funds",
                   "section": "Operating",
                   "amount": 60000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "public-safety",
+          "name": "Public Safety",
+          "budget": "$107M",
+          "operating_budget": 0.0,
+          "capital_budget": 106755930.0,
+          "total_budget": 106755930.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 83755930.0,
+            "Federal Funds": 23000000.0
+          },
+          "num_programs": 17,
+          "programs": [
+            {
+              "program_name": "North Shore",
+              "total_budget": 27550000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 27550000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 27550000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 27550000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Pearlcity Fire Station Relocation",
+              "total_budget": 23021930.0,
+              "operating_budget": 0.0,
+              "capital_budget": 23021930.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 19651930.0,
+                "Federal Funds": 3370000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 18921930.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3370000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 730000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Traffic Improvements Locations",
+              "total_budget": 14800000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 14800000.0,
+              "fund_breakdown": {
+                "Federal Funds": 11840000.0,
+                "Bond / Debt Funds": 2960000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 11840000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2960000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Oahu Traffic Signal Controller",
+              "total_budget": 8950000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 8950000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4950000.0,
+                "Federal Funds": 4000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4950000.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kahuku Ambulance Unit Facility",
+              "total_budget": 6600000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6600000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6600000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6600000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waianae Police Station Improvements",
+              "total_budget": 6200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 6200000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 6200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 6200000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Traffic Signalsatvarious Locations",
+              "total_budget": 4738000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4738000.0,
+              "fund_breakdown": {
+                "Federal Funds": 3790000.0,
+                "Bond / Debt Funds": 948000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3790000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 948000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Waipioambulance Unit Facility (Tmk:",
+              "total_budget": 4000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Flood Control Improvements Kapalama",
+              "total_budget": 3061000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3061000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3061000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3061000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Police Stations Buildings Improvements",
+              "total_budget": 2325000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2325000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2325000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 2325000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kahawainui Stream Dredging, Laie",
+              "total_budget": 1760000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1760000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1760000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1760000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Rock Slide Potential Inspectionsand",
+              "total_budget": 1060000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1060000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1060000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1060000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wailupe Stream Flood Control",
+              "total_budget": 1000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Drainage Outfall Improvements",
+              "total_budget": 540000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 540000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 540000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 540000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Halawa Stream Dredging",
+              "total_budget": 500000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 500000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 500000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 500000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wai\u2019Anae Fire Department Roadand Lifeguard",
+              "total_budget": 450000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 450000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 450000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 450000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kawa Stream And Ditch Improvements",
+              "total_budget": 200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 200000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 200000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "utilities-or-other-enterprises",
+          "name": "Utilities Or Other Enterprises",
+          "budget": "$86M",
+          "operating_budget": 0.0,
+          "capital_budget": 86012000.0,
+          "total_budget": 86012000.0,
+          "fund_breakdown": {
+            "Federal Funds": 71183000.0,
+            "Bond / Debt Funds": 14829000.0
+          },
+          "num_programs": 2,
+          "programs": [
+            {
+              "program_name": "Bus And Handi-Van Acquisition Program",
+              "total_budget": 74230000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 74230000.0,
+              "fund_breakdown": {
+                "Federal Funds": 63019000.0,
+                "Bond / Debt Funds": 11211000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 63019000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 11211000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Bus Stopadaaccess And Site Improvements",
+              "total_budget": 11782000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 11782000.0,
+              "fund_breakdown": {
+                "Federal Funds": 8164000.0,
+                "Bond / Debt Funds": 3618000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 8164000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3618000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "code": "general-government",
+          "name": "General Government",
+          "budget": "$80M",
+          "operating_budget": 0.0,
+          "capital_budget": 80236490.0,
+          "total_budget": 80236490.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 71812490.0,
+            "Federal Funds": 8224000.0,
+            "General Fund": 200000.0
+          },
+          "num_programs": 19,
+          "programs": [
+            {
+              "program_name": "Civic Center Parking Structure",
+              "total_budget": 37615000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 37615000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 29515000.0,
+                "Federal Funds": 8100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 29515000.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 8100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Honoluluauthority For Rapidtransit",
+              "total_budget": 10000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 10000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 10000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 10000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Procurementofmajorequipment-Dfm",
+              "total_budget": 7187000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 7187000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 7187000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5888000.0
+                },
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1299000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Civic Center Improvements",
+              "total_budget": 5150000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 5150000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 5150000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 5150000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Feralcat Sanctuary",
+              "total_budget": 4120000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4120000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4120000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3120000.0
+                },
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Kapalama Canalcatalytic Project-Transit",
+              "total_budget": 4000000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 4000000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 4000000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 4000000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Wai\u2019Anae Neighborhoodcommunity Center",
+              "total_budget": 3775000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 3775000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 3775000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 3775000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Public Building Facilities Improvements",
+              "total_budget": 2633000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2633000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2633000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1500000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1133000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Procurement Of Major Equipment-Dpr",
+              "total_budget": 1880000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1880000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1880000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1880000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Municipal Parking Facilities Improvement",
+              "total_budget": 1100000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 1100000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 1100000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1100000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Procurementof Major Equipment Dts",
+              "total_budget": 862380.0,
+              "operating_budget": 0.0,
+              "capital_budget": 862380.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 738380.0,
+                "Federal Funds": 124000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 738380.0
+                },
+                {
+                  "fund_name": "Federal Grants Fund",
+                  "fund_category": "Federal Funds",
+                  "section": "Capital Improvement",
+                  "amount": 124000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Pearlridge Bus Transfer Center And Plaza",
+              "total_budget": 650000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 650000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 650000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 650000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Improvements",
+              "total_budget": 410000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 410000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 410000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 410000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Pearlcity Corporation Yard Renovations",
+              "total_budget": 250000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 250000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 250000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 250000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Land Expenses",
+              "total_budget": 200000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 200000.0,
+              "fund_breakdown": {
+                "General Fund": 200000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "section": "Capital Improvement",
+                  "amount": 200000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Procurement Of Major Equipment Des",
+              "total_budget": 180000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 180000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 180000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 180000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Rhb",
+              "total_budget": 150000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 150000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 150000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 150000.0
+                }
+              ]
+            },
+            {
+              "program_name": "Procurement Of Major Equipment Ddc",
+              "total_budget": 72110.0,
+              "operating_budget": 0.0,
+              "capital_budget": 72110.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 72110.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 72110.0
+                }
+              ]
+            },
+            {
+              "program_name": "Projectadjustmentsaccount",
+              "total_budget": 2000.0,
+              "operating_budget": 0.0,
+              "capital_budget": 2000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 2000.0
+              },
+              "funds": [
+                {
+                  "fund_name": "General Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000.0
+                },
+                {
+                  "fund_name": "Highway Improvement Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "section": "Capital Improvement",
+                  "amount": 1000.0
                 }
               ]
             }
