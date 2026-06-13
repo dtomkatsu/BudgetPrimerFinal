@@ -7,12 +7,13 @@ scripts/process_county_budgets.py is all that's needed to light them up.
 """
 from .base import BaseCountyParser
 from .honolulu import HonoluluParser
+from .kauai import KauaiParser
 
 COUNTY_PARSERS = {
     'honolulu': HonoluluParser,
-    # 'hawaii': HawaiiParser,   # Phase 2 — ordinance PDFs (Laserfiche)
-    # 'kauai': KauaiParser,     # Phase 3 — ordinance PDFs
-    # 'maui': MauiParser,       # Phase 4 — program budget book PDF
+    'kauai': KauaiParser,         # CIP from capital budget ordinance (operating TODO)
+    # 'hawaii': HawaiiParser,     # blocked — records.hawaiicounty.gov SSL cert failure
+    # 'maui': MauiParser,         # program budget book PDF (29 MB, combined op+CIP)
 }
 
-__all__ = ['BaseCountyParser', 'HonoluluParser', 'COUNTY_PARSERS']
+__all__ = ['BaseCountyParser', 'HonoluluParser', 'KauaiParser', 'COUNTY_PARSERS']

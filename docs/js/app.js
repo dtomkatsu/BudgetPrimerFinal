@@ -7095,7 +7095,9 @@ function renderCountyBody() {
     const ui = countyState.ui || (countyState.ui = { expanded: new Set(), cipQuery: '', cipSort: 'amount' });
     const cards = `
         <div class="summary-cards-grid">
-            <div class="summary-card"><div class="amount">${fmtHtmlCard(c.operating_budget)}</div><div class="label">Operating</div><div class="label-sub">FY${fy}</div></div>
+            <div class="summary-card">${c.operating_budget > 0
+                ? `<div class="amount">${fmtHtmlCard(c.operating_budget)}</div><div class="label">Operating</div><div class="label-sub">FY${fy}</div>`
+                : `<div class="amount">—</div><div class="label">Operating</div><div class="label-sub">not yet parsed</div>`}</div>
             <div class="summary-card">${c.capital_budget > 0
                 ? `<div class="amount">${fmtHtmlCard(c.capital_budget)}</div><div class="label">Capital (CIP)</div><div class="label-sub">FY${fy}</div>`
                 : `<div class="amount">—</div><div class="label">Capital (CIP)</div><div class="label-sub">${escapeHtml(c.capital_note || 'not included')}</div>`}</div>
