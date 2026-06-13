@@ -133,6 +133,22 @@ body {
 }
 .open-fullpage-btn[hidden] { display: none; }
 
+/* Animated WebGL ocean (header-ocean.js) — a faint living version of the
+   swell mark, drifting across the lower band behind the masthead content.
+   Created by JS only when WebGL + motion are available; absent otherwise, so
+   the static gradient/swell remain the fallback. Sits above the gradient but
+   below both the white shore curve (z-index 0, later in the DOM) and the
+   title content (.app-header-inner, z-index 1). Non-interactive. */
+.app-header-ocean {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+}
+
 /* Stacked-wave mark — three soft swells above the title. Reads as
    the Pacific without leaning on a specific landmark. Sized as a
    refined anchor rather than a banner. */
