@@ -234,6 +234,11 @@ body {
     white-space: nowrap;
     border: 1px solid transparent;
     background: transparent;
+    /* Center single-line links (About) against the taller stacked
+       sub-label links so the pill row stays vertically aligned. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     /* Smooth crossfade across every property the active state touches.
        Material-style standard easing gives a settling, polished feel. */
     transition:
@@ -257,15 +262,19 @@ body {
     font-weight: 600;
 }
 
-/* Stacked nav variants — inline, single-line for the new pill chrome.
-   Sub-text becomes a faint inline complement instead of a stacked label. */
+/* Stacked nav variants — bill label on top, descriptive sub-label beneath
+   ("HB1800" / "2026 budget bill"). Stacking keeps each item narrow so the
+   four-item row still fits under the 880px header cap (inline sub-labels
+   overflowed it). The sub-labels collapse on phones (≤640px) — see .nav-sub. */
 .nav-link-stacked,
 .nav-link-hb300,
 .nav-link-actuals {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.6em;
-    line-height: 1.2;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05em;
+    line-height: 1.12;
 }
 /* HB300 differentiates by label only — same white text as siblings so
    contrast stays high on the sage background. */
@@ -273,19 +282,21 @@ body {
 .nav-link-hb300:hover { color: #ffffff; }
 .nav-link-hb300.active { color: #3d5249; }
 
-/* Sub-labels ("2026 budget bill" …) are permanently hidden: with them inline
-   the four-item row needs ~850–940px depending on the viewer's font metrics,
-   right at the 880px header cap — it fit on some machines and wrapped or
-   spilled on others. Short labels (~520px) fit everywhere, on any font stack.
-   The descriptive text lives on as each link's `title` tooltip. */
+/* Sub-labels ("2026 budget bill" …) sit beneath each bill label as a small
+   small-caps caption. Hidden on phones (≤640px), where the no-wrap row has no
+   room to spare, and shown from 641px up — stacked they stay well within the
+   880px header cap. The text also lives on as each link's `title` tooltip. */
 .nav-sub {
     display: none;
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 450;
-    letter-spacing: 0.05em;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.62);
+    font-weight: 500;
+    letter-spacing: 0.04em;
     font-variant: small-caps;
     transition: color 0.22s ease, opacity 0.22s ease;
+}
+@media (min-width: 641px) {
+    .nav-sub { display: block; }
 }
 .nav-link.active .nav-sub {
     color: #8aa595;                     /* sage tint, readable on white pill */
