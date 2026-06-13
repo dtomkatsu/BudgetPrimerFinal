@@ -4,7 +4,7 @@
     2027
   ],
   "default_fiscal_year": 2026,
-  "generated_at": "2026-06-12T14:34:12.838651",
+  "generated_at": "2026-06-12T18:20:44.996459",
   "years": {
     "2026": {
       "honolulu": {
@@ -6875,27 +6875,1236 @@
       "kauai": {
         "name": "County of Kaua\u02bbi",
         "available": true,
-        "total_budget": 135592413.0,
-        "operating_budget": 0.0,
+        "total_budget": 470922013.0,
+        "operating_budget": 335329600.0,
         "capital_budget": 135592413.0,
         "capital_note": null,
-        "coverage_note": "Capital improvement program only, parsed from the County capital budget ordinance (total appropriation including carryover balances). The operating budget is published as a line-item preparation worksheet and is not yet broken out here.",
+        "coverage_note": "Operating budget by department and program (adopted COUNCIL REVIEW column of the County operating ordinance worksheet) plus the capital improvement program from the capital budget ordinance (total appropriation including carryover balances).",
         "fund_breakdown": {
-          "General Fund": 109592131.0,
-          "Trust & Other Funds": 21369778.0,
-          "Bond / Debt Funds": 3167384.0,
-          "Special / Enterprise Funds": 1463120.0
+          "General Fund": 316519833.0,
+          "Special / Enterprise Funds": 80782126.0,
+          "Trust & Other Funds": 70452670.0,
+          "Bond / Debt Funds": 3167384.0
         },
         "source": {
-          "label": "Capital Budget Ordinance \u00b7 kauai.gov",
+          "label": "Operating & Capital Budget Ordinances \u00b7 kauai.gov",
           "url": "https://www.kauai.gov/Government/Departments-Agencies/Finance/Budget-Division"
         },
         "operating": {
-          "total": 0.0,
-          "fund_breakdown": {},
-          "num_departments": 0,
-          "num_programs": 0,
-          "departments": []
+          "total": 335329600.0,
+          "fund_breakdown": {
+            "General Fund": 206927702.0,
+            "Special / Enterprise Funds": 79319006.0,
+            "Trust & Other Funds": 49082892.0
+          },
+          "num_departments": 18,
+          "num_programs": 60,
+          "departments": [
+            {
+              "code": "public-works",
+              "name": "Public Works",
+              "total_budget": 112645556.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 63964871.0,
+                "Trust & Other Funds": 37340156.0,
+                "General Fund": 11340529.0
+              },
+              "num_programs": 15,
+              "programs": [
+                {
+                  "program_name": "Roads Administration",
+                  "total_budget": 37585653.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 37340147.0,
+                    "Special / Enterprise Funds": 245506.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 36904630.0
+                    },
+                    {
+                      "fund_name": "Beautification Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 435517.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 245506.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Sewer",
+                  "total_budget": 18408428.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 18408428.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 18408428.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Disposal",
+                  "total_budget": 12679856.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 12679856.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 12679856.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Collections",
+                  "total_budget": 7798648.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 7798648.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 7798648.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Roads Maintenance Other",
+                  "total_budget": 5526850.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3365023.0,
+                    "General Fund": 2161826.0,
+                    "Trust & Other Funds": 1.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3248651.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2161826.0
+                    },
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 116372.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Auto Maintenance",
+                  "total_budget": 5315424.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 4488299.0,
+                    "General Fund": 827125.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3218531.0
+                    },
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1249645.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 827125.0
+                    },
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 20123.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Recycling",
+                  "total_budget": 5034991.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 5034991.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 5034991.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Hanapepe Baseyard",
+                  "total_budget": 3890037.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3890036.0,
+                    "Trust & Other Funds": 1.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3890036.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Building Inspection",
+                  "total_budget": 3879188.0,
+                  "fund_breakdown": {
+                    "General Fund": 3879188.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3879188.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Kapaa Baseyard",
+                  "total_budget": 3086219.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3086217.0,
+                    "Trust & Other Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3086217.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Sign And Roads Marking",
+                  "total_budget": 2667318.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 2667316.0,
+                    "Trust & Other Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2667316.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Engineering",
+                  "total_budget": 2661787.0,
+                  "fund_breakdown": {
+                    "General Fund": 2661787.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2661787.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Hanalei Baseyard",
+                  "total_budget": 2300554.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 2300551.0,
+                    "Trust & Other Funds": 3.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2300551.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 3.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 1314743.0,
+                  "fund_breakdown": {
+                    "General Fund": 1314743.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1314743.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fiscal",
+                  "total_budget": 495860.0,
+                  "fund_breakdown": {
+                    "General Fund": 495860.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 495860.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "police",
+              "name": "Police",
+              "total_budget": 51217899.0,
+              "fund_breakdown": {
+                "General Fund": 51117891.0,
+                "Trust & Other Funds": 100008.0
+              },
+              "num_programs": 4,
+              "programs": [
+                {
+                  "program_name": "Chief's Office",
+                  "total_budget": 46574415.0,
+                  "fund_breakdown": {
+                    "General Fund": 46474407.0,
+                    "Trust & Other Funds": 100008.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 46474407.0
+                    },
+                    {
+                      "fund_name": "Criminal Assets Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 100008.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "A&T",
+                  "total_budget": 3499781.0,
+                  "fund_breakdown": {
+                    "General Fund": 3499781.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3499781.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Isb",
+                  "total_budget": 595975.0,
+                  "fund_breakdown": {
+                    "General Fund": 595975.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 595975.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Patrol",
+                  "total_budget": 547728.0,
+                  "fund_breakdown": {
+                    "General Fund": 547728.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 547728.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "fire",
+              "name": "Fire",
+              "total_budget": 49220499.0,
+              "fund_breakdown": {
+                "General Fund": 49220499.0
+              },
+              "num_programs": 5,
+              "programs": [
+                {
+                  "program_name": "Fire Operations",
+                  "total_budget": 34608156.0,
+                  "fund_breakdown": {
+                    "General Fund": 34608156.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 34608156.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Water Safety",
+                  "total_budget": 8349050.0,
+                  "fund_breakdown": {
+                    "General Fund": 8349050.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 8349050.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 3487835.0,
+                  "fund_breakdown": {
+                    "General Fund": 3487835.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3487835.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Training Bureau",
+                  "total_budget": 1602837.0,
+                  "fund_breakdown": {
+                    "General Fund": 1602837.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1602837.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fire Prevention",
+                  "total_budget": 1172621.0,
+                  "fund_breakdown": {
+                    "General Fund": 1172621.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1172621.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "parks-and-recreation",
+              "name": "Parks And Recreation",
+              "total_budget": 31479900.0,
+              "fund_breakdown": {
+                "General Fund": 28004587.0,
+                "Special / Enterprise Funds": 3475313.0
+              },
+              "num_programs": 10,
+              "programs": [
+                {
+                  "program_name": "Parks Maintenance",
+                  "total_budget": 9013099.0,
+                  "fund_breakdown": {
+                    "General Fund": 9013090.0,
+                    "Special / Enterprise Funds": 9.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 9013090.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 9.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Facilities Maintenance",
+                  "total_budget": 6810767.0,
+                  "fund_breakdown": {
+                    "General Fund": 6810767.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 6810767.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Wailua Golf Course",
+                  "total_budget": 3386764.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3386764.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Golf Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3386763.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 3127950.0,
+                  "fund_breakdown": {
+                    "General Fund": 3039428.0,
+                    "Special / Enterprise Funds": 88522.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3039428.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 88522.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Recreation",
+                  "total_budget": 3120104.0,
+                  "fund_breakdown": {
+                    "General Fund": 3120100.0,
+                    "Special / Enterprise Funds": 4.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3120100.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fiscal",
+                  "total_budget": 2139845.0,
+                  "fund_breakdown": {
+                    "General Fund": 2139843.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2139843.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Beautification",
+                  "total_budget": 1555009.0,
+                  "fund_breakdown": {
+                    "General Fund": 1555006.0,
+                    "Special / Enterprise Funds": 3.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1555006.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Stadiums",
+                  "total_budget": 1277259.0,
+                  "fund_breakdown": {
+                    "General Fund": 1277254.0,
+                    "Special / Enterprise Funds": 5.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1277254.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 5.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Planning & Development",
+                  "total_budget": 530909.0,
+                  "fund_breakdown": {
+                    "General Fund": 530907.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 530907.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Convention Hall",
+                  "total_budget": 518194.0,
+                  "fund_breakdown": {
+                    "General Fund": 518192.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 518192.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "finance",
+              "name": "Finance",
+              "total_budget": 23176932.0,
+              "fund_breakdown": {
+                "General Fund": 23176932.0
+              },
+              "num_programs": 8,
+              "programs": [
+                {
+                  "program_name": "It Team",
+                  "total_budget": 7945812.0,
+                  "fund_breakdown": {
+                    "General Fund": 7945812.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 7945812.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 7849848.0,
+                  "fund_breakdown": {
+                    "General Fund": 7849848.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 7849848.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Real Property Assessment",
+                  "total_budget": 3522599.0,
+                  "fund_breakdown": {
+                    "General Fund": 3522599.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3522599.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Motor Vehicle",
+                  "total_budget": 2857828.0,
+                  "fund_breakdown": {
+                    "General Fund": 2857828.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2857828.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Accounting",
+                  "total_budget": -1444886.0,
+                  "fund_breakdown": {
+                    "General Fund": -1444886.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": -1444886.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Purchasing",
+                  "total_budget": 1146610.0,
+                  "fund_breakdown": {
+                    "General Fund": 1146610.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1146610.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Treasury",
+                  "total_budget": 775116.0,
+                  "fund_breakdown": {
+                    "General Fund": 775116.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 775116.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Real Property Collections",
+                  "total_budget": 524005.0,
+                  "fund_breakdown": {
+                    "General Fund": 524005.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 524005.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "transportation",
+              "name": "Transportation",
+              "total_budget": 14992868.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 11642728.0,
+                "Special / Enterprise Funds": 3350140.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Operations",
+                  "total_budget": 12289617.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 8939519.0,
+                    "Special / Enterprise Funds": 3350098.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 8939519.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3350098.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2703251.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 2703209.0,
+                    "Special / Enterprise Funds": 42.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2703209.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 42.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "housing-agency",
+              "name": "Housing Agency",
+              "total_budget": 9251691.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 7068565.0,
+                "General Fund": 2183126.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Housing Programs",
+                  "total_budget": 9251691.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 7068565.0,
+                    "General Fund": 2183126.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Kalepa Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2328986.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2183126.0
+                    },
+                    {
+                      "fund_name": "Housing & Community Dev",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2077091.0
+                    },
+                    {
+                      "fund_name": "Paanau Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2074287.0
+                    },
+                    {
+                      "fund_name": "Housing Revolving Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 588201.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "prosecuting-attorney",
+              "name": "Prosecuting Attorney",
+              "total_budget": 7692710.0,
+              "fund_breakdown": {
+                "General Fund": 7692710.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 7692710.0,
+                  "fund_breakdown": {
+                    "General Fund": 7692710.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 7692710.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-clerk",
+              "name": "County Clerk",
+              "total_budget": 7074566.0,
+              "fund_breakdown": {
+                "General Fund": 7074566.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Council Services",
+                  "total_budget": 5696933.0,
+                  "fund_breakdown": {
+                    "General Fund": 5696933.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 5696933.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Election",
+                  "total_budget": 1377633.0,
+                  "fund_breakdown": {
+                    "General Fund": 1377633.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1377633.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "human-resources",
+              "name": "Human Resources",
+              "total_budget": 4542973.0,
+              "fund_breakdown": {
+                "General Fund": 4542973.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 4542973.0,
+                  "fund_breakdown": {
+                    "General Fund": 4542973.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4542973.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "economic-development",
+              "name": "Economic Development",
+              "total_budget": 4429049.0,
+              "fund_breakdown": {
+                "General Fund": 4429049.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 4429049.0,
+                  "fund_breakdown": {
+                    "General Fund": 4429049.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4429049.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-attorney",
+              "name": "County Attorney",
+              "total_budget": 4211438.0,
+              "fund_breakdown": {
+                "General Fund": 4211438.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 4211438.0,
+                  "fund_breakdown": {
+                    "General Fund": 4211438.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4211438.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "mayor-s-office",
+              "name": "Mayor's Office",
+              "total_budget": 4046124.0,
+              "fund_breakdown": {
+                "General Fund": 4046124.0
+              },
+              "num_programs": 3,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2680022.0,
+                  "fund_breakdown": {
+                    "General Fund": 2680022.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2680022.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Boards & Commissions",
+                  "total_budget": 1356102.0,
+                  "fund_breakdown": {
+                    "General Fund": 1356102.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1356102.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Youth Work Program",
+                  "total_budget": 10000.0,
+                  "fund_breakdown": {
+                    "General Fund": 10000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 10000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "planning",
+              "name": "Planning",
+              "total_budget": 3925296.0,
+              "fund_breakdown": {
+                "General Fund": 3925296.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Planning",
+                  "total_budget": 3912635.0,
+                  "fund_breakdown": {
+                    "General Fund": 3912635.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3912635.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Planning Commission",
+                  "total_budget": 12661.0,
+                  "fund_breakdown": {
+                    "General Fund": 12661.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 12661.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "elderly-affairs",
+              "name": "Elderly Affairs",
+              "total_budget": 2898381.0,
+              "fund_breakdown": {
+                "General Fund": 2898381.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Elderly Programs",
+                  "total_budget": 2898381.0,
+                  "fund_breakdown": {
+                    "General Fund": 2898381.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2898381.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "emergency-mgmt-agency",
+              "name": "Emergency Mgmt Agency",
+              "total_budget": 2686061.0,
+              "fund_breakdown": {
+                "General Fund": 2686061.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2686061.0,
+                  "fund_breakdown": {
+                    "General Fund": 2686061.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2686061.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "liquor-control",
+              "name": "Liquor Control",
+              "total_budget": 1460117.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1460117.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Commission",
+                  "total_budget": 1460117.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 1460117.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Liquor Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1460117.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-auditor",
+              "name": "County Auditor",
+              "total_budget": 377540.0,
+              "fund_breakdown": {
+                "General Fund": 377540.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "County Auditor",
+                  "total_budget": 377540.0,
+                  "fund_breakdown": {
+                    "General Fund": 377540.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 377540.0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         "cip": {
           "total": 135592413.0,
@@ -14292,27 +15501,1222 @@
       "kauai": {
         "name": "County of Kaua\u02bbi",
         "available": true,
-        "total_budget": 132843449.0,
-        "operating_budget": 0.0,
+        "total_budget": 488578549.0,
+        "operating_budget": 355735100.0,
         "capital_budget": 132843449.0,
         "capital_note": null,
-        "coverage_note": "Capital improvement program only, parsed from the County capital budget ordinance (total appropriation including carryover balances). The operating budget is published as a line-item preparation worksheet and is not yet broken out here.",
+        "coverage_note": "Operating budget by department and program (adopted COUNCIL REVIEW column of the County operating ordinance worksheet) plus the capital improvement program from the capital budget ordinance (total appropriation including carryover balances).",
         "fund_breakdown": {
-          "General Fund": 113621179.0,
-          "Trust & Other Funds": 15817806.0,
-          "Bond / Debt Funds": 2005291.0,
-          "Special / Enterprise Funds": 1399173.0
+          "General Fund": 336547067.0,
+          "Special / Enterprise Funds": 88309870.0,
+          "Trust & Other Funds": 61716321.0,
+          "Bond / Debt Funds": 2005291.0
         },
         "source": {
-          "label": "Capital Budget Ordinance \u00b7 kauai.gov",
+          "label": "Operating & Capital Budget Ordinances \u00b7 kauai.gov",
           "url": "https://www.kauai.gov/Government/Departments-Agencies/Finance/Budget-Division"
         },
         "operating": {
-          "total": 0.0,
-          "fund_breakdown": {},
-          "num_departments": 0,
-          "num_programs": 0,
-          "departments": []
+          "total": 355735100.0,
+          "fund_breakdown": {
+            "General Fund": 222925888.0,
+            "Special / Enterprise Funds": 86910697.0,
+            "Trust & Other Funds": 45898515.0
+          },
+          "num_departments": 18,
+          "num_programs": 59,
+          "departments": [
+            {
+              "code": "public-works",
+              "name": "Public Works",
+              "total_budget": 116703068.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 69088131.0,
+                "Trust & Other Funds": 35584955.0,
+                "General Fund": 12029982.0
+              },
+              "num_programs": 15,
+              "programs": [
+                {
+                  "program_name": "Roads Administration",
+                  "total_budget": 35848588.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 35584946.0,
+                    "Special / Enterprise Funds": 263642.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 35149429.0
+                    },
+                    {
+                      "fund_name": "Beautification Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 435517.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 263642.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Sewer",
+                  "total_budget": 19598890.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 19598890.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 19598890.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Disposal",
+                  "total_budget": 12316739.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 12316739.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 12316739.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Collections",
+                  "total_budget": 10185627.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 10185627.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 10185627.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Solid Waste Recycling",
+                  "total_budget": 7025017.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 7025017.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 7025017.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Auto Maintenance",
+                  "total_budget": 5575129.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 4794633.0,
+                    "General Fund": 780496.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3492873.0
+                    },
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1231609.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 780496.0
+                    },
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 70151.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Roads Maintenance Other",
+                  "total_budget": 5426424.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3264807.0,
+                    "General Fund": 2161616.0,
+                    "Trust & Other Funds": 1.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3148651.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2161616.0
+                    },
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 116156.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Building Inspection",
+                  "total_budget": 4284416.0,
+                  "fund_breakdown": {
+                    "General Fund": 4284416.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4284416.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Hanapepe Baseyard",
+                  "total_budget": 3797107.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3797106.0,
+                    "Trust & Other Funds": 1.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3797106.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Sign And Roads Marking",
+                  "total_budget": 3138331.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3138329.0,
+                    "Trust & Other Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3138329.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Kapaa Baseyard",
+                  "total_budget": 2832906.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 2832904.0,
+                    "Trust & Other Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2832904.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Engineering",
+                  "total_budget": 2716753.0,
+                  "fund_breakdown": {
+                    "General Fund": 2716753.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2716753.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Hanalei Baseyard",
+                  "total_budget": 1870440.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 1870437.0,
+                    "Trust & Other Funds": 3.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1870437.0
+                    },
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 3.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 1565034.0,
+                  "fund_breakdown": {
+                    "General Fund": 1565034.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1565034.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fiscal",
+                  "total_budget": 521667.0,
+                  "fund_breakdown": {
+                    "General Fund": 521667.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 521667.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "police",
+              "name": "Police",
+              "total_budget": 54403211.0,
+              "fund_breakdown": {
+                "General Fund": 54303203.0,
+                "Trust & Other Funds": 100008.0
+              },
+              "num_programs": 4,
+              "programs": [
+                {
+                  "program_name": "Chief's Office",
+                  "total_budget": 49177895.0,
+                  "fund_breakdown": {
+                    "General Fund": 49077887.0,
+                    "Trust & Other Funds": 100008.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 49077887.0
+                    },
+                    {
+                      "fund_name": "Criminal Assets Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 100008.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "A&T",
+                  "total_budget": 3840518.0,
+                  "fund_breakdown": {
+                    "General Fund": 3840518.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3840518.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Isb",
+                  "total_budget": 813624.0,
+                  "fund_breakdown": {
+                    "General Fund": 813624.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 813624.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Patrol",
+                  "total_budget": 571174.0,
+                  "fund_breakdown": {
+                    "General Fund": 571174.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 571174.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "fire",
+              "name": "Fire",
+              "total_budget": 52860704.0,
+              "fund_breakdown": {
+                "General Fund": 52860704.0
+              },
+              "num_programs": 5,
+              "programs": [
+                {
+                  "program_name": "Fire Operations",
+                  "total_budget": 37810912.0,
+                  "fund_breakdown": {
+                    "General Fund": 37810912.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 37810912.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Water Safety",
+                  "total_budget": 8792402.0,
+                  "fund_breakdown": {
+                    "General Fund": 8792402.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 8792402.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 3147659.0,
+                  "fund_breakdown": {
+                    "General Fund": 3147659.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3147659.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Training Bureau",
+                  "total_budget": 1801125.0,
+                  "fund_breakdown": {
+                    "General Fund": 1801125.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1801125.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fire Prevention",
+                  "total_budget": 1308606.0,
+                  "fund_breakdown": {
+                    "General Fund": 1308606.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1308606.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "parks-and-recreation",
+              "name": "Parks And Recreation",
+              "total_budget": 32789881.0,
+              "fund_breakdown": {
+                "General Fund": 29046801.0,
+                "Special / Enterprise Funds": 3743080.0
+              },
+              "num_programs": 10,
+              "programs": [
+                {
+                  "program_name": "Parks Maintenance",
+                  "total_budget": 9638039.0,
+                  "fund_breakdown": {
+                    "General Fund": 9638030.0,
+                    "Special / Enterprise Funds": 9.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 9638030.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 9.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Facilities Maintenance",
+                  "total_budget": 6823902.0,
+                  "fund_breakdown": {
+                    "General Fund": 6823902.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 6823902.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Wailua Golf Course",
+                  "total_budget": 3654531.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 3654531.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Golf Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3654530.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 3237625.0,
+                  "fund_breakdown": {
+                    "General Fund": 3149103.0,
+                    "Special / Enterprise Funds": 88522.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3149103.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 88522.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Recreation",
+                  "total_budget": 3170023.0,
+                  "fund_breakdown": {
+                    "General Fund": 3170019.0,
+                    "Special / Enterprise Funds": 4.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3170019.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Fiscal",
+                  "total_budget": 2266502.0,
+                  "fund_breakdown": {
+                    "General Fund": 2266500.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2266500.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Beautification",
+                  "total_budget": 1662326.0,
+                  "fund_breakdown": {
+                    "General Fund": 1662323.0,
+                    "Special / Enterprise Funds": 3.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1662323.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 3.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Stadiums",
+                  "total_budget": 1319503.0,
+                  "fund_breakdown": {
+                    "General Fund": 1319498.0,
+                    "Special / Enterprise Funds": 5.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1319498.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 5.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Planning & Development",
+                  "total_budget": 518494.0,
+                  "fund_breakdown": {
+                    "General Fund": 518492.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 518492.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Convention Hall",
+                  "total_budget": 498936.0,
+                  "fund_breakdown": {
+                    "General Fund": 498934.0,
+                    "Special / Enterprise Funds": 2.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 498934.0
+                    },
+                    {
+                      "fund_name": "Parks Improve & Maint R/F",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "finance",
+              "name": "Finance",
+              "total_budget": 25718507.0,
+              "fund_breakdown": {
+                "General Fund": 25718507.0
+              },
+              "num_programs": 7,
+              "programs": [
+                {
+                  "program_name": "It Team",
+                  "total_budget": 10227350.0,
+                  "fund_breakdown": {
+                    "General Fund": 10227350.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 10227350.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 7515366.0,
+                  "fund_breakdown": {
+                    "General Fund": 7515366.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 7515366.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Real Property",
+                  "total_budget": 4308548.0,
+                  "fund_breakdown": {
+                    "General Fund": 4308548.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4308548.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Motor Vehicle",
+                  "total_budget": 3123486.0,
+                  "fund_breakdown": {
+                    "General Fund": 3123486.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3123486.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Accounting",
+                  "total_budget": -1363726.0,
+                  "fund_breakdown": {
+                    "General Fund": -1363726.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": -1363726.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Purchasing",
+                  "total_budget": 1176637.0,
+                  "fund_breakdown": {
+                    "General Fund": 1176637.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1176637.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Treasury",
+                  "total_budget": 730846.0,
+                  "fund_breakdown": {
+                    "General Fund": 730846.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 730846.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "transportation",
+              "name": "Transportation",
+              "total_budget": 15610504.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 10213552.0,
+                "Special / Enterprise Funds": 5396952.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Operations",
+                  "total_budget": 12939242.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 7542331.0,
+                    "Special / Enterprise Funds": 5396911.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 7542331.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 5396911.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2671262.0,
+                  "fund_breakdown": {
+                    "Trust & Other Funds": 2671221.0,
+                    "Special / Enterprise Funds": 41.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "G.E. Tax Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2671221.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 41.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "housing-agency",
+              "name": "Housing Agency",
+              "total_budget": 10400798.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 7080907.0,
+                "General Fund": 3319891.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Housing Programs",
+                  "total_budget": 10400798.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 7080907.0,
+                    "General Fund": 3319891.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3319891.0
+                    },
+                    {
+                      "fund_name": "Kalepa Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2335154.0
+                    },
+                    {
+                      "fund_name": "Paanau Housing Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2080461.0
+                    },
+                    {
+                      "fund_name": "Housing & Community Dev",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2077091.0
+                    },
+                    {
+                      "fund_name": "Housing Revolving Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 588201.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "prosecuting-attorney",
+              "name": "Prosecuting Attorney",
+              "total_budget": 8798725.0,
+              "fund_breakdown": {
+                "General Fund": 8798725.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 8798725.0,
+                  "fund_breakdown": {
+                    "General Fund": 8798725.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 8798725.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-clerk",
+              "name": "County Clerk",
+              "total_budget": 7762076.0,
+              "fund_breakdown": {
+                "General Fund": 7762076.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Council Services",
+                  "total_budget": 6170547.0,
+                  "fund_breakdown": {
+                    "General Fund": 6170547.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 6170547.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Election",
+                  "total_budget": 1591529.0,
+                  "fund_breakdown": {
+                    "General Fund": 1591529.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1591529.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "human-resources",
+              "name": "Human Resources",
+              "total_budget": 5016986.0,
+              "fund_breakdown": {
+                "General Fund": 5016986.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 5016986.0,
+                  "fund_breakdown": {
+                    "General Fund": 5016986.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 5016986.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "planning",
+              "name": "Planning",
+              "total_budget": 4527247.0,
+              "fund_breakdown": {
+                "General Fund": 4527247.0
+              },
+              "num_programs": 2,
+              "programs": [
+                {
+                  "program_name": "Planning",
+                  "total_budget": 4512336.0,
+                  "fund_breakdown": {
+                    "General Fund": 4512336.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4512336.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Planning Commission",
+                  "total_budget": 14911.0,
+                  "fund_breakdown": {
+                    "General Fund": 14911.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 14911.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-attorney",
+              "name": "County Attorney",
+              "total_budget": 4418089.0,
+              "fund_breakdown": {
+                "General Fund": 4418089.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 4418089.0,
+                  "fund_breakdown": {
+                    "General Fund": 4418089.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4418089.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "mayor-s-office",
+              "name": "Mayor's Office",
+              "total_budget": 4308039.0,
+              "fund_breakdown": {
+                "General Fund": 4308039.0
+              },
+              "num_programs": 3,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2908519.0,
+                  "fund_breakdown": {
+                    "General Fund": 2908519.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2908519.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Boards & Commissions",
+                  "total_budget": 1389520.0,
+                  "fund_breakdown": {
+                    "General Fund": 1389520.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1389520.0
+                    }
+                  ]
+                },
+                {
+                  "program_name": "Youth Work Program",
+                  "total_budget": 10000.0,
+                  "fund_breakdown": {
+                    "General Fund": 10000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 10000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "economic-development",
+              "name": "Economic Development",
+              "total_budget": 4286208.0,
+              "fund_breakdown": {
+                "General Fund": 4286208.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 4286208.0,
+                  "fund_breakdown": {
+                    "General Fund": 4286208.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4286208.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "elderly-affairs",
+              "name": "Elderly Affairs",
+              "total_budget": 3093303.0,
+              "fund_breakdown": {
+                "General Fund": 3093303.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Elderly Programs",
+                  "total_budget": 3093303.0,
+                  "fund_breakdown": {
+                    "General Fund": 3093303.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3093303.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "emergency-mgmt-agency",
+              "name": "Emergency Mgmt Agency",
+              "total_budget": 2900587.0,
+              "fund_breakdown": {
+                "General Fund": 2900587.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Administration",
+                  "total_budget": 2900587.0,
+                  "fund_breakdown": {
+                    "General Fund": 2900587.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2900587.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "liquor-control",
+              "name": "Liquor Control",
+              "total_budget": 1601627.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 1601627.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "Commission",
+                  "total_budget": 1601627.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 1601627.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Liquor Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1601627.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-auditor",
+              "name": "County Auditor",
+              "total_budget": 535540.0,
+              "fund_breakdown": {
+                "General Fund": 535540.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "County Auditor",
+                  "total_budget": 535540.0,
+                  "fund_breakdown": {
+                    "General Fund": 535540.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 535540.0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         "cip": {
           "total": 132843449.0,
