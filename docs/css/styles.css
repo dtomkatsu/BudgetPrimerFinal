@@ -32,6 +32,10 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     background-color: #f9f9f9;
+    /* Clamp page width to the viewport so nothing creates a horizontal scroll.
+       Tables/timeline scroll inside their own panes, so this is safe — and it
+       keeps the absolutely-positioned header scope toggle on-screen on phones. */
+    overflow-x: hidden;
 }
 
 .app-container {
@@ -110,11 +114,12 @@ body {
 }
 
 /* "Open ↗" button — only visible when the page is embedded in an
-   iframe. Lets the user pop the tracker out into a full tab. */
+   iframe. Lets the user pop the tracker out into a full tab. Pinned top-LEFT
+   so it never collides with the scope toggle in the top-right corner. */
 .open-fullpage-btn {
     position: absolute;
     top: 0.9rem;
-    right: 1rem;
+    left: 1rem;
     display: inline-block;
     padding: 6px 12px;
     background: rgba(255,255,255,0.14);
@@ -6363,33 +6368,41 @@ mark.search-highlight {
 
 /* Scope pill: sits between the subtitle and the main nav. Smaller-scale echo
    of the .main-nav segmented control so it reads as chrome, not a sibling. */
+/* Scope switch (State ↔ Counties) — a top-level mode toggle, pinned to the
+   header's top-right corner as a frosted-glass control so it's clearly its own
+   thing rather than competing with the centered bill tabs. */
 .scope-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1.15rem;
+    z-index: 3;
     display: inline-flex;
-    gap: 0.2rem;
-    margin: 1.1rem auto 0;
+    align-items: center;
+    gap: 0.1rem;
     padding: 4px;
-    background: rgba(0, 0, 0, 0.18);
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.20);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
 }
 .scope-btn {
-    color: rgba(255, 255, 255, 0.85);
+    color: #fff;
     text-decoration: none;
-    padding: 0.3rem 0.95rem;
+    padding: 0.34rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     white-space: nowrap;
-    transition: background 0.28s cubic-bezier(0.2, 0, 0.2, 1), color 0.22s ease;
+    transition: background 0.22s ease, color 0.22s ease;
 }
-.scope-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.scope-btn:hover { background: rgba(255, 255, 255, 0.14); }
 .scope-btn.active {
     background: #fff;
     color: #3d5249;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20);
 }
 
 /* In county mode the state bill tabs don't apply — hide all but About so the
@@ -6517,10 +6530,17 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 }
 
 @media (max-width: 768px) {
-    .scope-btn { padding: 0.28rem 0.8rem; font-size: 0.78rem; }
+    .scope-toggle { top: 0.7rem; right: 0.7rem; }
+    .scope-btn { padding: 0.26rem 0.7rem; font-size: 0.74rem; letter-spacing: 0.03em; }
     .county-tab { padding: 0.4rem 0.85rem; font-size: 0.88rem; }
     .county-share-cell { display: none; }
     .county-table th:nth-child(3) { display: none; }
+}
+/* Narrow phones: shrink the four bill tabs so the no-wrap row fits without
+   being clipped (the page can't scroll sideways — see body overflow-x). */
+@media (max-width: 430px) {
+    .main-nav { gap: 0.1rem; }
+    .nav-link { padding: 0.45rem 0.7rem; font-size: 1rem; }
 }
 
 /* Program-level detail inside expanded department rows */

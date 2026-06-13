@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=204">
+    <link rel="stylesheet" href="css/styles.css?v=205">
     <!-- Load Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -44,6 +44,13 @@
     <div class="app-container">
         <header class="app-header">
             <a id="open-fullpage-btn" class="open-fullpage-btn" href="#" target="_blank" rel="noopener" hidden>Open ↗</a>
+            <!-- Scope switch (State ↔ Counties) — a top-level mode toggle, so it
+                 sits as a distinct frosted-glass control in the header corner
+                 rather than competing with the bill tabs in the centered row. -->
+            <div class="scope-toggle" role="group" aria-label="Budget scope">
+                <a href="#/" class="scope-btn scope-btn-state active">State</a>
+                <a href="#/counties" class="scope-btn scope-btn-county">Counties</a>
+            </div>
             <div class="app-header-inner">
                 <!-- Three stacked ocean swells. Faintest at the back, strongest
                      at the front — reads as the Pacific without leaning on a
@@ -71,10 +78,6 @@
                     <span class="app-header-tag">Tracker</span>
                 </h1>
                 <p class="app-header-subtitle">FY2026–27 · Compare the Governor, House, and Senate drafts.</p>
-                <div class="scope-toggle" role="group" aria-label="Budget scope">
-                    <a href="#/" class="scope-btn scope-btn-state active">State</a>
-                    <a href="#/counties" class="scope-btn scope-btn-county">Counties</a>
-                </div>
                 <nav class="main-nav">
                     <a href="#/" class="nav-link nav-link-stacked" title="HB1800 — 2026 budget bill">HB1800<span class="nav-sub">2026 budget bill</span></a>
                     <a href="#/tax-calculator" class="nav-link nav-link-calc" data-dev-only="true" hidden title="Where Do My Taxes Go? — Tax calculator">Where Do My Taxes Go?<span class="nav-sub">Tax calculator</span></a>
