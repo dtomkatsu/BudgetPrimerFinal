@@ -1,0 +1,192 @@
+county,department_code,department_name,section,fund_name,fund_category,fiscal_year,amount,program_name,positions,source
+honolulu,dfm,Facility Maintenance,Operating,Highway Fund,Special / Enterprise Funds,2027,41741040.0,Road Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,ocean,Ocean Safety,Operating,General Fund,General Fund,2027,27084121.0,Ocean Safety,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,General Fund,General Fund,2027,14389132.0,Project and Construction Management,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,Highway Fund,Special / Enterprise Funds,2027,8949422.0,Project and Construction Management,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Highway Fund,Special / Enterprise Funds,2027,7018324.0,Transportation Technology,,data.honolulu.gov/puaw-t6sa
+honolulu,hesd,Emergency Services,Operating,General Fund,General Fund,2027,45218780.0,Emergency Medical Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,General Fund,General Fund,2027,30539830.0,Public Building and Electrical Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,10246599.0,Environmental Quality,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,General Fund,General Fund,2027,16718991.0,Automotive Equipment Services,,data.honolulu.gov/puaw-t6sa
+honolulu,ocean,Ocean Safety,Operating,Hanauma Bay Nature Preserve Fund,Special / Enterprise Funds,2027,1155415.0,Ocean Safety,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Sewer Fund,Special / Enterprise Funds,2027,1206547.0,Automotive Equipment Services,,data.honolulu.gov/puaw-t6sa
+honolulu,csd,Customer Services,Operating,General Fund,General Fund,2027,2232632.0,Public Communication,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,General Fund,General Fund,2027,18190986.0,Urban Forestry Program,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,326000.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,32294945.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,des,Enterprise Services,Operating,Golf Fund,Special / Enterprise Funds,2027,13572942.0,Golf Courses,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,General Fund,General Fund,2027,8014012.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,des,Enterprise Services,Operating,Special Events Fund,Special / Enterprise Funds,2027,1266770.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,203446516.0,Patrol,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,37968159.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sld Wst Dis Fac Acct - SWSF,Trust & Other Funds,2027,136604887.0,Refuse Collection and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Recycling Account - SWSF,Trust & Other Funds,2027,28272748.0,Refuse Collection and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Highway Fund,Special / Enterprise Funds,2027,15638286.0,Public Building and Electrical Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,135355324.0,Fire Operations,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,General Fund,General Fund,2027,18458188.0,Maintenance Support Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Federal Grants Fund,Federal Funds,2027,9201791.0,WorkHawaii,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Housing & Comm Dev Sec 8 Fund,Special / Enterprise Funds,2027,217400.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,mayor,Mayor,Operating,General Fund,General Fund,2027,40000.0,Contingency Fund,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,General Fund,General Fund,2027,3511808.0,Land Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dem,Emergency Management,Operating,General Fund,General Fund,2027,2143328.0,Emergency Management Coordination,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,64347583.0,Support Services,,data.honolulu.gov/puaw-t6sa
+honolulu,des,Enterprise Services,Operating,Honolulu Zoo Fund,Special / Enterprise Funds,2027,9283756.0,Honolulu Zoo,,data.honolulu.gov/puaw-t6sa
+honolulu,des,Enterprise Services,Operating,Special Events Fund,Special / Enterprise Funds,2027,8552648.0,Auditoriums,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Highway Fund,Special / Enterprise Funds,2027,1713805.0,Automotive Equipment Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Recycling Account - SWSF,Trust & Other Funds,2027,2186485.0,Automotive Equipment Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,2186485.0,Automotive Equipment Services,,data.honolulu.gov/puaw-t6sa
+honolulu,mayor,Mayor,Operating,General Fund,General Fund,2027,1043903.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,md,Managing Director,Operating,General Fund,General Fund,2027,2630044.0,City Management,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,General Fund,General Fund,2027,2653011.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,General Fund,General Fund,2027,19038284.0,Prosecution,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,43646480.0,Administrative Services,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,Special Projects Fund,Special / Enterprise Funds,2027,1308814.0,Prosecution,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,Special Projects Fund,Special / Enterprise Funds,2027,625970.0,Victim/Witness Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,10791680.0,Building,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Transportation Fund,Special / Enterprise Funds,2027,339418962.0,Transportation Mobility,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,5160838.0,Customer Service,,data.honolulu.gov/puaw-t6sa
+honolulu,dem,Emergency Management,Operating,Special Projects Fund,Special / Enterprise Funds,2027,90000.0,Emergency Management Coordination,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Federal Grants Fund,Federal Funds,2027,26138.0,Fiscal/CIP Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,Highway Fund,Special / Enterprise Funds,2027,177750.0,Land Services,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,121740770.0,Treatment and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,647830.0,Elderly Affairs,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,General Fund,General Fund,2027,15895920.0,Storm Water Quality,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Highway Fund,Special / Enterprise Funds,2027,1954955.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Highway Fund,Special / Enterprise Funds,2027,1450857.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,Federal Grants Fund,Federal Funds,2027,236119.0,Prosecution,,data.honolulu.gov/puaw-t6sa
+honolulu,cor,Corporation Counsel,Operating,General Fund,General Fund,2027,1165878.0,Ethics Commission,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,68240019.0,Refuse Collection and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,rhb,Royal Hawaiian Band,Operating,General Fund,General Fund,2027,3691665.0,Royal Hawaiian Band,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,6017841.0,Fire Prevention,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Special Projects Fund,Special / Enterprise Funds,2027,991784.0,WorkHawaii,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Highway Beautification Fund,Special / Enterprise Funds,2027,267500.0,Road Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,General Fund,General Fund,2027,4526052.0,Road Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,1257582.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,23488.0,Fire Commission,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,138311.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Special Events Fund,Special / Enterprise Funds,2027,48648.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,5615800.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Community Development Fund,Federal Funds,2027,1296562.0,Fiscal/CIP Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Community Development Fund,Federal Funds,2027,72180.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,324497.0,City Radio System,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Special Projects Fund,Special / Enterprise Funds,2027,11404992.0,Elderly Affairs,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,General Fund,General Fund,2027,25973541.0,Recreation Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Hanauma Bay Nature Preserve Fund,Special / Enterprise Funds,2027,4135973.0,Recreation Services,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,Federal Grants Fund,Federal Funds,2027,697133.0,Victim/Witness Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,1806763.0,Radio Shop,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Liquor Commission Fund,Special / Enterprise Funds,2027,5517492.0,Liquor Commission,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,17014120.0,Special Field Operations,,data.honolulu.gov/puaw-t6sa
+honolulu,dhr,Human Resources,Operating,General Fund,General Fund,2027,2031197.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Federal Grants Fund,Federal Funds,2027,21000000.0,Transportation Mobility,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,9993582.0,Office of the Chief of Police,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,4059653.0,Mechanic Shop,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,Highway Fund,Special / Enterprise Funds,2027,18457799.0,Investigations,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,General Fund,General Fund,2027,47531239.0,Grounds Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,dhr,Human Resources,Operating,General Fund,General Fund,2027,3007564.0,Employment and Personnel Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,1678297.0,Land Use Permits,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,3326319.0,Planning,,data.honolulu.gov/puaw-t6sa
+honolulu,csd,Customer Services,Operating,General Fund,General Fund,2027,20358107.0,Division of Motor Vehicles,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,38608230.0,Investigations,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Highway Fund,Special / Enterprise Funds,2027,3457666.0,Transportation Engineering,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,750030.0,Office of Grants Management,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,1357910.0,Budgetary Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,870074.0,Fiscal/CIP Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,hesd,Emergency Services,Operating,General Fund,General Fund,2027,11732925.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,med,Medical Examiner,Operating,General Fund,General Fund,2027,5986733.0,Investigation of Deaths,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Housing & Comm Dev Sec 8 Fund,Special / Enterprise Funds,2027,106130905.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Community Development Fund,Federal Funds,2027,193332.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,11678703.0,Wastewater Engineering and Construction,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,4153862.0,Training and Research,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,General Fund,General Fund,2027,10142507.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,9435974.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,4663066.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,Sewer Fund,Special / Enterprise Funds,2027,311252.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,Highway Fund,Special / Enterprise Funds,2027,4696446.0,Site Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,Sewer Fund,Special / Enterprise Funds,2027,1505018.0,Site Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Federal Grants Fund,Federal Funds,2027,6714170.0,Elderly Affairs,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Special Projects Fund,Special / Enterprise Funds,2027,1638813.0,Community Based Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,4084019.0,ERP-CSR,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Highway Fund,Special / Enterprise Funds,2027,2840573.0,Transportation Performance & Development,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,5636109.0,Treasury,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,7905331.0,Real Property,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,3900528.0,Purchasing and General Services,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,328746.0,Purchasing and General Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,1321806.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Hanauma Bay Nature Preserve Fund,Special / Enterprise Funds,2027,1291109.0,Grounds Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,36737566.0,Collection System Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,dpp,Planning and Permitting,Operating,General Fund,General Fund,2027,988885.0,Site Development,,data.honolulu.gov/puaw-t6sa
+honolulu,hesd,Emergency Services,Operating,General Fund,General Fund,2027,1980178.0,Health Services,,data.honolulu.gov/puaw-t6sa
+honolulu,csd,Customer Services,Operating,General Fund,General Fund,2027,6362117.0,Satellite City Hall,,data.honolulu.gov/puaw-t6sa
+honolulu,md,Managing Director,Operating,General Fund,General Fund,2027,1107468.0,Culture and the Arts,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,854593.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dhr,Human Resources,Operating,General Fund,General Fund,2027,1169822.0,Classification and Pay,,data.honolulu.gov/puaw-t6sa
+honolulu,dhr,Human Resources,Operating,General Fund,General Fund,2027,1589979.0,Industrial Safety and Workers' Compensation,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,24598831.0,Community Based Development,,data.honolulu.gov/puaw-t6sa
+honolulu,csd,Customer Services,Operating,Highway Beautification Fund,Special / Enterprise Funds,2027,3051293.0,Division of Motor Vehicles,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Federal Grants Fund,Federal Funds,2027,1656657.0,Community Based Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Grants in Aid Fund,Federal Funds,2027,10898940.0,Office of Grants Management,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,General Fund,General Fund,2027,680290.0,WorkHawaii,,data.honolulu.gov/puaw-t6sa
+honolulu,hpd,Police,Operating,General Fund,General Fund,2027,734945.0,Police Commission,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Community Development Fund,Federal Funds,2027,1349644.0,WorkHawaii,,data.honolulu.gov/puaw-t6sa
+honolulu,neighborhood-commission,Neighborhood Commission,Operating,General Fund,General Fund,2027,1691234.0,Neighborhood Commission,,data.honolulu.gov/puaw-t6sa
+honolulu,dhr,Human Resources,Operating,General Fund,General Fund,2027,1746405.0,Labor Relations and Training,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Transportation Fund,Special / Enterprise Funds,2027,15663535.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,3337436.0,Applications,,data.honolulu.gov/puaw-t6sa
+honolulu,md,Managing Director,Operating,General Fund,General Fund,2027,2600828.0,"Office of Climate Change, Sustainability and Resiliency",,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Community Development Fund,Federal Funds,2027,237452.0,Community Based Development,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Sewer Fund,Special / Enterprise Funds,2027,326101.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Bikeway Fund,Special / Enterprise Funds,2027,678335.0,Transportation Engineering,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,4515445.0,Fire Communication Center,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Grants in Aid Fund,Federal Funds,2027,103406.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,cor,Corporation Counsel,Operating,General Fund,General Fund,2027,14948185.0,Legal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Transportation Fund,Special / Enterprise Funds,2027,108169640.0,Transportation Rail,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Patsy T. Mink Central Oahu Regional Park Fund,Trust & Other Funds,2027,227800.0,Grounds Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Federal Grants Fund,Federal Funds,2027,300000.0,Recreation Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,General Fund,General Fund,2027,567264.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,1927880.0,Technical Support,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Federal Grants Fund,Federal Funds,2027,120000.0,Transportation Technology,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Federal Grants Fund,Federal Funds,2027,739762.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,General Fund,General Fund,2027,648968.0,Internal Control,,data.honolulu.gov/puaw-t6sa
+honolulu,csd,Customer Services,Operating,General Fund,General Fund,2027,838322.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Transit Construction Mitigation Fund,Special / Enterprise Funds,2027,100000.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,Sewer Fund,Special / Enterprise Funds,2027,394944.0,ERP-CSR,,data.honolulu.gov/puaw-t6sa
+honolulu,md,Managing Director,Operating,General Fund,General Fund,2027,2648353.0,Office of Economic Revitalization,,data.honolulu.gov/puaw-t6sa
+honolulu,dts,Transportation Services,Operating,Transportation Fund,Special / Enterprise Funds,2027,388056.0,Transportation Performance & Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Waipio Peninsula Soccer Park Fund,Trust & Other Funds,2027,491100.0,Grounds Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,cor,Corporation Counsel,Operating,Liquor Commission Fund,Special / Enterprise Funds,2027,271881.0,Legal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,pat,Prosecuting Attorney,Operating,General Fund,General Fund,2027,1539528.0,Victim/Witness Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,Sewer Fund,Special / Enterprise Funds,2027,121312.0,Land Services,,data.honolulu.gov/puaw-t6sa
+honolulu,hfd,Fire,Operating,General Fund,General Fund,2027,1368630.0,Planning and Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Housing & Comm Dev Rehab Fund,Special / Enterprise Funds,2027,2000000.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Transportation Fund,Special / Enterprise Funds,2027,66324.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,834263.0,Land Transactions,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,2028585.0,Communications and Network,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,2406049.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,cor,Corporation Counsel,Operating,Sewer Fund,Special / Enterprise Funds,2027,516030.0,Legal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,General Fund,General Fund,2027,1532912.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,1441593.0,Housing Property/Asset Management,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,443349.0,Housing Finance,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,Clean Water and Natural Lands Fund,Special / Enterprise Funds,2027,1071028.0,Conservation Office,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Transportation Fund,Special / Enterprise Funds,2027,126744.0,Public Building and Electrical Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Hanauma Bay Nature Preserve Fund,Special / Enterprise Funds,2027,60000.0,Maintenance Support Services,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Rental Assistance Fund,Federal Funds,2027,233000.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dfm,Facility Maintenance,Operating,Bikeway Fund,Special / Enterprise Funds,2027,33100.0,Road Maintenance,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,Highway Fund,Special / Enterprise Funds,2027,8300.0,Administration,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Federal Grants Fund,Federal Funds,2027,237872.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Housing Development Special Fund,Special / Enterprise Funds,2027,7535.0,Accounting and Fiscal Services,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,756012.0,Housing Policy,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,General Fund,General Fund,2027,2075228.0,Operations,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,80736.0,ERP-CSR,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,Affordable Housing Fund,Special / Enterprise Funds,2027,471419.0,Housing Finance,,data.honolulu.gov/puaw-t6sa
+honolulu,dcs,Community Services,Operating,Federal Grants Fund,Federal Funds,2027,405000.0,Community Assistance,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,Liquor Commission Fund,Special / Enterprise Funds,2027,80736.0,ERP-CSR,,data.honolulu.gov/puaw-t6sa
+honolulu,ocean,Ocean Safety,Operating,Special Projects Fund,Special / Enterprise Funds,2027,61392.0,Ocean Safety,,data.honolulu.gov/puaw-t6sa
+honolulu,housing-and-land-management,Housing and Land Management,Operating,General Fund,General Fund,2027,521219.0,Housing Development,,data.honolulu.gov/puaw-t6sa
+honolulu,dit,Information Technology,Operating,Federal Grants Fund,Federal Funds,2027,81924.0,Operations,,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Hanauma Bay Nature Preserve Fund,Special / Enterprise Funds,2027,23000.0,Urban Forestry Program,,data.honolulu.gov/puaw-t6sa
+honolulu,md,Managing Director,Operating,Climate Resiliency Fund,Trust & Other Funds,2027,9357930.0,"Office of Climate Change, Sustainability and Resiliency",,data.honolulu.gov/puaw-t6sa
+honolulu,dpr,Parks and Recreation,Operating,Highway Beautification Fund,Special / Enterprise Funds,2027,610000.0,Urban Forestry Program,,data.honolulu.gov/puaw-t6sa
+honolulu,bfs,Budget and Fiscal Services,Operating,Housing & Comm Dev Sec 8 Fund,Special / Enterprise Funds,2027,20000.0,Treasury,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Refuse Genl Operating Acct -SWSF,Special / Enterprise Funds,2027,125000.0,Treatment and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,env,Environmental Services,Operating,Glass Incentive Account - SWSF,Trust & Other Funds,2027,700000.0,Refuse Collection and Disposal,,data.honolulu.gov/puaw-t6sa
+honolulu,ddc,Design and Construction,Operating,Federal Grants Fund,Federal Funds,2027,2160000.0,Project and Construction Management,,data.honolulu.gov/puaw-t6sa

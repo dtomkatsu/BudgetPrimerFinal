@@ -6521,3 +6521,148 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 }
 .county-fund-chip .fmt-num { font-weight: 600; }
 .county-fund-chip .fmt-unit { color: #8a978f; }
+
+/* Toolbar: county tabs on the left, fiscal-year toggle on the right */
+.county-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem 1.2rem;
+    margin-bottom: 1.1rem;
+}
+.county-toolbar .county-tabs { margin: 0; }
+.county-year-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.county-year-label {
+    font-size: 0.95rem;
+    color: #6b7a72;
+    margin-right: 0.2rem;
+}
+.county-year-btn {
+    padding: 0.42rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    color: #3d5249;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+.county-year-btn:hover { background: #eef3ef; }
+.county-year-btn.active {
+    background: #3d5249;
+    border-color: #3d5249;
+    color: #fff;
+}
+
+/* Operating / CIP sections */
+.county-section { margin: 1.8rem 0; }
+.county-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e3eae5;
+    margin-bottom: 0.3rem;
+}
+.county-section-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2f3f37;
+}
+.county-section-tag {
+    margin-left: 0.5em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #fff;
+    background: #a68c68;
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+.county-section-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #3d5249;
+    white-space: nowrap;
+}
+.fund-cat-bar-title {
+    font-size: 0.95rem;
+    color: #5c6b63;
+    margin-bottom: 0.5rem;
+}
+.county-total-card .amount { color: #2f3f37; }
+
+/* CIP project list */
+.cip-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    margin: 0.4rem 0 0.8rem;
+}
+.cip-search {
+    flex: 1 1 240px;
+    max-width: 360px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    font-size: 1rem;
+    color: #2f3f37;
+}
+.cip-search:focus {
+    outline: none;
+    border-color: #7da48d;
+    box-shadow: 0 0 0 3px rgba(125, 164, 141, 0.18);
+}
+.cip-sort { display: inline-flex; gap: 0.35rem; }
+.cip-sort-btn {
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    color: #4a5a52;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.cip-sort-btn.active { background: #3d5249; border-color: #3d5249; color: #fff; }
+.cip-table .cip-proj-name { color: #2f3f37; }
+.cip-proj-func {
+    display: block;
+    font-size: 0.8rem;
+    color: #8a978f;
+    margin-top: 0.15rem;
+}
+.cip-proj-fund {
+    font-size: 0.92rem;
+    color: #5c6b63;
+    white-space: nowrap;
+}
+.cip-fund-more {
+    font-size: 0.78rem;
+    color: #8a978f;
+    background: #eef3ef;
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+}
+.cip-note {
+    font-size: 0.9rem;
+    color: #6b7a72;
+    margin-top: 0.7rem;
+}
+.cip-empty { text-align: center; color: #8a978f; padding: 1.4rem 0; }
+
+@media (max-width: 768px) {
+    .county-toolbar { gap: 0.6rem; }
+    .cip-table th:nth-child(2), .cip-table td.cip-proj-fund { display: none; }
+}
