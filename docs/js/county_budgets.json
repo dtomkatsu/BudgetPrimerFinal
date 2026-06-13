@@ -4,7 +4,7 @@
     2027
   ],
   "default_fiscal_year": 2026,
-  "generated_at": "2026-06-12T18:20:44.996459",
+  "generated_at": "2026-06-12T18:44:11.877882",
   "years": {
     "2026": {
       "honolulu": {
@@ -6866,7 +6866,3896 @@
       },
       "maui": {
         "name": "County of Maui",
-        "available": false
+        "available": true,
+        "total_budget": 1687594300.0,
+        "operating_budget": 1226165300.0,
+        "capital_budget": 461429000.0,
+        "capital_note": null,
+        "coverage_note": "FY2026 Mayor's PROPOSED budget (submitted March 2025) \u2014 not the adopted ordinance, unlike Honolulu and Kaua\u02bbi. Operating is shown by department (from the Operating Expenditures by Character Type summary); the proposed book reports operating fund splits only as charts, so each department's operating is attributed to its primary fund. The capital program is parsed at the project level from the six-year CIP project sheets (FY2026 column).",
+        "fund_breakdown": {
+          "General Fund": 1071457500.0,
+          "Special / Enterprise Funds": 289791800.0,
+          "Bond / Debt Funds": 124434000.0,
+          "Federal Funds": 108617000.0,
+          "Trust & Other Funds": 93294000.0
+        },
+        "source": {
+          "label": "FY2026 Mayor's Proposed Budget \u00b7 mauicounty.gov",
+          "url": "https://www.mauicounty.gov/DocumentCenter/View/152301/000---FY-2026-Program-Budget-Combined"
+        },
+        "operating": {
+          "total": 1226165300.0,
+          "fund_breakdown": {
+            "General Fund": 1000483500.0,
+            "Special / Enterprise Funds": 225681800.0
+          },
+          "num_departments": 24,
+          "num_programs": 24,
+          "departments": [
+            {
+              "code": "finance-countywide",
+              "name": "Finance-Countywide",
+              "total_budget": 424464400.0,
+              "fund_breakdown": {
+                "General Fund": 424464400.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 424464400.0,
+                  "fund_breakdown": {
+                    "General Fund": 424464400.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 424464400.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "environmental-management",
+              "name": "Environmental Management",
+              "total_budget": 129922900.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 129922900.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 129922900.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 129922900.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Sewer / Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 129922900.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "police",
+              "name": "Police",
+              "total_budget": 98309000.0,
+              "fund_breakdown": {
+                "General Fund": 98309000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 98309000.0,
+                  "fund_breakdown": {
+                    "General Fund": 98309000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 98309000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "management",
+              "name": "Management",
+              "total_budget": 93392900.0,
+              "fund_breakdown": {
+                "General Fund": 93392900.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 93392900.0,
+                  "fund_breakdown": {
+                    "General Fund": 93392900.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 93392900.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "water-supply",
+              "name": "Water Supply",
+              "total_budget": 91530300.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 91530300.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 91530300.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 91530300.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 91530300.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "public-works",
+              "name": "Public Works",
+              "total_budget": 78045200.0,
+              "fund_breakdown": {
+                "General Fund": 78045200.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 78045200.0,
+                  "fund_breakdown": {
+                    "General Fund": 78045200.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 78045200.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "fire-and-public-safety",
+              "name": "Fire and Public Safety",
+              "total_budget": 67775900.0,
+              "fund_breakdown": {
+                "General Fund": 67775900.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 67775900.0,
+                  "fund_breakdown": {
+                    "General Fund": 67775900.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 67775900.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "parks-and-recreation",
+              "name": "Parks and Recreation",
+              "total_budget": 42779400.0,
+              "fund_breakdown": {
+                "General Fund": 42779400.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 42779400.0,
+                  "fund_breakdown": {
+                    "General Fund": 42779400.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 42779400.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "transportation",
+              "name": "Transportation",
+              "total_budget": 38559200.0,
+              "fund_breakdown": {
+                "General Fund": 38559200.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 38559200.0,
+                  "fund_breakdown": {
+                    "General Fund": 38559200.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 38559200.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "housing",
+              "name": "Housing",
+              "total_budget": 33483400.0,
+              "fund_breakdown": {
+                "General Fund": 33483400.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 33483400.0,
+                  "fund_breakdown": {
+                    "General Fund": 33483400.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 33483400.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "human-concerns",
+              "name": "Human Concerns",
+              "total_budget": 26033000.0,
+              "fund_breakdown": {
+                "General Fund": 26033000.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 26033000.0,
+                  "fund_breakdown": {
+                    "General Fund": 26033000.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 26033000.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "office-of-the-mayor",
+              "name": "Office of the Mayor",
+              "total_budget": 18289600.0,
+              "fund_breakdown": {
+                "General Fund": 18289600.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 18289600.0,
+                  "fund_breakdown": {
+                    "General Fund": 18289600.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 18289600.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "finance",
+              "name": "Finance",
+              "total_budget": 16730599.999999998,
+              "fund_breakdown": {
+                "General Fund": 16730599.999999998
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 16730599.999999998,
+                  "fund_breakdown": {
+                    "General Fund": 16730599.999999998
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 16730599.999999998
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "agriculture",
+              "name": "Agriculture",
+              "total_budget": 12708100.0,
+              "fund_breakdown": {
+                "General Fund": 12708100.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 12708100.0,
+                  "fund_breakdown": {
+                    "General Fund": 12708100.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 12708100.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-council",
+              "name": "County Council",
+              "total_budget": 12125900.0,
+              "fund_breakdown": {
+                "General Fund": 12125900.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 12125900.0,
+                  "fund_breakdown": {
+                    "General Fund": 12125900.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 12125900.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "prosecuting-attorney",
+              "name": "Prosecuting Attorney",
+              "total_budget": 9753800.0,
+              "fund_breakdown": {
+                "General Fund": 9753800.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 9753800.0,
+                  "fund_breakdown": {
+                    "General Fund": 9753800.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 9753800.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "planning",
+              "name": "Planning",
+              "total_budget": 9531500.0,
+              "fund_breakdown": {
+                "General Fund": 9531500.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 9531500.0,
+                  "fund_breakdown": {
+                    "General Fund": 9531500.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 9531500.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "corporation-counsel",
+              "name": "Corporation Counsel",
+              "total_budget": 5857800.0,
+              "fund_breakdown": {
+                "General Fund": 5857800.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 5857800.0,
+                  "fund_breakdown": {
+                    "General Fund": 5857800.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 5857800.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "liquor-control",
+              "name": "Liquor Control",
+              "total_budget": 4228600.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 4228600.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 4228600.0,
+                  "fund_breakdown": {
+                    "Special / Enterprise Funds": 4228600.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "Liquor Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4228600.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "emergency-management-agency",
+              "name": "Emergency Management Agency",
+              "total_budget": 3689500.0,
+              "fund_breakdown": {
+                "General Fund": 3689500.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 3689500.0,
+                  "fund_breakdown": {
+                    "General Fund": 3689500.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3689500.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "county-clerk",
+              "name": "County Clerk",
+              "total_budget": 3039500.0,
+              "fund_breakdown": {
+                "General Fund": 3039500.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 3039500.0,
+                  "fund_breakdown": {
+                    "General Fund": 3039500.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3039500.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "personnel-services",
+              "name": "Personnel Services",
+              "total_budget": 2712100.0,
+              "fund_breakdown": {
+                "General Fund": 2712100.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 2712100.0,
+                  "fund_breakdown": {
+                    "General Fund": 2712100.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2712100.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "iwi-resources",
+              "name": "\u014ciwi Resources",
+              "total_budget": 1929200.0,
+              "fund_breakdown": {
+                "General Fund": 1929200.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 1929200.0,
+                  "fund_breakdown": {
+                    "General Fund": 1929200.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1929200.0
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "code": "east-maui-water-authority",
+              "name": "East Maui Water Authority",
+              "total_budget": 1273500.0,
+              "fund_breakdown": {
+                "General Fund": 1273500.0
+              },
+              "num_programs": 1,
+              "programs": [
+                {
+                  "program_name": "(department-wide)",
+                  "total_budget": 1273500.0,
+                  "fund_breakdown": {
+                    "General Fund": 1273500.0
+                  },
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1273500.0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "cip": {
+          "total": 461429000.0,
+          "fund_breakdown": {
+            "Bond / Debt Funds": 124434000.0,
+            "Federal Funds": 108617000.0,
+            "Trust & Other Funds": 93294000.0,
+            "General Fund": 70974000.0,
+            "Special / Enterprise Funds": 64110000.0
+          },
+          "num_functions": 9,
+          "num_projects": 104,
+          "functions": [
+            {
+              "name": "Public Works",
+              "code": "public-works",
+              "total_budget": 215858000.0,
+              "fund_breakdown": {
+                "Bond / Debt Funds": 92114000.0,
+                "Federal Funds": 57314000.0,
+                "Trust & Other Funds": 26000000.0,
+                "General Fund": 22750000.0,
+                "Special / Enterprise Funds": 17680000.0
+              },
+              "num_projects": 9,
+              "projects": [
+                {
+                  "project_name": "Waiale Road Extension",
+                  "function": "Public Works",
+                  "total_budget": 87000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 33260000.0
+                    },
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 27740000.0
+                    },
+                    {
+                      "fund_name": "State Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 20000000.0
+                    },
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 6000000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Countywide Federal Aid Program",
+                  "function": "Public Works",
+                  "total_budget": 48178000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 29574000.0
+                    },
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 18604000.0
+                    }
+                  ],
+                  "primary_fund": "Federal Fund",
+                  "fund_category": "Federal Funds"
+                },
+                {
+                  "project_name": "Countywide Rockfall and Embankment Repairs",
+                  "function": "Public Works",
+                  "total_budget": 20850000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 20450000.0
+                    },
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 400000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Road Countywide Road Resurfacing and Pavement Preservation",
+                  "function": "Public Works",
+                  "total_budget": 16000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 13000000.0
+                    },
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 3000000.0
+                    }
+                  ],
+                  "primary_fund": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Countywide Drainline Replacement Program",
+                  "function": "Public Works",
+                  "total_budget": 13300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 13300000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Government Countywide Facilities Maintenance Program",
+                  "function": "Public Works",
+                  "total_budget": 10600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 10600000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Bridge and Drainage Program",
+                  "function": "Public Works",
+                  "total_budget": 7900000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4400000.0
+                    },
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 3500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide DPW Baseyard Facilities Program",
+                  "function": "Public Works",
+                  "total_budget": 7750000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 7750000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Traffic and Safety Program",
+                  "function": "Public Works",
+                  "total_budget": 4280000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Highway Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4280000.0
+                    }
+                  ],
+                  "primary_fund": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                }
+              ]
+            },
+            {
+              "name": "Environmental Management",
+              "code": "environmental-management",
+              "total_budget": 110646000.0,
+              "fund_breakdown": {
+                "Trust & Other Funds": 50324000.0,
+                "Bond / Debt Funds": 31000000.0,
+                "Federal Funds": 15622000.0,
+                "Special / Enterprise Funds": 13700000.0
+              },
+              "num_projects": 38,
+              "projects": [
+                {
+                  "project_name": "West Maui Recycled Water System Expansion",
+                  "function": "Environmental Management",
+                  "total_budget": 16622000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Other Grant Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 15622000.0
+                    },
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "Other Grant Fund",
+                  "fund_category": "Federal Funds"
+                },
+                {
+                  "project_name": "Central Maui Regional WWRF (Waikapu)",
+                  "function": "Environmental Management",
+                  "total_budget": 10500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 10500000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Lahaina Wastewater Reclamation Facility Returned Activated Sludge (RAS)/Dewatering Upgrades",
+                  "function": "Environmental Management",
+                  "total_budget": 10000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 6593000.0
+                    },
+                    {
+                      "fund_name": "Lapsed Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 3407000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Kihei Wastewater Pump Station No. 7 Relocation",
+                  "function": "Environmental Management",
+                  "total_budget": 9400000.0,
+                  "funds": [
+                    {
+                      "fund_name": "State Revolving Loan Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 9400000.0
+                    }
+                  ],
+                  "primary_fund": "State Revolving Loan Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "North Kihei Mauka Transmission System",
+                  "function": "Environmental Management",
+                  "total_budget": 6000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 6000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Countywide Wastewater System Modifications",
+                  "function": "Environmental Management",
+                  "total_budget": 5000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 2500000.0
+                    },
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Napili No. 1 Force Main Replacement",
+                  "function": "Environmental Management",
+                  "total_budget": 4500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 4500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Kihei Wastewater Pump Station No. 5 Modification and Force Main Replacement",
+                  "function": "Environmental Management",
+                  "total_budget": 4300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 4300000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Countywide Environmental Protection Agency (EPA) Compliance Wastewater Reclamation Facility Renovation Projects",
+                  "function": "Environmental Management",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 2000000.0
+                    },
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2000000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Kihei Wastewater Pump Station No. 4 Modification/Upgrade",
+                  "function": "Environmental Management",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2000000.0
+                    },
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 2000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Napili Wastewater Pump Station No. 2 Modifications",
+                  "function": "Environmental Management",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 4000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "West Maui Environmental Protection Agency (EPA) Compliance Sewer Rehabilitation",
+                  "function": "Environmental Management",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4000000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Waiehu Kou Wastewater Pump Station Modifications",
+                  "function": "Environmental Management",
+                  "total_budget": 3500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 3500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Napili Wastewater Pump Station No. 1 Modifications",
+                  "function": "Environmental Management",
+                  "total_budget": 3000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 3000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Waiko Road Subdivision Sewer System",
+                  "function": "Environmental Management",
+                  "total_budget": 2500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "State Revolving Loan Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2500000.0
+                    }
+                  ],
+                  "primary_fund": "State Revolving Loan Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Upper Waiko Road Sewer Extension",
+                  "function": "Environmental Management",
+                  "total_budget": 2000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Kehalani Pump Station",
+                  "function": "Environmental Management",
+                  "total_budget": 1600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1600000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Central Maui Landfill Phase II/III Interface Development",
+                  "function": "Environmental Management",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Kahului Beach Road Sewer Line Upgrade",
+                  "function": "Environmental Management",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Lanai Wastewater Treatment Pond Renovations",
+                  "function": "Environmental Management",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Napili No. 2 Force Main Replacement",
+                  "function": "Environmental Management",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Central Maui Landfill Gas System Expansion",
+                  "function": "Environmental Management",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Environmental Compliance System Design and Construction",
+                  "function": "Environmental Management",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Kaiola Place Sewer Extension",
+                  "function": "Environmental Management",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds"
+                },
+                {
+                  "project_name": "Kihei No. 6 Force Main Replacement",
+                  "function": "Environmental Management",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Kihei Wastewater Pump Station No. 6 Modification/Upgrade",
+                  "function": "Environmental Management",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "FOG Recycling and Composting at the Organics Processing Facility",
+                  "function": "Environmental Management",
+                  "total_budget": 649000.0,
+                  "funds": [
+                    {
+                      "fund_name": "EP&S Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 649000.0
+                    }
+                  ],
+                  "primary_fund": "EP&S Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Kehalani Force Main/Gravity Sewer",
+                  "function": "Environmental Management",
+                  "total_budget": 600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 600000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Countywide Environmental Protection Agency (EPA) Compliance Projects",
+                  "function": "Environmental Management",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Countywide Wastewater Project Management",
+                  "function": "Environmental Management",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Lahaina Siphon and Ditch Distribution",
+                  "function": "Environmental Management",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "South Kihei Capacity Sewer Upgrades",
+                  "function": "Environmental Management",
+                  "total_budget": 400000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 400000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Central Maui Landfill Infrastructure",
+                  "function": "Environmental Management",
+                  "total_budget": 300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 300000.0
+                    }
+                  ],
+                  "primary_fund": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Paia Wastewater Pump Station Modifications",
+                  "function": "Environmental Management",
+                  "total_budget": 300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 300000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Solid Waste Master Plans for County Landfills and Solid Waste Facilities",
+                  "function": "Environmental Management",
+                  "total_budget": 300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 300000.0
+                    }
+                  ],
+                  "primary_fund": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Wailuku-Kahului WWRF Shoreline Erosion Protection",
+                  "function": "Environmental Management",
+                  "total_budget": 300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Sewer Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 300000.0
+                    }
+                  ],
+                  "primary_fund": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Lanai Recycling Center Planning",
+                  "function": "Environmental Management",
+                  "total_budget": 275000.0,
+                  "funds": [
+                    {
+                      "fund_name": "EP&S Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 275000.0
+                    }
+                  ],
+                  "primary_fund": "EP&S Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Central Maui Landfill Supplement to Primary Litter Screen",
+                  "function": "Environmental Management",
+                  "total_budget": 100000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Solid Waste Fund",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 100000.0
+                    }
+                  ],
+                  "primary_fund": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds"
+                }
+              ]
+            },
+            {
+              "name": "Water Supply",
+              "code": "water-supply",
+              "total_budget": 63720000.0,
+              "fund_breakdown": {
+                "Special / Enterprise Funds": 32730000.0,
+                "Federal Funds": 18100000.0,
+                "Trust & Other Funds": 12370000.0,
+                "Bond / Debt Funds": 520000.0
+              },
+              "num_projects": 10,
+              "projects": [
+                {
+                  "project_name": "Countywide Upgrades and Replacements",
+                  "function": "Water Supply",
+                  "total_budget": 22060000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 11540000.0
+                    },
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 7000000.0
+                    },
+                    {
+                      "fund_name": "State Revolving Loan Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 3000000.0
+                    },
+                    {
+                      "fund_name": "Lapsed Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 520000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "West Maui Reliable Capacity",
+                  "function": "Water Supply",
+                  "total_budget": 15500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 8900000.0
+                    },
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 6600000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Molokai Reliable Capacity",
+                  "function": "Water Supply",
+                  "total_budget": 7270000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 4500000.0
+                    },
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 2770000.0
+                    }
+                  ],
+                  "primary_fund": "Federal Fund",
+                  "fund_category": "Federal Funds"
+                },
+                {
+                  "project_name": "Upper Kula Transmission Improvements",
+                  "function": "Water Supply",
+                  "total_budget": 4500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 4500000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Countywide Facility Improvements",
+                  "function": "Water Supply",
+                  "total_budget": 4140000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4140000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Waiehu Heights Well 1 Replacement",
+                  "function": "Water Supply",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 4000000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Upcountry Reliable Capacity",
+                  "function": "Water Supply",
+                  "total_budget": 2650000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 2500000.0
+                    },
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 150000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Central Maui Reliable Capacity",
+                  "function": "Water Supply",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Countywide Water System Modification",
+                  "function": "Water Supply",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 1000000.0
+                    },
+                    {
+                      "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                      "fund_category": "Special / Enterprise Funds",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds"
+                },
+                {
+                  "project_name": "Makawao-Pukalani- Kamole Water Treatment Plant Raw Water Reservoirs",
+                  "function": "Water Supply",
+                  "total_budget": 600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 600000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                }
+              ]
+            },
+            {
+              "name": "Fire and Public Safety",
+              "code": "fire-and-public-safety",
+              "total_budget": 24935000.0,
+              "fund_breakdown": {
+                "Federal Funds": 15181000.0,
+                "General Fund": 9754000.0
+              },
+              "num_projects": 3,
+              "projects": [
+                {
+                  "project_name": "Ha\u2019iku Fire Station",
+                  "function": "Fire and Public Safety",
+                  "total_budget": 18581000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 15181000.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3400000.0
+                    }
+                  ],
+                  "primary_fund": "Federal Fund",
+                  "fund_category": "Federal Funds"
+                },
+                {
+                  "project_name": "Government Countywide Fire Facilities",
+                  "function": "Fire and Public Safety",
+                  "total_budget": 3274000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3274000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Makawao-Pukalani- Kula Fire Station Apparatus Bay",
+                  "function": "Fire and Public Safety",
+                  "total_budget": 3080000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3080000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            },
+            {
+              "name": "Parks and Recreation",
+              "code": "parks-and-recreation",
+              "total_budget": 23400000.0,
+              "fund_breakdown": {
+                "General Fund": 22000000.0,
+                "Trust & Other Funds": 1400000.0
+              },
+              "num_projects": 23,
+              "projects": [
+                {
+                  "project_name": "Keopuolani and Wells Park Pedestrian Lighting Replacement",
+                  "function": "Parks and Recreation",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 4000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Park Playground Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 2600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2600000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Court Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 2000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Parks Facilities",
+                  "function": "Parks and Recreation",
+                  "total_budget": 2000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 2000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "West Maui Park Playground Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 2000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Park Assessment Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 1400000.0
+                    },
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 600000.0
+                    }
+                  ],
+                  "primary_fund": "Park Assessment Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Alfred Flako Boteilho Sr. Gym Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Countywide Construction Project Management",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Kanaha Beach Park Restroom Replacement",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Keanae Septic System Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "New Lahaina Community Center",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "One Alii Playground Shade Structure",
+                  "function": "Parks and Recreation",
+                  "total_budget": 1000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Hana-Keanae-Kailua Parks System",
+                  "function": "Parks and Recreation",
+                  "total_budget": 600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 600000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Lanai Community Field House",
+                  "function": "Parks and Recreation",
+                  "total_budget": 550000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 550000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Hana Park Tennis & Basketball Courts Reconstruction",
+                  "function": "Parks and Recreation",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Kula Gym",
+                  "function": "Parks and Recreation",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Parks and Countywide Parks Americans with Disabilities Act Improvements",
+                  "function": "Parks and Recreation",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "South Maui Gymnasium Emergency Generator",
+                  "function": "Parks and Recreation",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Wells Park Retaining Wall Repairs",
+                  "function": "Parks and Recreation",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Kahului Community Center Roof Replacement",
+                  "function": "Parks and Recreation",
+                  "total_budget": 250000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 250000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Kalama Park Light Replacement",
+                  "function": "Parks and Recreation",
+                  "total_budget": 250000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 250000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Lahaina Aquatic Center Rehabilitation",
+                  "function": "Parks and Recreation",
+                  "total_budget": 250000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 250000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "New Lahaina Field House",
+                  "function": "Parks and Recreation",
+                  "total_budget": 250000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 250000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Sakamoto Pool Repairs",
+                  "function": "Parks and Recreation",
+                  "total_budget": 150000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 150000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            },
+            {
+              "name": "Management",
+              "code": "management",
+              "total_budget": 9570000.0,
+              "fund_breakdown": {
+                "General Fund": 5570000.0,
+                "Trust & Other Funds": 3200000.0,
+                "Bond / Debt Funds": 800000.0
+              },
+              "num_projects": 5,
+              "projects": [
+                {
+                  "project_name": "New County Service Center, Phase II",
+                  "function": "Management",
+                  "total_budget": 5000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 5000000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Central Maui Landfill Phase VII Part 1 Closure",
+                  "function": "Management",
+                  "total_budget": 4000000.0,
+                  "funds": [
+                    {
+                      "fund_name": "GET / Revolving Fund",
+                      "fund_category": "Trust & Other Funds",
+                      "amount": 3200000.0
+                    },
+                    {
+                      "fund_name": "General Obligation Bond Fund",
+                      "fund_category": "Bond / Debt Funds",
+                      "amount": 800000.0
+                    }
+                  ],
+                  "primary_fund": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds"
+                },
+                {
+                  "project_name": "Holomua Road Gates",
+                  "function": "Management",
+                  "total_budget": 400000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 400000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Government Kalana O Maui 6th Floor Renovations",
+                  "function": "Management",
+                  "total_budget": 120000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 120000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "251 Napua Street Structure Demolition",
+                  "function": "Management",
+                  "total_budget": 50000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 50000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            },
+            {
+              "name": "Police",
+              "code": "police",
+              "total_budget": 9550000.0,
+              "fund_breakdown": {
+                "General Fund": 9550000.0
+              },
+              "num_projects": 10,
+              "projects": [
+                {
+                  "project_name": "Radiosystem Facility Upgrades",
+                  "function": "Police",
+                  "total_budget": 3600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 3600000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Government Kihei Server Room",
+                  "function": "Police",
+                  "total_budget": 1500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Government Countywide Police Facilities",
+                  "function": "Police",
+                  "total_budget": 1280000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 1280000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Pu'u O Hoku Ranch Site Replacement",
+                  "function": "Police",
+                  "total_budget": 900000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 900000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Lahaina Police Station AC Replacement",
+                  "function": "Police",
+                  "total_budget": 800000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 800000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Fire-Suppression System Wailuku Station",
+                  "function": "Police",
+                  "total_budget": 500000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 500000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Forensic Facility Improvements",
+                  "function": "Police",
+                  "total_budget": 410000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 410000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Wailuku Station Fuel Tank Replacement",
+                  "function": "Police",
+                  "total_budget": 300000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 300000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Restoration of Police Cottages",
+                  "function": "Police",
+                  "total_budget": 150000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 150000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Wailuku Station Improvements",
+                  "function": "Police",
+                  "total_budget": 110000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 110000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            },
+            {
+              "name": "Transportation",
+              "code": "transportation",
+              "total_budget": 3500000.0,
+              "fund_breakdown": {
+                "Federal Funds": 2400000.0,
+                "General Fund": 1100000.0
+              },
+              "num_projects": 5,
+              "projects": [
+                {
+                  "project_name": "Transportation Baseyard Facility",
+                  "function": "Transportation",
+                  "total_budget": 2400000.0,
+                  "funds": [
+                    {
+                      "fund_name": "Federal Fund",
+                      "fund_category": "Federal Funds",
+                      "amount": 2400000.0
+                    }
+                  ],
+                  "primary_fund": "Federal Fund",
+                  "fund_category": "Federal Funds"
+                },
+                {
+                  "project_name": "Bus Stops and Shelters",
+                  "function": "Transportation",
+                  "total_budget": 600000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 600000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Government Kahului Transit Center",
+                  "function": "Transportation",
+                  "total_budget": 200000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 200000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Road Vevau Street Improvements",
+                  "function": "Transportation",
+                  "total_budget": 200000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 200000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                },
+                {
+                  "project_name": "Government Parking Benefits District",
+                  "function": "Transportation",
+                  "total_budget": 100000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 100000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            },
+            {
+              "name": "Human Concerns",
+              "code": "human-concerns",
+              "total_budget": 250000.0,
+              "fund_breakdown": {
+                "General Fund": 250000.0
+              },
+              "num_projects": 1,
+              "projects": [
+                {
+                  "project_name": "Government West Maui Senior Center",
+                  "function": "Human Concerns",
+                  "total_budget": 250000.0,
+                  "funds": [
+                    {
+                      "fund_name": "General Fund",
+                      "fund_category": "General Fund",
+                      "amount": 250000.0
+                    }
+                  ],
+                  "primary_fund": "General Fund",
+                  "fund_category": "General Fund"
+                }
+              ]
+            }
+          ],
+          "projects": [
+            {
+              "project_name": "Waiale Road Extension",
+              "function": "Public Works",
+              "total_budget": 87000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 33260000.0
+                },
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 27740000.0
+                },
+                {
+                  "fund_name": "State Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 20000000.0
+                },
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 6000000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Countywide Federal Aid Program",
+              "function": "Public Works",
+              "total_budget": 48178000.0,
+              "funds": [
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 29574000.0
+                },
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 18604000.0
+                }
+              ],
+              "primary_fund": "Federal Fund",
+              "fund_category": "Federal Funds"
+            },
+            {
+              "project_name": "Countywide Upgrades and Replacements",
+              "function": "Water Supply",
+              "total_budget": 22060000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 11540000.0
+                },
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 7000000.0
+                },
+                {
+                  "fund_name": "State Revolving Loan Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 3000000.0
+                },
+                {
+                  "fund_name": "Lapsed Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 520000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Rockfall and Embankment Repairs",
+              "function": "Public Works",
+              "total_budget": 20850000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 20450000.0
+                },
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 400000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Ha\u2019iku Fire Station",
+              "function": "Fire and Public Safety",
+              "total_budget": 18581000.0,
+              "funds": [
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 15181000.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 3400000.0
+                }
+              ],
+              "primary_fund": "Federal Fund",
+              "fund_category": "Federal Funds"
+            },
+            {
+              "project_name": "West Maui Recycled Water System Expansion",
+              "function": "Environmental Management",
+              "total_budget": 16622000.0,
+              "funds": [
+                {
+                  "fund_name": "Other Grant Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 15622000.0
+                },
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "Other Grant Fund",
+              "fund_category": "Federal Funds"
+            },
+            {
+              "project_name": "Road Countywide Road Resurfacing and Pavement Preservation",
+              "function": "Public Works",
+              "total_budget": 16000000.0,
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 13000000.0
+                },
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 3000000.0
+                }
+              ],
+              "primary_fund": "Highway Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "West Maui Reliable Capacity",
+              "function": "Water Supply",
+              "total_budget": 15500000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 8900000.0
+                },
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 6600000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Drainline Replacement Program",
+              "function": "Public Works",
+              "total_budget": 13300000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 13300000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Government Countywide Facilities Maintenance Program",
+              "function": "Public Works",
+              "total_budget": 10600000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 10600000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Central Maui Regional WWRF (Waikapu)",
+              "function": "Environmental Management",
+              "total_budget": 10500000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 10500000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Lahaina Wastewater Reclamation Facility Returned Activated Sludge (RAS)/Dewatering Upgrades",
+              "function": "Environmental Management",
+              "total_budget": 10000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 6593000.0
+                },
+                {
+                  "fund_name": "Lapsed Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 3407000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Kihei Wastewater Pump Station No. 7 Relocation",
+              "function": "Environmental Management",
+              "total_budget": 9400000.0,
+              "funds": [
+                {
+                  "fund_name": "State Revolving Loan Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 9400000.0
+                }
+              ],
+              "primary_fund": "State Revolving Loan Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Countywide Bridge and Drainage Program",
+              "function": "Public Works",
+              "total_budget": 7900000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 4400000.0
+                },
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 3500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Countywide DPW Baseyard Facilities Program",
+              "function": "Public Works",
+              "total_budget": 7750000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 7750000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Molokai Reliable Capacity",
+              "function": "Water Supply",
+              "total_budget": 7270000.0,
+              "funds": [
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 4500000.0
+                },
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 2770000.0
+                }
+              ],
+              "primary_fund": "Federal Fund",
+              "fund_category": "Federal Funds"
+            },
+            {
+              "project_name": "North Kihei Mauka Transmission System",
+              "function": "Environmental Management",
+              "total_budget": 6000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 6000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Countywide Wastewater System Modifications",
+              "function": "Environmental Management",
+              "total_budget": 5000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 2500000.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 2500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "New County Service Center, Phase II",
+              "function": "Management",
+              "total_budget": 5000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 5000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Napili No. 1 Force Main Replacement",
+              "function": "Environmental Management",
+              "total_budget": 4500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 4500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Upper Kula Transmission Improvements",
+              "function": "Water Supply",
+              "total_budget": 4500000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 4500000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Kihei Wastewater Pump Station No. 5 Modification and Force Main Replacement",
+              "function": "Environmental Management",
+              "total_budget": 4300000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 4300000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Countywide Traffic and Safety Program",
+              "function": "Public Works",
+              "total_budget": 4280000.0,
+              "funds": [
+                {
+                  "fund_name": "Highway Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 4280000.0
+                }
+              ],
+              "primary_fund": "Highway Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Facility Improvements",
+              "function": "Water Supply",
+              "total_budget": 4140000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 4140000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Environmental Protection Agency (EPA) Compliance Wastewater Reclamation Facility Renovation Projects",
+              "function": "Environmental Management",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 2000000.0
+                },
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 2000000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Kihei Wastewater Pump Station No. 4 Modification/Upgrade",
+              "function": "Environmental Management",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 2000000.0
+                },
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 2000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Napili Wastewater Pump Station No. 2 Modifications",
+              "function": "Environmental Management",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 4000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "West Maui Environmental Protection Agency (EPA) Compliance Sewer Rehabilitation",
+              "function": "Environmental Management",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 4000000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Central Maui Landfill Phase VII Part 1 Closure",
+              "function": "Management",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 3200000.0
+                },
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 800000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Keopuolani and Wells Park Pedestrian Lighting Replacement",
+              "function": "Parks and Recreation",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 4000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Waiehu Heights Well 1 Replacement",
+              "function": "Water Supply",
+              "total_budget": 4000000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 4000000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Radiosystem Facility Upgrades",
+              "function": "Police",
+              "total_budget": 3600000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 3600000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Waiehu Kou Wastewater Pump Station Modifications",
+              "function": "Environmental Management",
+              "total_budget": 3500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 3500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Government Countywide Fire Facilities",
+              "function": "Fire and Public Safety",
+              "total_budget": 3274000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 3274000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Makawao-Pukalani- Kula Fire Station Apparatus Bay",
+              "function": "Fire and Public Safety",
+              "total_budget": 3080000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 3080000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Napili Wastewater Pump Station No. 1 Modifications",
+              "function": "Environmental Management",
+              "total_budget": 3000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 3000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Upcountry Reliable Capacity",
+              "function": "Water Supply",
+              "total_budget": 2650000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 2500000.0
+                },
+                {
+                  "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 150000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Restricted/GET",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Park Playground Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 2600000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 2600000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Waiko Road Subdivision Sewer System",
+              "function": "Environmental Management",
+              "total_budget": 2500000.0,
+              "funds": [
+                {
+                  "fund_name": "State Revolving Loan Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 2500000.0
+                }
+              ],
+              "primary_fund": "State Revolving Loan Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Transportation Baseyard Facility",
+              "function": "Transportation",
+              "total_budget": 2400000.0,
+              "funds": [
+                {
+                  "fund_name": "Federal Fund",
+                  "fund_category": "Federal Funds",
+                  "amount": 2400000.0
+                }
+              ],
+              "primary_fund": "Federal Fund",
+              "fund_category": "Federal Funds"
+            },
+            {
+              "project_name": "Upper Waiko Road Sewer Extension",
+              "function": "Environmental Management",
+              "total_budget": 2000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 2000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Countywide Court Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 2000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 2000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Countywide Parks Facilities",
+              "function": "Parks and Recreation",
+              "total_budget": 2000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 2000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "West Maui Park Playground Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 2000000.0,
+              "funds": [
+                {
+                  "fund_name": "Park Assessment Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1400000.0
+                },
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 600000.0
+                }
+              ],
+              "primary_fund": "Park Assessment Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Kehalani Pump Station",
+              "function": "Environmental Management",
+              "total_budget": 1600000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1600000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Central Maui Landfill Phase II/III Interface Development",
+              "function": "Environmental Management",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Kahului Beach Road Sewer Line Upgrade",
+              "function": "Environmental Management",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Lanai Wastewater Treatment Pond Renovations",
+              "function": "Environmental Management",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Napili No. 2 Force Main Replacement",
+              "function": "Environmental Management",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Government Kihei Server Room",
+              "function": "Police",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Central Maui Reliable Capacity",
+              "function": "Water Supply",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1500000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Countywide Water System Modification",
+              "function": "Water Supply",
+              "total_budget": 1500000.0,
+              "funds": [
+                {
+                  "fund_name": "Water Supply Fund \u2013 Unrestricted",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 1000000.0
+                },
+                {
+                  "fund_name": "Water Supply Fund \u2013 Restricted/GET",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "Water Supply Fund \u2013 Unrestricted",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Government Countywide Police Facilities",
+              "function": "Police",
+              "total_budget": 1280000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1280000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Central Maui Landfill Gas System Expansion",
+              "function": "Environmental Management",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Environmental Compliance System Design and Construction",
+              "function": "Environmental Management",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "Solid Waste Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Kaiola Place Sewer Extension",
+              "function": "Environmental Management",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Obligation Bond Fund",
+                  "fund_category": "Bond / Debt Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Obligation Bond Fund",
+              "fund_category": "Bond / Debt Funds"
+            },
+            {
+              "project_name": "Kihei No. 6 Force Main Replacement",
+              "function": "Environmental Management",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Kihei Wastewater Pump Station No. 6 Modification/Upgrade",
+              "function": "Environmental Management",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Alfred Flako Boteilho Sr. Gym Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Countywide Construction Project Management",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Kanaha Beach Park Restroom Replacement",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Keanae Septic System Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "New Lahaina Community Center",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "One Alii Playground Shade Structure",
+              "function": "Parks and Recreation",
+              "total_budget": 1000000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 1000000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Pu'u O Hoku Ranch Site Replacement",
+              "function": "Police",
+              "total_budget": 900000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 900000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Lahaina Police Station AC Replacement",
+              "function": "Police",
+              "total_budget": 800000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 800000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "FOG Recycling and Composting at the Organics Processing Facility",
+              "function": "Environmental Management",
+              "total_budget": 649000.0,
+              "funds": [
+                {
+                  "fund_name": "EP&S Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 649000.0
+                }
+              ],
+              "primary_fund": "EP&S Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Kehalani Force Main/Gravity Sewer",
+              "function": "Environmental Management",
+              "total_budget": 600000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 600000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Hana-Keanae-Kailua Parks System",
+              "function": "Parks and Recreation",
+              "total_budget": 600000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 600000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Bus Stops and Shelters",
+              "function": "Transportation",
+              "total_budget": 600000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 600000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Makawao-Pukalani- Kamole Water Treatment Plant Raw Water Reservoirs",
+              "function": "Water Supply",
+              "total_budget": 600000.0,
+              "funds": [
+                {
+                  "fund_name": "GET / Revolving Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 600000.0
+                }
+              ],
+              "primary_fund": "GET / Revolving Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Lanai Community Field House",
+              "function": "Parks and Recreation",
+              "total_budget": 550000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 550000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Countywide Environmental Protection Agency (EPA) Compliance Projects",
+              "function": "Environmental Management",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Countywide Wastewater Project Management",
+              "function": "Environmental Management",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Lahaina Siphon and Ditch Distribution",
+              "function": "Environmental Management",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Hana Park Tennis & Basketball Courts Reconstruction",
+              "function": "Parks and Recreation",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Kula Gym",
+              "function": "Parks and Recreation",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Parks and Countywide Parks Americans with Disabilities Act Improvements",
+              "function": "Parks and Recreation",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "South Maui Gymnasium Emergency Generator",
+              "function": "Parks and Recreation",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Wells Park Retaining Wall Repairs",
+              "function": "Parks and Recreation",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Fire-Suppression System Wailuku Station",
+              "function": "Police",
+              "total_budget": 500000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 500000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Forensic Facility Improvements",
+              "function": "Police",
+              "total_budget": 410000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 410000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "South Kihei Capacity Sewer Upgrades",
+              "function": "Environmental Management",
+              "total_budget": 400000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 400000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Holomua Road Gates",
+              "function": "Management",
+              "total_budget": 400000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 400000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Central Maui Landfill Infrastructure",
+              "function": "Environmental Management",
+              "total_budget": 300000.0,
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 300000.0
+                }
+              ],
+              "primary_fund": "Solid Waste Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Paia Wastewater Pump Station Modifications",
+              "function": "Environmental Management",
+              "total_budget": 300000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 300000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Solid Waste Master Plans for County Landfills and Solid Waste Facilities",
+              "function": "Environmental Management",
+              "total_budget": 300000.0,
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 300000.0
+                }
+              ],
+              "primary_fund": "Solid Waste Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Wailuku-Kahului WWRF Shoreline Erosion Protection",
+              "function": "Environmental Management",
+              "total_budget": 300000.0,
+              "funds": [
+                {
+                  "fund_name": "Sewer Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 300000.0
+                }
+              ],
+              "primary_fund": "Sewer Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Wailuku Station Fuel Tank Replacement",
+              "function": "Police",
+              "total_budget": 300000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 300000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Lanai Recycling Center Planning",
+              "function": "Environmental Management",
+              "total_budget": 275000.0,
+              "funds": [
+                {
+                  "fund_name": "EP&S Fund",
+                  "fund_category": "Trust & Other Funds",
+                  "amount": 275000.0
+                }
+              ],
+              "primary_fund": "EP&S Fund",
+              "fund_category": "Trust & Other Funds"
+            },
+            {
+              "project_name": "Government West Maui Senior Center",
+              "function": "Human Concerns",
+              "total_budget": 250000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 250000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Kahului Community Center Roof Replacement",
+              "function": "Parks and Recreation",
+              "total_budget": 250000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 250000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Kalama Park Light Replacement",
+              "function": "Parks and Recreation",
+              "total_budget": 250000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 250000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Lahaina Aquatic Center Rehabilitation",
+              "function": "Parks and Recreation",
+              "total_budget": 250000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 250000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "New Lahaina Field House",
+              "function": "Parks and Recreation",
+              "total_budget": 250000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 250000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Government Kahului Transit Center",
+              "function": "Transportation",
+              "total_budget": 200000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 200000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Road Vevau Street Improvements",
+              "function": "Transportation",
+              "total_budget": 200000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 200000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Sakamoto Pool Repairs",
+              "function": "Parks and Recreation",
+              "total_budget": 150000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 150000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Restoration of Police Cottages",
+              "function": "Police",
+              "total_budget": 150000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 150000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Government Kalana O Maui 6th Floor Renovations",
+              "function": "Management",
+              "total_budget": 120000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 120000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Wailuku Station Improvements",
+              "function": "Police",
+              "total_budget": 110000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 110000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "Central Maui Landfill Supplement to Primary Litter Screen",
+              "function": "Environmental Management",
+              "total_budget": 100000.0,
+              "funds": [
+                {
+                  "fund_name": "Solid Waste Fund",
+                  "fund_category": "Special / Enterprise Funds",
+                  "amount": 100000.0
+                }
+              ],
+              "primary_fund": "Solid Waste Fund",
+              "fund_category": "Special / Enterprise Funds"
+            },
+            {
+              "project_name": "Government Parking Benefits District",
+              "function": "Transportation",
+              "total_budget": 100000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 100000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            },
+            {
+              "project_name": "251 Napua Street Structure Demolition",
+              "function": "Management",
+              "total_budget": 50000.0,
+              "funds": [
+                {
+                  "fund_name": "General Fund",
+                  "fund_category": "General Fund",
+                  "amount": 50000.0
+                }
+              ],
+              "primary_fund": "General Fund",
+              "fund_category": "General Fund"
+            }
+          ]
+        }
       },
       "hawaii": {
         "name": "County of Hawai\u02bbi",
