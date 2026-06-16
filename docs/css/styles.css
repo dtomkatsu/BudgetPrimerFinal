@@ -100,6 +100,15 @@ body {
     color: rgba(255, 255, 255, 0.75);
     margin: 0.85rem 0 0;
     letter-spacing: 0.005em;
+    line-height: 1.45;
+    /* Reserve two lines and vertically center the text, so the nav below keeps
+       a fixed position no matter how long each tab's tagline is — a 1-line vs
+       2-line tagline used to shove the nav up/down when switching tabs. The
+       grid item stays full-width (so the text still wraps); align-items only
+       centers it vertically within the reserved height. */
+    min-height: 2.9em;            /* 2 × line-height (1.45) */
+    display: grid;
+    align-items: center;
 }
 /* Year mark inside the title — refined editorial treatment: thin pipe
    separator + lighter-weight white. No tint, no badge — just a quiet
