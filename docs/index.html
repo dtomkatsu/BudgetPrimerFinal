@@ -10,10 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css?v=205">
-    <!-- Load Chart.js for visualizations -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@3.1.0"></script>
+    <!-- Chart.js for visualizations — self-hosted so the app never depends on a
+         third-party CDN being reachable. A blocked or slow cdn.jsdelivr.net was
+         a render-blocking single point of failure that could hang the page on
+         the "Loading budget data…" spinner. Pinned: chart.js 4.5.1,
+         datalabels 2.0.0, treemap 3.1.0. -->
+    <script src="js/vendor/chart.umd.js?v=1"></script>
+    <script src="js/vendor/chartjs-plugin-datalabels.min.js?v=1"></script>
+    <script src="js/vendor/chartjs-chart-treemap.min.js?v=1"></script>
     <!-- Fallback for SPA routing -->
     <script>
         // Single Page Apps for GitHub Pages
