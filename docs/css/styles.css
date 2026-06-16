@@ -42,7 +42,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    max-width: 1200px;
+    max-width: 1440px;
     margin: 0 auto;
     background: white;
     box-shadow: var(--shadow);
@@ -67,7 +67,7 @@ body {
 .app-header-inner {
     position: relative;
     z-index: 1;
-    max-width: 880px;
+    max-width: 960px;
     margin: 0 auto;
 }
 /* Soft curved bottom edge — sits flush against the bottom of the sage
@@ -234,7 +234,7 @@ body {
 .nav-link {
     color: #ffffff;
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1.05rem;
     border-radius: 999px;
     white-space: nowrap;
     border: 1px solid transparent;
@@ -251,7 +251,7 @@ body {
         color 0.22s ease,
         box-shadow 0.32s ease,
         transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 650;
     letter-spacing: 0.005em;
     will-change: transform, background;
@@ -269,7 +269,7 @@ body {
 
 /* Stacked nav variants — bill label on top, descriptive sub-label beneath
    ("HB1800" / "2026 budget bill"). Stacking keeps each item narrow so the
-   four-item row still fits under the 880px header cap (inline sub-labels
+   four-item row still fits under the 960px header cap (inline sub-labels
    overflowed it). The sub-labels collapse on phones (≤640px) — see .nav-sub. */
 .nav-link-stacked,
 .nav-link-hb300,
@@ -278,8 +278,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.05em;
-    line-height: 1.12;
+    gap: 0.15em;
+    line-height: 1.15;
 }
 /* HB300 differentiates by label only — same white text as siblings so
    contrast stays high on the sage background. */
@@ -287,20 +287,19 @@ body {
 .nav-link-hb300:hover { color: #ffffff; }
 .nav-link-hb300.active { color: #3d5249; }
 
-/* Sub-labels ("2026 budget bill" …) sit beneath each bill label as a small
-   small-caps caption. Hidden on phones (≤640px), where the no-wrap row has no
-   room to spare, and shown from 641px up — stacked they stay well within the
-   880px header cap. The text also lives on as each link's `title` tooltip. */
+/* Sub-labels ("2026 budget bill" …) sit beneath each bill label as a readable
+   caption. Hidden on phones (≤640px), where the no-wrap row has no room to
+   spare, and shown from 641px up — stacked they stay within the 960px header
+   cap. The text also lives on as each link's `title` tooltip. */
 .nav-sub {
     display: none;
-    font-size: 0.62rem;
-    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
-    letter-spacing: 0.04em;
-    font-variant: small-caps;
+    letter-spacing: 0.01em;
     transition: color 0.22s ease, opacity 0.22s ease;
 }
-@media (min-width: 641px) {
+@media (min-width: 680px) {
     .nav-sub { display: block; }
 }
 .nav-link.active .nav-sub {
