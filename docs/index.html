@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=207">
+    <link rel="stylesheet" href="css/styles.css?v=208">
     <!-- Chart.js for visualizations — self-hosted so the app never depends on a
          third-party CDN being reachable. A blocked or slow cdn.jsdelivr.net was
          a render-blocking single point of failure that could hang the page on
@@ -48,13 +48,6 @@
     <div class="app-container">
         <header class="app-header">
             <a id="open-fullpage-btn" class="open-fullpage-btn" href="#" target="_blank" rel="noopener" hidden>Open ↗</a>
-            <!-- Scope switch (State ↔ Counties) — a top-level mode toggle, so it
-                 sits as a distinct frosted-glass control in the header corner
-                 rather than competing with the bill tabs in the centered row. -->
-            <div class="scope-toggle" role="group" aria-label="Budget scope">
-                <a href="#/" class="scope-btn scope-btn-state active">State</a>
-                <a href="#/counties" class="scope-btn scope-btn-county">Counties</a>
-            </div>
             <div class="app-header-inner">
                 <!-- Three stacked ocean swells. Faintest at the back, strongest
                      at the front — reads as the Pacific without leaning on a
@@ -109,6 +102,7 @@
         <footer class="app-footer">
             <p class="app-footer-source">Data Source: <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_HD1_.HTM" target="_blank" rel="noopener">HB1800</a> Supplemental Appropriations (HD1, <a href="https://www.capitol.hawaii.gov/session/2026/bills/HB1800_SD1_.HTM" target="_blank" rel="noopener">SD1</a>)</p>
             <p>Last Updated: April 2026</p>
+            <p class="app-footer-counties"><a href="#/counties">county budgets</a></p>
         </footer>
     </div>
 

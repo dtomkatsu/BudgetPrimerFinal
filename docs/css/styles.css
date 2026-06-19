@@ -6413,9 +6413,26 @@ mark.search-highlight {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20);
 }
 
-/* In county mode the state bill tabs don't apply — hide all but About so the
-   header shows scope pill + About only. */
-body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
+/* County mode keeps the state bill tabs visible: the prominent scope toggle is
+   gone (the county view is reached by a quiet footer link now), so the bill
+   tabs are the way back to the state view. */
+
+/* Quiet entry to the county view — a small, faint footer link, intentionally
+   easy to miss. */
+.app-footer-counties {
+    margin: 0.4rem 0 0;
+}
+.app-footer-counties a {
+    color: #d2d7d3;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.app-footer-counties a:hover {
+    color: #8aa595;
+    text-decoration: underline;
+}
 
 /* County selector tabs on the counties page */
 .county-tabs {
