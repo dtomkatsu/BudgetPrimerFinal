@@ -6835,3 +6835,59 @@ mark.search-highlight {
     .county-overview { grid-template-columns: 1fr; }
     .cdonut-chart { margin: 0 auto; }
 }
+
+/* ── Search page tabs ───────────────────────────────────────────────────── */
+.search-type-tabs {
+    display: flex; gap: 0.25rem; margin-bottom: 1.25rem;
+    border-bottom: 2px solid #e5eae7;
+}
+.search-tab {
+    padding: 0.45rem 1rem; font-size: 0.9rem; font-weight: 600;
+    color: #5a7b68; background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    cursor: pointer; border-radius: 4px 4px 0 0; transition: color 0.15s;
+}
+.search-tab:hover { color: #2f5f47; background: #f0f4f1; }
+.search-tab.active { color: #2f5f47; border-bottom-color: #5a7b68; background: none; }
+
+/* ── Line items section on dept pages ───────────────────────────────────── */
+.line-items-section {
+    margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5eae7;
+}
+.line-items-head h3 {
+    font-size: 1.1rem; color: #2f3f37; margin: 0 0 0.25rem;
+}
+.line-items-sub {
+    font-size: 0.875rem; color: #6b7c73; margin: 0 0 1.25rem;
+}
+.li-subsection { margin-bottom: 1.5rem; }
+.li-subtitle {
+    font-size: 0.95rem; font-weight: 600; color: #3f5447; margin: 0 0 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.li-count {
+    font-size: 0.8rem; background: #edf1ee; color: #5a7b68;
+    border-radius: 10px; padding: 0.1rem 0.55rem; font-weight: 600;
+}
+.li-table-wrap { overflow-x: auto; }
+.li-table { font-size: 0.85rem; }
+.li-table thead th { font-size: 0.78rem; }
+.li-recipient { font-weight: 500; color: #2f3f37; max-width: 200px; }
+.li-purpose {
+    font-size: 0.82rem; color: #5a6b62; max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.li-source { font-size: 0.78rem; white-space: nowrap; }
+.li-row-restriction .li-recipient { color: #4a5f57; }
+
+/* ── Line items chips (grant / restriction) ─────────────────────────────── */
+.li-chip {
+    display: inline-block; font-size: 0.7rem; font-weight: 600;
+    padding: 0.1rem 0.45rem; border-radius: 3px;
+    vertical-align: middle; margin-right: 0.3em; white-space: nowrap;
+}
+.li-chip-grant    { background: #e8f2ec; color: #2a6040; }
+.li-chip-restr    { background: #f2eee8; color: #5e4520; }
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.search-empty { padding: 2rem 0; color: #8a9f96; text-align: center; }

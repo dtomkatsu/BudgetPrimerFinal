@@ -15,6 +15,7 @@ let projectsDataSD1FY26 = null;       // Section 14 CIP projects FY26 (SD1)
 let projectsDataSD1FY27 = null;       // Section 14 CIP projects FY27 (SD1)
 let governorProjectsData = null;      // Governor's supplemental capital projects (S78)
 let historicalTrendsData = null;    // 10-year history of biennial budget acts
+let lineItemsData = null;           // Worksheet line items: grants + purpose restrictions
 
 // ---------------------------------------------------------------------------
 // Data loading
@@ -94,6 +95,24 @@ window.loadHistoricalTrends = async function () {
         return historicalTrendsData;
     } catch (e) {
         console.error('Error loading historical trends:', e);
+        return null;
+    }
+};
+
+window.loadLineItems = async function () {
+    if (lineItemsData) return lineItemsData;
+    try {
+        const response = await fetch('./js/line_items.json?v=' + Date.now());
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        lineItemsData = await response.json();
+        const total = (lineItemsData.hb1800_grants?.length || 0)
+            + (lineItemsData.hb1800_restrictions?.length || 0)
+            + (lineItemsData.hb300_grants?.length || 0)
+            + (lineItemsData.hb300_restrictions?.length || 0);
+        console.log(`Loaded line items: ${total} entries`);
+        return lineItemsData;
+    } catch (e) {
+        console.error('Error loading line items:', e);
         return null;
     }
 };
@@ -867,6 +886,9 @@ window.departmentDetailPage = async function (params) {
     const deptId = params?.id;
     if (!deptId) return window.notFoundPage();
 
+    // Load line items in parallel with dept lookup — non-blocking.
+    if (!lineItemsData) window.loadLineItems();
+
     const dept = departmentsData.find(d => d.id === deptId);
     if (!dept) return window.notFoundPage();
 
@@ -1087,6 +1109,8 @@ window.departmentDetailPage = async function (params) {
                     ${programCardsHtml}
                 </div>
             </section>
+
+            <div id="line-items-section"></div>
         </section>`;
 };
 
@@ -1103,6 +1127,86 @@ window.initDepartmentDetailPage = async function () {
         }));
         downloadCSV(rows, `${deptId}_programs_fy2026.csv`);
     });
+
+    // Inject worksheet line items once data is ready.
+    (async () => {
+        const deptId = window.location.hash.split('/').pop();
+        const deptCode = deptId.toUpperCase();
+        const data = lineItemsData || await window.loadLineItems();
+        const container = document.getElementById('line-items-section');
+        if (!data || !container) return;
+
+        const grants1800 = (data.hb1800_grants || []).filter(g => g.dept_code === deptCode);
+        const grants300  = (data.hb300_grants  || []).filter(g => g.dept_code === deptCode);
+        const restr1800  = (data.hb1800_restrictions || []).filter(r => r.dept_code === deptCode);
+        const restr300   = (data.hb300_restrictions  || []).filter(r => r.dept_code === deptCode);
+
+        if (!grants1800.length && !grants300.length && !restr1800.length && !restr300.length) return;
+
+        const grantRows = (grants, billLabel) => grants.map(g => `
+            <tr class="li-row">
+                <td class="li-recipient">${escapeHtml(g.recipient)}</td>
+                <td class="li-purpose">${escapeHtml(g.purpose)}</td>
+                <td class="li-program">
+                    <a href="#/department/${g.dept_code.toLowerCase()}">${g.program_id}</a>
+                </td>
+                <td class="amount-cell">${fmt(g.amount)}</td>
+                <td class="li-source muted">${escapeHtml(billLabel)}</td>
+            </tr>`).join('');
+
+        const restrictRows = (restr, billLabel) => restr.map(r => `
+            <tr class="li-row li-row-restriction">
+                <td class="li-recipient">${escapeHtml(r.program_name)}</td>
+                <td class="li-purpose">${escapeHtml(r.purpose)}</td>
+                <td class="li-program">
+                    <a href="#/department/${r.dept_code.toLowerCase()}">${r.program_id}</a>
+                </td>
+                <td class="amount-cell">${fmt(r.amount)}</td>
+                <td class="li-source muted">${escapeHtml(billLabel)} §${escapeHtml(r.section)}</td>
+            </tr>`).join('');
+
+        const allGrantRows = grantRows(grants1800, 'HB1800 §13.1') + grantRows(grants300, 'HB300 §13');
+        const allRestrRows = restrictRows(restr1800, 'HB1800') + restrictRows(restr300, 'HB300');
+        const totalGrants = grants1800.length + grants300.length;
+        const totalRestr  = restr1800.length  + restr300.length;
+
+        let html = '<section class="line-items-section">';
+        html += '<div class="line-items-head"><h3>Line Item Appropriations</h3>';
+        html += '<p class="line-items-sub">Specific grants and purpose restrictions within this department\'s programs — from the final HB1800 and HB300 worksheets.</p></div>';
+
+        if (allGrantRows) {
+            html += `
+            <div class="li-subsection">
+                <h4 class="li-subtitle">Supplemental Grants <span class="li-count">${totalGrants}</span></h4>
+                <div class="li-table-wrap">
+                <table class="data-table li-table">
+                    <thead><tr>
+                        <th>Recipient</th><th>Purpose</th><th>Program</th><th>Amount</th><th>Source</th>
+                    </tr></thead>
+                    <tbody>${allGrantRows}</tbody>
+                </table>
+                </div>
+            </div>`;
+        }
+
+        if (allRestrRows) {
+            html += `
+            <div class="li-subsection">
+                <h4 class="li-subtitle">Purpose Restrictions <span class="li-count">${totalRestr}</span></h4>
+                <div class="li-table-wrap">
+                <table class="data-table li-table">
+                    <thead><tr>
+                        <th>Program</th><th>Restricted Use</th><th>Program ID</th><th>Amount</th><th>Source</th>
+                    </tr></thead>
+                    <tbody>${allRestrRows}</tbody>
+                </table>
+                </div>
+            </div>`;
+        }
+
+        html += '</section>';
+        container.innerHTML = html;
+    })();
 
     // ---- Fund Type doughnut chart ---------------------------------------
     // Data is staged on window.__deptFundData by departmentDetailPage().
@@ -1370,6 +1474,7 @@ window.initDepartmentDetailPage = async function () {
 
 window.searchPage = async function () {
     if (!programsData.length) await window.loadPrograms();
+    if (!lineItemsData) window.loadLineItems();  // pre-fetch; results injected by init
 
     const fundTypes = [...new Set(programsData.map(p => p.fund_category))].filter(Boolean).sort();
     const sections = [...new Set(programsData.map(p => p.section))].filter(Boolean).sort();
@@ -1382,21 +1487,65 @@ window.searchPage = async function () {
     return `
         <section class="search-page">
             <a href="#/" class="back-button">← Home</a>
-            <h2>Search & Filter Programs</h2>
-            <div class="filter-bar">
-                <input type="text" id="search-input" placeholder="Search by program name or ID..." class="search-input">
-                <select id="filter-fund" class="filter-select"><option value="">All Fund Types</option>${fundOpts}</select>
-                <select id="filter-section" class="filter-select"><option value="">All Sections</option>${secOpts}</select>
-                <select id="filter-dept" class="filter-select"><option value="">All Departments</option>${deptOpts}</select>
-                <button class="action-link export-btn" id="export-search">⬇ Export Results</button>
+            <h2>Search Budget</h2>
+            <div class="search-type-tabs" role="tablist">
+                <button class="search-tab active" data-tab="programs" role="tab" aria-selected="true">Programs</button>
+                <button class="search-tab" data-tab="line-items" role="tab" aria-selected="false">Line Items</button>
             </div>
-            <div class="search-summary" id="search-summary"></div>
-            <div class="search-results" id="search-results"></div>
+
+            <div id="search-tab-programs" class="search-tab-pane">
+                <div class="filter-bar">
+                    <input type="text" id="search-input" placeholder="Search by program name or ID…" class="search-input">
+                    <select id="filter-fund" class="filter-select"><option value="">All Fund Types</option>${fundOpts}</select>
+                    <select id="filter-section" class="filter-select"><option value="">All Sections</option>${secOpts}</select>
+                    <select id="filter-dept" class="filter-select"><option value="">All Departments</option>${deptOpts}</select>
+                    <button class="action-link export-btn" id="export-search">⬇ Export Results</button>
+                </div>
+                <div class="search-summary" id="search-summary"></div>
+                <div class="search-results" id="search-results"></div>
+            </div>
+
+            <div id="search-tab-line-items" class="search-tab-pane" hidden>
+                <div class="filter-bar">
+                    <input type="text" id="li-search-input" placeholder="Search grants &amp; restrictions (e.g. Farm, Housing, Youth)…" class="search-input">
+                    <select id="li-filter-bill" class="filter-select">
+                        <option value="">All Bills</option>
+                        <option value="HB1800">HB1800 (2026 Supplemental)</option>
+                        <option value="HB300">HB300 (2025 Enacted)</option>
+                    </select>
+                    <select id="li-filter-type" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="grant">Grants</option>
+                        <option value="restriction">Purpose Restrictions</option>
+                    </select>
+                    <select id="li-filter-dept" class="filter-select">
+                        <option value="">All Departments</option>
+                        ${deptOpts}
+                    </select>
+                </div>
+                <div class="search-summary" id="li-search-summary"></div>
+                <div id="li-search-results"></div>
+            </div>
         </section>`;
 };
 
 window.initSearchPage = async function () {
-    const render = () => {
+    // ── Tab switching ────────────────────────────────────────────────────────
+    const tabs = document.querySelectorAll('.search-tab');
+    const panes = document.querySelectorAll('.search-tab-pane');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+            panes.forEach(p => p.hidden = true);
+            tab.classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
+            const target = document.getElementById(`search-tab-${tab.dataset.tab}`);
+            if (target) target.hidden = false;
+        });
+    });
+
+    // ── Programs tab ─────────────────────────────────────────────────────────
+    const renderPrograms = () => {
         const q = (document.getElementById('search-input')?.value || '').toLowerCase();
         const fund = document.getElementById('filter-fund')?.value || '';
         const sec = document.getElementById('filter-section')?.value || '';
@@ -1431,13 +1580,12 @@ window.initSearchPage = async function () {
             </table>
             ${filtered.length > 200 ? `<p class="muted">Showing top 200 of ${filtered.length} results</p>` : ''}`;
 
-        // Store for export
         window._lastSearchResults = filtered;
     };
 
     ['search-input', 'filter-fund', 'filter-section', 'filter-dept'].forEach(id => {
-        document.getElementById(id)?.addEventListener('input', render);
-        document.getElementById(id)?.addEventListener('change', render);
+        document.getElementById(id)?.addEventListener('input', renderPrograms);
+        document.getElementById(id)?.addEventListener('change', renderPrograms);
     });
 
     document.getElementById('export-search')?.addEventListener('click', () => {
@@ -1450,7 +1598,80 @@ window.initSearchPage = async function () {
         downloadCSV(rows, 'budget_search_results.csv');
     });
 
-    render();
+    renderPrograms();
+
+    // ── Line Items tab ────────────────────────────────────────────────────────
+    const renderLineItems = async () => {
+        const data = lineItemsData || await window.loadLineItems();
+        if (!data) return;
+
+        const q    = (document.getElementById('li-search-input')?.value || '').toLowerCase();
+        const bill = document.getElementById('li-filter-bill')?.value || '';
+        const type = document.getElementById('li-filter-type')?.value || '';
+        const dept = document.getElementById('li-filter-dept')?.value || '';
+
+        // Flatten all line items into a unified list for searching
+        const all = [
+            ...(data.hb1800_grants        || []),
+            ...(data.hb1800_restrictions  || []),
+            ...(data.hb300_grants         || []),
+            ...(data.hb300_restrictions   || []),
+        ];
+
+        let filtered = all;
+        if (q) filtered = filtered.filter(li => {
+            const name = (li.recipient || li.program_name || '').toLowerCase();
+            const purp = (li.purpose || '').toLowerCase();
+            const pid  = (li.program_id || '').toLowerCase();
+            return name.includes(q) || purp.includes(q) || pid.includes(q);
+        });
+        if (bill) filtered = filtered.filter(li => li.bill === bill);
+        if (type) filtered = filtered.filter(li => li.type === type);
+        if (dept) filtered = filtered.filter(li => li.dept_code === dept);
+
+        const totalAmt = filtered.reduce((s, li) => s + (li.amount || 0), 0);
+        const summaryEl = document.getElementById('li-search-summary');
+        const resultsEl = document.getElementById('li-search-results');
+        if (summaryEl) summaryEl.innerHTML =
+            `<strong>${filtered.length}</strong> line items — Total: <strong>${fmt(totalAmt)}</strong>`;
+
+        const top300 = filtered.sort((a, b) => (b.amount || 0) - (a.amount || 0)).slice(0, 300);
+        if (resultsEl) resultsEl.innerHTML = top300.length ? `
+            <table class="data-table li-table">
+                <thead><tr>
+                    <th>Name / Recipient</th><th>Purpose</th>
+                    <th>Program</th><th>Amount</th><th>Source</th>
+                </tr></thead>
+                <tbody>${top300.map(li => {
+                    const name = escapeHtml(li.recipient || li.program_name || '');
+                    const purp = escapeHtml(li.purpose || '');
+                    const deptLink = li.dept_code
+                        ? `<a href="#/department/${li.dept_code.toLowerCase()}">${li.program_id || li.dept_code}</a>`
+                        : (li.program_id || '—');
+                    const source = escapeHtml(li.source || '');
+                    const typeChip = li.type === 'grant'
+                        ? '<span class="li-chip li-chip-grant">Grant</span>'
+                        : '<span class="li-chip li-chip-restr">Restriction</span>';
+                    return `<tr class="li-row">
+                        <td>${typeChip} ${name}</td>
+                        <td class="li-purpose">${purp}</td>
+                        <td>${deptLink}</td>
+                        <td class="amount-cell">${fmt(li.amount)}</td>
+                        <td class="li-source muted">${source}</td>
+                    </tr>`;
+                }).join('')}</tbody>
+            </table>
+            ${filtered.length > 300 ? `<p class="muted">Showing top 300 of ${filtered.length} results</p>` : ''}`
+        : `<p class="muted search-empty">No line items match your search.</p>`;
+    };
+
+    ['li-search-input', 'li-filter-bill', 'li-filter-type', 'li-filter-dept'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', renderLineItems);
+        document.getElementById(id)?.addEventListener('change', renderLineItems);
+    });
+
+    // Render line items tab eagerly so it's ready when the user clicks it.
+    renderLineItems();
 };
 
 // ---------------------------------------------------------------------------
