@@ -46,6 +46,9 @@ class Router {
             if (window.loadHistoricalTrends) {
                 loadPromises.push(window.loadHistoricalTrends());
             }
+            if (window.loadByDeptDatasets) {
+                loadPromises.push(window.loadByDeptDatasets());
+            }
             if (window.loadActuals) {
                 loadPromises.push(window.loadActuals());
             }
@@ -166,12 +169,12 @@ class Router {
     updateHeaderText(path) {
         const configs = {
             '/enacted': {
-                subtitle: 'Enacted biennial appropriations · FY2016–FY2027. Pick a year for department-level totals.',
-                docTitle: 'Hawaiʻi Budget Tracker · HB300'
+                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; the current biennium shows both the original (Act 250) and the enacted supplemental (Act 175).',
+                docTitle: 'Hawaiʻi Budget Tracker · By Department'
             },
             '/history': {
-                subtitle: 'Enacted biennial appropriations · FY2016–FY2027. Pick a year for department-level totals.',
-                docTitle: 'Hawaiʻi Budget Tracker · HB300'
+                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; the current biennium shows both the original (Act 250) and the enacted supplemental (Act 175).',
+                docTitle: 'Hawaiʻi Budget Tracker · By Department'
             },
             '/actuals': {
                 subtitle: 'What was actually spent in FY2025 vs the budget, by department · budgetary basis, appropriated funds. A completed year — separate from the FY2026–27 bills.',

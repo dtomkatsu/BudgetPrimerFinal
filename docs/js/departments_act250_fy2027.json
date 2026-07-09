@@ -1,0 +1,6184 @@
+[
+  {
+    "id": "hms",
+    "code": "HMS",
+    "name": "Department of Human Services",
+    "description": "This department manages public benefit programs including Medicaid (Med-QUEST), the Supplemental Nutrition Assistance Program (SNAP), Temporary Assistance for Needy Families (TANF), general assistance, and public housing. Child and adult protective services, in-community youth programs, and the Hawai\u02bbi Youth Correctional Facility are also overseen by the department. The State Commission on the Status of Women and the Fatherhood Commission are attached to HMS. The department is supported by more federal dollars than any other because most of its programs are partially funded by the federal government. In FY 2025, the department received $5,467,164 in emergency funding. The money will be used to upgrade the computer system that helps manage food stamp (SNAP) benefits in Hawaii. The goal is to fix mistakes in how benefits are given out, avoid future penalties, and possibly save the state money by not having to pay the rest of a federal fine.",
+    "budget": "$4.8B",
+    "operating_budget": 4761779596.0,
+    "capital_budget": 13000000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 4774779596.0,
+    "positions": 3090.9799999999996,
+    "fund_breakdown": {
+      "Federal Funds": 2985500305.0,
+      "General Funds": 1436697332.0,
+      "General Obligation Bond Fund": 13000000.0,
+      "Interdepartmental Transfers": 7169481.0,
+      "Other Federal Funds": 38310191.0,
+      "Private Contributions": 10000.0,
+      "Revolving Funds": 24863867.0,
+      "Special Funds": 269228420.0
+    },
+    "programs": [
+      {
+        "program_id": "HMS401",
+        "program_name": "HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2291497122.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS401",
+        "program_name": "HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1031466906.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS401",
+        "program_name": "HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 230000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS220",
+        "program_name": "RENTAL HOUSING SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 112088200.0,
+        "positions": 195.5
+      },
+      {
+        "program_id": "HMS902",
+        "program_name": "GENERAL SUPPORT FOR HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 96345000.0,
+        "positions": 162.13
+      },
+      {
+        "program_id": "HMS903",
+        "program_name": "GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 95418155.0,
+        "positions": 46.7
+      },
+      {
+        "program_id": "HMS222",
+        "program_name": "RENTAL ASSISTANCE SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 77039700.0,
+        "positions": 35.0
+      },
+      {
+        "program_id": "HMS305",
+        "program_name": "CASH SUPPORT FOR CHILD CARE",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 69565754.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS305",
+        "program_name": "CASH SUPPORT FOR CHILD CARE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 57811811.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS301",
+        "program_name": "CHILD PROTECTIVE SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 50570717.0,
+        "positions": 303.75
+      },
+      {
+        "program_id": "HMS301",
+        "program_name": "CHILD PROTECTIVE SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 49452950.0,
+        "positions": 84.75
+      },
+      {
+        "program_id": "HMS903",
+        "program_name": "GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 48604950.0,
+        "positions": 51.3
+      },
+      {
+        "program_id": "HMS303",
+        "program_name": "CHILD PROTECTIVE SERVICES PAYMENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 48265586.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS211",
+        "program_name": "CASH SUPPORT FOR FAMILIES - SELF-SUFFICIENCY",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 44000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS303",
+        "program_name": "CHILD PROTECTIVE SERVICES PAYMENTS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 31542000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS902",
+        "program_name": "GENERAL SUPPORT FOR HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 30104367.0,
+        "positions": 5.37
+      },
+      {
+        "program_id": "HMS224",
+        "program_name": "HOMELESS SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 27931773.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "HMS229",
+        "program_name": "HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 27840930.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "HMS211",
+        "program_name": "CASH SUPPORT FOR FAMILIES - SELF-SUFFICIENCY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 26715965.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS236",
+        "program_name": "CASE MANAGEMENT FOR SELF-SUFFICIENCY",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 26393053.0,
+        "positions": 226.57
+      },
+      {
+        "program_id": "HMS204",
+        "program_name": "GENERAL ASSISTANCE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 23889056.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS236",
+        "program_name": "CASE MANAGEMENT FOR SELF-SUFFICIENCY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 19673479.0,
+        "positions": 287.43
+      },
+      {
+        "program_id": "HMS903",
+        "program_name": "GENERAL SUPPORT FOR SELF-SUFFICIENCY SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 19560000.0,
+        "positions": 46.7
+      },
+      {
+        "program_id": "HMS802",
+        "program_name": "VOCATIONAL REHABILITATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 19176876.0,
+        "positions": 75.27
+      },
+      {
+        "program_id": "HMS605",
+        "program_name": "COMMUNITY-BASED RESIDENTIAL & MEDICAID FACILITY SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 17810955.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS229",
+        "program_name": "HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 17676361.0,
+        "positions": 166.0
+      },
+      {
+        "program_id": "HMS902",
+        "program_name": "GENERAL SUPPORT FOR HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 16133771.0,
+        "positions": 141.5
+      },
+      {
+        "program_id": "HMS401",
+        "program_name": "HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 15798564.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS904",
+        "program_name": "GENERAL ADMINISTRATION - DHS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 14292045.0,
+        "positions": 156.59
+      },
+      {
+        "program_id": "HMS302",
+        "program_name": "GENERAL SUPPORT FOR CHILD CARE",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 14137770.0,
+        "positions": 38.08
+      },
+      {
+        "program_id": "HMS777",
+        "program_name": "OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 13000000.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "HMS501",
+        "program_name": "IN-COMMUNITY YOUTH PROGRAMS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 10800451.0,
+        "positions": 19.5
+      },
+      {
+        "program_id": "HMS503",
+        "program_name": "HAWAII YOUTH CORRECTIONAL FACILITY (HYCF)",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9992933.0,
+        "positions": 90.0
+      },
+      {
+        "program_id": "HMS238",
+        "program_name": "DISABILITY DETERMINATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 8859927.0,
+        "positions": 50.0
+      },
+      {
+        "program_id": "HMS206",
+        "program_name": "FEDERAL ASSISTANCE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 8345024.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS601",
+        "program_name": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6875326.0,
+        "positions": 69.48
+      },
+      {
+        "program_id": "HMS401",
+        "program_name": "HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 6781921.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS802",
+        "program_name": "VOCATIONAL REHABILITATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6138995.0,
+        "positions": 40.73
+      },
+      {
+        "program_id": "HMS301",
+        "program_name": "CHILD PROTECTIVE SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 6124053.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "HMS220",
+        "program_name": "RENTAL HOUSING SERVICES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 5187506.0,
+        "positions": 21.5
+      },
+      {
+        "program_id": "HMS904",
+        "program_name": "GENERAL ADMINISTRATION - DHS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4788768.0,
+        "positions": 36.41
+      },
+      {
+        "program_id": "HMS220",
+        "program_name": "RENTAL HOUSING SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4694409.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "HMS202",
+        "program_name": "AGED, BLIND AND DISABLED PAYMENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4029480.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS901",
+        "program_name": "GENERAL SUPPORT FOR SOCIAL SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3487230.0,
+        "positions": 33.5
+      },
+      {
+        "program_id": "HMS901",
+        "program_name": "GENERAL SUPPORT FOR SOCIAL SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3246986.0,
+        "positions": 9.5
+      },
+      {
+        "program_id": "HMS204",
+        "program_name": "GENERAL ASSISTANCE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS302",
+        "program_name": "GENERAL SUPPORT FOR CHILD CARE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2840528.0,
+        "positions": 38.92
+      },
+      {
+        "program_id": "HMS237",
+        "program_name": "EMPLOYMENT AND TRAINING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2575945.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS802",
+        "program_name": "VOCATIONAL REHABILITATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2000000.0,
+        "positions": 75.27
+      },
+      {
+        "program_id": "HMS222",
+        "program_name": "RENTAL ASSISTANCE SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1557121.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "HMS501",
+        "program_name": "IN-COMMUNITY YOUTH PROGRAMS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1534135.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "HMS555",
+        "program_name": "OFFICE OF WELLNESS AND RESILIENCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1346000.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HMS601",
+        "program_name": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1321390.0,
+        "positions": 10.02
+      },
+      {
+        "program_id": "HMS902",
+        "program_name": "GENERAL SUPPORT FOR HEALTH CARE PAYMENTS",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1200000.0,
+        "positions": 162.13
+      },
+      {
+        "program_id": "HMS601",
+        "program_name": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 838010.0,
+        "positions": 10.02
+      },
+      {
+        "program_id": "HMS224",
+        "program_name": "HOMELESS SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 814000.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "HMS777",
+        "program_name": "OFFICE ON HOMELESSNESS AND HOUSING SOLUTIONS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 611040.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "HMS229",
+        "program_name": "HAWAII PUBLIC HOUSING AUTHORITY ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 502838.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "HMS237",
+        "program_name": "EMPLOYMENT AND TRAINING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 469505.0,
+        "positions": null
+      },
+      {
+        "program_id": "HMS301",
+        "program_name": "CHILD PROTECTIVE SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 400000.0,
+        "positions": 84.75
+      },
+      {
+        "program_id": "HMS601",
+        "program_name": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 387560.0,
+        "positions": 10.02
+      },
+      {
+        "program_id": "HMS888",
+        "program_name": "COMMISSION ON THE STATUS OF WOMEN",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 184462.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HMS236",
+        "program_name": "CASE MANAGEMENT FOR SELF-SUFFICIENCY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 30237.0,
+        "positions": 226.57
+      },
+      {
+        "program_id": "HMS601",
+        "program_name": "ADULT PROTECTIVE AND COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 10000.0,
+        "positions": 10.02
+      }
+    ],
+    "path": "/pages/hms.html"
+  },
+  {
+    "id": "buf",
+    "code": "BUF",
+    "name": "Department of Budget and Finance",
+    "description": "This department coordinates statewide budget forecasting and management, and oversees the state's investments and financing. Agencies in BUF are the Employees' Retirement System (ERS), the Employer-Union Health Care Trust Fund (EUTF), and the Office of the Public Defender. The BUF budget also includes costs related to debt service and all payroll taxes and fringe benefits for state and county employees. This bill sets aside emergency state funding to cover new labor contracts and pay increases for public employees in Hawaii for the year 2024\u20132025. The amounts include: * $79,197,312 for general contract costs for most state workers. * An additional $14,000,000 for the Department of Education, University of Hawaii, and other departments. * $11,540,875 for employees at Hawaii Health Systems. * $960,600 and $5,140,600 for other specific bargaining units, plus other smaller funds from special, federal, and trust sources. In simple terms, this bill provides over $100 million, mostly from the general fund, to pay for raises and other costs agreed upon in new contracts for state employees and teachers.",
+    "budget": "$4.4B",
+    "operating_budget": 4435497528.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 4435497528.0,
+    "positions": 456.5,
+    "fund_breakdown": {
+      "General Funds": 3951169922.0,
+      "Interdepartmental Transfers": 4000000.0,
+      "Other Funds": 25727960.0,
+      "Special Funds": 427305000.0,
+      "Trust Funds": 27294646.0
+    },
+    "programs": [
+      {
+        "program_id": "BUF762",
+        "program_name": "HEALTH PREMIUM PAYMENT FOR ANNUAL REQUIRED CONTRIBUTION (ARC).",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 846891000.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF721",
+        "program_name": "DEBT SERVICE PAYMENTS - STATE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 605294407.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF745",
+        "program_name": "RETIREMENT BENEFITS - DOE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 572505610.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF741",
+        "program_name": "RETIREMENT BENEFITS - STATE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 522870219.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF725",
+        "program_name": "DEBT SERVICE PAYMENTS - DOE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 521973994.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF101",
+        "program_name": "DEPARTMENTAL ADMINISTRATION AND BUDGET DIVISION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 427305000.0,
+        "positions": 58.0
+      },
+      {
+        "program_id": "BUF748",
+        "program_name": "RETIREMENT BENEFITS - UH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 224317511.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF728",
+        "program_name": "DEBT SERVICE PAYMENTS - UH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 193181876.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF765",
+        "program_name": "HEALTH PREMIUM PAYMENTS - DOE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 191510985.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF761",
+        "program_name": "HEALTH PREMIUM PAYMENTS - STATE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 161379104.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF768",
+        "program_name": "HEALTH PREMIUM PAYMENTS - UH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 70035107.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF141",
+        "program_name": "EMPLOYEES\u2019 RETIREMENT SYSTEM",
+        "section": "Operating",
+        "fund_type": "X",
+        "fund_category": "Other Funds",
+        "amount": 25727960.0,
+        "positions": 117.0
+      },
+      {
+        "program_id": "BUF115",
+        "program_name": "FINANCIAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 15957630.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "BUF151",
+        "program_name": "OFFICE OF THE PUBLIC DEFENDER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 15137691.0,
+        "positions": 133.5
+      },
+      {
+        "program_id": "BUF101",
+        "program_name": "DEPARTMENTAL ADMINISTRATION AND BUDGET DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 13504737.0,
+        "positions": 58.0
+      },
+      {
+        "program_id": "BUF143",
+        "program_name": "HAWAII EMPLOYER UNION TRUST FUND",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 11337016.0,
+        "positions": 63.0
+      },
+      {
+        "program_id": "BUF103",
+        "program_name": "VACATION PAYOUT - STATEWIDE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9700000.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF741",
+        "program_name": "RETIREMENT BENEFITS - STATE",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 4000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "BUF115",
+        "program_name": "FINANCIAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2867681.0,
+        "positions": 18.0
+      }
+    ],
+    "path": "/pages/buf.html"
+  },
+  {
+    "id": "edn",
+    "code": "EDN",
+    "name": "Department of Education",
+    "description": "This statewide system delivers public education for K\u201312, including public charter schools. In addition, the statewide library system is under the administration of EDN. EDN is semi-autonomous, with its own Board of Education. It employs more staff than any other department. The Offices of the Governor and Lieutenant Governor (GOV/LTG) The governor's office is responsible for the highest level of vision and direction for the state and supports intergovernmental relationships with other states and countries through its executive departments and budgetary resources. The lieutenant governor undertakes projects assigned by the governor, and exercises executive power when the governor is out of state or otherwise unable to carry out their duties.",
+    "budget": "$3.3B",
+    "operating_budget": 3142302986.0,
+    "capital_budget": 166500000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 3308802986.0,
+    "positions": 90034.5,
+    "fund_breakdown": {
+      "Federal Funds": 316234434.0,
+      "General Funds": 2664508642.0,
+      "General Obligation Bond Fund": 46500000.0,
+      "Interdepartmental Transfers": 7495605.0,
+      "Other Federal Funds": 153125891.0,
+      "Private Contributions": 150000.0,
+      "Revolving Funds": 49061893.0,
+      "Special Funds": 58336521.0,
+      "Trust Funds": 13390000.0
+    },
+    "programs": [
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1319319292.0,
+        "positions": 13078.0
+      },
+      {
+        "program_id": "EDN150",
+        "program_name": "SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 525281027.0,
+        "positions": 6596.75
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 423937360.0,
+        "positions": 854.5
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 167203642.0,
+        "positions": 13078.0
+      },
+      {
+        "program_id": "EDN600",
+        "program_name": "CHARTER SCHOOLS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 162578377.0,
+        "positions": null
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Capital Improvement",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 120000000.0,
+        "positions": 681.25
+      },
+      {
+        "program_id": "EDN200",
+        "program_name": "INSTRUCTIONAL SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 93374921.0,
+        "positions": 505.0
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 74600000.0,
+        "positions": 817.0
+      },
+      {
+        "program_id": "EDN150",
+        "program_name": "SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 61584267.0,
+        "positions": 35.0
+      },
+      {
+        "program_id": "EDN407",
+        "program_name": "PUBLIC LIBRARIES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 47632130.0,
+        "positions": 567.5
+      },
+      {
+        "program_id": "EDN300",
+        "program_name": "STATE ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 47007968.0,
+        "positions": 431.0
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 46500000.0,
+        "positions": 681.25
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 44200920.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "EDN700",
+        "program_name": "EARLY LEARNING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 24749084.0,
+        "positions": 331.0
+      },
+      {
+        "program_id": "EDN500",
+        "program_name": "SCHOOL COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 23224665.0,
+        "positions": 44.0
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 21414657.0,
+        "positions": 681.25
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 13390000.0,
+        "positions": 13078.0
+      },
+      {
+        "program_id": "EDN612",
+        "program_name": "CHARTER SCHOOLS COMMISSION AND ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 12564269.0,
+        "positions": 81.12
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 11597927.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "EDN150",
+        "program_name": "SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 11000000.0,
+        "positions": 47.0
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 7495605.0,
+        "positions": 13078.0
+      },
+      {
+        "program_id": "EDN500",
+        "program_name": "SCHOOL COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6325235.0,
+        "positions": 48.0
+      },
+      {
+        "program_id": "EDN150",
+        "program_name": "SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 5950000.0,
+        "positions": 47.0
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 5251693.0,
+        "positions": 13078.0
+      },
+      {
+        "program_id": "EDN600",
+        "program_name": "CHARTER SCHOOLS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 5042000.0,
+        "positions": null
+      },
+      {
+        "program_id": "EDN407",
+        "program_name": "PUBLIC LIBRARIES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4000000.0,
+        "positions": 567.5
+      },
+      {
+        "program_id": "EDN300",
+        "program_name": "STATE ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 3807440.0,
+        "positions": 431.0
+      },
+      {
+        "program_id": "EDN500",
+        "program_name": "SCHOOL COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3266757.0,
+        "positions": 44.0
+      },
+      {
+        "program_id": "EDN100",
+        "program_name": "SCHOOL-BASED BUDGETING",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 3239301.0,
+        "positions": 689.25
+      },
+      {
+        "program_id": "EDN700",
+        "program_name": "EARLY LEARNING",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3000000.0,
+        "positions": 331.0
+      },
+      {
+        "program_id": "EDN407",
+        "program_name": "PUBLIC LIBRARIES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2000000.0,
+        "positions": 567.5
+      },
+      {
+        "program_id": "EDN612",
+        "program_name": "CHARTER SCHOOLS COMMISSION AND ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1800000.0,
+        "positions": 6.88
+      },
+      {
+        "program_id": "EDN450",
+        "program_name": "SCHOOL FACILITIES AUTHORITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1738979.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "EDN500",
+        "program_name": "SCHOOL COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1633908.0,
+        "positions": 48.0
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1000000.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "EDN200",
+        "program_name": "INSTRUCTIONAL SUPPORT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 500000.0,
+        "positions": 459.0
+      },
+      {
+        "program_id": "EDN700",
+        "program_name": "EARLY LEARNING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 380000.0,
+        "positions": 333.0
+      },
+      {
+        "program_id": "EDN500",
+        "program_name": "SCHOOL COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 300000.0,
+        "positions": 44.0
+      },
+      {
+        "program_id": "EDN200",
+        "program_name": "INSTRUCTIONAL SUPPORT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 273794.0,
+        "positions": 458.0
+      },
+      {
+        "program_id": "EDN150",
+        "program_name": "SPECIAL EDUCATION AND STUDENT SUPPORT SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 250000.0,
+        "positions": 6596.75
+      },
+      {
+        "program_id": "EDN400",
+        "program_name": "SCHOOL SUPPORT",
+        "section": "Operating",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 150000.0,
+        "positions": 817.0
+      },
+      {
+        "program_id": "EDN700",
+        "program_name": "EARLY LEARNING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 125628.0,
+        "positions": 332.0
+      },
+      {
+        "program_id": "EDN300",
+        "program_name": "STATE ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 112140.0,
+        "positions": 431.0
+      }
+    ],
+    "path": "/pages/edn.html"
+  },
+  {
+    "id": "trn",
+    "code": "TRN",
+    "name": "Department of Transportation",
+    "description": "This department plans, develops and maintains transportation systems including highways, airports and harbors. The Aloha Tower Development Corporation is housed within TRN. The department's capital improvement project budget is larger than its operating budget, and accounts for 60 percent of all executive CIP appropriations. The University of Hawai\u02bbi System (UOH) The UOH is a statewide university system that includes the University of Hawai\u02bbi (UH) at M\u0101noa, UH Hilo, UH West O\u02bbahu, and the statewide community college system. Other UOH programs include the John A. Burns School of Medicine, the UH Cancer Center and the Waik\u012bk\u012b Aquarium. The university system is semi-autonomous and has its own Board of Regents. It also manages its own capital and facilities budgets. Not included in state budget totals or subject to the legislative process are the many competitive grants that the UOH brings into the state.",
+    "budget": "$3.3B",
+    "operating_budget": 1578778908.0,
+    "capital_budget": 1678023000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 3256801908.0,
+    "positions": 8851.0,
+    "fund_breakdown": {
+      "Federal Funds": 595704000.0,
+      "Other Federal Funds": 1214379.0,
+      "Other Funds": 200000.0,
+      "Private Contributions": 775067.0,
+      "Revenue Bond Funds": 963290000.0,
+      "Special Funds": 1695618462.0
+    },
+    "programs": [
+      {
+        "program_id": "TRN195",
+        "program_name": "AIRPORTS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 751666000.0,
+        "positions": 135.0
+      },
+      {
+        "program_id": "TRN195",
+        "program_name": "AIRPORTS ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 467112227.0,
+        "positions": 135.0
+      },
+      {
+        "program_id": "TRN595",
+        "program_name": "HIGHWAYS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 426975000.0,
+        "positions": 523.5
+      },
+      {
+        "program_id": "TRN102",
+        "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 285933581.0,
+        "positions": 676.0
+      },
+      {
+        "program_id": "TRN595",
+        "program_name": "HIGHWAYS ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 207904208.0,
+        "positions": 523.5
+      },
+      {
+        "program_id": "TRN595",
+        "program_name": "HIGHWAYS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 111324000.0,
+        "positions": 523.5
+      },
+      {
+        "program_id": "TRN395",
+        "program_name": "HARBORS ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 103372371.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "TRN501",
+        "program_name": "OAHU HIGHWAYS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 98253732.0,
+        "positions": 184.0
+      },
+      {
+        "program_id": "TRN195",
+        "program_name": "AIRPORTS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 60002000.0,
+        "positions": 135.0
+      },
+      {
+        "program_id": "TRN131",
+        "program_name": "KAHULUI AIRPORT",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 57500000.0,
+        "positions": 187.0
+      },
+      {
+        "program_id": "TRN131",
+        "program_name": "KAHULUI AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 52419747.0,
+        "positions": 187.0
+      },
+      {
+        "program_id": "TRN311",
+        "program_name": "HILO HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 44992000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN301",
+        "program_name": "HONOLULU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 39992000.0,
+        "positions": 104.0
+      },
+      {
+        "program_id": "TRN303",
+        "program_name": "KALAELOA BARBERS POINT HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 34992000.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "TRN114",
+        "program_name": "ELLISON ONIZUKA KONA INTERNATIONAL AIRPORT AT KEAHOLE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 34549166.0,
+        "positions": 113.0
+      },
+      {
+        "program_id": "TRN995",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 34069484.0,
+        "positions": 112.0
+      },
+      {
+        "program_id": "TRN301",
+        "program_name": "HONOLULU HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 33212670.0,
+        "positions": 104.0
+      },
+      {
+        "program_id": "TRN161",
+        "program_name": "LIHUE AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 33055875.0,
+        "positions": 118.0
+      },
+      {
+        "program_id": "TRN111",
+        "program_name": "HILO INTERNATIONAL AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 28974929.0,
+        "positions": 87.0
+      },
+      {
+        "program_id": "TRN531",
+        "program_name": "MAUI HIGHWAYS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 28041366.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "TRN102",
+        "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 26760000.0,
+        "positions": 676.0
+      },
+      {
+        "program_id": "TRN511",
+        "program_name": "HAWAII HIGHWAYS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 25522385.0,
+        "positions": 117.5
+      },
+      {
+        "program_id": "TRN395",
+        "program_name": "HARBORS ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 25000000.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "TRN561",
+        "program_name": "KAUAI HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 20800000.0,
+        "positions": 60.0
+      },
+      {
+        "program_id": "TRN511",
+        "program_name": "HAWAII HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 19200000.0,
+        "positions": 117.5
+      },
+      {
+        "program_id": "TRN104",
+        "program_name": "GENERAL AVIATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 17928307.0,
+        "positions": 31.0
+      },
+      {
+        "program_id": "TRN395",
+        "program_name": "HARBORS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 17492000.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "TRN595",
+        "program_name": "HIGHWAYS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 17343000.0,
+        "positions": 523.5
+      },
+      {
+        "program_id": "TRN595",
+        "program_name": "HIGHWAYS ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 16213634.0,
+        "positions": 523.5
+      },
+      {
+        "program_id": "TRN561",
+        "program_name": "KAUAI HIGHWAYS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 14943899.0,
+        "positions": 60.0
+      },
+      {
+        "program_id": "TRN995",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 12784696.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "TRN597",
+        "program_name": "HIGHWAYS SAFETY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 12319296.0,
+        "positions": 32.2
+      },
+      {
+        "program_id": "TRN331",
+        "program_name": "KAHULUI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 9992000.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "TRN195",
+        "program_name": "AIRPORTS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 7500000.0,
+        "positions": 135.0
+      },
+      {
+        "program_id": "TRN331",
+        "program_name": "KAHULUI HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 6725038.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "TRN597",
+        "program_name": "HIGHWAYS SAFETY",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 6495670.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "TRN561",
+        "program_name": "KAUAI HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 5200000.0,
+        "positions": 60.0
+      },
+      {
+        "program_id": "TRN161",
+        "program_name": "LIHUE AIRPORT",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 5140000.0,
+        "positions": 118.0
+      },
+      {
+        "program_id": "TRN361",
+        "program_name": "NAWILIWILI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4992000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN511",
+        "program_name": "HAWAII HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 4800000.0,
+        "positions": 117.5
+      },
+      {
+        "program_id": "TRN311",
+        "program_name": "HILO HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4728916.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN161",
+        "program_name": "LIHUE AIRPORT",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4600000.0,
+        "positions": 118.0
+      },
+      {
+        "program_id": "TRN151",
+        "program_name": "LANAI AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4584732.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "TRN361",
+        "program_name": "NAWILIWILI HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4570717.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN141",
+        "program_name": "MOLOKAI AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3998586.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "TRN501",
+        "program_name": "OAHU HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3200000.0,
+        "positions": 184.0
+      },
+      {
+        "program_id": "TRN135",
+        "program_name": "KAPALUA AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3135770.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "TRN313",
+        "program_name": "KAWAIHAE HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2585027.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "TRN303",
+        "program_name": "KALAELOA BARBERS POINT HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2252332.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "TRN351",
+        "program_name": "KAUMALAPAU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1992000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN695",
+        "program_name": "ALOHA TOWER DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1842580.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN116",
+        "program_name": "WAIMEA-KOHALA AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1339121.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "TRN597",
+        "program_name": "HIGHWAYS SAFETY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1214379.0,
+        "positions": 0.8
+      },
+      {
+        "program_id": "TRN341",
+        "program_name": "KAUNAKAKAI HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 834216.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN501",
+        "program_name": "OAHU HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 800000.0,
+        "positions": 184.0
+      },
+      {
+        "program_id": "TRN133",
+        "program_name": "HANA AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 762525.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "TRN995",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 743067.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "TRN143",
+        "program_name": "KALAUPAPA AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 520929.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "TRN351",
+        "program_name": "KAUMALAPAU HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 511891.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN531",
+        "program_name": "MAUI HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 400000.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "TRN363",
+        "program_name": "PORT ALLEN HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 255379.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN195",
+        "program_name": "AIRPORTS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "X",
+        "fund_category": "Other Funds",
+        "amount": 200000.0,
+        "positions": 135.0
+      },
+      {
+        "program_id": "TRN531",
+        "program_name": "MAUI HIGHWAYS",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 100000.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "TRN118",
+        "program_name": "UPOLU AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 51100.0,
+        "positions": null
+      },
+      {
+        "program_id": "TRN333",
+        "program_name": "HANA HARBOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 13519.0,
+        "positions": null
+      },
+      {
+        "program_id": "TRN301",
+        "program_name": "HONOLULU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 104.0
+      },
+      {
+        "program_id": "TRN301",
+        "program_name": "HONOLULU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 104.0
+      },
+      {
+        "program_id": "TRN303",
+        "program_name": "KALAELOA BARBERS POINT HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "TRN303",
+        "program_name": "KALAELOA BARBERS POINT HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "TRN311",
+        "program_name": "HILO HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN311",
+        "program_name": "HILO HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN331",
+        "program_name": "KAHULUI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "TRN331",
+        "program_name": "KAHULUI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "TRN341",
+        "program_name": "KAUNAKAKAI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN341",
+        "program_name": "KAUNAKAKAI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN341",
+        "program_name": "KAUNAKAKAI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN351",
+        "program_name": "KAUMALAPAU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN351",
+        "program_name": "KAUMALAPAU HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "TRN361",
+        "program_name": "NAWILIWILI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN361",
+        "program_name": "NAWILIWILI HARBOR",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "TRN395",
+        "program_name": "HARBORS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4000.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "TRN395",
+        "program_name": "HARBORS ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 4000.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "TRN163",
+        "program_name": "PORT ALLEN AIRPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1841.0,
+        "positions": null
+      },
+      {
+        "program_id": "TRN102",
+        "program_name": "DANIEL K. INOUYE INTERNATIONAL AIRPORT",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1000.0,
+        "positions": 676.0
+      }
+    ],
+    "path": "/pages/trn.html"
+  },
+  {
+    "id": "hth",
+    "code": "HTH",
+    "name": "Department of Health",
+    "description": "This department has wide-ranging responsibilities for public health, the environment, food safety, behavioral health, and communicable and chronic disease prevention and control. The Department of Health includes the Hansen's disease facility at Kalaupapa, the Executive Office on Aging, the State Health Planning and Development Agency, the Disability and Communications Access Board, the Hawai\u02bbi Health Systems Corporation, and the Hawai\u02bbi State Forensic Mental Health Hospital. For FY 2025, the department was given $10,660,000 in emergency state funding. The money will be used to fix problems in the Hale Ho\u2018ola Building at the Hawaii State Hospital. These problems include water leaks, mold, and other construction defects that make the building unsafe for staff and patients. The money will also help pay legal fees related to fixing these issues.",
+    "budget": "$2.4B",
+    "operating_budget": 2190435081.0,
+    "capital_budget": 160778000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 2351213081.0,
+    "positions": 13112.489999999998,
+    "fund_breakdown": {
+      "Federal Funds": 140978375.0,
+      "General Funds": 900418082.0,
+      "General Obligation Bond Fund": 80814000.0,
+      "Interdepartmental Transfers": 7812741.0,
+      "Other Federal Funds": 63188128.0,
+      "Private Contributions": 25000000.0,
+      "Revolving Funds": 263364894.0,
+      "Special Funds": 869636861.0
+    },
+    "programs": [
+      {
+        "program_id": "HTH212",
+        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013  REGIONS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 582286185.0,
+        "positions": 2337.85
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 260514599.0,
+        "positions": 44.0
+      },
+      {
+        "program_id": "HTH212",
+        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013  REGIONS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 199816303.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH430",
+        "program_name": "ADULT MENTAL HEALTH - INPATIENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 134673554.0,
+        "positions": 873.0
+      },
+      {
+        "program_id": "HTH501",
+        "program_name": "DEVELOPMENTAL DISABILITIES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 131398120.0,
+        "positions": 212.0
+      },
+      {
+        "program_id": "HTH420",
+        "program_name": "ADULT MENTAL HEALTH - OUTPATIENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 93667271.0,
+        "positions": 392.5
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 80891943.0,
+        "positions": 63.0
+      },
+      {
+        "program_id": "HTH460",
+        "program_name": "CHILD AND ADOLESCENT MENTAL HEALTH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 63631355.0,
+        "positions": 167.5
+      },
+      {
+        "program_id": "HTH730",
+        "program_name": "EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 59321974.0,
+        "positions": 12.2
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 54964000.0,
+        "positions": 11.25
+      },
+      {
+        "program_id": "HTH212",
+        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013  REGIONS",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 53709000.0,
+        "positions": 2337.85
+      },
+      {
+        "program_id": "HTH590",
+        "program_name": "CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 48706356.0,
+        "positions": 48.5
+      },
+      {
+        "program_id": "HTH215",
+        "program_name": "HHSC - OAHU REGION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 48400000.0,
+        "positions": 439.0
+      },
+      {
+        "program_id": "HTH560",
+        "program_name": "FAMILY HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 45566966.0,
+        "positions": 114.5
+      },
+      {
+        "program_id": "HTH560",
+        "program_name": "FAMILY HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 38121215.0,
+        "positions": 108.3
+      },
+      {
+        "program_id": "HTH100",
+        "program_name": "COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 33067876.0,
+        "positions": 237.87
+      },
+      {
+        "program_id": "HTH907",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 32038805.0,
+        "positions": 191.0
+      },
+      {
+        "program_id": "HTH212",
+        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013  REGIONS",
+        "section": "Capital Improvement",
+        "fund_type": "R",
+        "fund_category": "Private Contributions",
+        "amount": 25000000.0,
+        "positions": 2337.85
+      },
+      {
+        "program_id": "HTH730",
+        "program_name": "EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 22323419.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "HTH440",
+        "program_name": "ALCOHOL AND DRUG ABUSE DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 20395713.0,
+        "positions": 29.0
+      },
+      {
+        "program_id": "HTH560",
+        "program_name": "FAMILY HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 17965804.0,
+        "positions": 13.4
+      },
+      {
+        "program_id": "HTH210",
+        "program_name": "HAWAII HEALTH SYSTEMS CORPORATION \u2013 CORPORATE OFFICE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 17509280.0,
+        "positions": 54.5
+      },
+      {
+        "program_id": "HTH460",
+        "program_name": "CHILD AND ADOLESCENT MENTAL HEALTH",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 15375579.0,
+        "positions": 37.0
+      },
+      {
+        "program_id": "HTH215",
+        "program_name": "HHSC - OAHU REGION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 14000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH904",
+        "program_name": "EXECUTIVE OFFICE ON AGING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 13024068.0,
+        "positions": 20.950000000000003
+      },
+      {
+        "program_id": "HTH560",
+        "program_name": "FAMILY HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 12523019.0,
+        "positions": 29.3
+      },
+      {
+        "program_id": "HTH420",
+        "program_name": "ADULT MENTAL HEALTH - OUTPATIENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 11610000.0,
+        "positions": 392.5
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 10995000.0,
+        "positions": 11.25
+      },
+      {
+        "program_id": "HTH904",
+        "program_name": "EXECUTIVE OFFICE ON AGING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 10405377.0,
+        "positions": 8.4
+      },
+      {
+        "program_id": "HTH131",
+        "program_name": "DISEASE OUTBREAK CONTROL",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 9378970.0,
+        "positions": 22.5
+      },
+      {
+        "program_id": "HTH610",
+        "program_name": "ENVIRONMENTAL HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9292836.0,
+        "positions": 127.0
+      },
+      {
+        "program_id": "HTH710",
+        "program_name": "STATE LABORATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9262196.0,
+        "positions": 69.0
+      },
+      {
+        "program_id": "HTH440",
+        "program_name": "ALCOHOL AND DRUG ABUSE DIVISION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 9038656.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "HTH100",
+        "program_name": "COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 8827137.0,
+        "positions": 258.87
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 7998178.0,
+        "positions": 11.25
+      },
+      {
+        "program_id": "HTH501",
+        "program_name": "DEVELOPMENTAL DISABILITIES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 7747738.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7379458.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "HTH590",
+        "program_name": "CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7041748.0,
+        "positions": 48.5
+      },
+      {
+        "program_id": "HTH590",
+        "program_name": "CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 6740166.0,
+        "positions": 27.0
+      },
+      {
+        "program_id": "HTH440",
+        "program_name": "ALCOHOL AND DRUG ABUSE DIVISION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 6722746.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "HTH214",
+        "program_name": "MAUI HEALTH SYSTEM, A KFH LLC",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 6000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH214",
+        "program_name": "MAUI HEALTH SYSTEM, A KFH LLC",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH849",
+        "program_name": "ENVIRONMENTAL HEALTH ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 5751220.0,
+        "positions": 14.1
+      },
+      {
+        "program_id": "HTH100",
+        "program_name": "COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 5311894.0,
+        "positions": 34.5
+      },
+      {
+        "program_id": "HTH907",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 5275000.0,
+        "positions": 28.0
+      },
+      {
+        "program_id": "HTH215",
+        "program_name": "HHSC - OAHU REGION",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 5110000.0,
+        "positions": 439.0
+      },
+      {
+        "program_id": "HTH211",
+        "program_name": "KAHUKU HOSPITAL",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 5000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH610",
+        "program_name": "ENVIRONMENTAL HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4936115.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "HTH720",
+        "program_name": "HEALTH CARE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 4841562.0,
+        "positions": 23.6
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4064084.0,
+        "positions": 34.5
+      },
+      {
+        "program_id": "HTH720",
+        "program_name": "HEALTH CARE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4030204.0,
+        "positions": 24.55
+      },
+      {
+        "program_id": "HTH849",
+        "program_name": "ENVIRONMENTAL HEALTH ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3878888.0,
+        "positions": 30.75
+      },
+      {
+        "program_id": "HTH131",
+        "program_name": "DISEASE OUTBREAK CONTROL",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3705177.0,
+        "positions": 29.4
+      },
+      {
+        "program_id": "HTH213",
+        "program_name": "ALII COMMUNITY CARE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3500000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH596",
+        "program_name": "OFFICE OF MEDICAL CANNABIS CONTROL & REGULATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3109260.0,
+        "positions": 26.0
+      },
+      {
+        "program_id": "HTH840",
+        "program_name": "ENVIRONMENTAL MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 3013024.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "HTH849",
+        "program_name": "ENVIRONMENTAL HEALTH ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2826328.0,
+        "positions": 11.6
+      },
+      {
+        "program_id": "HTH131",
+        "program_name": "DISEASE OUTBREAK CONTROL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2604086.0,
+        "positions": 26.6
+      },
+      {
+        "program_id": "HTH596",
+        "program_name": "OFFICE OF MEDICAL CANNABIS CONTROL & REGULATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2425368.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HTH460",
+        "program_name": "CHILD AND ADOLESCENT MENTAL HEALTH",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2339630.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "HTH420",
+        "program_name": "ADULT MENTAL HEALTH - OUTPATIENT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2333370.0,
+        "positions": 344.0
+      },
+      {
+        "program_id": "HTH460",
+        "program_name": "CHILD AND ADOLESCENT MENTAL HEALTH",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 2281992.0,
+        "positions": 31.0
+      },
+      {
+        "program_id": "HTH760",
+        "program_name": "HEALTH STATUS MONITORING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2258388.0,
+        "positions": 41.5
+      },
+      {
+        "program_id": "HTH520",
+        "program_name": "DISABILITY AND COMMUNICATIONS ACCESS BOARD",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2186855.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "HTH720",
+        "program_name": "HEALTH CARE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2105000.0,
+        "positions": 4.85
+      },
+      {
+        "program_id": "HTH211",
+        "program_name": "KAHUKU HOSPITAL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2032500.0,
+        "positions": null
+      },
+      {
+        "program_id": "HTH904",
+        "program_name": "EXECUTIVE OFFICE ON AGING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1223791.0,
+        "positions": 15.4
+      },
+      {
+        "program_id": "HTH590",
+        "program_name": "CHRONIC DISEASE PREVENTION AND HEALTH PROMOTION",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 1192408.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "HTH710",
+        "program_name": "STATE LABORATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1029222.0,
+        "positions": 9.75
+      },
+      {
+        "program_id": "HTH520",
+        "program_name": "DISABILITY AND COMMUNICATIONS ACCESS BOARD",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 767346.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "HTH440",
+        "program_name": "ALCOHOL AND DRUG ABUSE DIVISION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 750000.0,
+        "positions": 29.0
+      },
+      {
+        "program_id": "HTH906",
+        "program_name": "STATE HEALTH PLANNING AND DEVELOPMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 726733.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "HTH908",
+        "program_name": "OFFICE OF LANGUAGE ACCESS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 714494.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "HTH907",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 684932.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HTH100",
+        "program_name": "COMMUNICABLE DISEASE AND PUBLIC HEALTH NURSING",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 637849.0,
+        "positions": 25.0
+      },
+      {
+        "program_id": "HTH760",
+        "program_name": "HEALTH STATUS MONITORING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 627294.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "HTH760",
+        "program_name": "HEALTH STATUS MONITORING",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 530318.0,
+        "positions": 40.5
+      },
+      {
+        "program_id": "HTH905",
+        "program_name": "DEVELOPMENTAL DISABILITIES COUNCIL",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 527570.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "HTH710",
+        "program_name": "STATE LABORATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 429999.0,
+        "positions": 2.25
+      },
+      {
+        "program_id": "HTH730",
+        "program_name": "EMERGENCY MEDICAL SERVICES AND INJURY PREVENTION SYSTEM",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 420000.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "HTH610",
+        "program_name": "ENVIRONMENTAL HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 396994.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HTH520",
+        "program_name": "DISABILITY AND COMMUNICATIONS ACCESS BOARD",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 314641.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HTH710",
+        "program_name": "STATE LABORATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 272901.0,
+        "positions": 2.75
+      },
+      {
+        "program_id": "HTH610",
+        "program_name": "ENVIRONMENTAL HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 271269.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "HTH905",
+        "program_name": "DEVELOPMENTAL DISABILITIES COUNCIL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 262940.0,
+        "positions": 2.5
+      },
+      {
+        "program_id": "HTH595",
+        "program_name": "HEALTH RESOURCES ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 244093.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HTH495",
+        "program_name": "BEHAVIORAL HEALTH ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 210907.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HTH849",
+        "program_name": "ENVIRONMENTAL HEALTH ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 189937.0,
+        "positions": 2.75
+      },
+      {
+        "program_id": "HTH610",
+        "program_name": "ENVIRONMENTAL HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 158000.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HTH420",
+        "program_name": "ADULT MENTAL HEALTH - OUTPATIENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 137363.0,
+        "positions": 344.0
+      },
+      {
+        "program_id": "HTH906",
+        "program_name": "STATE HEALTH PLANNING AND DEVELOPMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 114000.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "HTH560",
+        "program_name": "FAMILY HEALTH SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 101558.0,
+        "positions": 100.8
+      },
+      {
+        "program_id": "HTH710",
+        "program_name": "STATE LABORATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 23967.0,
+        "positions": 9.25
+      }
+    ],
+    "path": "/pages/hth.html"
+  },
+  {
+    "id": "uoh",
+    "code": "UOH",
+    "name": "University of Hawaii",
+    "description": "",
+    "budget": "$1.4B",
+    "operating_budget": 1364444797.0,
+    "capital_budget": 67004000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 1431448797.0,
+    "positions": 10286.539999999999,
+    "fund_breakdown": {
+      "Federal Funds": 13642735.0,
+      "General Funds": 655966143.0,
+      "General Obligation Bond Fund": 38504000.0,
+      "Revenue Bond Funds": 28500000.0,
+      "Revolving Funds": 134491370.0,
+      "Special Funds": 560344549.0
+    },
+    "programs": [
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 361552962.0,
+        "positions": 370.25
+      },
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 290618531.0,
+        "positions": 3011.89
+      },
+      {
+        "program_id": "UOH800",
+        "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 192200937.0,
+        "positions": 1871.5
+      },
+      {
+        "program_id": "UOH800",
+        "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 75650296.0,
+        "positions": 1871.5
+      },
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 65569059.0,
+        "positions": 30.0
+      },
+      {
+        "program_id": "UOH900",
+        "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 65093776.0,
+        "positions": 412.0
+      },
+      {
+        "program_id": "UOH210",
+        "program_name": "UNIVERSITY OF HAWAII, HILO",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 50727650.0,
+        "positions": 541.25
+      },
+      {
+        "program_id": "UOH210",
+        "program_name": "UNIVERSITY OF HAWAII, HILO",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 44435015.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "UOH800",
+        "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 31826332.0,
+        "positions": 80.0
+      },
+      {
+        "program_id": "UOH110",
+        "program_name": "UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 28917688.0,
+        "positions": 212.53
+      },
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 28500000.0,
+        "positions": 30.0
+      },
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Capital Improvement",
+        "fund_type": "E",
+        "fund_category": "Revenue Bond Funds",
+        "amount": 28500000.0,
+        "positions": 30.0
+      },
+      {
+        "program_id": "UOH110",
+        "program_name": "UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 27613321.0,
+        "positions": 212.53
+      },
+      {
+        "program_id": "UOH900",
+        "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 24242602.0,
+        "positions": 15.0
+      },
+      {
+        "program_id": "UOH700",
+        "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 24015377.0,
+        "positions": 248.0
+      },
+      {
+        "program_id": "UOH700",
+        "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 22028269.0,
+        "positions": 248.0
+      },
+      {
+        "program_id": "UOH900",
+        "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 18501700.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "UOH800",
+        "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 10000000.0,
+        "positions": 80.0
+      },
+      {
+        "program_id": "UOH110",
+        "program_name": "UNIVERSITY OF HAWAII, JOHN A. BURNS SCHOOL OF MEDICINE",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 8010453.0,
+        "positions": 212.53
+      },
+      {
+        "program_id": "UOH210",
+        "program_name": "UNIVERSITY OF HAWAII, HILO",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 7489592.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "UOH100",
+        "program_name": "UNIVERSITY OF HAWAII, MANOA",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 6873565.0,
+        "positions": 77.06
+      },
+      {
+        "program_id": "UOH800",
+        "program_name": "UNIVERSITY OF HAWAII, COMMUNITY COLLEGES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4428296.0,
+        "positions": 46.5
+      },
+      {
+        "program_id": "UOH115",
+        "program_name": "UNIVERSITY OF HAWAII, CANCER CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3797693.0,
+        "positions": 37.0
+      },
+      {
+        "program_id": "UOH881",
+        "program_name": "AQUARIA",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3517717.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "UOH700",
+        "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2097704.0,
+        "positions": 248.0
+      },
+      {
+        "program_id": "UOH900",
+        "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1094875.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "UOH881",
+        "program_name": "AQUARIA",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 996530.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "UOH220",
+        "program_name": "SMALL BUSINESS DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 978941.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "UOH881",
+        "program_name": "AQUARIA",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 919917.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "UOH700",
+        "program_name": "UNIVERSITY OF HAWAII, WEST OAHU",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 802037.0,
+        "positions": 248.0
+      },
+      {
+        "program_id": "UOH210",
+        "program_name": "UNIVERSITY OF HAWAII, HILO",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 443962.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "UOH900",
+        "program_name": "UNIVERSITY OF HAWAII, SYSTEMWIDE SUPPORT",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 4000.0,
+        "positions": 19.0
+      }
+    ],
+    "path": "/pages/uoh.html"
+  },
+  {
+    "id": "lbr",
+    "code": "LBR",
+    "name": "Department of Labor and Industrial Relations",
+    "description": "This department enforces labor laws, and administers the state Unemployment Insurance, Workers' Compensation, and Temporary Disability Insurance programs. Compliance with the state's Prepaid Health Care Act is overseen by this department. LBR's Office of Community Services oversees grants and programs aimed at helping economically disadvantaged residents gain self-sufficiency.",
+    "budget": "$463M",
+    "operating_budget": 463199718.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 463199718.0,
+    "positions": 1024.0899999999997,
+    "fund_breakdown": {
+      "Federal Funds": 42207322.0,
+      "General Funds": 32504165.0,
+      "Interdepartmental Transfers": 2891173.0,
+      "Other Federal Funds": 9050000.0,
+      "Revolving Funds": 2746105.0,
+      "Special Funds": 8243402.0,
+      "Trust Funds": 365557551.0
+    },
+    "programs": [
+      {
+        "program_id": "LBR171",
+        "program_name": "UNEMPLOYMENT INSURANCE PROGRAM",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 341400000.0,
+        "positions": 187.5
+      },
+      {
+        "program_id": "LBR183",
+        "program_name": "DISABILITY COMPENSATION PROGRAM",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 24157551.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "LBR171",
+        "program_name": "UNEMPLOYMENT INSURANCE PROGRAM",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 18000000.0,
+        "positions": 187.5
+      },
+      {
+        "program_id": "LBR135",
+        "program_name": "WORKFORCE DEVELOPMENT COUNCIL",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 10700000.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "LBR183",
+        "program_name": "DISABILITY COMPENSATION PROGRAM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9039187.0,
+        "positions": 77.0
+      },
+      {
+        "program_id": "LBR111",
+        "program_name": "WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6822007.0,
+        "positions": 13.1
+      },
+      {
+        "program_id": "LBR111",
+        "program_name": "WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 6550000.0,
+        "positions": 91.2
+      },
+      {
+        "program_id": "LBR903",
+        "program_name": "OFFICE OF COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 6517000.0,
+        "positions": 17.0
+      },
+      {
+        "program_id": "LBR902",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 6000000.0,
+        "positions": 33.71
+      },
+      {
+        "program_id": "LBR111",
+        "program_name": "WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 5364646.0,
+        "positions": 13.1
+      },
+      {
+        "program_id": "LBR903",
+        "program_name": "OFFICE OF COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4971563.0,
+        "positions": 18.0
+      },
+      {
+        "program_id": "LBR902",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2912790.0,
+        "positions": 22.29
+      },
+      {
+        "program_id": "LBR111",
+        "program_name": "WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 2891173.0,
+        "positions": 91.2
+      },
+      {
+        "program_id": "LBR143",
+        "program_name": "HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2746105.0,
+        "positions": 19.5
+      },
+      {
+        "program_id": "LBR143",
+        "program_name": "HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 2400000.0,
+        "positions": 20.2
+      },
+      {
+        "program_id": "LBR171",
+        "program_name": "UNEMPLOYMENT INSURANCE PROGRAM",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2173756.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "LBR153",
+        "program_name": "HAWAII CIVIL RIGHTS COMMISSION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1843633.0,
+        "positions": 22.5
+      },
+      {
+        "program_id": "LBR152",
+        "program_name": "WAGE STANDARDS PROGRAM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1442931.0,
+        "positions": 20.0
+      },
+      {
+        "program_id": "LBR143",
+        "program_name": "HAWAII OCCUPATIONAL SAFETY AND HEALTH PROGRAM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1393204.0,
+        "positions": 17.8
+      },
+      {
+        "program_id": "LBR812",
+        "program_name": "LABOR AND INDUSTRIAL RELATIONS APPEALS BOARD",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1209410.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "LBR161",
+        "program_name": "HAWAII LABOR RELATIONS BOARD",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1138087.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "LBR171",
+        "program_name": "UNEMPLOYMENT INSURANCE PROGRAM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1098246.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "LBR152",
+        "program_name": "WAGE STANDARDS PROGRAM",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 500000.0,
+        "positions": 20.0
+      },
+      {
+        "program_id": "LBR135",
+        "program_name": "WORKFORCE DEVELOPMENT COUNCIL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 455026.0,
+        "positions": null
+      },
+      {
+        "program_id": "LBR901",
+        "program_name": "RESEARCH AND STATISTICS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 440322.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "LBR153",
+        "program_name": "HAWAII CIVIL RIGHTS COMMISSION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 350000.0,
+        "positions": 5.5
+      },
+      {
+        "program_id": "LBR111",
+        "program_name": "WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 300000.0,
+        "positions": 34.7
+      },
+      {
+        "program_id": "LBR902",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 200000.0,
+        "positions": 22.29
+      },
+      {
+        "program_id": "LBR901",
+        "program_name": "RESEARCH AND STATISTICS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 178081.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "LBR903",
+        "program_name": "OFFICE OF COMMUNITY SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 5000.0,
+        "positions": 18.0
+      }
+    ],
+    "path": "/pages/lbr.html"
+  },
+  {
+    "id": "bed",
+    "code": "BED",
+    "name": "Department of Business, Economic Development, and Tourism",
+    "description": "This department is responsible for a wide array of programs: low- and moderate-income housing development via the Hawai\u02bbi Community Development Authority (HCDA) and Hawai\u02bbi Housing Finance & Development Corporation (HHFDC); promoting the visitor industry through the Hawai\u02bbi Tourism Authority; overseeing the Foreign Trade Zone; and managing the Hawai\u02bbi Clean Energy Initiative. The department also researches and publishes Hawai\u02bbi census and population data, information about the state's economic performance, and the State Data Book.",
+    "budget": "$441M",
+    "operating_budget": 266588396.0,
+    "capital_budget": 174600000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 441188396.0,
+    "positions": 756.5,
+    "fund_breakdown": {
+      "Federal Funds": 5141871.0,
+      "General Funds": 96265707.0,
+      "General Obligation Bond Fund": 174600000.0,
+      "Interdepartmental Transfers": 82126.0,
+      "Other Federal Funds": 6002826.0,
+      "Revolving Funds": 25778024.0,
+      "Special Funds": 126171592.0,
+      "Trust Funds": 7146250.0
+    },
+    "programs": [
+      {
+        "program_id": "BED160",
+        "program_name": "HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 140000000.0,
+        "positions": 71.0
+      },
+      {
+        "program_id": "BED138",
+        "program_name": "HAWAII GREEN INFRASTRUCTURE AUTHORITY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 86639653.0,
+        "positions": 7.25
+      },
+      {
+        "program_id": "BED114",
+        "program_name": "HAWAII TOURISM AUTHORITY - BRANDING AND MARKETING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 39249201.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "BED150",
+        "program_name": "HAWAII COMMUNITY DEVELOPMENT AUTHORITY",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 29450000.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "BED160",
+        "program_name": "HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 15889058.0,
+        "positions": 71.0
+      },
+      {
+        "program_id": "BED113",
+        "program_name": "HAWAII TOURISM AUTHORITY - ADMINISTRATION AND GOVERNANCE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 14000000.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "BED180",
+        "program_name": "SPECTATOR EVENTS & SHOWS -ALOHA STADIUM",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 8772356.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "BED146",
+        "program_name": "NATURAL ENERGY LABORATORY OF HAWAII AUTHORITY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 7929310.0,
+        "positions": 17.0
+      },
+      {
+        "program_id": "BED116",
+        "program_name": "HAWAII TOURISM AUTHORITY \u2013 DESTINATION STEWARDSHIP AND COMMUNITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7923883.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "BED115",
+        "program_name": "HAWAII TOURISM AUTHORITY \u2013 SPORTS AND SIGNATURE EVENTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7318075.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "BED120",
+        "program_name": "HAWAII STATE ENERGY OFFICE",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 7146250.0,
+        "positions": 26.0
+      },
+      {
+        "program_id": "BED130",
+        "program_name": "ECONOMIC PLANNING AND RESEARCH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5744533.0,
+        "positions": 23.46
+      },
+      {
+        "program_id": "BED170",
+        "program_name": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 5150000.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "BED170",
+        "program_name": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4823166.0,
+        "positions": 13.5
+      },
+      {
+        "program_id": "BED143",
+        "program_name": "HAWAII TECHNOLOGY DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4701795.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "BED144",
+        "program_name": "STATEWIDE PLANNING AND COORDINATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4280161.0,
+        "positions": 37.0
+      },
+      {
+        "program_id": "BED170",
+        "program_name": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 4048264.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "BED100",
+        "program_name": "STRATEGIC MARKETING AND SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3893040.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "BED142",
+        "program_name": "GENERAL SUPPORT FOR ECONOMIC DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3802952.0,
+        "positions": 30.0
+      },
+      {
+        "program_id": "BED117",
+        "program_name": "HAWAII TOURISM AUTHORITY \u2013 REGENERATIVE TOURISM DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3762181.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "BED113",
+        "program_name": "HAWAII TOURISM AUTHORITY - ADMINISTRATION AND GOVERNANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3696660.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "BED160",
+        "program_name": "HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3100000.0,
+        "positions": null
+      },
+      {
+        "program_id": "BED160",
+        "program_name": "HAWAII HOUSING FINANCE AND DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 3000000.0,
+        "positions": 71.0
+      },
+      {
+        "program_id": "BED107",
+        "program_name": "FOREIGN TRADE ZONE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2796043.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "BED120",
+        "program_name": "HAWAII STATE ENERGY OFFICE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2571816.0,
+        "positions": 26.0
+      },
+      {
+        "program_id": "BED150",
+        "program_name": "HAWAII COMMUNITY DEVELOPMENT AUTHORITY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2554972.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "BED144",
+        "program_name": "STATEWIDE PLANNING AND COORDINATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2041871.0,
+        "positions": 35.0
+      },
+      {
+        "program_id": "BED143",
+        "program_name": "HAWAII TECHNOLOGY DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2017203.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "BED144",
+        "program_name": "STATEWIDE PLANNING AND COORDINATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2000000.0,
+        "positions": 35.0
+      },
+      {
+        "program_id": "BED105",
+        "program_name": "CREATIVE INDUSTRIES DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1921494.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "BED100",
+        "program_name": "STRATEGIC MARKETING AND SUPPORT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 1823499.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "BED143",
+        "program_name": "HAWAII TECHNOLOGY DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1604258.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "BED150",
+        "program_name": "HAWAII COMMUNITY DEVELOPMENT AUTHORITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1526750.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "BED105",
+        "program_name": "CREATIVE INDUSTRIES DIVISION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1080000.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "BED118",
+        "program_name": "HAWAII TOURISM AUTHORITY \u2013 WORKFORCE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1050000.0,
+        "positions": null
+      },
+      {
+        "program_id": "BED143",
+        "program_name": "HAWAII TECHNOLOGY DEVELOPMENT CORPORATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 994214.0,
+        "positions": 18.0
+      },
+      {
+        "program_id": "BED130",
+        "program_name": "ECONOMIC PLANNING AND RESEARCH",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 864351.0,
+        "positions": 13.04
+      },
+      {
+        "program_id": "BED120",
+        "program_name": "HAWAII STATE ENERGY OFFICE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 795000.0,
+        "positions": 26.0
+      },
+      {
+        "program_id": "BED100",
+        "program_name": "STRATEGIC MARKETING AND SUPPORT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 700000.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "BED138",
+        "program_name": "HAWAII GREEN INFRASTRUCTURE AUTHORITY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 444261.0,
+        "positions": 1.75
+      },
+      {
+        "program_id": "BED170",
+        "program_name": "AGRIBUSINESS DEVELOPMENT AND RESEARCH",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 82126.0,
+        "positions": 0.5
+      }
+    ],
+    "path": "/pages/bed.html"
+  },
+  {
+    "id": "ags",
+    "code": "AGS",
+    "name": "Department of Accounting and General Services",
+    "description": "This department manages statewide functions, including accounting and expenditures, facility acquisition and maintenance, the state motor pool, statewide information technology systems, and risk management. In addition, AGS counts among its programs the Hawai\u02bbi State Foundation on Culture & the Arts, the Hawai\u02bbi State Archives, and the Hawai\u02bbi State Office of Elections.",
+    "budget": "$330M",
+    "operating_budget": 260692153.0,
+    "capital_budget": 68954000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 329646153.0,
+    "positions": 2838.25,
+    "fund_breakdown": {
+      "Federal Funds": 1092465.0,
+      "General Funds": 182126151.0,
+      "General Obligation Bond Fund": 67454000.0,
+      "Interdepartmental Transfers": 16146019.0,
+      "Other Federal Funds": 1500000.0,
+      "Revolving Funds": 39813739.0,
+      "Special Funds": 20470047.0,
+      "Trust Funds": 1043732.0
+    },
+    "programs": [
+      {
+        "program_id": "AGS131",
+        "program_name": "ENTERPRISE TECHNOLOGY SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 52238803.0,
+        "positions": 138.0
+      },
+      {
+        "program_id": "AGS203",
+        "program_name": "STATE RISK MANAGEMENT AND INSURANCE ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 26987995.0,
+        "positions": null
+      },
+      {
+        "program_id": "AGS231",
+        "program_name": "CENTRAL SERVICES - CUSTODIAL SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 25844638.0,
+        "positions": 127.0
+      },
+      {
+        "program_id": "AGS203",
+        "program_name": "STATE RISK MANAGEMENT AND INSURANCE ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 25706793.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "EDN407",
+        "program_name": "PUBLIC LIBRARIES",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 25000000.0,
+        "positions": 567.5
+      },
+      {
+        "program_id": "HTH430",
+        "program_name": "ADULT MENTAL HEALTH - INPATIENT",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 16750000.0,
+        "positions": 873.0
+      },
+      {
+        "program_id": "PSD900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 15000000.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "AGS881",
+        "program_name": "STATE FOUNDATION ON CULTURE AND THE ARTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 14432957.0,
+        "positions": 17.75
+      },
+      {
+        "program_id": "AGS891",
+        "program_name": "ENHANCED 911 BOARD",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 14035349.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "AGS101",
+        "program_name": "ACCOUNTING SYSTEM DEVELOPMENT AND MAINTENANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 8431323.0,
+        "positions": 22.0
+      },
+      {
+        "program_id": "AGS221",
+        "program_name": "PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 8112911.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "AGS223",
+        "program_name": "OFFICE LEASING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7178040.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "AGS807",
+        "program_name": "SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6951567.0,
+        "positions": 81.0
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 6500000.0,
+        "positions": 51.0
+      },
+      {
+        "program_id": "AGS111",
+        "program_name": "ARCHIVES - RECORDS MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6469149.0,
+        "positions": 20.0
+      },
+      {
+        "program_id": "AGS131",
+        "program_name": "ENTERPRISE TECHNOLOGY SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 6315295.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "AGS901",
+        "program_name": "GENERAL ADMINISTRATIVE SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5904935.0,
+        "positions": 56.0
+      },
+      {
+        "program_id": "AGS223",
+        "program_name": "OFFICE LEASING",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 5500000.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "AGS252",
+        "program_name": "AUTOMOTIVE MANAGEMENT - PARKING CONTROL",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 4561089.0,
+        "positions": 27.0
+      },
+      {
+        "program_id": "AGS221",
+        "program_name": "PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 4000000.0,
+        "positions": 91.0
+      },
+      {
+        "program_id": "AGS233",
+        "program_name": "CENTRAL SERVICES - BUILDING REPAIRS AND ALTERATIONS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3693069.0,
+        "positions": 33.0
+      },
+      {
+        "program_id": "AGS251",
+        "program_name": "AUTOMOTIVE MANAGEMENT - MOTOR POOL",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 3539054.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "AGS881",
+        "program_name": "STATE FOUNDATION ON CULTURE AND THE ARTS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3335150.0,
+        "positions": 17.75
+      },
+      {
+        "program_id": "AGS232",
+        "program_name": "CENTRAL SERVICES - GROUNDS MAINTENANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2669822.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "AGS879",
+        "program_name": "OFFICE OF ELECTIONS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2595761.0,
+        "positions": 19.5
+      },
+      {
+        "program_id": "AGS131",
+        "program_name": "ENTERPRISE TECHNOLOGY SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2578244.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "AGS807",
+        "program_name": "SCHOOL R&M, NEIGHBOR ISLAND DISTRICTS",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 2346640.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "AGS240",
+        "program_name": "STATE PROCUREMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2205274.0,
+        "positions": 26.0
+      },
+      {
+        "program_id": "AGR192",
+        "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 2200000.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "AGS244",
+        "program_name": "SURPLUS PROPERTY MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2006803.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "AGS131",
+        "program_name": "ENTERPRISE TECHNOLOGY SERVICES",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 2000000.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "AGS231",
+        "program_name": "CENTRAL SERVICES - CUSTODIAL SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 1699084.0,
+        "positions": 127.0
+      },
+      {
+        "program_id": "AGS102",
+        "program_name": "EXPENDITURE EXAMINATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1629046.0,
+        "positions": 18.0
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Capital Improvement",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1500000.0,
+        "positions": 51.0
+      },
+      {
+        "program_id": "AGS103",
+        "program_name": "RECORDING AND REPORTING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1387165.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "AGS105",
+        "program_name": "ENFORCEMENT OF INFORMATION PRACTICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1258905.0,
+        "positions": 10.5
+      },
+      {
+        "program_id": "AGS234",
+        "program_name": "CENTRAL SERVICES - CEMETERY MANAGEMENT OFFICE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1167000.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "AGS871",
+        "program_name": "CAMPAIGN SPENDING COMMISSION",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 1043732.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "AGS871",
+        "program_name": "CAMPAIGN SPENDING COMMISSION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1027919.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "AGS104",
+        "program_name": "INTERNAL POST AUDIT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1025751.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "AGS881",
+        "program_name": "STATE FOUNDATION ON CULTURE AND THE ARTS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 992771.0,
+        "positions": 17.75
+      },
+      {
+        "program_id": "AGS211",
+        "program_name": "LAND SURVEY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 914121.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "AGS111",
+        "program_name": "ARCHIVES - RECORDS MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 521304.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "AGS211",
+        "program_name": "LAND SURVEY",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 285000.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "AGS879",
+        "program_name": "OFFICE OF ELECTIONS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 99694.0,
+        "positions": 1.5
+      },
+      {
+        "program_id": "AGS221",
+        "program_name": "PUBLIC WORKS - PLANNING, DESIGN, AND CONSTRUCTION",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 4000.0,
+        "positions": 91.0
+      }
+    ],
+    "path": "/pages/ags.html"
+  },
+  {
+    "id": "psd",
+    "code": "PSD",
+    "name": "Department of Corrections and Rehabilitation",
+    "description": "This department, formerly the Department of Public Safety, was renamed in 2022 when the Department of Law Enforcement was created. It oversees Hawai\u02bbi's state correctional facilities, health services, the parole board, and the Victim Compensation Program.",
+    "budget": "$320M",
+    "operating_budget": 319712288.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 319712288.0,
+    "positions": 2871.6,
+    "fund_breakdown": {
+      "Federal Funds": 1045989.0,
+      "General Funds": 304329210.0,
+      "Other Federal Funds": 859315.0,
+      "Revolving Funds": 10884725.0,
+      "Special Funds": 2517984.0,
+      "Trust Funds": 75065.0
+    },
+    "programs": [
+      {
+        "program_id": "PSD407",
+        "program_name": "OAHU COMMUNITY CORRECTIONAL CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 43160178.0,
+        "positions": 500.0
+      },
+      {
+        "program_id": "PSD808",
+        "program_name": "NON-STATE FACILITIES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 42589908.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "PSD402",
+        "program_name": "HALAWA CORRECTIONAL FACILITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 39211885.0,
+        "positions": 410.0
+      },
+      {
+        "program_id": "PSD421",
+        "program_name": "HEALTH CARE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 38877361.0,
+        "positions": 264.6
+      },
+      {
+        "program_id": "PSD420",
+        "program_name": "CORRECTIONS PROGRAM SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 26143271.0,
+        "positions": 185.0
+      },
+      {
+        "program_id": "PSD900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 25287667.0,
+        "positions": 149.0
+      },
+      {
+        "program_id": "PSD409",
+        "program_name": "WOMEN'S COMMUNITY CORRECTIONAL CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 20991799.0,
+        "positions": 269.0
+      },
+      {
+        "program_id": "PSD406",
+        "program_name": "MAUI COMMUNITY CORRECTIONAL CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 16652787.0,
+        "positions": 205.0
+      },
+      {
+        "program_id": "PSD405",
+        "program_name": "HAWAII COMMUNITY CORRECTIONAL CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 15855815.0,
+        "positions": 193.0
+      },
+      {
+        "program_id": "PSD422",
+        "program_name": "HAWAII CORRECTIONAL INDUSTRIES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 10884725.0,
+        "positions": 44.0
+      },
+      {
+        "program_id": "PSD404",
+        "program_name": "WAIAWA CORRECTIONAL FACILITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 9032631.0,
+        "positions": 112.0
+      },
+      {
+        "program_id": "PSD403",
+        "program_name": "KULANI CORRECTIONAL FACILITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7099249.0,
+        "positions": 83.0
+      },
+      {
+        "program_id": "PSD408",
+        "program_name": "KAUAI COMMUNITY CORRECTIONAL CENTER",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 6628031.0,
+        "positions": 74.0
+      },
+      {
+        "program_id": "PSD410",
+        "program_name": "INTAKE SERVICE CENTERS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5891809.0,
+        "positions": 73.0
+      },
+      {
+        "program_id": "PSD612",
+        "program_name": "ADULT PAROLE SUPERVISION AND COUNSELING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5211808.0,
+        "positions": 61.0
+      },
+      {
+        "program_id": "PSD900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1331967.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "PSD613",
+        "program_name": "CRIME VICTIM COMPENSATION COMMISSION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1186017.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "PSD613",
+        "program_name": "CRIME VICTIM COMPENSATION COMMISSION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1125638.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "PSD420",
+        "program_name": "CORRECTIONS PROGRAM SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1045989.0,
+        "positions": 185.0
+      },
+      {
+        "program_id": "PSD613",
+        "program_name": "CRIME VICTIM COMPENSATION COMMISSION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 859315.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "PSD611",
+        "program_name": "ADULT PAROLE DETERMINATIONS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 569373.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "PSD900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 75065.0,
+        "positions": 4.0
+      }
+    ],
+    "path": "/pages/psd.html"
+  },
+  {
+    "id": "lnr",
+    "code": "LNR",
+    "name": "Department of Land and Natural Resources",
+    "description": "This department is responsible for protecting Hawai\u02bbi's natural resources, preserving native species, and ensuring safe recreational sites. It oversees historic preservation, manages state parks, and administers land conveyances and recordings. The department is the steward for Kaho\u02bbolawe and Mauna Kea.",
+    "budget": "$299M",
+    "operating_budget": 296225042.0,
+    "capital_budget": 2400000.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 298625042.0,
+    "positions": 2255.75,
+    "fund_breakdown": {
+      "Federal Funds": 17865874.0,
+      "General Funds": 120823290.0,
+      "General Obligation Bond Fund": 2150000.0,
+      "Interdepartmental Transfers": 1686056.0,
+      "Other Federal Funds": 18074155.0,
+      "Revolving Funds": 946000.0,
+      "Special Funds": 136773713.0,
+      "Trust Funds": 305954.0
+    },
+    "programs": [
+      {
+        "program_id": "LNR801",
+        "program_name": "OCEAN-BASED RECREATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 42965486.0,
+        "positions": 124.0
+      },
+      {
+        "program_id": "LNR806",
+        "program_name": "PARKS ADMINISTRATION AND OPERATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 31094536.0,
+        "positions": 155.0
+      },
+      {
+        "program_id": "LNR402",
+        "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 23539031.0,
+        "positions": 73.5
+      },
+      {
+        "program_id": "LNR101",
+        "program_name": "PUBLIC LANDS MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 22983607.0,
+        "positions": 64.0
+      },
+      {
+        "program_id": "LNR405",
+        "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 17545614.0,
+        "positions": 199.25
+      },
+      {
+        "program_id": "LNR909",
+        "program_name": "MAUNA KEA STEWARDSHIP & OVERSIGHT AUTHORITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 14000800.0,
+        "positions": 13.0
+      },
+      {
+        "program_id": "LNR806",
+        "program_name": "PARKS ADMINISTRATION AND OPERATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 12886065.0,
+        "positions": 155.0
+      },
+      {
+        "program_id": "LNR407",
+        "program_name": "NATURAL AREA RESERVES AND WATERSHED MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 11334704.0,
+        "positions": 73.5
+      },
+      {
+        "program_id": "LNR172",
+        "program_name": "FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 10530000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "LNR102",
+        "program_name": "LEGACY LAND CONSERVATION PROGRAM",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 9034784.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "LNR172",
+        "program_name": "FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 8808994.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "LNR111",
+        "program_name": "CONVEYANCES AND RECORDINGS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 7731946.0,
+        "positions": 57.0
+      },
+      {
+        "program_id": "LNR810",
+        "program_name": "PREVENTION OF NATURAL DISASTERS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 7660556.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "LNR906",
+        "program_name": "LNR - NATURAL AND PHYSICAL ENVIRONMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7061839.0,
+        "positions": 56.0
+      },
+      {
+        "program_id": "LNR401",
+        "program_name": "ECOSYSTEM PROTECTION AND RESTORATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5526913.0,
+        "positions": 64.5
+      },
+      {
+        "program_id": "LNR804",
+        "program_name": "FOREST AND OUTDOOR RECREATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 5396897.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "LNR401",
+        "program_name": "ECOSYSTEM PROTECTION AND RESTORATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4889500.0,
+        "positions": 2.75
+      },
+      {
+        "program_id": "LNR804",
+        "program_name": "FOREST AND OUTDOOR RECREATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4812230.0,
+        "positions": 37.5
+      },
+      {
+        "program_id": "LNR802",
+        "program_name": "HISTORIC PRESERVATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4520402.0,
+        "positions": 45.0
+      },
+      {
+        "program_id": "LNR404",
+        "program_name": "WATER RESOURCES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4484758.0,
+        "positions": 28.0
+      },
+      {
+        "program_id": "LNR401",
+        "program_name": "ECOSYSTEM PROTECTION AND RESTORATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4239054.0,
+        "positions": 3.25
+      },
+      {
+        "program_id": "LNR402",
+        "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 3679077.0,
+        "positions": 19.5
+      },
+      {
+        "program_id": "LNR906",
+        "program_name": "LNR - NATURAL AND PHYSICAL ENVIRONMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3475827.0,
+        "positions": 21.0
+      },
+      {
+        "program_id": "LNR141",
+        "program_name": "WATER AND LAND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3403862.0,
+        "positions": 24.0
+      },
+      {
+        "program_id": "LNR407",
+        "program_name": "NATURAL AREA RESERVES AND WATERSHED MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 3000000.0,
+        "positions": 4.5
+      },
+      {
+        "program_id": "LNR402",
+        "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 2883534.0,
+        "positions": 9.5
+      },
+      {
+        "program_id": "LNR172",
+        "program_name": "FORESTRY - RESOURCE MANAGEMENT AND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2455475.0,
+        "positions": 34.0
+      },
+      {
+        "program_id": "LNR806",
+        "program_name": "PARKS ADMINISTRATION AND OPERATION",
+        "section": "Capital Improvement",
+        "fund_type": "C",
+        "fund_category": "General Obligation Bond Fund",
+        "amount": 2150000.0,
+        "positions": 155.0
+      },
+      {
+        "program_id": "LNR908",
+        "program_name": "KAHOOLAWE ISLAND RESERVE COMMISSION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1845510.0,
+        "positions": 16.0
+      },
+      {
+        "program_id": "LNR402",
+        "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 1686056.0,
+        "positions": 25.5
+      },
+      {
+        "program_id": "LNR801",
+        "program_name": "OCEAN-BASED RECREATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 1500000.0,
+        "positions": 124.0
+      },
+      {
+        "program_id": "LNR404",
+        "program_name": "WATER RESOURCES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 1283123.0,
+        "positions": 5.0
+      },
+      {
+        "program_id": "LNR810",
+        "program_name": "PREVENTION OF NATURAL DISASTERS",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1160621.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "LNR405",
+        "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 958875.0,
+        "positions": 3.75
+      },
+      {
+        "program_id": "LNR802",
+        "program_name": "HISTORIC PRESERVATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 923397.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "LNR405",
+        "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 921447.0,
+        "positions": 199.25
+      },
+      {
+        "program_id": "LNR804",
+        "program_name": "FOREST AND OUTDOOR RECREATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 917145.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "LNR804",
+        "program_name": "FOREST AND OUTDOOR RECREATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 913329.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "LNR141",
+        "program_name": "WATER AND LAND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 907330.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "LNR802",
+        "program_name": "HISTORIC PRESERVATION",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 751525.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "LNR801",
+        "program_name": "OCEAN-BASED RECREATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 478396.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "LNR407",
+        "program_name": "NATURAL AREA RESERVES AND WATERSHED MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 440000.0,
+        "positions": 73.5
+      },
+      {
+        "program_id": "LNR907",
+        "program_name": "AHA MOKU ADVISORY COMMITTEE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 286300.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "LNR401",
+        "program_name": "ECOSYSTEM PROTECTION AND RESTORATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 283534.0,
+        "positions": 8.5
+      },
+      {
+        "program_id": "LNR806",
+        "program_name": "PARKS ADMINISTRATION AND OPERATION",
+        "section": "Capital Improvement",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 250000.0,
+        "positions": 155.0
+      },
+      {
+        "program_id": "LNR141",
+        "program_name": "WATER AND LAND DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 199479.0,
+        "positions": 4.0
+      },
+      {
+        "program_id": "LNR407",
+        "program_name": "NATURAL AREA RESERVES AND WATERSHED MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 180000.0,
+        "positions": 73.5
+      },
+      {
+        "program_id": "LNR101",
+        "program_name": "PUBLIC LANDS MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 177872.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "LNR906",
+        "program_name": "LNR - NATURAL AND PHYSICAL ENVIRONMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 116466.0,
+        "positions": 21.0
+      },
+      {
+        "program_id": "LNR810",
+        "program_name": "PREVENTION OF NATURAL DISASTERS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 110000.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "LNR402",
+        "program_name": "NATIVE RESOURCES AND FIRE PROTECTION PROGRAM",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 106475.0,
+        "positions": 19.5
+      },
+      {
+        "program_id": "LNR405",
+        "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 100000.0,
+        "positions": 3.75
+      },
+      {
+        "program_id": "LNR405",
+        "program_name": "CONSERVATION AND RESOURCES ENFORCEMENT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 32671.0,
+        "positions": 3.75
+      }
+    ],
+    "path": "/pages/lnr.html"
+  },
+  {
+    "id": "atg",
+    "code": "ATG",
+    "name": "Department of the Attorney General",
+    "description": "This department provides legal support to the state's departments, prosecutes cases of tax and benefit fraud, and oversees fiduciary responsibilities for charitable nonprofits and trusts. The ATG is responsible for enforcing cigarette tax requirements and the tobacco settlement, maintains the system that collects and shares criminal history records, and manages the Child Support Enforcement Program. The department has been allocated $400 million in one-time general funds for the Maui wildfire settlement trust to support recovery and compensation efforts.",
+    "budget": "$134M",
+    "operating_budget": 133721369.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 133721369.0,
+    "positions": 925.45,
+    "fund_breakdown": {
+      "Federal Funds": 11641670.0,
+      "General Funds": 53348304.0,
+      "Interdepartmental Transfers": 21765719.0,
+      "Other Federal Funds": 26216033.0,
+      "Revolving Funds": 7910397.0,
+      "Special Funds": 6542845.0,
+      "Trust Funds": 6296401.0
+    },
+    "programs": [
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 45402026.0,
+        "positions": 340.41
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 21765719.0,
+        "positions": 128.7
+      },
+      {
+        "program_id": "ATG500",
+        "program_name": "CHILD SUPPORT ENFORCEMENT SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 20006088.0,
+        "positions": 135.96
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 11641670.0,
+        "positions": 38.129999999999995
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 6542845.0,
+        "positions": 33.9
+      },
+      {
+        "program_id": "ATG500",
+        "program_name": "CHILD SUPPORT ENFORCEMENT SERVICES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5448469.0,
+        "positions": 70.04
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 5005104.0,
+        "positions": 21.94
+      },
+      {
+        "program_id": "ATG231",
+        "program_name": "STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 4370515.0,
+        "positions": 24.5
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 4065177.0,
+        "positions": 6.23
+      },
+      {
+        "program_id": "ATG100",
+        "program_name": "LEGAL SERVICES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 3539882.0,
+        "positions": 7.6
+      },
+      {
+        "program_id": "ATG231",
+        "program_name": "STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2497809.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "ATG500",
+        "program_name": "CHILD SUPPORT ENFORCEMENT SERVICES",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 2231224.0,
+        "positions": 70.04
+      },
+      {
+        "program_id": "ATG231",
+        "program_name": "STATE CRIMINAL JUSTICE INFORMATION AND IDENTIFICATION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1204841.0,
+        "positions": 24.5
+      }
+    ],
+    "path": "/pages/atg.html"
+  },
+  {
+    "id": "def",
+    "code": "DEF",
+    "name": "Department of Defense",
+    "description": "This department coordinates the Hawai\u02bbi National Guard and maintains the emergency management system, including planning and communications for disasters. In addition, it administers the Youth Challenge Academy for at-risk young people, and the Office of Veterans Services.",
+    "budget": "$113M",
+    "operating_budget": 113164375.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 113164375.0,
+    "positions": 816.5,
+    "fund_breakdown": {
+      "Federal Funds": 4156958.0,
+      "General Funds": 37387562.0,
+      "Other Federal Funds": 70619855.0,
+      "Revolving Funds": 500000.0,
+      "Special Funds": 500000.0
+    },
+    "programs": [
+      {
+        "program_id": "DEF116",
+        "program_name": "HAWAII ARMY AND AIR NATIONAL GUARD",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 40210106.0,
+        "positions": 119.25
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 22497034.0,
+        "positions": 51.0
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 14097375.0,
+        "positions": 116.0
+      },
+      {
+        "program_id": "DEF110",
+        "program_name": "AMELIORATION OF PHYSICAL DISASTERS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 10256912.0,
+        "positions": 101.25
+      },
+      {
+        "program_id": "DEF116",
+        "program_name": "HAWAII ARMY AND AIR NATIONAL GUARD",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7081247.0,
+        "positions": 19.75
+      },
+      {
+        "program_id": "DEF114",
+        "program_name": "HAWAII NATIONAL GUARD YOUTH CHALLENGE ACADEMY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 6482477.0,
+        "positions": 73.5
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4156958.0,
+        "positions": 116.0
+      },
+      {
+        "program_id": "DEF114",
+        "program_name": "HAWAII NATIONAL GUARD YOUTH CHALLENGE ACADEMY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3885050.0,
+        "positions": 24.5
+      },
+      {
+        "program_id": "DEF112",
+        "program_name": "SERVICES TO VETERANS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2066978.0,
+        "positions": 28.0
+      },
+      {
+        "program_id": "DEF110",
+        "program_name": "AMELIORATION OF PHYSICAL DISASTERS",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 1430238.0,
+        "positions": 23.25
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 500000.0,
+        "positions": 116.0
+      },
+      {
+        "program_id": "DEF118",
+        "program_name": "HAWAII EMERGENCY MANAGEMENT AGENCY",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 500000.0,
+        "positions": 28.0
+      }
+    ],
+    "path": "/pages/def.html"
+  },
+  {
+    "id": "cca",
+    "code": "CCA",
+    "name": "Department of Commerce and Consumer Affairs",
+    "description": "This department upholds business standards and protects consumer interests. Its programs include the Public Utilities Commission (PUC), the insurance division, business registration and securities regulation, professional and vocational licensing, and the Office of Consumer Protection. CCA has the distinction of being the only executive department that receives no general funds to support its operations.",
+    "budget": "$106M",
+    "operating_budget": 106090779.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 106090779.0,
+    "positions": 713.0,
+    "fund_breakdown": {
+      "Special Funds": 102607842.0,
+      "Trust Funds": 3482937.0
+    },
+    "programs": [
+      {
+        "program_id": "CCA106",
+        "program_name": "INSURANCE REGULATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 22746784.0,
+        "positions": 95.0
+      },
+      {
+        "program_id": "CCA901",
+        "program_name": "PUBLIC UTILITIES COMMISSION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 19777291.0,
+        "positions": 69.0
+      },
+      {
+        "program_id": "CCA191",
+        "program_name": "GENERAL SUPPORT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 12858290.0,
+        "positions": 55.0
+      },
+      {
+        "program_id": "CCA111",
+        "program_name": "BUSINESS REGISTRATION AND SECURITIES REGULATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 10432895.0,
+        "positions": 77.0
+      },
+      {
+        "program_id": "CCA105",
+        "program_name": "PROFESSIONAL AND VOCATIONAL LICENSING",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 9909730.0,
+        "positions": 83.0
+      },
+      {
+        "program_id": "CCA112",
+        "program_name": "REGULATED INDUSTRIES COMPLAINTS OFFICE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 8930940.0,
+        "positions": 67.0
+      },
+      {
+        "program_id": "CCA104",
+        "program_name": "FINANCIAL SERVICES REGULATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 6417109.0,
+        "positions": 43.0
+      },
+      {
+        "program_id": "CCA103",
+        "program_name": "CONSUMER ADVOCATE FOR COMMUNICATION, UTILITIES, AND TRANSPORTATION SERVICES",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4944320.0,
+        "positions": 25.0
+      },
+      {
+        "program_id": "CCA110",
+        "program_name": "OFFICE OF CONSUMER PROTECTION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3833679.0,
+        "positions": 21.0
+      },
+      {
+        "program_id": "CCA105",
+        "program_name": "PROFESSIONAL AND VOCATIONAL LICENSING",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 2880256.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "CCA102",
+        "program_name": "CABLE TELEVISION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2507752.0,
+        "positions": 6.0
+      },
+      {
+        "program_id": "CCA104",
+        "program_name": "FINANCIAL SERVICES REGULATION",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 301000.0,
+        "positions": 43.0
+      },
+      {
+        "program_id": "CCA107",
+        "program_name": "POST-SECONDARY EDUCATION AUTHORIZATION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 249052.0,
+        "positions": 1.0
+      },
+      {
+        "program_id": "CCA106",
+        "program_name": "INSURANCE REGULATORY SERVICES",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 201000.0,
+        "positions": 95.0
+      },
+      {
+        "program_id": "CCA110",
+        "program_name": "OFFICE OF CONSUMER PROTECTION",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 100681.0,
+        "positions": 21.0
+      }
+    ],
+    "path": "/pages/cca.html"
+  },
+  {
+    "id": "law",
+    "code": "LAW",
+    "name": "Department of Law Enforcement",
+    "description": "The Legislature authorized the creation of a new Department of Law Enforcement during the 2022 session through HB2171. Its purpose is to \"consolidate and administer the criminal law enforcement and investigation functions,\" and now has responsibility for some programs that were previously administered by other departments. It currently manages Narcotics Enforcement, the Sheriff's Office, Criminal Investigation, Enforcement Training, and Homeland Security.",
+    "budget": "$98M",
+    "operating_budget": 98243046.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 98243046.0,
+    "positions": 1214.5,
+    "fund_breakdown": {
+      "Federal Funds": 5151095.0,
+      "General Funds": 55788295.0,
+      "Interdepartmental Transfers": 25348088.0,
+      "Other Federal Funds": 10950715.0,
+      "Revolving Funds": 1004853.0
+    },
+    "programs": [
+      {
+        "program_id": "LAW503",
+        "program_name": "SHERIFF",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 28623526.0,
+        "positions": 318.0
+      },
+      {
+        "program_id": "LAW503",
+        "program_name": "SHERIFF",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 19616116.0,
+        "positions": 150.0
+      },
+      {
+        "program_id": "LAW900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 16957744.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "LAW901",
+        "program_name": "OFFICE OF HOMELAND SECURITY",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 9550715.0,
+        "positions": 22.5
+      },
+      {
+        "program_id": "LAW900",
+        "program_name": "GENERAL ADMINISTRATION",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 5000000.0,
+        "positions": 72.0
+      },
+      {
+        "program_id": "LAW901",
+        "program_name": "OFFICE OF HOMELAND SECURITY",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 4551095.0,
+        "positions": 22.5
+      },
+      {
+        "program_id": "LAW504",
+        "program_name": "CRIMINAL INVESTIGATION DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3462585.0,
+        "positions": 22.0
+      },
+      {
+        "program_id": "LAW505",
+        "program_name": "LAW ENFORCEMENT TRAINING DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2668464.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "LAW901",
+        "program_name": "OFFICE OF HOMELAND SECURITY",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2362031.0,
+        "positions": 22.5
+      },
+      {
+        "program_id": "LAW502",
+        "program_name": "NARCOTICS ENFORCEMENT DIVISION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1713945.0,
+        "positions": 14.0
+      },
+      {
+        "program_id": "LAW502",
+        "program_name": "NARCOTICS ENFORCEMENT DIVISION",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 1004853.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "LAW502",
+        "program_name": "NARCOTICS ENFORCEMENT DIVISION",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 800000.0,
+        "positions": 8.0
+      },
+      {
+        "program_id": "LAW504",
+        "program_name": "CRIMINAL INVESTIGATION DIVISION",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 731972.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "LAW503",
+        "program_name": "SHERIFF",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 600000.0,
+        "positions": 318.0
+      },
+      {
+        "program_id": "LAW503",
+        "program_name": "SHERIFF",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 600000.0,
+        "positions": 150.0
+      }
+    ],
+    "path": "/pages/law.html"
+  },
+  {
+    "id": "agr",
+    "code": "AGR",
+    "name": "Department of Agriculture and Biosecurity",
+    "description": "This department carries out programs to conserve, develop, and use lands and resources for agricultural use. It continues to help Hawai\u02bbi transition from plantation-era agricultural practices toward a diversified agriculture model, and supports the development of new programs such as aquaculture. The department is also responsible for plant and animal pest and disease control, including managing animal quarantine.",
+    "budget": "$72M",
+    "operating_budget": 71650676.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 71650676.0,
+    "positions": 1366.3600000000001,
+    "fund_breakdown": {
+      "Federal Funds": 2151568.0,
+      "General Funds": 40266131.0,
+      "Interdepartmental Transfers": 212095.0,
+      "Other Federal Funds": 6729809.0,
+      "Revolving Funds": 9418033.0,
+      "Special Funds": 12060078.0,
+      "Trust Funds": 812962.0
+    },
+    "programs": [
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 21335989.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR192",
+        "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 5556126.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "AGR101",
+        "program_name": "FINANCIAL ASSISTANCE FOR AGRICULTURE",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 5500000.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "AGR171",
+        "program_name": "AGRICULTURAL DEVELOPMENT AND MARKETING",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 5289219.0,
+        "positions": 1.25
+      },
+      {
+        "program_id": "AGR131",
+        "program_name": "RABIES QUARANTINE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4781110.0,
+        "positions": 32.32
+      },
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4130800.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR132",
+        "program_name": "ANIMAL DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3352755.0,
+        "positions": 25.68
+      },
+      {
+        "program_id": "AGR141",
+        "program_name": "AGRICULTURAL RESOURCE MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 2851320.0,
+        "positions": 13.5
+      },
+      {
+        "program_id": "AGR846",
+        "program_name": "PESTICIDES",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2729255.0,
+        "positions": 39.0
+      },
+      {
+        "program_id": "AGR846",
+        "program_name": "PESTICIDES",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 2364038.0,
+        "positions": 39.0
+      },
+      {
+        "program_id": "AGR171",
+        "program_name": "AGRICULTURAL DEVELOPMENT AND MARKETING",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 2051568.0,
+        "positions": 0.75
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1826443.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR141",
+        "program_name": "AGRICULTURAL RESOURCE MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1798532.0,
+        "positions": 19.0
+      },
+      {
+        "program_id": "AGR141",
+        "program_name": "AGRICULTURAL RESOURCE MANAGEMENT",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 1375787.0,
+        "positions": 13.5
+      },
+      {
+        "program_id": "AGR171",
+        "program_name": "AGRICULTURAL DEVELOPMENT AND MARKETING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 1067694.0,
+        "positions": 11.0
+      },
+      {
+        "program_id": "AGR153",
+        "program_name": "AQUACULTURE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 978519.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "AGR101",
+        "program_name": "FINANCIAL ASSISTANCE FOR AGRICULTURE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 874338.0,
+        "positions": 9.0
+      },
+      {
+        "program_id": "AGR812",
+        "program_name": "MEASUREMENT STANDARDS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 746480.0,
+        "positions": 10.0
+      },
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 512962.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR846",
+        "program_name": "PESTICIDES",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 464629.0,
+        "positions": 3.0
+      },
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 365946.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR132",
+        "program_name": "ANIMAL DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 306941.0,
+        "positions": 26.68
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 300000.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 212095.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR192",
+        "program_name": "GENERAL ADMINISTRATION FOR AGRICULTURE",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 164450.0,
+        "positions": 32.0
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 138624.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 127848.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR153",
+        "program_name": "AQUACULTURE DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 125000.0,
+        "positions": 7.0
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 109046.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR151",
+        "program_name": "QUALITY AND PRICE ASSURANCE",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 100000.0,
+        "positions": 23.5
+      },
+      {
+        "program_id": "AGR122",
+        "program_name": "PLANT PEST AND DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 50360.0,
+        "positions": 143.0
+      },
+      {
+        "program_id": "AGR132",
+        "program_name": "ANIMAL DISEASE CONTROL",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 47802.0,
+        "positions": 25.68
+      },
+      {
+        "program_id": "AGR171",
+        "program_name": "AGRICULTURAL DEVELOPMENT AND MARKETING",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 15000.0,
+        "positions": 11.0
+      }
+    ],
+    "path": "/pages/agr.html"
+  },
+  {
+    "id": "hhl",
+    "code": "HHL",
+    "name": "Department of Hawaiian Home Lands",
+    "description": "This department manages the Hawaiian Homes Trust. The department identifies beneficiary needs and plans and develops land for homesteading and income-production purposes.",
+    "budget": "$68M",
+    "operating_budget": 68167008.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 68167008.0,
+    "positions": 243.0,
+    "fund_breakdown": {
+      "Federal Funds": 24126731.0,
+      "General Funds": 28032234.0,
+      "Other Federal Funds": 442800.0,
+      "Revolving Funds": 7000000.0,
+      "Special Funds": 4824709.0,
+      "Trust Funds": 3740534.0
+    },
+    "programs": [
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "N",
+        "fund_category": "Federal Funds",
+        "amount": 24126731.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HHL625",
+        "program_name": "ADMINISTRATION AND OPERATING SUPPORT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 18032234.0,
+        "positions": 200.0
+      },
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 10000000.0,
+        "positions": null
+      },
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "W",
+        "fund_category": "Revolving Funds",
+        "amount": 7000000.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 4824709.0,
+        "positions": null
+      },
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "T",
+        "fund_category": "Trust Funds",
+        "amount": 3740534.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HHL602",
+        "program_name": "PLANNING AND DEVELOPMENT FOR HAWAIIAN HOMESTEADS",
+        "section": "Operating",
+        "fund_type": "P",
+        "fund_category": "Other Federal Funds",
+        "amount": 442800.0,
+        "positions": 7.0
+      }
+    ],
+    "path": "/pages/hhl.html"
+  },
+  {
+    "id": "tax",
+    "code": "TAX",
+    "name": "Department of Taxation",
+    "description": "This department administers Hawai\u02bbi's taxation system, from enforcing tax laws to collecting taxes and other payments. The department supports the Council on Revenues, which advises the executive and legislative branches on revenue projections, and the Tax Review Commission, which periodically advises on state tax policy.",
+    "budget": "$45M",
+    "operating_budget": 44665709.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 44665709.0,
+    "positions": 518.0,
+    "fund_breakdown": {
+      "General Funds": 41036083.0,
+      "Special Funds": 3629626.0
+    },
+    "programs": [
+      {
+        "program_id": "TAX107",
+        "program_name": "SUPPORTING SERVICES - REVENUE COLLECTION",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 19823837.0,
+        "positions": 94.0
+      },
+      {
+        "program_id": "TAX100",
+        "program_name": "COMPLIANCE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 10668773.0,
+        "positions": 149.0
+      },
+      {
+        "program_id": "TAX105",
+        "program_name": "TAX SERVICES AND PROCESSING",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 7116185.0,
+        "positions": 129.0
+      },
+      {
+        "program_id": "TAX107",
+        "program_name": "SUPPORTING SERVICES - REVENUE COLLECTION",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 3629626.0,
+        "positions": 102.0
+      },
+      {
+        "program_id": "TAX103",
+        "program_name": "TAX COLLECTION SERVICES OFFICE",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 3427288.0,
+        "positions": 44.0
+      }
+    ],
+    "path": "/pages/tax.html"
+  },
+  {
+    "id": "hrd",
+    "code": "HRD",
+    "name": "Department of Human Resources Development",
+    "description": "This department provides recruitment and human resources development for the state.",
+    "budget": "$36M",
+    "operating_budget": 36278606.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 36278606.0,
+    "positions": 192.0,
+    "fund_breakdown": {
+      "General Funds": 30400445.0,
+      "Interdepartmental Transfers": 5178161.0,
+      "Special Funds": 700000.0
+    },
+    "programs": [
+      {
+        "program_id": "HRD102",
+        "program_name": "WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 27649629.0,
+        "positions": 89.0
+      },
+      {
+        "program_id": "HRD102",
+        "program_name": "WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",
+        "section": "Operating",
+        "fund_type": "U",
+        "fund_category": "Interdepartmental Transfers",
+        "amount": 5178161.0,
+        "positions": 2.0
+      },
+      {
+        "program_id": "HRD191",
+        "program_name": "SUPPORTING SERVICES \u2013 HUMAN RESOURCES DEVELOPMENT",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2750816.0,
+        "positions": 12.0
+      },
+      {
+        "program_id": "HRD102",
+        "program_name": "WORKFORCE ATTRACTION, SELECTION, CLASSIFICATION, AND EFFECTIVENESS",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 700000.0,
+        "positions": 89.0
+      }
+    ],
+    "path": "/pages/hrd.html"
+  },
+  {
+    "id": "gov",
+    "code": "GOV",
+    "name": "Office of the Governor",
+    "description": "",
+    "budget": "$5M",
+    "operating_budget": 4551872.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 4551872.0,
+    "positions": 47.0,
+    "fund_breakdown": {
+      "General Funds": 4551872.0
+    },
+    "programs": [
+      {
+        "program_id": "GOV100",
+        "program_name": "OFFICE OF THE GOVERNOR",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 4551872.0,
+        "positions": 47.0
+      }
+    ],
+    "path": "/pages/gov.html"
+  },
+  {
+    "id": "ltg",
+    "code": "LTG",
+    "name": "Office of the Lieutenant Governor",
+    "description": "",
+    "budget": "$3M",
+    "operating_budget": 2563665.0,
+    "capital_budget": 0.0,
+    "one_time_appropriations": 0.0,
+    "total_budget": 2563665.0,
+    "positions": 34.0,
+    "fund_breakdown": {
+      "General Funds": 2251665.0,
+      "Special Funds": 312000.0
+    },
+    "programs": [
+      {
+        "program_id": "LTG100",
+        "program_name": "OFFICE OF THE LIEUTENANT GOVERNOR",
+        "section": "Operating",
+        "fund_type": "A",
+        "fund_category": "General Funds",
+        "amount": 2251665.0,
+        "positions": 17.0
+      },
+      {
+        "program_id": "LTG100",
+        "program_name": "OFFICE OF THE LIEUTENANT GOVERNOR",
+        "section": "Operating",
+        "fund_type": "B",
+        "fund_category": "Special Funds",
+        "amount": 312000.0,
+        "positions": 17.0
+      }
+    ],
+    "path": "/pages/ltg.html"
+  }
+]

@@ -26,7 +26,13 @@
       "downloaded_at": "2026-05-06T13:22:03.321319",
       "line_count": 10829,
       "protected": true,
-      "correction_note": "Hand-applied corrections for markup the RTF→text conversion dropped (commit 08c5f83): (1) restored the 'TRN102 - DANIEL K. INOUYE INTERNATIONAL AIRPORT' Section 14 program header; (2) removed the struck 'STADIUM IMPROVEMENTS, KAUAI' ($700K C, FY26) project. Re-downloading/re-converting will lose these — see data/raw/drafts/CORRECTIONS.md."
+      "correction_note": "Hand-applied corrections for markup the RTF\u2192text conversion dropped (commit 08c5f83): (1) restored the 'TRN102 - DANIEL K. INOUYE INTERNATIONAL AIRPORT' Section 14 program header; (2) removed the struck 'STADIUM IMPROVEMENTS, KAUAI' ($700K C, FY26) project. Re-downloading/re-converting will lose these \u2014 see data/raw/drafts/CORRECTIONS.md."
     }
+  },
+  "enacted": {
+    "act": "Act 175, Session Laws of Hawaii 2026",
+    "signed": "2026-06-26",
+    "source": "Governor's Message 1277 (GM1277_.pdf), archived at data/raw/act175/GM1277_HB1800_Act175.pdf",
+    "note": "HB1800 CD1 was signed into law with NO line-item vetoes. Verified three ways: (1) pixel-diff of the GM1277 scan against the clean CD1 print from capitol.hawaii.gov (data/raw/act175/HB1800_CD1_capitol_clean.pdf) \u2014 the only extra ink across all ~240 bill pages is the Governor's signature on the approval page; every crossed-out number is the Legislature's own bracket markup striking old Act 250 amounts, identical in both documents. (2) The House/Senate journal for HB1800 has no 'line-item appropriations veto' entry \u2014 compare HB300/2025 (Act 250), which shows 'Vetoed on 06/27/2025 (GM1345), line-item appropriations veto' before its Act entry; HB1800's journal goes straight to 'Act 175 (GM1277)'. (3) The June 8 GM1224 intent-to-veto proclamation for HB1800 was the routine protective notice (same as GM1301 for HB300 in 2025) and was not followed by an item veto. The enacted budget is therefore identical to CD1 \u2014 the tracker's Enacted stage reuses amount_cd1 and no separate enacted dataset exists. Do NOT parse GM1277 for numbers (garbled OCR of a scan)."
   }
 }

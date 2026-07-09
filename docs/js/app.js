@@ -98,6 +98,30 @@ window.loadHistoricalTrends = async function () {
     }
 };
 
+// Current-biennium "By Department" detail datasets, keyed by "fy:variant".
+// The By Department tab shows the current biennium (FY2026–27) as both the
+// original bill (Act 250, SLH 2025) and the enacted supplemental (Act 175,
+// SLH 2026 = HB1800 CD1). FY2026 · Act 250 detail is the existing
+// departmentsData; the other three current-biennium panes load here. Earlier
+// years (FY2016–2025) are totals-only from historical_trends.json.
+let byDeptDatasets = {};   // { '2026:act175': [...departments], ... }
+window.loadByDeptDatasets = async function () {
+    const files = {
+        '2026:act175':      'departments_act175_fy2026.json',
+        '2027:act175':      'departments_act175_fy2027.json',
+        '2026:historical':  'departments_act250_fy2026.json',
+        '2027:historical':  'departments_act250_fy2027.json',
+    };
+    await Promise.all(Object.entries(files).map(async ([key, fname]) => {
+        try {
+            const r = await fetch('./js/' + fname + '?v=' + Date.now());
+            if (r.ok) byDeptDatasets[key] = await r.json();
+            else console.error(`By-dept dataset ${fname}: HTTP ${r.status}`);
+        } catch (e) { console.error(`Error loading ${fname}:`, e); }
+    }));
+    return byDeptDatasets;
+};
+
 // FY2025 actual spending (budgetary basis) by department — ACFR source.
 let actualsData = null;
 window.loadActuals = async function () {
@@ -735,45 +759,10 @@ window.homePage = async function () {
         return `<section class="home-page"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></section>`;
     }
 
-    const isDev = document.documentElement.hasAttribute('data-dev');
-
-    // ── Public version (no ?dev) ─────────────────────────────────────────────
-    // Shows the FY2026 enacted budget only: no year picker, no sparklines,
-    // no historical chart.  Matches the original simple HB300 layout.
-    if (!isDev) {
-        return `
-            <section class="home-page">
-                <div class="context-banner">
-                    <strong>Historical reference.</strong> This is the FY2025–26 enacted budget
-                    (HB300, Act 250, SLH 2025). For the current FY2026–27 supplemental budget
-                    draft, see <a href="#/">HB1800 →</a>
-                </div>
-
-                <div class="summary-cards-grid" id="hb300-summary-cards">
-                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.total_budget)}</div><div class="label">Total Budget</div><div class="label-sub">FY2026</div></div>
-                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.operating_budget)}</div><div class="label">Operating</div></div>
-                    <div class="summary-card"><div class="amount">${fmtHtmlCard(summaryStats.capital_budget)}</div><div class="label">Capital</div></div>
-                    ${summaryStats.total_positions ? `<div class="summary-card"><div class="amount">${summaryStats.total_positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Total Positions</div><div class="label-sub">FY2026</div></div>` : ''}
-                </div>
-
-                <div class="controls-bar">
-                    <div class="sort-controls">
-                        <span>Sort: </span>
-                        <button class="sort-btn active" data-sort="desc">High→Low</button>
-                        <button class="sort-btn" data-sort="asc">Low→High</button>
-                    </div>
-                    <div class="action-links">
-                        <a href="#/search" class="action-link">🔍 Search Programs</a>
-                        <a href="#/compare" class="action-link">📊 FY Comparison</a>
-                        <button class="action-link export-btn" id="export-depts">⬇ Export CSV</button>
-                    </div>
-                </div>
-
-                <div class="department-grid" id="dept-grid"></div>
-            </section>`;
-    }
-
-    // ── Dev version: full multi-year page ────────────────────────────────────
+    // ── Multi-year "By Department" page ──────────────────────────────────────
+    // Year dropdown over the enacted-budget history (FY2016–FY2027) plus the
+    // current biennium as both the original (Act 250) and the enacted
+    // supplemental (Act 175). Formerly gated behind ?dev; now the default view.
     // Year selector range — from historical_trends metadata when available,
     // else fall back to FY2026 only.  "Current" detail year (operating /
     // capital / positions / programs) is FY2026; older years show totals
@@ -781,25 +770,32 @@ window.homePage = async function () {
     const meta   = historicalTrendsData?.metadata || null;
     const fyMin  = meta?.fy_range?.[0] ?? 2026;
     const fyMax  = meta?.fy_range?.[1] ?? 2026;
-    const DETAIL_FY = 2026;
-    const projected = new Set(meta?.projected_fys || []);
 
-    // FY options — newest first, with badges for projected years
+    // FY options — newest first. The current biennium (FY2026 & FY2027) each
+    // get a pair: the enacted supplemental (Act 175, the operative budget) and
+    // the original bill (Act 250). Value scheme: "<fy>" = original/historical,
+    // "<fy>:act175" = supplemental. Default = FY2026 · Act 175 (current year,
+    // current law). Earlier years are single totals-only entries.
     const yearOptions = [];
     for (let y = fyMax; y >= fyMin; y--) {
-        const isProj = projected.has(y);
-        const isDetail = y === DETAIL_FY;
-        const label = `FY${y}` + (isProj ? ' (projected)' : '') + (isDetail ? ' — full detail' : '');
-        yearOptions.push(`<option value="${y}"${isDetail ? ' selected' : ''}>${label}</option>`);
+        if (y === 2026 || y === 2027) {
+            const sel = (y === 2026) ? ' selected' : '';
+            yearOptions.push(`<option value="${y}:act175"${sel}>FY${y} — enacted supplemental (Act 175)</option>`);
+            yearOptions.push(`<option value="${y}">FY${y} — original (Act 250)</option>`);
+        } else {
+            yearOptions.push(`<option value="${y}">FY${y}</option>`);
+        }
     }
 
     const html = `
         <section class="home-page">
             <div class="context-banner">
-                <strong>Enacted budgets.</strong> Pick a fiscal year below.
-                FY${DETAIL_FY} carries the full operating/capital/program detail from HB300 (Act 250, SLH 2025).
-                Earlier years show totals from the corresponding biennial appropriations act.
-                For the current FY2026–27 supplemental budget draft, see <a href="#/">HB1800 →</a>
+                <strong>Enacted budgets by department.</strong> Pick a fiscal year below.
+                FY2016–FY2025 show department totals from each biennial appropriations act.
+                The current biennium (FY2026–27) is available as both the original bill
+                (Act 250, SLH 2025) and the enacted supplemental (Act 175, SLH 2026), each
+                with full program detail. For how HB1800 moved from request to Act 175, see
+                <a href="#/">HB1800 →</a>
             </div>
 
             <div class="year-picker-bar">
@@ -869,8 +865,6 @@ window.departmentDetailPage = async function (params) {
 
     const dept = departmentsData.find(d => d.id === deptId);
     if (!dept) return window.notFoundPage();
-
-    const isDev = document.documentElement.hasAttribute('data-dev');
 
     const total = (dept.operating_budget || 0) + (dept.capital_budget || 0) + (dept.one_time_appropriations || 0);
     const programs = dept.programs || [];
@@ -967,7 +961,7 @@ window.departmentDetailPage = async function (params) {
     // The chart and year picker are dev-only; public page shows FY2026 only.
     const histDept = (historicalTrendsData?.by_department || [])
         .find(d => d.dept_code === dept.code);
-    const histSection = (isDev && histDept) ? `
+    const histSection = (histDept) ? `
         <section class="dept-history-section">
             <div class="dept-history-head">
                 <h3>Funding History · FY${histDept.series[0].fy}–FY${histDept.series[histDept.series.length-1].fy}</h3>
@@ -985,18 +979,24 @@ window.departmentDetailPage = async function (params) {
     // the summary cards from historical_trends.json (the FY2026 detail
     // sections below stay static — no dept-level program detail exists
     // for older years).
-    const deptYearOptions = (isDev && histDept) ? (() => {
+    const deptYearOptions = (histDept) ? (() => {
         const opts = [];
         const yrs = histDept.series.map(s => s.fy).sort((a, b) => b - a);
         for (const y of yrs) {
-            const isDetail = y === 2026;
-            const isProj = (historicalTrendsData?.metadata?.projected_fys || []).includes(y);
-            const label = `FY${y}` + (isProj ? ' (projected)' : '') + (isDetail ? ' — full detail' : '');
-            opts.push(`<option value="${y}"${isDetail ? ' selected' : ''}>${label}</option>`);
+            if (y === 2026 || y === 2027) {
+                // The program/fund detail on this page is the FY2026 · Act 250
+                // base, so default the picker there for a consistent landing
+                // view; Act 175 and other years update the summary cards.
+                const sel = (y === 2026) ? ' selected' : '';
+                opts.push(`<option value="${y}:act175">FY${y} — enacted supplemental (Act 175)</option>`);
+                opts.push(`<option value="${y}"${sel}>FY${y} — original (Act 250)</option>`);
+            } else {
+                opts.push(`<option value="${y}">FY${y}</option>`);
+            }
         }
         return opts.join('');
     })() : '';
-    const deptYearPicker = (isDev && histDept) ? `
+    const deptYearPicker = (histDept) ? `
         <div class="year-picker-bar dept-year-bar">
             <span class="year-picker-label">Fiscal year</span>
             <div class="year-picker" role="group" aria-label="Choose fiscal year">
@@ -1022,7 +1022,7 @@ window.departmentDetailPage = async function (params) {
 
     return `
         <section class="department-detail">
-            <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
+            <a href="#/enacted" class="back-button">← Back to By Department</a>
             <div class="department-header">
                 <h2>${dept.name} (${dept.code})</h2>
                 ${dept.description ? `<p class="dept-desc">${dept.description}</p>` : ''}
@@ -1048,7 +1048,7 @@ window.departmentDetailPage = async function (params) {
             ${deptYearPicker}
 
             <div class="summary-cards-grid" id="dept-summary-cards">
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">FY2026</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">${histDept ? 'FY2026 · Act 250' : 'FY2026'}</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.operating_budget)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.capital_budget)}</div><div class="label">Capital</div></div>
                 ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
@@ -1178,10 +1178,9 @@ window.initDepartmentDetailPage = async function () {
         });
     }
 
-    // ---- Historical chart + year picker — dev only ----------------------
-    // Public page omits both; bail out here so no chart code runs.
-    if (!document.documentElement.hasAttribute('data-dev')) return;
-
+    // ---- Historical chart + year picker --------------------------------
+    // Renders whenever this department has a historical series; bails cleanly
+    // (no chart, no picker) when the canvas or data is absent.
     const canvas = document.getElementById('dept-history-chart');
     if (!canvas || typeof Chart === 'undefined' || !historicalTrendsData) return;
 
@@ -1302,20 +1301,32 @@ window.initDepartmentDetailPage = async function () {
     const cardsWrap = document.getElementById('dept-summary-cards');
     if (!deptSel || !cardsWrap) return;
 
-    const projectedFys = new Set(historicalTrendsData?.metadata?.projected_fys || []);
+    // Locate this department inside a loaded current-biennium detail dataset.
+    const deptIn = (key) => (byDeptDatasets[key] || []).find(d => d.code === dept.code) || null;
 
-    const renderDeptCards = (fy) => {
+    const renderDeptCards = (fy, variant) => {
         const seriesEntry = histDept.series.find(s => s.fy === fy);
-        if (fy === 2026) {
-            // Full detail from the FY2026 source data
-            const op = dept.operating_budget;
-            const cap = dept.capital_budget;
+        // Current-biennium full-detail selection (FY2026/27 × Act 250/175).
+        const detailDept = (fy === 2026 && variant !== 'act175') ? dept
+            : (fy === 2026 || fy === 2027)
+                ? deptIn(`${fy}:${variant === 'act175' ? 'act175' : 'historical'}`)
+                : null;
+        if (detailDept) {
+            const op  = detailDept.operating_budget || 0;
+            const cap = detailDept.capital_budget || 0;
+            const tot = op + cap + (detailDept.one_time_appropriations || 0);
+            const pos = detailDept.positions;
+            const src = variant === 'act175' ? 'Act 175' : 'Act 250';
             cardsWrap.innerHTML = `
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">FY2026</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(tot)}</div><div class="label">Total</div><div class="label-sub">FY${fy} · ${src}</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(op)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(cap)}</div><div class="label">Capital</div></div>
-                ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}`;
-            if (deptHelp) deptHelp.textContent = '';
+                <div class="summary-card"><div class="amount">${cap > 0 ? fmtHtmlCard(cap) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>
+                ${pos ? `<div class="summary-card"><div class="amount">${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}`;
+            // The program/fund detail below is always the FY2026 · Act 250 base;
+            // note it whenever the summary above is showing something else.
+            if (deptHelp) deptHelp.textContent = (fy === 2026 && variant !== 'act175')
+                ? ''
+                : `Summary above is FY${fy} · ${src}. Program and fund detail below reflect FY2026 · Act 250.`;
         } else if (seriesEntry) {
             // Use historical op/cap split (added by the new aggregator)
             const totalNom = seriesEntry.nominal;
@@ -1326,9 +1337,7 @@ window.initDepartmentDetailPage = async function () {
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(opNom)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${capNom > 0 ? fmtHtmlCard(capNom) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>`;
             if (deptHelp) {
-                deptHelp.textContent = projectedFys.has(fy)
-                    ? `FY${fy} projected by the FY2026–27 biennial bill. Fund and program detail below reflect FY2026 only.`
-                    : `FY${fy} totals from the corresponding biennial appropriations act. Fund and program detail below reflect FY2026 only.`;
+                deptHelp.textContent = `FY${fy} totals from the corresponding biennial appropriations act. Program and fund detail below reflect FY2026 · Act 250.`;
             }
         } else {
             cardsWrap.innerHTML = `
@@ -1345,9 +1354,10 @@ window.initDepartmentDetailPage = async function () {
     };
 
     deptSel.addEventListener('change', () => {
-        const fy = parseInt(deptSel.value, 10);
+        const val = deptSel.value;                 // "2018" | "2026" | "2026:act175"
+        const fy = parseInt(val, 10);
         if (!Number.isFinite(fy)) return;
-        renderDeptCards(fy);
+        renderDeptCards(fy, val.includes(':act175') ? 'act175' : 'historical');
         syncDeptStepperButtons();
     });
     deptPrev?.addEventListener('click', () => {
@@ -1462,7 +1472,7 @@ window.comparePage = async function () {
 
     return `
         <section class="compare-page">
-            <a href="#/enacted" class="back-button">← Back to HB300 Budget</a>
+            <a href="#/enacted" class="back-button">← Back to By Department</a>
             <h2>FY2026 vs FY2027 Comparison</h2>
             <div class="filter-bar">
                 <select id="compare-filter" class="filter-select">
@@ -1984,14 +1994,14 @@ window.aboutPage = async function () {
         <section class="about-page">
             <div class="about-hero">
                 <h2>About This Tracker</h2>
-                <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It compares the House Draft (HD1) against the Conference Draft (CD1) to show how proposed spending changed through the legislative process.</p>
-                <p class="about-lead">For historical reference, the <strong>HB300</strong> tab shows the enacted FY2025–26 budget — the appropriations bill that was passed and signed into law last year. HB300 reflects what was actually funded for the current year and serves as a baseline for understanding what HB1800 is building on top of.</p>
+                <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It follows the bill from the Governor's request through the House Draft (HD1), Senate Draft (SD1), and Conference Draft (CD1) to show how proposed spending changed through the legislative process. On June 26, 2026 the Governor signed the bill into law as <strong>Act 175</strong> with no line-item vetoes, so the Enacted budget matches CD1.</p>
+                <p class="about-lead">The <strong>By Department</strong> tab shows enacted appropriations by department across fiscal years 2016–2027. A year picker steps through each biennium's enacted budget; for the current biennium (FY2026–27) you can view both the original bill (<strong>Act 250</strong>, SLH 2025) and the enacted supplemental (<strong>Act 175</strong>, SLH 2026 — the same figures the HB1800 tab tracks). It provides the multi-year context for what HB1800 changed.</p>
                 <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #ddd;">
             </div>
 
             <div class="about-section">
-                <h3>What are HD1 and CD1?</h3>
-                <p><strong>HD1</strong> is the bill as amended by the House. <strong>CD1</strong> is the Conference Committee's final version. Comparing them reveals which programs gained or lost funding during conference.</p>
+                <h3>What are HD1, CD1, and Enacted?</h3>
+                <p><strong>HD1</strong> is the bill as amended by the House. <strong>SD1</strong> is the Senate's version. <strong>CD1</strong> is the Conference Committee's final version, passed by both chambers. <strong>Enacted</strong> is the bill as signed into law (Act 175, June 26, 2026) — the Governor signed CD1 without any line-item vetoes, so the enacted figures are identical to CD1. Comparing the stages reveals which programs gained or lost funding along the way.</p>
             </div>
 
             <div class="about-section">
@@ -2923,6 +2933,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <button type="button" class="tl-stage-chip" data-node="hd1">HD1</button>
                     <button type="button" class="tl-stage-chip" data-node="sd1">SD1</button>
                     <button type="button" class="tl-stage-chip" data-node="cd1">CD1</button>
+                    <button type="button" class="tl-stage-chip" data-node="enacted">Enacted</button>
                 </div>
                 <div class="compare-timeline" id="compare-timeline">
                     <!-- Row 1: column labels -->
@@ -2931,6 +2942,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-label has-tooltip" data-col="hd1" data-row="labels" data-tooltip="The House version of the budget bill">HD1</span>
                     <span class="tl-label has-tooltip" data-col="sd1" data-row="labels" data-tooltip="The Senate version of the budget bill">SD1</span>
                     <span class="tl-label has-tooltip" data-col="cd1" data-row="labels" data-tooltip="The budget agreed on by the House and Senate.">CD1</span>
+                    <span class="tl-label has-tooltip" data-col="enacted" data-row="labels" data-tooltip="Signed into law by the Governor as Act 175 on June 26, 2026 — identical to CD1 (no line-item vetoes).">Enacted</span>
                     <span class="tl-label" data-col="net" data-row="labels">Net Change</span>
 
                     <!-- Row 2: dots and sparkline -->
@@ -2955,6 +2967,11 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                         <label class="tl-dot-lbl" for="tl-cd1"><span class="tl-dot"></span></label>
                         <span class="tl-seg tl-seg-after"></span>
                     </div>
+                    <div class="tl-dot-row" data-col="enacted" data-row="dots">
+                        <span class="tl-seg tl-seg-before"></span>
+                        <label class="tl-dot-lbl" for="tl-enacted"><span class="tl-dot"></span></label>
+                        <span class="tl-seg tl-seg-after"></span>
+                    </div>
                     <div class="tl-net-spark-row" data-col="net" data-row="dots">
                         <svg class="tl-net-spark" id="tl-net-spark" viewBox="0 0 60 20" aria-hidden="true"></svg>
                     </div>
@@ -2970,6 +2987,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-amt" id="tl-amt-hd1" data-col="hd1" data-row="totals"></span>
                     <span class="tl-amt" id="tl-amt-sd1" data-col="sd1" data-row="totals"></span>
                     <span class="tl-amt" id="tl-amt-cd1" data-col="cd1" data-row="totals"></span>
+                    <span class="tl-amt" id="tl-amt-enacted" data-col="enacted" data-row="totals"></span>
                     <span class="tl-amt tl-net-chip" id="tl-amt-net" data-col="net" data-row="totals"></span>
 
                     <!-- Row 4: context captions — the totals all round to the same
@@ -2979,6 +2997,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-sub" id="tl-sub-hd1" data-col="hd1" data-row="subs"></span>
                     <span class="tl-sub" id="tl-sub-sd1" data-col="sd1" data-row="subs"></span>
                     <span class="tl-sub" id="tl-sub-cd1" data-col="cd1" data-row="subs"></span>
+                    <span class="tl-sub" id="tl-sub-enacted" data-col="enacted" data-row="subs"></span>
                     <span class="tl-sub" id="tl-sub-net" data-col="net" data-row="subs"></span>
 
                     <!-- Row 4: Operating breakdown (toggled).
@@ -2991,6 +3010,7 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-bd-cell" id="tl-bd-op-hd1" data-col="hd1" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-sd1" data-col="sd1" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-cd1" data-col="cd1" data-row="op" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-op-enacted" data-col="enacted" data-row="op" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-op-net" data-col="net" data-row="op" hidden></span>
 
                     <!-- Row 5: Capital breakdown (toggled) -->
@@ -3000,13 +3020,15 @@ python scripts/compare_drafts.py --draft1 HD1 --draft2 SD1 --fy 2027 --output do
                     <span class="tl-bd-cell" id="tl-bd-cap-hd1" data-col="hd1" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-sd1" data-col="sd1" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-cd1" data-col="cd1" data-row="cap" hidden></span>
+                    <span class="tl-bd-cell" id="tl-bd-cap-enacted" data-col="enacted" data-row="cap" hidden></span>
                     <span class="tl-bd-cell" id="tl-bd-cap-net" data-col="net" data-row="cap" hidden></span>
 
                     <!-- Hidden checkboxes (state toggles; labels for these are the dots above) -->
                     <input type="checkbox" class="tl-cb" id="tl-gov" checked>
                     <input type="checkbox" class="tl-cb" id="tl-hd1">
                     <input type="checkbox" class="tl-cb" id="tl-sd1">
-                    <input type="checkbox" class="tl-cb" id="tl-cd1" checked>
+                    <input type="checkbox" class="tl-cb" id="tl-cd1">
+                    <input type="checkbox" class="tl-cb" id="tl-enacted" checked>
                 </div>
             </div>
 
@@ -3057,13 +3079,16 @@ window.initDraftComparePage = async function () {
     let expandedFundTypes = new Set();
     let expandedPrograms = new Set();
     let expandedFunds = new Set();
-    // Timeline state: defaults to just the endpoints (Gov → CD1) so the
-    // summary bar is uncluttered; HD1/SD1 are off by default but easy to
-    // toggle on via the dots.
+    // Timeline state: defaults to just the endpoints (Gov → Enacted) so the
+    // summary bar is uncluttered; HD1/SD1/CD1 are off by default but easy to
+    // toggle on via the dots. The Enacted stage (Act 175, signed 6/26/2026)
+    // is CD1 signed into law with no line-item vetoes, so it reuses the
+    // amount_cd1 figures throughout — there is no separate enacted dataset.
     let govActive = true;
     let hd1Active = false;
     let sd1Active = false;
-    let cd1Active = true;
+    let cd1Active = false;
+    let enactedActive = true;
     let showBreakdown = false; // whether Op/Cap sub-chips are visible under each node
 
     // --- URL state persistence ---
@@ -3081,14 +3106,14 @@ window.initDraftComparePage = async function () {
             mode:  p.get('mode') || 'all',
             sort:  p.get('sort') || 'change',
             dir:   p.get('dir')  || 'asc',
-            nodes: p.get('nodes') || 'gov,cd1',
+            nodes: p.get('nodes') || 'gov,enacted',
         };
     };
     const syncUrlState = () => {
         const fy = activeData === draftComparisonDataFY27 ? '27' : '26';
         const q    = document.getElementById('draft-search')?.value || '';
         const mode = document.getElementById('draft-filter')?.value || 'all';
-        const activeNodes = [govActive && 'gov', hd1Active && 'hd1', sd1Active && 'sd1', cd1Active && 'cd1']
+        const activeNodes = [govActive && 'gov', hd1Active && 'hd1', sd1Active && 'sd1', cd1Active && 'cd1', enactedActive && 'enacted']
             .filter(Boolean).join(',');
         const p = new URLSearchParams();
         if (fy   !== '26')               p.set('fy',    fy);
@@ -3096,7 +3121,7 @@ window.initDraftComparePage = async function () {
         if (mode !== 'all')              p.set('mode',  mode);
         if (sortCol !== 'change')        p.set('sort',  sortCol);
         if (sortDir !== 'asc')           p.set('dir',   sortDir);
-        if (activeNodes !== 'gov,cd1') p.set('nodes', activeNodes);
+        if (activeNodes !== 'gov,enacted') p.set('nodes', activeNodes);
         const qs = p.toString();
         history.replaceState(null, '', '#/' + (qs ? '?' + qs : ''));
     };
@@ -3119,6 +3144,7 @@ window.initDraftComparePage = async function () {
         hd1Active = ns.has('hd1');
         sd1Active = ns.has('sd1');
         cd1Active = ns.has('cd1');
+        enactedActive = ns.has('enacted');
     }
 
     // Build baseline lookup from governorRequestData.
@@ -3204,15 +3230,18 @@ window.initDraftComparePage = async function () {
     if (draftComparisonDataFY27) injectOrphans(draftComparisonDataFY27);
 
     // Derived getters: leftmost active = d1, rightmost active = d2.
-    // The four-stage timeline (Gov → HD1 → SD1 → CD1) means the rightmost
-    // active node falls back through CD1 → SD1 → HD1 as columns are toggled off.
+    // The five-stage timeline (Gov → HD1 → SD1 → CD1 → Enacted) means the
+    // rightmost active node falls back through Enacted → CD1 → SD1 → HD1 as
+    // columns are toggled off. The Enacted stage has no dataset of its own —
+    // Act 175 was signed with no line-item vetoes, so it maps to amount_cd1.
     const getD1Key = () => {
         if (govActive) return 'amount_baseline';
         if (hd1Active) return 'amount_hd1';
         if (sd1Active) return 'amount_sd1';
-        return 'amount_cd1';
+        return 'amount_cd1'; // CD1 or Enacted — same figures
     };
     const getD2Key = () => {
+        if (enactedActive) return 'amount_cd1'; // Enacted == CD1
         if (cd1Active) return 'amount_cd1';
         if (sd1Active) return 'amount_sd1';
         if (hd1Active) return 'amount_hd1';
@@ -3222,9 +3251,10 @@ window.initDraftComparePage = async function () {
         if (govActive) return "Gov's Request";
         if (hd1Active) return 'HD1';
         if (sd1Active) return 'SD1';
-        return 'CD1';
+        return cd1Active ? 'CD1' : 'Enacted';
     };
     const getD2Label = () => {
+        if (enactedActive) return 'Enacted';
         if (cd1Active) return 'CD1';
         if (sd1Active) return 'SD1';
         if (hd1Active) return 'HD1';
@@ -3273,7 +3303,7 @@ window.initDraftComparePage = async function () {
     // CD1 column: the items the Governor requested that the Legislature crossed
     // out (gov_not_concur). Shows a "✗ cut" hint + a hover listing those items
     // struck through. Only when CD1 is the active d2 column.
-    const cd1CutShows = (p) => !!(p && cd1Active && getD2Key() === 'amount_cd1'
+    const cd1CutShows = (p) => !!(p && (cd1Active || enactedActive) && getD2Key() === 'amount_cd1'
         && p.gov_not_concur && p.reason_gov);
     const cd1CutCellAttrs = (p, baseClass) => {
         if (!cd1CutShows(p)) return baseClass ? ` class="${baseClass}"` : '';
@@ -3291,6 +3321,9 @@ window.initDraftComparePage = async function () {
     const showHD1Col = () => hd1Active && getD1Label() !== 'HD1' && getD2Label() !== 'HD1';
     // SD1 is a visible middle column when it is active AND is not itself an endpoint
     const showSD1Col = () => sd1Active && getD1Label() !== 'SD1' && getD2Label() !== 'SD1';
+    // CD1 never renders as a middle column: the only stage after it is Enacted,
+    // which carries identical figures (Act 175 = CD1 signed with no vetoes), so
+    // a CD1 column beside an Enacted endpoint would duplicate every value.
 
     // Shorten fund category names for display (e.g., "General Funds" → "General")
     const shortFund = (cat) => {
@@ -3389,6 +3422,7 @@ window.initDraftComparePage = async function () {
         const totHD1 = op.hd1 + cap.hd1;
         const totSD1 = op.sd1 + cap.sd1;
         const totCD1 = op.cd1 + cap.cd1;
+        const totEnacted = totCD1; // Act 175 == CD1 (signed with no line-item vetoes)
         const totD2  = op.d2 + cap.d2;
         const totD1  = op.d1 + cap.d1;
         const totNet = totD2 - totD1;
@@ -3407,6 +3441,7 @@ window.initDraftComparePage = async function () {
         if (hd1Active) nodes.push({ val: totHD1, label: 'HD1' });
         if (sd1Active) nodes.push({ val: totSD1, label: 'SD1' });
         if (cd1Active) nodes.push({ val: totCD1, label: 'CD1' });
+        if (enactedActive) nodes.push({ val: totEnacted, label: 'Enacted' });
 
         // Compact format for amounts shown directly under each timeline dot.
         // Phones get one decimal — the second decimal is what pushes the
@@ -3440,6 +3475,7 @@ window.initDraftComparePage = async function () {
             { id: 'tl-amt-hd1', val: totHD1 },
             { id: 'tl-amt-sd1', val: totSD1 },
             { id: 'tl-amt-cd1', val: totCD1 },
+            { id: 'tl-amt-enacted', val: totEnacted },
         ].forEach(({ id, val }) => setAnimatedAmount(id, val, fmtShortHTML));
 
         // Context captions under each pill. Whole millions are enough
@@ -3466,12 +3502,12 @@ window.initDraftComparePage = async function () {
         // line passes over its column, spanning the two stages actually being
         // compared. With fewer than 3 active stages the single delta would
         // duplicate the Net Change pill, so no connectors are drawn.
-        const stageVals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1 };
-        const stageCols = { gov: 3, hd1: 4, sd1: 5, cd1: 6 };
-        const stageLbls = { gov: 'Gov.', hd1: 'HD1', sd1: 'SD1', cd1: 'CD1' };
+        const stageVals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1, enacted: totEnacted };
+        const stageCols = { gov: 3, hd1: 4, sd1: 5, cd1: 6, enacted: 7 };
+        const stageLbls = { gov: 'Gov.', hd1: 'HD1', sd1: 'SD1', cd1: 'CD1', enacted: 'Enacted' };
         const tlEl = document.getElementById('compare-timeline');
         tlEl?.querySelectorAll('.tl-delta').forEach(el => el.remove());
-        const activeStages = ['gov', 'hd1', 'sd1', 'cd1']
+        const activeStages = ['gov', 'hd1', 'sd1', 'cd1', 'enacted']
             .filter(n => document.getElementById(`tl-${n}`)?.checked);
         const showDeltas = activeStages.length >= 3;
 
@@ -3482,7 +3518,10 @@ window.initDraftComparePage = async function () {
         setSub('tl-sub-gov', showDeltas ? '' : 'baseline');
         setSub('tl-sub-hd1', '');
         setSub('tl-sub-sd1', '');
-        setSub('tl-sub-cd1', showDeltas ? '' : 'final budget', showDeltas ? '' : 'tl-sub-final');
+        // The "destination" anchor sits under the rightmost active stage:
+        // Enacted when it's on, otherwise CD1.
+        setSub('tl-sub-cd1', (showDeltas || enactedActive) ? '' : 'final budget', (showDeltas || enactedActive) ? '' : 'tl-sub-final');
+        setSub('tl-sub-enacted', (showDeltas || !enactedActive) ? '' : 'became law', (showDeltas || !enactedActive) ? '' : 'tl-sub-final');
 
         if (tlEl && showDeltas) {
             for (let i = 1; i < activeStages.length; i++) {
@@ -3531,6 +3570,7 @@ window.initDraftComparePage = async function () {
             { col: 'hd1', opV: op.hd1,              capV: cap.hd1,              fmt: fmtShort },
             { col: 'sd1', opV: op.sd1,              capV: cap.sd1,              fmt: fmtShort },
             { col: 'cd1', opV: op.cd1,              capV: cap.cd1,              fmt: fmtShort },
+            { col: 'enacted', opV: op.cd1,          capV: cap.cd1,              fmt: fmtShort },
             { col: 'net', opV: op.d2 - op.d1,       capV: cap.d2 - cap.d1,      fmt: signed   },
         ];
         // Two-tone suffix for breakdown values, matching the totals pills.
@@ -3601,8 +3641,8 @@ window.initDraftComparePage = async function () {
         // totals so visually-tiny deltas still show a slope.
         const spark = document.getElementById('tl-net-spark');
         if (spark) {
-            const stageTotals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1 };
-            const sparkStages = activeStages.length >= 2 ? activeStages : ['gov', 'cd1'];
+            const stageTotals = { gov: totGov, hd1: totHD1, sd1: totSD1, cd1: totCD1, enacted: totEnacted };
+            const sparkStages = activeStages.length >= 2 ? activeStages : ['gov', 'enacted'];
             const vs = sparkStages.map(n => stageTotals[n]);
             const mn = Math.min(...vs), mx = Math.max(...vs);
             const range = mx - mn || 1;
@@ -5572,15 +5612,16 @@ window.initDraftComparePage = async function () {
     // (a ResizeObserver alone misses some of these transitions).
     let refreshScrollHints = () => {};
     const updateTimeline = () => {
-        govActive  = document.getElementById('tl-gov')?.checked  ?? true;
-        hd1Active  = document.getElementById('tl-hd1')?.checked  ?? true;
-        sd1Active  = document.getElementById('tl-sd1')?.checked  ?? true;
-        cd1Active  = document.getElementById('tl-cd1')?.checked  ?? true;
+        govActive     = document.getElementById('tl-gov')?.checked     ?? true;
+        hd1Active     = document.getElementById('tl-hd1')?.checked     ?? true;
+        sd1Active     = document.getElementById('tl-sd1')?.checked     ?? true;
+        cd1Active     = document.getElementById('tl-cd1')?.checked     ?? true;
+        enactedActive = document.getElementById('tl-enacted')?.checked ?? true;
 
         // Enforce minimum two active nodes: disable a checkbox if unchecking it
         // would leave only one node active.
-        const activeCount = [govActive, hd1Active, sd1Active, cd1Active].filter(Boolean).length;
-        ['gov', 'hd1', 'sd1', 'cd1'].forEach(node => {
+        const activeCount = [govActive, hd1Active, sd1Active, cd1Active, enactedActive].filter(Boolean).length;
+        ['gov', 'hd1', 'sd1', 'cd1', 'enacted'].forEach(node => {
             const cb = document.getElementById(`tl-${node}`);
             if (!cb) return;
             const nodeActive = cb.checked;
@@ -5593,7 +5634,7 @@ window.initDraftComparePage = async function () {
         // data-col attribute.
         const tl = document.getElementById('compare-timeline');
         if (tl) {
-            ['gov', 'hd1', 'sd1', 'cd1'].forEach(node => {
+            ['gov', 'hd1', 'sd1', 'cd1', 'enacted'].forEach(node => {
                 const cb = document.getElementById(`tl-${node}`);
                 tl.classList.toggle(`col-${node}-inactive`, !(cb?.checked));
             });
@@ -5605,7 +5646,7 @@ window.initDraftComparePage = async function () {
         // carries the story of spans that skip over a muted stage. Each gap
         // between dot i and dot i+1 is drawn by two segments: i's seg-after +
         // (i+1)'s seg-before.
-        const segOrder = ['gov', 'hd1', 'sd1', 'cd1'];
+        const segOrder = ['gov', 'hd1', 'sd1', 'cd1', 'enacted'];
         const stageOn = n => !!document.getElementById(`tl-${n}`)?.checked;
         const segOf = (n, side) =>
             document.querySelector(`.tl-dot-row[data-col="${n}"] .tl-seg-${side}`);
@@ -5644,9 +5685,9 @@ window.initDraftComparePage = async function () {
         });
     });
     // Reflect URL-persisted node state in checkboxes on page load
-    if (_initState.nodes !== 'gov,cd1') {
+    if (_initState.nodes !== 'gov,enacted') {
         const ns = new Set(_initState.nodes.split(','));
-        ['gov', 'hd1', 'sd1', 'cd1'].forEach(n => {
+        ['gov', 'hd1', 'sd1', 'cd1', 'enacted'].forEach(n => {
             const cb = document.getElementById(`tl-${n}`);
             if (cb) cb.checked = ns.has(n);
         });
@@ -5751,16 +5792,21 @@ window.initDraftComparePage = async function () {
         const meta = window._lastDraftMeta || activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
         if (btn.id === 'export-drafts') {
+            // Column names reflect the ACTIVE comparison endpoints (Gov's
+            // Request / HD1 / SD1 / CD1 / Enacted), not the dataset's
+            // draft1/draft2, which stay HD1/CD1 regardless of the toggles.
+            const d1Name = getD1Label().replace(/[^\w]+/g, '_');
+            const d2Name = getD2Label().replace(/[^\w]+/g, '_');
             const rows = (window._lastDraftResults || activeData.comparisons).map(r => ({
                 program_id: r.program_id, program_name: r.program_name,
                 department_code: r.department_code, department_name: r.department_name,
                 section: r.section, fund_type: r.fund_type, fund_category: r.fund_category,
-                [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
-                [`${meta.draft1}_positions`]: r[posKeyFor(d1Key)] ?? '',
-                [`${meta.draft2}_positions`]: r[posKeyFor(d2Key)] ?? '',
+                [d1Name]: r[d1Key], [d2Name]: r[d2Key],
+                [`${d1Name}_positions`]: r[posKeyFor(d1Key)] ?? '',
+                [`${d2Name}_positions`]: r[posKeyFor(d2Key)] ?? '',
                 change: r.change, pct_change: r.pct_change, change_type: r.change_type,
             }));
-            downloadCSV(rows, `${meta.bill_number}_${meta.draft1}_vs_${meta.draft2}_FY${meta.fiscal_year}.csv`);
+            downloadCSV(rows, `${meta.bill_number}_${d1Name}_vs_${d2Name}_FY${meta.fiscal_year}.csv`);
         }
     });
 
@@ -5769,14 +5815,16 @@ window.initDraftComparePage = async function () {
         if (!btn || btn.id !== 'export-fund-detail') return;
         const meta = window._lastDraftMeta || activeData.metadata;
         const d1Key = getD1Key(), d2Key = getD2Key();
+        const d1Name = getD1Label().replace(/[^\w]+/g, '_');
+        const d2Name = getD2Label().replace(/[^\w]+/g, '_');
         const rows = activeData.comparisons.map(r => ({
             fund_type: r.fund_type, fund_category: r.fund_category,
             program_id: r.program_id, program_name: r.program_name,
             department_code: r.department_code, department_name: r.department_name,
             section: r.section,
-            [meta.draft1]: r[d1Key], [meta.draft2]: r[d2Key],
-            [`${meta.draft1}_positions`]: r[posKeyFor(d1Key)] ?? '',
-            [`${meta.draft2}_positions`]: r[posKeyFor(d2Key)] ?? '',
+            [d1Name]: r[d1Key], [d2Name]: r[d2Key],
+            [`${d1Name}_positions`]: r[posKeyFor(d1Key)] ?? '',
+            [`${d2Name}_positions`]: r[posKeyFor(d2Key)] ?? '',
             change: r.change, pct_change: r.pct_change,
         }));
         downloadCSV(rows, `${meta.bill_number}_fund_detail_FY${meta.fiscal_year}.csv`);
@@ -5865,162 +5913,127 @@ window.initDraftComparePage = async function () {
 window.initHomePage = async function () {
     if (!departmentsData?.length) return;
 
-    const isDev = document.documentElement.hasAttribute('data-dev');
+    // ── Multi-year "By Department" init ──────────────────────────────────────
+    // A "selection" is a fiscal year plus a variant. FY2016–2025 use the
+    // historical series (department totals only). The current biennium
+    // (FY2026–27) has two variants: 'act175' (the enacted supplemental) and
+    // the original bill ('historical', = Act 250 in historical_trends /
+    // departments.json). Default = FY2026 · Act 175 (current year, current law).
+    let selection = { fy: 2026, variant: 'act175' };
+    let sortDir   = 'desc';
+    let histMode  = 'nominal';   // 'nominal' | 'real' — drives top history chart
 
-    // ── Public init (no ?dev) ────────────────────────────────────────────────
-    // Simple FY2026 grid with sort + export only — no year picker or chart.
-    if (!isDev) {
-        let sortDir = 'desc';
+    const idByCode  = new Map(departmentsData.map(d => [d.code, d.id]));
+    const deptTotal = (d) => (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0);
 
-        const renderPublicGrid = () => {
-            const grid = document.getElementById('dept-grid');
-            if (!grid) return;
-            const rows = [...departmentsData].sort((a, b) => {
-                const tA = (a.operating_budget||0) + (a.capital_budget||0) + (a.one_time_appropriations||0);
-                const tB = (b.operating_budget||0) + (b.capital_budget||0) + (b.one_time_appropriations||0);
-                return sortDir === 'asc' ? tA - tB : tB - tA;
-            });
-            grid.innerHTML = rows.map(dept => {
-                const total = (dept.operating_budget||0) + (dept.capital_budget||0) + (dept.one_time_appropriations||0);
-                const op  = dept.operating_budget || 0;
-                const cap = dept.capital_budget || 0;
-                const ot  = dept.one_time_appropriations || 0;
-                const pos = dept.positions;
-                return `
-                    <a href="#/department/${dept.id}" class="department-card">
-                        <h3>${dept.name}</h3>
-                        <div class="card-content">
-                            <div class="budget-total">
-                                <span>Total Budget · FY2026</span>
-                                <strong>${fmt(total)}</strong>
-                            </div>
-                            <div class="budget-breakdown">
-                                <div class="budget-row"><span>Operating</span><span>${fmt(op)}</span></div>
-                                ${cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(cap)}</span></div>` : ''}
-                                ${ot > 0  ? `<div class="budget-row"><span>One-Time</span><span>${fmt(ot)}</span></div>`  : ''}
-                                ${pos ? `<div class="budget-row"><span>Positions</span><span>${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
-                            </div>
-                        </div>
-                    </a>`;
-            }).join('');
-        };
+    // Program-level detail dataset for a selection, or null when the year is
+    // totals-only (FY2016–2025). All four current-biennium panes use parallel
+    // unfiltered datasets (keys "<fy>:historical" = Act 250, "<fy>:act175" =
+    // Act 175) so every pane's grid+summary reconciles with the history chart,
+    // including the county grant pass-through codes.
+    const detailFor = (fy, variant) => byDeptDatasets[`${fy}:${variant}`] || null;
 
-        document.querySelectorAll('.sort-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                sortDir = this.dataset.sort;
-                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                renderPublicGrid();
-            });
-        });
-
-        document.getElementById('export-depts')?.addEventListener('click', () => {
-            const rows = departmentsData.map(d => ({
-                code: d.code,
-                name: d.name,
-                total: (d.operating_budget||0) + (d.capital_budget||0) + (d.one_time_appropriations||0),
-                operating: d.operating_budget,
-                capital:   d.capital_budget,
-                one_time:  d.one_time_appropriations,
-                positions: d.positions || '',
-            }));
-            downloadCSV(rows, 'departments_fy2026.csv');
-        });
-
-        renderPublicGrid();
-        return;
-    }
-
-    // ── Dev init: full multi-year page ───────────────────────────────────────
-    const DETAIL_FY = 2026;
-    let selectedFy = DETAIL_FY;
-    let sortDir    = 'desc';
-    let histMode   = 'nominal';   // 'nominal' | 'real' — drives top history chart
+    // Human label for the current selection, e.g. "FY2026 · Act 175".
+    const yearLabel = () => {
+        const { fy, variant } = selection;
+        if (fy === 2026 || fy === 2027) return `FY${fy} · ${variant === 'act175' ? 'Act 175' : 'Act 250'}`;
+        return `FY${fy}`;
+    };
 
     // ---- Department grid -------------------------------------------------
-    // Each card: dept name + "FY{year} total" + (when DETAIL_FY) full
-    // operating/capital/positions breakdown + 12-yr nominal sparkline.
-    // Non-detail years collapse to total + sparkline.
-    const renderDeptCard = (dept, totalForFy, sparkSvg) => {
-        const isDetail = selectedFy === DETAIL_FY;
-        const op  = dept.operating_budget || 0;
-        const cap = dept.capital_budget || 0;
-        const ot  = dept.one_time_appropriations || 0;
-        const pos = dept.positions;
-        const detailRows = isDetail ? `
-            <div class="budget-row"><span>Operating</span><span>${fmt(op)}</span></div>
-            ${cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(cap)}</span></div>` : ''}
-            ${ot > 0 ? `<div class="budget-row"><span>One-Time</span><span>${fmt(ot)}</span></div>` : ''}
-            ${pos ? `<div class="budget-row"><span>Positions</span><span>${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
+    // Full-detail selections show a per-dept operating/capital/positions
+    // breakdown from the SAME dataset as the card total (so they always
+    // reconcile). Totals-only years collapse to total + 12-yr sparkline.
+    const renderDeptCard = (r, sparkSvg) => {
+        const detailRows = r.hasDetail ? `
+            <div class="budget-row"><span>Operating</span><span>${fmt(r.op)}</span></div>
+            ${r.cap > 0 ? `<div class="budget-row"><span>Capital</span><span>${fmt(r.cap)}</span></div>` : ''}
+            ${r.ot > 0 ? `<div class="budget-row"><span>One-Time</span><span>${fmt(r.ot)}</span></div>` : ''}
+            ${r.pos ? `<div class="budget-row"><span>Positions</span><span>${r.pos.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>` : ''}
         ` : '';
-        const totalDisplay = totalForFy != null ? fmt(totalForFy) : '—';
-        return `
-            <a href="#/department/${dept.id}" class="department-card">
-                <h3>${dept.name}</h3>
+        const id = r.id || idByCode.get(r.code) || (r.code || '').toLowerCase();
+        const totalDisplay = r.total != null ? fmt(r.total) : '—';
+        // Only the 24 state departments have drill-in pages. County grant
+        // pass-through codes (CCH/COH/COK/COM) appear for total accuracy but
+        // render as static (non-clickable) cards.
+        const hasPage = idByCode.has(r.code);
+        const inner = `
+                <h3>${r.name}</h3>
                 <div class="card-content">
                     <div class="budget-total">
-                        <span>Total Budget · FY${selectedFy}</span>
+                        <span>Total Budget · ${yearLabel()}</span>
                         <strong>${totalDisplay}</strong>
                     </div>
                     ${sparkSvg ? `<div class="dept-card-spark-wrap">${sparkSvg}</div>` : ''}
                     ${detailRows ? `<div class="budget-breakdown">${detailRows}</div>` : ''}
-                </div>
-            </a>`;
+                </div>`;
+        return hasPage
+            ? `<a href="#/department/${id}" class="department-card">${inner}</a>`
+            : `<div class="department-card department-card-static" title="State grants to ${r.name} — no separate department page">${inner}</div>`;
     };
 
     const renderGrid = () => {
-        const fyTotals = deptTotalsForFy(selectedFy); // Map<code, {nominal,real}>
+        const grid = document.getElementById('dept-grid');
+        if (!grid) return;
+        const { fy, variant } = selection;
+        const detail = detailFor(fy, variant);
+        const histByCode = new Map((historicalTrendsData?.by_department || []).map(d => [d.dept_code, d]));
 
-        // Build list with year-specific totals attached, then sort.
-        const rows = departmentsData.map(d => {
-            const histRow = fyTotals.get(d.code);
-            const total = histRow
-                ? histRow.nominal
-                : (selectedFy === DETAIL_FY
-                    ? (d.operating_budget||0) + (d.capital_budget||0) + (d.one_time_appropriations||0)
-                    : null);
-            return { dept: d, total };
-        });
+        let rows;
+        if (detail) {
+            rows = detail.map(d => ({
+                code: d.code, name: d.name, id: d.id,
+                total: deptTotal(d),
+                op: d.operating_budget || 0, cap: d.capital_budget || 0,
+                ot: d.one_time_appropriations || 0, pos: d.positions,
+                hasDetail: true,
+            }));
+        } else {
+            const fyTotals = deptTotalsForFy(fy); // Map<code,{nominal,real}>
+            rows = (historicalTrendsData?.by_department || []).map(d => {
+                const t = fyTotals.get(d.dept_code);
+                return t ? { code: d.dept_code, name: d.dept_name, total: t.nominal, hasDetail: false } : null;
+            }).filter(Boolean);
+        }
 
         rows.sort((a, b) => {
-            const tA = a.total ?? -Infinity;
-            const tB = b.total ?? -Infinity;
+            const tA = a.total ?? -Infinity, tB = b.total ?? -Infinity;
             return sortDir === 'asc' ? tA - tB : tB - tA;
         });
 
-        // Pre-compute sparkline points per dept once (12-yr nominal series)
-        const grid = document.getElementById('dept-grid');
-        if (!grid) return;
-        const histDepts = historicalTrendsData?.by_department || [];
-        const histByCode = new Map(histDepts.map(d => [d.dept_code, d]));
-        const cards = rows.map(({ dept, total }) => {
-            const hist = histByCode.get(dept.code);
-            const points = hist
-                ? hist.series.map(s => ({ fy: s.fy, value: s.nominal }))
-                : [];
-            const spark = deptHistorySparkline(points);
-            return renderDeptCard(dept, total, spark);
-        });
-        grid.innerHTML = cards.join('');
+        grid.innerHTML = rows.map(r => {
+            const hist = histByCode.get(r.code);
+            const points = hist ? hist.series.map(s => ({ fy: s.fy, value: s.nominal })) : [];
+            return renderDeptCard(r, deptHistorySparkline(points));
+        }).join('');
     };
 
     // ---- Summary cards (state-wide totals for selected year) ------------
     const renderSummaryCards = () => {
         const wrap = document.getElementById('hb300-summary-cards');
         if (!wrap) return;
-        const t = stateTotalsForFy(selectedFy);
-        const totalAmt = t ? t.total_nominal
-                           : (selectedFy === DETAIL_FY ? summaryStats.total_budget : null);
-        const opAmt    = t ? t.operating_nominal
-                           : (selectedFy === DETAIL_FY ? summaryStats.operating_budget : null);
-        const capAmt   = t ? t.capital_nominal
-                           : (selectedFy === DETAIL_FY ? summaryStats.capital_budget : null);
-        const posAmt   = (selectedFy === DETAIL_FY) ? summaryStats.total_positions : null;
+        const { fy, variant } = selection;
+        const detail = detailFor(fy, variant);
+        let totalAmt, opAmt, capAmt, posAmt;
+        if (detail) {
+            // Sum the detail dataset so the summary reconciles with the grid.
+            totalAmt = detail.reduce((s, d) => s + deptTotal(d), 0);
+            opAmt    = detail.reduce((s, d) => s + (d.operating_budget || 0), 0);
+            capAmt   = detail.reduce((s, d) => s + (d.capital_budget || 0), 0);
+            const p  = detail.reduce((s, d) => s + (d.positions || 0), 0);
+            posAmt   = p || null;
+        } else {
+            const t  = stateTotalsForFy(fy);
+            totalAmt = t ? t.total_nominal : null;
+            opAmt    = t ? t.operating_nominal : null;
+            capAmt   = t ? t.capital_nominal : null;
+            posAmt   = null;
+        }
         wrap.innerHTML = `
             <div class="summary-card">
                 <div class="amount">${totalAmt != null ? fmtHtmlCard(totalAmt) : '—'}</div>
                 <div class="label">Total Budget</div>
-                <div class="label-sub">FY${selectedFy}</div>
+                <div class="label-sub">${yearLabel()}</div>
             </div>
             <div class="summary-card">
                 <div class="amount">${opAmt != null ? fmtHtmlCard(opAmt) : '—'}</div>
@@ -6033,18 +6046,18 @@ window.initHomePage = async function () {
             ${posAmt ? `<div class="summary-card">
                 <div class="amount">${posAmt.toLocaleString(undefined,{maximumFractionDigits:0})}</div>
                 <div class="label">Total Positions</div>
-                <div class="label-sub">FY${selectedFy}</div>
+                <div class="label-sub">${yearLabel()}</div>
             </div>` : ''}`;
 
-        // Help line below the year selector — explains what the user will see
+        // Help line below the year selector — explains the current selection.
         const help = document.getElementById('hb300-fy-help');
         if (help) {
-            if (selectedFy === DETAIL_FY) {
-                help.textContent = 'Showing the full FY2026 enacted budget — operating, capital, and program-level detail.';
-            } else if (historicalTrendsData?.metadata?.projected_fys?.includes(selectedFy)) {
-                help.textContent = `FY${selectedFy} is projected by the FY2026–27 biennial bill (HB300, Act 250 SLH 2025). Department totals only.`;
+            if (fy === 2026 || fy === 2027) {
+                help.textContent = variant === 'act175'
+                    ? `FY${fy} enacted supplemental — Act 175 (HB1800), SLH 2026. Full operating, capital, and program detail.`
+                    : `FY${fy} original biennium bill — Act 250 (HB300), SLH 2025. Full operating, capital, and program detail.`;
             } else {
-                help.textContent = `Department totals only — FY${selectedFy} is from the corresponding biennial appropriations act.`;
+                help.textContent = `Department totals only — FY${fy} is from the corresponding biennial appropriations act.`;
             }
         }
     };
@@ -6065,7 +6078,7 @@ window.initHomePage = async function () {
         const fmtB   = (v) => `$${(v / 1e9).toFixed(2)}B`;
 
         // Highlight the currently-selected year by tinting the matching point.
-        const highlightIndex = totals.findIndex(t => t.fy === selectedFy);
+        const highlightIndex = totals.findIndex(t => t.fy === selection.fy);
         const pointBg = totals.map((_t, i) => i === highlightIndex ? '#3d4a45' : '#88a194');
         const pointRadii = totals.map((_t, i) => i === highlightIndex ? 7 : 4);
 
@@ -6174,12 +6187,12 @@ window.initHomePage = async function () {
     };
 
     fySelect?.addEventListener('change', (e) => {
-        const v = parseInt(e.target.value, 10);
-        if (Number.isFinite(v)) {
-            selectedFy = v;
-            syncStepperButtons();
-            renderAll();
-        }
+        const val = e.target.value;               // "2018" | "2026" | "2026:act175"
+        const fy = parseInt(val, 10);
+        if (!Number.isFinite(fy)) return;
+        selection = { fy, variant: val.includes(':act175') ? 'act175' : 'historical' };
+        syncStepperButtons();
+        renderAll();
     });
 
     fyPrev?.addEventListener('click', () => {
@@ -6217,27 +6230,32 @@ window.initHomePage = async function () {
     });
 
     document.getElementById('export-depts')?.addEventListener('click', () => {
-        // Always export FY2026 detail rows — that's the only year with
-        // operating/capital/position breakdown in `departmentsData`.
-        const rows = departmentsData.map(d => {
-            const hist = historicalTrendsData?.by_department.find(x => x.dept_code === d.code);
-            const yrTotal = hist?.series.find(s => s.fy === selectedFy)?.nominal ?? null;
-            return {
-                code: d.code,
-                name: d.name,
-                fy: selectedFy,
-                total: yrTotal != null
-                    ? yrTotal
-                    : (selectedFy === DETAIL_FY
-                        ? (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0)
-                        : ''),
-                operating_fy2026: d.operating_budget,
-                capital_fy2026:   d.capital_budget,
-                one_time_fy2026:  d.one_time_appropriations,
-                positions_fy2026: d.positions || '',
-            };
-        });
-        downloadCSV(rows, `departments_fy${selectedFy}.csv`);
+        const { fy, variant } = selection;
+        const detail = detailFor(fy, variant);
+        const src = (fy === 2026 || fy === 2027)
+            ? (variant === 'act175' ? 'Act 175, SLH 2026' : 'Act 250, SLH 2025')
+            : 'enacted biennial act';
+        let rows;
+        if (detail) {
+            // Full detail: operating/capital/positions per department.
+            rows = detail.map(d => ({
+                code: d.code, name: d.name, fiscal_year: fy, source: src,
+                total: deptTotal(d),
+                operating: d.operating_budget,
+                capital:   d.capital_budget,
+                one_time:  d.one_time_appropriations,
+                positions: d.positions ?? '',
+            }));
+        } else {
+            // Totals-only historical year.
+            const fyTotals = deptTotalsForFy(fy);
+            rows = (historicalTrendsData?.by_department || []).map(d => {
+                const t = fyTotals.get(d.dept_code);
+                return t ? { code: d.dept_code, name: d.dept_name, fiscal_year: fy, source: src, total: t.nominal } : null;
+            }).filter(Boolean);
+        }
+        const suffix = (fy === 2026 || fy === 2027) ? `_${variant === 'act175' ? 'act175' : 'act250'}` : '';
+        downloadCSV(rows, `departments_fy${fy}${suffix}.csv`);
     });
 
     // Initial render

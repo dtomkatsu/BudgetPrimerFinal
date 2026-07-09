@@ -475,6 +475,17 @@ body {
     text-decoration: none;
 }
 
+/* County grant pass-through codes (CCH/COH/COK/COM): shown for total accuracy
+   but not clickable — they have no department drill-in page. */
+.department-card-static {
+    cursor: default;
+    opacity: 0.9;
+}
+.department-card-static:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .department-card h3 {
     margin: 0 0 15px 0;
     color: var(--primary-dark);
@@ -4119,7 +4130,7 @@ mark.search-highlight {
    Breakdown rows collapse via [hidden] when the caret is closed. */
 .compare-timeline {
     display: grid;
-    /* 8 columns: [flex-spacer] [left-rail] [gov] [hd1] [sd1] [cd1] [net] [flex-spacer]
+    /* 9 columns: [flex-spacer] [left-rail] [gov] [hd1] [sd1] [cd1] [enacted] [net] [flex-spacer]
        Flex spacers absorb the slack on both edges so the dot+totals group
        stays centered. The tl-band uses grid-column: 1 / -1 to span all 8
        so the zebra tint extends edge-to-edge.
@@ -4127,7 +4138,7 @@ mark.search-highlight {
        when the breakdown is open) don't widen it and shift the row sideways.
        The 158px is sized to fit "Operating" plus its share-of-total chip
        and the 14px+14px horizontal padding without overflowing the band. */
-    grid-template-columns: 1fr 158px repeat(4, minmax(118px, 158px)) minmax(130px, max-content) 1fr;
+    grid-template-columns: 1fr 158px repeat(5, minmax(118px, 158px)) minmax(130px, max-content) 1fr;
     grid-template-rows: auto auto auto auto auto auto;
     column-gap: 0;
     row-gap: 0;
@@ -4143,7 +4154,8 @@ mark.search-highlight {
 .compare-timeline > [data-col="hd1"] { grid-column: 4; }
 .compare-timeline > [data-col="sd1"] { grid-column: 5; }
 .compare-timeline > [data-col="cd1"] { grid-column: 6; }
-.compare-timeline > [data-col="net"] { grid-column: 7; }
+.compare-timeline > [data-col="enacted"] { grid-column: 7; }
+.compare-timeline > [data-col="net"] { grid-column: 8; }
 .compare-timeline > [data-row="labels"] { grid-row: 1; }
 .compare-timeline > [data-row="dots"]   { grid-row: 2; }
 .compare-timeline > [data-row="totals"] { grid-row: 3; }
@@ -4196,9 +4208,9 @@ mark.search-highlight {
 .tl-seg.tl-seg-on::after {
     transform: scaleX(1);
 }
-/* First column hides seg-before; CD1 hides seg-after (no line into Net) */
+/* First column hides seg-before; Enacted hides seg-after (no line into Net) */
 .compare-timeline > [data-col="gov"] .tl-seg-before { visibility: hidden; }
-.compare-timeline > [data-col="cd1"] .tl-seg-after  { visibility: hidden; }
+.compare-timeline > [data-col="enacted"] .tl-seg-after { visibility: hidden; }
 .tl-dot {
     position: relative;
     width: 22px;
@@ -4220,7 +4232,8 @@ mark.search-highlight {
 .compare-timeline:not(.col-gov-inactive) > [data-col="gov"] .tl-dot,
 .compare-timeline:not(.col-hd1-inactive) > [data-col="hd1"] .tl-dot,
 .compare-timeline:not(.col-sd1-inactive) > [data-col="sd1"] .tl-dot,
-.compare-timeline:not(.col-cd1-inactive) > [data-col="cd1"] .tl-dot {
+.compare-timeline:not(.col-cd1-inactive) > [data-col="cd1"] .tl-dot,
+.compare-timeline:not(.col-enacted-inactive) > [data-col="enacted"] .tl-dot {
     animation: tl-dot-pop 0.3s ease-out;
 }
 /* Checkmark on active dots */
@@ -4265,26 +4278,30 @@ mark.search-highlight {
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot,
 .compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot,
-.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot {
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot,
+.compare-timeline.col-enacted-inactive [data-col="enacted"] .tl-dot {
     background: #fff;
     border-color: #c2cdc7;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot::after,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot::after,
 .compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot::after,
-.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot::after {
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot::after,
+.compare-timeline.col-enacted-inactive [data-col="enacted"] .tl-dot::after {
     display: none;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-seg,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-seg,
 .compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-seg,
-.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-seg {
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-seg,
+.compare-timeline.col-enacted-inactive [data-col="enacted"] .tl-seg {
     background: #e3e8e5;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-label,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-label,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-label,
-.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-label {
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-label,
+.compare-timeline.col-enacted-inactive [data-col="enacted"].tl-label {
     /* Muted color only — no line-through. On a legislative site struck
        text reads as "deleted from the bill"; the hollow dot already
        signals the off state. */
@@ -4318,7 +4335,9 @@ mark.search-highlight {
 /* Inactive (unchecked) hover — show a green tint as affordance to re-enable */
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-dot-lbl:hover .tl-dot,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-dot-lbl:hover .tl-dot,
-.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot-lbl:hover .tl-dot {
+.compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-dot-lbl:hover .tl-dot,
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-dot-lbl:hover .tl-dot,
+.compare-timeline.col-enacted-inactive [data-col="enacted"] .tl-dot-lbl:hover .tl-dot {
     box-shadow: 0 0 0 4px rgba(30, 126, 52, 0.15);
     border-color: #5aaa75;
 }
@@ -4360,7 +4379,8 @@ mark.search-highlight {
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-amt,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-amt,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-amt,
-.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-amt {
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-amt,
+.compare-timeline.col-enacted-inactive [data-col="enacted"].tl-amt {
     color: #aab5b1;
     background: #f9fafa;
     border-color: #ebeeed;
@@ -4368,21 +4388,25 @@ mark.search-highlight {
 .compare-timeline.col-gov-inactive [data-col="gov"] .tl-amt-suffix,
 .compare-timeline.col-hd1-inactive [data-col="hd1"] .tl-amt-suffix,
 .compare-timeline.col-sd1-inactive [data-col="sd1"] .tl-amt-suffix,
-.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-amt-suffix {
+.compare-timeline.col-cd1-inactive [data-col="cd1"] .tl-amt-suffix,
+.compare-timeline.col-enacted-inactive [data-col="enacted"] .tl-amt-suffix {
     color: #c1c8c5;
 }
 
-/* Stage-based emphasis — CD1, the final agreed budget, carries the filled
+/* Stage-based emphasis — the Enacted budget (Act 175) carries the filled
    sage chip when active; earlier drafts keep the quiet outlined pill so
-   the timeline reads as progress toward the enacted number. */
-.compare-timeline:not(.col-cd1-inactive) [data-col="cd1"].tl-amt {
+   the timeline reads as progress toward the enacted number. When Enacted
+   is toggled off, the emphasis falls back to CD1 as the rightmost "final". */
+.compare-timeline:not(.col-enacted-inactive) [data-col="enacted"].tl-amt,
+.compare-timeline.col-enacted-inactive:not(.col-cd1-inactive) [data-col="cd1"].tl-amt {
     background: linear-gradient(135deg, #84a89c 0%, #6f9184 100%);
     border-color: transparent;
     color: #ffffff;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20),
                 0 2px 8px rgba(80, 105, 95, 0.18);
 }
-.compare-timeline:not(.col-cd1-inactive) [data-col="cd1"] .tl-amt-suffix {
+.compare-timeline:not(.col-enacted-inactive) [data-col="enacted"] .tl-amt-suffix,
+.compare-timeline.col-enacted-inactive:not(.col-cd1-inactive) [data-col="cd1"] .tl-amt-suffix {
     color: rgba(255, 255, 255, 0.80);
 }
 
@@ -4414,7 +4438,8 @@ mark.search-highlight {
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-sub,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-sub,
 .compare-timeline.col-sd1-inactive [data-col="sd1"].tl-sub,
-.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-sub {
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-sub,
+.compare-timeline.col-enacted-inactive [data-col="enacted"].tl-sub {
     color: #c1c8c5;
 }
 
@@ -4706,12 +4731,16 @@ mark.search-highlight {
 /* Inactive column mutes its breakdown cells (suffix included) */
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell,
-.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell {
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell,
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-bd-cell,
+.compare-timeline.col-enacted-inactive [data-col="enacted"].tl-bd-cell {
     color: #aab5b1;
 }
 .compare-timeline.col-gov-inactive [data-col="gov"].tl-bd-cell .tl-bd-suffix,
 .compare-timeline.col-hd1-inactive [data-col="hd1"].tl-bd-cell .tl-bd-suffix,
-.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell .tl-bd-suffix {
+.compare-timeline.col-sd1-inactive [data-col="sd1"].tl-bd-cell .tl-bd-suffix,
+.compare-timeline.col-cd1-inactive [data-col="cd1"].tl-bd-cell .tl-bd-suffix,
+.compare-timeline.col-enacted-inactive [data-col="enacted"].tl-bd-cell .tl-bd-suffix {
     color: #c1c8c5;
 }
 /* Net breakdown cells color by their own sign (Operating can rise while
@@ -4732,10 +4761,12 @@ mark.search-highlight {
 .compare-timeline > [data-row="op"][data-col="hd1"]::before,
 .compare-timeline > [data-row="op"][data-col="sd1"]::before,
 .compare-timeline > [data-row="op"][data-col="cd1"]::before,
+.compare-timeline > [data-row="op"][data-col="enacted"]::before,
 .compare-timeline > [data-row="op"][data-col="net"]::before,
 .compare-timeline > [data-row="cap"][data-col="hd1"]::before,
 .compare-timeline > [data-row="cap"][data-col="sd1"]::before,
 .compare-timeline > [data-row="cap"][data-col="cd1"]::before,
+.compare-timeline > [data-row="cap"][data-col="enacted"]::before,
 .compare-timeline > [data-row="cap"][data-col="net"]::before {
     content: '';
     position: absolute;
@@ -5036,7 +5067,7 @@ mark.search-highlight {
         width: max-content;
         min-width: 100%;
         padding: 10px 10px 12px;
-        grid-template-columns: 1fr max-content repeat(4, max-content) max-content 1fr;
+        grid-template-columns: 1fr max-content repeat(5, max-content) max-content 1fr;
     }
     .tl-expand-kicker { display: none; }
     .tl-label { font-size: 0.92rem; }
@@ -5062,7 +5093,7 @@ mark.search-highlight {
     .compare-timeline .has-tooltip::after { display: none; }
 }
 
-/* Phones: show only the ACTIVE stages — the default Gov → CD1 → Net view
+/* Phones: show only the ACTIVE stages — the default Gov → Enacted → Net view
    fits 375px with no sideways scroll, which beats panning for the answer.
    The dots become read-only state indicators here; the labeled stage
    picker above is the toggle (a frozen dot can't be re-enabled by tapping
@@ -5073,7 +5104,8 @@ mark.search-highlight {
     .compare-timeline.col-gov-inactive [data-col="gov"],
     .compare-timeline.col-hd1-inactive [data-col="hd1"],
     .compare-timeline.col-sd1-inactive [data-col="sd1"],
-    .compare-timeline.col-cd1-inactive [data-col="cd1"] {
+    .compare-timeline.col-cd1-inactive [data-col="cd1"],
+    .compare-timeline.col-enacted-inactive [data-col="enacted"] {
         display: none;
     }
     .tl-dot-lbl { pointer-events: none; }

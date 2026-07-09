@@ -86,6 +86,28 @@ HISTORICAL_BIENNIAL_BILLS: dict[int, dict] = {
     },
 }
 
+# Supplemental appropriations acts (even-year sessions) that AMEND a prior
+# biennium. These are intentionally NOT part of HISTORICAL_BIENNIAL_BILLS: the
+# multi-year `historical_allocations.csv` treats each biennium's main bill as
+# the enacted series, and the historical supplemental rows already in that CSV
+# came from a separate, earlier generation. Do not add these to the reparse
+# path (parse_historical_budgets.py) — a full reparse would drop the existing
+# unregistered supplemental rows.
+#
+# For provenance only. The 2026 supplemental (HB1800 → Act 175, SLH 2026) is
+# surfaced in the "By Department" tab as a parallel dataset built directly from
+# the enrolled CD1 text by scripts/generate_act175_departments.py — NOT via
+# this table. Act 175 was signed with no line-item vetoes, so it equals CD1.
+SUPPLEMENTAL_ACTS: dict[int, dict] = {
+    2026: {
+        "amends": "Act 250, SLH 2025",
+        "fy_covered": (2026, 2027),
+        "bills": [
+            {"number": "HB1800", "act": "Act 175, SLH 2026", "scope": "supplemental"},
+        ],
+    },
+}
+
 
 def iter_biennial_bills() -> Iterator[Tuple[int, dict]]:
     """Yield (session_year, session_info) pairs in chronological order.
