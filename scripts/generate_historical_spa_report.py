@@ -225,19 +225,37 @@ def main() -> int:
 
     df = pd.read_csv(args.allocations)
 
-    # Each biennium is enacted by a MAIN appropriations bill (odd-year session,
-    # scope combined/operating/capital) that fully specifies both fiscal years.
-    # The even-year SUPPLEMENTAL bills in the CSV re-state (amend) those same
-    # program-years, so summing them double-counts every program — e.g. FY2016
-    # inflated to $26.5B (Act 119/2015 main $14.6B + Act 119/2016 supp $12.0B),
-    # and FY2024 to $40.3B. The historical trend shows each biennium AS ENACTED
-    # in its main appropriations act (matching how the current biennium's
-    # "original (Act 250)" is shown), so drop the supplemental-scope rows. The
-    # year_bill_table registry already lists only these main bills.
+    # ── Resolve each fiscal year to its FINAL enacted appropriation ──────────
+    # A biennium is enacted by a MAIN bill (odd-year session) covering both
+    # fiscal years, then amended by an even-year SUPPLEMENTAL. The CSV holds
+    # both, and each restates the SAME program-years, so summing them
+    # double-counts (FY2016 → $26.5B, FY2024 → $40.3B). But we can't just drop
+    # the supplementals either: a supplemental's SECOND year is the complete,
+    # amended budget (the whole point of the bill — federal funds revised UP),
+    # while its FIRST year re-estimates federal/special grant authority DOWNWARD
+    # mid-year and understates the enacted appropriation. So resolve per year:
+    #   • First year of a biennium (even FY)  → the MAIN bill.
+    #   • Second year (odd FY), if a supplemental exists → the SUPPLEMENTAL.
+    #   • Second year with no supplemental (FY2021, and FY2027 whose Act 175
+    #     lives in a separate dataset) → the MAIN bill.
+    # This yields the final enacted budget for each year without double-count.
     if "bill_scope" in df.columns:
+        df["fiscal_year"] = df["fiscal_year"].astype(int)
+        is_supp = df["bill_scope"] == "supplemental"
+        supp_fys = set(df.loc[is_supp, "fiscal_year"])
+        # A row is kept when it is the authoritative source for its year:
+        #   second year with a supplemental → keep supplemental rows only
+        #   otherwise (first year, or no supplemental) → keep main rows only
+        second_year = df["fiscal_year"] % 2 == 1          # odd FY = biennium year 2
+        supp_covers = df["fiscal_year"].isin(supp_fys)
+        use_supp = second_year & supp_covers
+        keep = (use_supp & is_supp) | (~use_supp & ~is_supp)
         before = len(df)
-        df = df[df["bill_scope"] != "supplemental"].copy()
-        logger.info(f"Dropped {before - len(df)} supplemental-scope rows (kept {len(df)} main-bill rows)")
+        df = df[keep].copy()
+        logger.info(
+            f"Resolved to final-enacted rows: kept {len(df)} of {before} "
+            f"(year-1 from main bill, year-2 from supplemental where present)"
+        )
 
     cpi = json.loads(args.cpi.read_text())
     base_fy = int(cpi["base_fy"])
