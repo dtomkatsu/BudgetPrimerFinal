@@ -224,6 +224,21 @@ def main() -> int:
         return 1
 
     df = pd.read_csv(args.allocations)
+
+    # Each biennium is enacted by a MAIN appropriations bill (odd-year session,
+    # scope combined/operating/capital) that fully specifies both fiscal years.
+    # The even-year SUPPLEMENTAL bills in the CSV re-state (amend) those same
+    # program-years, so summing them double-counts every program — e.g. FY2016
+    # inflated to $26.5B (Act 119/2015 main $14.6B + Act 119/2016 supp $12.0B),
+    # and FY2024 to $40.3B. The historical trend shows each biennium AS ENACTED
+    # in its main appropriations act (matching how the current biennium's
+    # "original (Act 250)" is shown), so drop the supplemental-scope rows. The
+    # year_bill_table registry already lists only these main bills.
+    if "bill_scope" in df.columns:
+        before = len(df)
+        df = df[df["bill_scope"] != "supplemental"].copy()
+        logger.info(f"Dropped {before - len(df)} supplemental-scope rows (kept {len(df)} main-bill rows)")
+
     cpi = json.loads(args.cpi.read_text())
     base_fy = int(cpi["base_fy"])
 
