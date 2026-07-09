@@ -3339,7 +3339,14 @@ window.initDraftComparePage = async function () {
     // ~550ms) instead of snapping. Keyed per element id so each chip animates
     // independently; an in-flight tick is cancelled when a newer value lands.
     // First paint counts up from $0 as a page-load entrance.
-    const _amtAnim = { prev: {}, raf: {}, tmo: {} };
+    //
+    // `prev` (the last-shown values) persists across page visits on window so
+    // the entrance plays once — on the very first load and whenever a value
+    // genuinely changes (e.g. the FY toggle) — instead of replaying the
+    // $0 → $23B count-up every time the user switches back to this tab, which
+    // read as lag. raf/tmo stay per-init so a stale in-flight tick from a prior
+    // visit can never blank a freshly rendered chip.
+    const _amtAnim = { prev: (window._draftAmtPrev ||= {}), raf: {}, tmo: {} };
     const _reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const setAnimatedAmount = (id, val, toHTML) => {
         const el = document.getElementById(id);
@@ -5696,6 +5703,14 @@ window.initDraftComparePage = async function () {
             updateSummaryCards();
         }
     };
+    // The router has no teardown hook, so this init re-runs on every visit to
+    // the tab. Drop the previous visit's window/MQL listeners before adding
+    // fresh ones, or they pile up and every resize fires N stale handlers.
+    if (window._draftPhoneMqHandler) {
+        phoneMq.removeEventListener('change', window._draftPhoneMqHandler);
+        window.removeEventListener('resize', window._draftPhoneMqHandler);
+    }
+    window._draftPhoneMqHandler = onPhoneMqMaybeChanged;
     phoneMq.addEventListener('change', onPhoneMqMaybeChanged);
     window.addEventListener('resize', onPhoneMqMaybeChanged);
 
@@ -5862,7 +5877,13 @@ window.initDraftComparePage = async function () {
             syncBarHeight();
         };
         syncTableScrollMode();
-        window.addEventListener('resize', () => syncTableScrollMode());
+        // Same teardown guard as the phone-MQL listener above — replace the
+        // prior visit's resize handler rather than stacking another one.
+        if (window._draftScrollModeHandler) {
+            window.removeEventListener('resize', window._draftScrollModeHandler);
+        }
+        window._draftScrollModeHandler = () => syncTableScrollMode();
+        window.addEventListener('resize', window._draftScrollModeHandler);
 
         // Floating back-to-top — the compare page is a single long scroll;
         // give deep scrollers a one-tap way home. Created once, page-global.
@@ -6824,14 +6845,16 @@ window.initTaxCalculatorPage = async function () {
 })();
 
 // ---------------------------------------------------------------------------
-// County budgets — the counties' own operating budgets (separate documents
-// from the state bills; HB300 §13 only carries state grants TO counties).
-// Phase 1 covers Honolulu via data.honolulu.gov; the neighbor island counties
-// publish PDF ordinances and appear as "coming soon" until their parsers
-// land. Data: county_budgets.json from scripts/process_county_budgets.py.
+// County budgets — the counties' own operating + capital budgets (separate
+// documents from the state bills; HB300 §13 only carries state grants TO
+// counties). Honolulu is live (operating via data.honolulu.gov, CIP parsed
+// from the capital budget ordinance); the neighbor-island counties publish
+// PDF ordinances and appear as "coming soon" until their parsers land.
+// Data: county_budgets.json from scripts/process_county_budgets.py — a
+// multi-fiscal-year file, each county/year split into operating + cip.
 // ---------------------------------------------------------------------------
 let countyBudgetsData = null;
-let countySelected = null;
+const countyState = { county: null, fy: null };
 
 window.loadCountyBudgets = async function () {
     try {
@@ -6859,9 +6882,16 @@ const COUNTY_ORDER = ['honolulu', 'maui', 'hawaii', 'kauai'];
 const countyShortName = (name) =>
     name.replace('City & County of ', '').replace('County of ', '');
 
+const countyFyList = () => (countyBudgetsData?.fiscal_years || []).map(String);
+const countyEntryFor = (fy, slug) =>
+    countyBudgetsData?.years?.[String(fy)]?.[slug] || null;
+// A county is reachable if it has data in ANY fiscal year.
+const countyEverAvailable = (slug) =>
+    countyFyList().some(fy => countyEntryFor(fy, slug)?.available);
+
 // Stacked single-row bar of fund categories with a legend underneath.
-const fundCategoryBar = (fundBreakdown, total) => {
-    if (!total || !fundBreakdown) return '';
+const fundCategoryBar = (fundBreakdown, opts = {}) => {
+    if (!fundBreakdown) return '';
     const palette = {
         'General Fund': '#5a7b68',
         'Special / Enterprise Funds': '#7da48d',
@@ -6871,6 +6901,7 @@ const fundCategoryBar = (fundBreakdown, total) => {
     };
     const entries = Object.entries(fundBreakdown).filter(([, v]) => v > 0);
     const sum = entries.reduce((s, [, v]) => s + v, 0) || 1;
+    if (!entries.length) return '';
     const segments = entries.map(([k, v]) =>
         `<span class="fund-cat-seg" style="width:${(v / sum * 100).toFixed(2)}%;background:${palette[k] || '#cdd3d8'}" title="${escapeHtml(k)} — ${fmt(v)}"></span>`
     ).join('');
@@ -6878,175 +6909,482 @@ const fundCategoryBar = (fundBreakdown, total) => {
         `<span class="fund-cat-legend-item"><span class="legend-swatch" style="background:${palette[k] || '#cdd3d8'}"></span>${escapeHtml(k)} <span class="fund-cat-legend-amt">${fmt(v)}</span></span>`
     ).join('');
     return `<div class="fund-cat-bar-wrap">
+        ${opts.title ? `<div class="fund-cat-bar-title">${escapeHtml(opts.title)}</div>` : ''}
         <div class="fund-cat-bar">${segments}</div>
         <div class="fund-cat-legend">${legend}</div>
     </div>`;
 };
 
+// ── County data-viz: shared palette, compact formatter, Chart.js mount/destroy ─
+const COUNTY_FUND_PALETTE = {
+    'General Fund': '#5a7b68',
+    'Special / Enterprise Funds': '#7da48d',
+    'Federal Funds': '#c9a87b',
+    'Bond / Debt Funds': '#a68c68',
+    'Trust & Other Funds': '#cdd3d8',
+};
+const countyFundColor = (cat) => COUNTY_FUND_PALETTE[cat] || '#cdd3d8';
+const _dominantFund = (fb) => Object.entries(fb || {}).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+// Compact plain-text money for chart centers / tile labels ($2.3B · $461M · $12K).
+const fmtCompact = (n) => {
+    if (n == null) return '$0';
+    const a = Math.abs(n), s = n < 0 ? '-' : '';
+    if (a >= 1e9) return `${s}$${(a / 1e9).toFixed(a >= 1e10 ? 0 : 1)}B`;
+    if (a >= 1e6) return `${s}$${(a / 1e6).toFixed(a >= 1e8 ? 0 : 1)}M`;
+    if (a >= 1e3) return `${s}$${Math.round(a / 1e3)}K`;
+    return `${s}$${Math.round(a)}`;
+};
+const _countyReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Live Chart.js instances for the county view — destroyed before each full
+// re-render (FY toggle / county switch) so detached canvases never leak.
+let _countyCharts = [];
+function destroyCountyCharts() {
+    _countyCharts.forEach(ch => { try { ch.destroy(); } catch (e) { /* already gone */ } });
+    _countyCharts = [];
+}
+
+// Fund-category doughnut: canvas + a centered total + a labelled legend. The
+// Chart itself is created in mountCountyCharts once this markup is in the DOM.
+function fundDonutBlock(canvasId, fundBreakdown, opts = {}) {
+    const entries = Object.entries(fundBreakdown || {}).filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return '';
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    const legend = entries.map(([k, v]) => `
+        <li class="cdonut-legend-row">
+            <span class="cdonut-swatch" style="background:${countyFundColor(k)}"></span>
+            <span class="cdonut-legend-name">${escapeHtml(k)}</span>
+            <span class="cdonut-legend-amt">${fmtCompact(v)}<em>${(v / total * 100).toFixed(0)}%</em></span>
+        </li>`).join('');
+    return `<div class="county-viz">
+        <div class="county-viz-title">${escapeHtml(opts.title || 'Where it comes from')}</div>
+        <div class="cdonut">
+            <div class="cdonut-chart">
+                <canvas id="${canvasId}" role="img" aria-label="${escapeHtml(opts.aria || 'Fund breakdown')}"></canvas>
+                <div class="cdonut-center"><span class="cdonut-center-amt">${fmtCompact(total)}</span><span class="cdonut-center-lbl">${escapeHtml(opts.centerLabel || '')}</span></div>
+            </div>
+            <ul class="cdonut-legend">${legend}</ul>
+        </div>
+    </div>`;
+}
+
+// Treemap canvas (departments / funds sized by budget, tinted by dominant fund).
+function treemapBlock(canvasId, title, aria) {
+    return `<div class="county-viz county-viz-treemap">
+        <div class="county-viz-title">${escapeHtml(title)}</div>
+        <div class="ctreemap"><canvas id="${canvasId}" role="img" aria-label="${escapeHtml(aria)}"></canvas></div>
+    </div>`;
+}
+
+function _mountDonut(canvasId, fundBreakdown) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined') return;
+    const entries = Object.entries(fundBreakdown || {}).filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1]);
+    if (!entries.length) return;
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    _countyCharts.push(new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: entries.map(([k]) => k),
+            datasets: [{
+                data: entries.map(([, v]) => v),
+                backgroundColor: entries.map(([k]) => countyFundColor(k)),
+                borderColor: '#fff', borderWidth: 2, hoverOffset: 6,
+            }],
+        },
+        options: {
+            cutout: '64%', maintainAspectRatio: false, responsive: true,
+            animation: _countyReducedMotion() ? false : { duration: 500 },
+            plugins: {
+                legend: { display: false },
+                datalabels: { display: false },
+                tooltip: { callbacks: {
+                    label: (ctx) => `${ctx.label}: ${fmtCompact(ctx.parsed)} (${(ctx.parsed / total * 100).toFixed(0)}%)`,
+                } },
+            },
+        },
+    }));
+}
+
+function _mountTreemap(canvasId, rows, rowLabel) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined' || !rows?.length) return;
+    // Top tiles + an aggregated "Other" so tiny slivers don't clutter the map.
+    const sorted = [...rows].sort((a, b) => b.total_budget - a.total_budget);
+    const TOP = 14;
+    let tree = sorted.slice(0, TOP).map(d => ({
+        name: d.name, value: d.total_budget, color: countyFundColor(_dominantFund(d.fund_breakdown)),
+    }));
+    const rest = sorted.slice(TOP);
+    if (rest.length) tree.push({ name: `Other (${rest.length})`,
+        value: rest.reduce((s, d) => s + d.total_budget, 0), color: '#b9c4bd' });
+    tree = tree.filter(t => t.value > 0);
+    if (!tree.length) return;
+    const grand = tree.reduce((s, t) => s + t.value, 0) || 1;
+    _countyCharts.push(new Chart(canvas.getContext('2d'), {
+        type: 'treemap',
+        data: { datasets: [{
+            tree, key: 'value', borderWidth: 1, borderColor: '#fff', spacing: 1,
+            backgroundColor: (ctx) => ctx?.raw?._data?.color || '#ccc',
+            labels: {
+                display: true, color: '#fff', font: { size: 11, weight: '600' },
+                align: 'center', position: 'middle',
+                formatter: (ctx) => { const d = ctx?.raw?._data; return d ? [d.name, fmtCompact(d.value)] : ''; },
+            },
+        }] },
+        options: {
+            maintainAspectRatio: false, responsive: true,
+            animation: _countyReducedMotion() ? false : { duration: 500 },
+            plugins: {
+                legend: { display: false }, datalabels: { display: false },
+                tooltip: { callbacks: {
+                    title: (items) => items[0]?.raw?._data?.name || '',
+                    label: (ctx) => { const d = ctx?.raw?._data; return d ? `${fmtCompact(d.value)} (${(d.value / grand * 100).toFixed(1)}%)` : ''; },
+                } },
+            },
+        },
+    }));
+}
+
+// Create every chart for the current county entry (called after a full render).
+function mountCountyCharts(c) {
+    destroyCountyCharts();
+    if (!c || !c.available) return;
+    if (c.operating && c.operating.total > 0) {
+        _mountDonut('cdonut-op', c.operating.fund_breakdown);
+        _mountTreemap('ctreemap-op', c.operating.departments, c.operating.row_label);
+    }
+    if (c.cip) _mountDonut('cdonut-cip', c.cip.fund_breakdown);
+}
+
+// "Budget at a glance" hero — total + an Operating/Capital proportion bar.
+function renderCountyHero(c, fy) {
+    const op = c.operating_budget || 0, cap = c.capital_budget || 0, tot = c.total_budget || 0;
+    const opPct = tot ? op / tot * 100 : 0, capPct = tot ? cap / tot * 100 : 0;
+    const seg = (cls, pct) => pct > 0 ? `<span class="chero-seg ${cls}" style="width:${pct.toFixed(1)}%"></span>` : '';
+    const fig = (label, val, pct, cls, note) => `
+        <div class="chero-fig ${cls}">
+            <span class="chero-fig-dot"></span>
+            <div class="chero-fig-body">
+                <div class="chero-fig-amt">${val > 0 ? fmtHtmlCard(val) : '<span class="chero-dash">—</span>'}</div>
+                <div class="chero-fig-lbl">${escapeHtml(label)}${val > 0 ? ` · ${pct.toFixed(0)}%` : (note ? ` · ${escapeHtml(note)}` : '')}</div>
+            </div>
+        </div>`;
+    return `<div class="county-hero">
+        <div class="chero-total">
+            <div class="chero-total-amt">${fmtHtmlCard(tot)}</div>
+            <div class="chero-total-lbl">Total budget <span class="chero-fy">FY${fy}</span></div>
+        </div>
+        <div class="chero-split">
+            <div class="chero-bar">${seg('chero-seg-op', opPct)}${seg('chero-seg-cap', capPct)}</div>
+            <div class="chero-figs">
+                ${fig('Operating', op, opPct, 'is-op', 'not yet parsed')}
+                ${fig('Capital (CIP)', cap, capPct, 'is-cap', c.capital_note || 'not included')}
+            </div>
+        </div>
+    </div>`;
+}
+
 window.countiesPage = async function (params) {
-    if (!countyBudgetsData || !countyBudgetsData.counties) {
+    if (!countyBudgetsData || !countyBudgetsData.years) {
         return `
             <section class="compare-page">
                 <h2>County Budgets</h2>
                 <div class="empty-state">
                     <p>No county budget data available yet.</p>
                     <p>To generate it, run:</p>
-                    <pre>python scripts/fetch_county_budgets.py --county honolulu
+                    <pre>python scripts/fetch_county_budgets.py --county honolulu --pdfs
 python scripts/process_county_budgets.py --county all</pre>
                 </div>
             </section>`;
     }
 
-    const counties = countyBudgetsData.counties;
+    const years = countyFyList();
+    // Resolve fiscal year: keep prior choice if valid, else the default.
+    let fy = countyState.fy && years.includes(String(countyState.fy))
+        ? String(countyState.fy) : String(countyBudgetsData.default_fiscal_year);
+
+    // Resolve county: route param, else first county available in this year.
     let selected = params?.county;
-    if (!selected || !counties[selected]) {
-        selected = COUNTY_ORDER.find(c => counties[c]?.available) || 'honolulu';
+    if (!selected || !countyEverAvailable(selected)) {
+        selected = COUNTY_ORDER.find(c => countyEntryFor(fy, c)?.available)
+            || COUNTY_ORDER.find(countyEverAvailable) || 'honolulu';
     }
-    countySelected = selected;
+    countyState.county = selected;
+    countyState.fy = fy;
 
     const tabs = COUNTY_ORDER.map(slug => {
-        const c = counties[slug];
+        // Use any year's entry for the display name.
+        const c = years.map(y => countyEntryFor(y, slug)).find(Boolean);
         if (!c) return '';
         const label = escapeHtml(countyShortName(c.name));
-        if (!c.available) {
+        if (!countyEverAvailable(slug)) {
             return `<span class="county-tab county-tab-disabled" title="${escapeHtml(c.name)} — coming soon">${label}<span class="county-tab-soon">soon</span></span>`;
         }
         return `<a href="#/counties/${slug}" class="county-tab ${slug === selected ? 'active' : ''}" title="${escapeHtml(c.name)}">${label}</a>`;
     }).join('');
 
-    const c = counties[selected];
-    let content;
-    if (!c.available) {
-        content = `
-            <div class="empty-state">
-                <p>${escapeHtml(c.name)} budget data is coming soon.</p>
-                <p>The county publishes its budget as ordinance PDFs; a parser for it is planned.</p>
-            </div>`;
-    } else {
-        const fy = countyBudgetsData.fiscal_year;
-        content = `
-            <div class="summary-cards-grid" id="county-cards"></div>
-            ${c.coverage_note ? `<p class="county-caveat">${escapeHtml(c.coverage_note)}</p>` : ''}
-            ${fundCategoryBar(c.fund_breakdown, c.total_budget)}
-            <div id="county-results"></div>
-            <p class="county-source">Source: <a href="${escapeHtml(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.label)}</a> · FY${fy}</p>`;
-    }
+    const yearBtns = years.map(y =>
+        `<button type="button" class="county-year-btn ${y === fy ? 'active' : ''}" data-fy="${y}">FY${y}</button>`
+    ).join('');
+
+    const name = countyEntryFor(fy, selected)?.name
+        || years.map(y => countyEntryFor(y, selected)).find(Boolean)?.name || '';
 
     return `
         <section class="compare-page counties-page">
-            <nav class="county-tabs" aria-label="County">${tabs}</nav>
-            <h2 class="county-title">${escapeHtml(c.name)}</h2>
-            ${content}
+            <div class="county-toolbar">
+                <nav class="county-tabs" aria-label="County">${tabs}</nav>
+                <div class="county-year-toggle" role="group" aria-label="Fiscal year">
+                    <span class="county-year-label">Fiscal year</span>
+                    ${yearBtns}
+                </div>
+            </div>
+            <h2 class="county-title" id="county-title">${escapeHtml(name)}</h2>
+            <div id="county-body"></div>
         </section>`;
 };
 
-window.initCountiesPage = function () {
-    const counties = countyBudgetsData?.counties;
-    const c = counties?.[countySelected];
-    if (!c || !c.available) return;
+// Render the operating department table (expandable to program → fund detail).
+function renderCountyOperating(op, expanded) {
+    if (!op || !op.departments?.length) return '';
+    const rowLabel = op.row_label || 'Department';
+    const lc = rowLabel.toLowerCase();
+    return `
+        <div class="county-section county-operating-section">
+            <div class="county-section-head">
+                <h3 class="county-section-title">Operating budget</h3>
+                <span class="county-section-total">${fmt(op.total)}</span>
+            </div>
+            <div class="county-overview">
+                ${fundDonutBlock('cdonut-op', op.fund_breakdown,
+                    { title: 'Where it comes from · by fund', centerLabel: 'operating',
+                      aria: 'Operating budget by fund category' })}
+                ${treemapBlock('ctreemap-op', `Where it goes · by ${lc}`,
+                    `Operating budget by ${lc}`)}
+            </div>
+            <div class="county-op-table-wrap">${countyOpTableHTML(op, expanded)}</div>
+        </div>`;
+}
 
-    let sortCol = 'budget';
-    let sortDir = 'desc';
-    const expanded = new Set();
+// The operating department/fund table — re-rendered on its own when a row is
+// expanded, so the charts above it aren't torn down and rebuilt each click.
+function countyOpTableHTML(op, expanded) {
+    const rowLabel = op.row_label || 'Department';
+    const rowLabelPlural = rowLabel === 'Fund' ? 'funds' : 'departments';
+    const maxBudget = Math.max(...op.departments.map(d => d.total_budget), 1);
+    let body = '<tbody>';
+    for (const d of op.departments) {
+        const pct = op.total ? (d.total_budget / op.total * 100) : 0;
+        const barColor = countyFundColor(_dominantFund(d.fund_breakdown));
+        // A single synthetic "(department-wide)" program means there's no real
+        // program detail to drill into (Maui dept-level, Hawaiʻi fund-level).
+        const hasDetail = !(d.num_programs <= 1
+            && d.programs?.[0]?.program_name === '(department-wide)');
+        const isOpen = hasDetail && expanded.has('op:' + d.code);
+        body += `<tr class="county-dept-row ${hasDetail ? '' : 'county-dept-flat'} ${isOpen ? 'open' : ''}" ${hasDetail ? `data-key="op:${escapeHtml(d.code)}"` : ''}>
+            <td>${hasDetail ? `<span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>` : ''}${escapeHtml(d.name)}${hasDetail ? `<span class="county-prog-count">${d.num_programs} program${d.num_programs === 1 ? '' : 's'}</span>` : ''}</td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(d.total_budget)}</span></td>
+            <td class="county-share-cell">
+                <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%;background:${barColor}"></span></span>
+                <span class="county-share-pct">${pct >= 1 ? pct.toFixed(0) + '%' : '<1%'}</span>
+            </td>
+        </tr>`;
+        if (isOpen) {
+            body += d.programs.map(p => {
+                const funds = p.funds || [];
+                const fundDetail = funds.length === 1
+                    ? `<span class="county-prog-fund">${escapeHtml(funds[0].fund_name)}</span>`
+                    : `<span class="county-prog-funds">${funds.map(f =>
+                        `<span class="county-fund-chip">${escapeHtml(f.fund_name)} ${fmtHtml(f.amount)}</span>`).join('')}</span>`;
+                return `<tr class="county-prog-row">
+                    <td class="county-prog-name">${escapeHtml(p.program_name)}${fundDetail}</td>
+                    <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.total_budget)}</span></td>
+                    <td></td>
+                </tr>`;
+            }).join('');
+        }
+    }
+    body += '</tbody>';
+    return `<table class="data-table county-table">
+        <thead><tr>
+            <th>${escapeHtml(rowLabel)}</th>
+            <th class="amount-cell">Budget</th>
+            <th>Share</th>
+        </tr></thead>
+        ${body}
+        <tbody class="totals-block"><tr class="totals-row">
+            <td>Total <span class="totals-meta">${op.num_departments} ${rowLabelPlural}</span></td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(op.total)}</span></td>
+            <td></td>
+        </tr></tbody>
+    </table>`;
+}
 
-    const arrow = (col) => sortCol === col
-        ? `<span class="sort-ind">${sortDir === 'asc' ? '▲' : '▼'}</span>` : '';
+// Render the CIP block: fund donut + by-function bars, then a searchable,
+// sortable project list (the list re-renders on its own — see cipResultsHTML).
+function renderCountyCip(cip, ui) {
+    if (!cip) return '';
+    const maxFn = Math.max(...cip.functions.map(f => f.total_budget), 1);
+    const fnBars = cip.functions.slice().sort((a, b) => b.total_budget - a.total_budget).map(f => `
+        <li class="cfn-row">
+            <span class="cfn-name">${escapeHtml(f.name)}</span>
+            <span class="cfn-bar"><span class="cfn-fill" style="width:${(f.total_budget / maxFn * 100).toFixed(1)}%;background:${countyFundColor(_dominantFund(f.fund_breakdown))}"></span></span>
+            <span class="cfn-amt">${fmtCompact(f.total_budget)}</span>
+        </li>`).join('');
+    return `
+        <div class="county-section county-cip-section">
+            <div class="county-section-head">
+                <h3 class="county-section-title">Capital improvement program <span class="county-section-tag">CIP</span></h3>
+                <span class="county-section-total">${fmt(cip.total)}</span>
+            </div>
+            <div class="county-overview">
+                ${fundDonutBlock('cdonut-cip', cip.fund_breakdown,
+                    { title: 'How it’s financed · by fund', centerLabel: 'capital',
+                      aria: 'Capital program by fund category' })}
+                <div class="county-viz county-viz-fns">
+                    <div class="county-viz-title">Where it goes · by function</div>
+                    <ul class="cfn-list">${fnBars}</ul>
+                </div>
+            </div>
+            <div class="cip-results-wrap">${cipResultsHTML(cip, ui)}</div>
+        </div>`;
+}
 
-    // Summary cards
-    const cardsEl = document.getElementById('county-cards');
-    if (cardsEl) {
-        const capitalCell = c.capital_budget > 0
-            ? `<div class="amount">${fmtHtmlCard(c.capital_budget)}</div><div class="label">Capital (CIP)</div><div class="label-sub">FY${countyBudgetsData.fiscal_year}</div>`
-            : `<div class="amount">—</div><div class="label">Capital (CIP)</div><div class="label-sub">${escapeHtml(c.capital_note || 'not included')}</div>`;
-        cardsEl.innerHTML = `
-            <div class="summary-card"><div class="amount">${fmtHtmlCard(c.operating_budget)}</div><div class="label">Operating Budget</div><div class="label-sub">FY${countyBudgetsData.fiscal_year}</div></div>
-            <div class="summary-card"><div class="amount">${c.num_departments}</div><div class="label">Departments</div><div class="label-sub">${c.num_programs ? c.num_programs + ' programs' : countyShortName(c.name)}</div></div>
-            <div class="summary-card">${capitalCell}</div>`;
+// Toolbar + filtered/sorted project table — swapped in place on search/sort so
+// the donut and function bars above are never rebuilt.
+function cipResultsHTML(cip, ui) {
+    const q = (ui.cipQuery || '').trim().toLowerCase();
+    let projects = cip.projects.filter(p =>
+        !q || p.project_name.toLowerCase().includes(q) || p.function.toLowerCase().includes(q)
+        || (p.primary_fund || '').toLowerCase().includes(q));
+    projects.sort((a, b) => ui.cipSort === 'name'
+        ? a.project_name.localeCompare(b.project_name)
+        : b.total_budget - a.total_budget);
+
+    const rows = projects.map(p => {
+        const funds = p.funds || [];
+        const fundCell = funds.length <= 1
+            ? escapeHtml(p.primary_fund || '—')
+            : `${escapeHtml(p.primary_fund)} <span class="cip-fund-more">+${funds.length - 1}</span>`;
+        return `<tr class="cip-project-row" title="${escapeHtml(funds.map(f => f.fund_name + ' ' + fmt(f.amount)).join(' · '))}">
+            <td class="cip-proj-name"><span class="cip-fund-dot" style="background:${countyFundColor(p.fund_category)}"></span>${highlight(p.project_name, q)}<span class="cip-proj-func">${escapeHtml(p.function)}</span></td>
+            <td class="cip-proj-fund">${fundCell}</td>
+            <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.total_budget)}</span></td>
+        </tr>`;
+    }).join('') || `<tr><td colspan="3" class="cip-empty">No projects match “${escapeHtml(ui.cipQuery)}”.</td></tr>`;
+
+    return `
+        <div class="cip-toolbar">
+            <input type="search" id="cip-search" class="cip-search" placeholder="Search ${cip.num_projects} projects…" value="${escapeHtml(ui.cipQuery || '')}" aria-label="Search CIP projects">
+            <div class="cip-sort" role="group" aria-label="Sort">
+                <button type="button" class="cip-sort-btn ${ui.cipSort !== 'name' ? 'active' : ''}" data-sort="amount">Largest</button>
+                <button type="button" class="cip-sort-btn ${ui.cipSort === 'name' ? 'active' : ''}" data-sort="name">A–Z</button>
+            </div>
+        </div>
+        <table class="data-table cip-table">
+            <thead><tr>
+                <th>Project</th>
+                <th>Funding source</th>
+                <th class="amount-cell">Amount</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <p class="cip-note">${cip.num_projects} projects across ${cip.num_functions} budget functions${q ? ` · ${projects.length} shown` : ''}. Capital figures are parsed from the budget ordinance PDF and reconcile to the published total within ~0.3%.</p>`;
+}
+
+function renderCountyBody() {
+    const bodyEl = document.getElementById('county-body');
+    const titleEl = document.getElementById('county-title');
+    if (!bodyEl) return;
+    const { county, fy } = countyState;
+    const c = countyEntryFor(fy, county);
+    if (titleEl) {
+        const name = c?.name || countyFyList().map(y => countyEntryFor(y, county)).find(Boolean)?.name || '';
+        titleEl.textContent = name;
+    }
+    if (!c || !c.available) {
+        destroyCountyCharts();
+        const ever = countyEverAvailable(county);
+        bodyEl.innerHTML = `<div class="empty-state">
+            <p>${ever
+                ? `No budget published for <strong>FY${fy}</strong> yet.`
+                : `${escapeHtml(c?.name || 'This county')} budget data is coming soon.`}</p>
+            <p>${ever
+                ? 'Pick another fiscal year above.'
+                : 'The county publishes its budget as ordinance PDFs; a parser for it is planned.'}</p>
+        </div>`;
+        return;
     }
 
-    const render = () => {
-        const rows = [...c.departments].sort((a, b) => {
-            if (sortCol === 'dept') {
-                const va = a.name.toLowerCase(), vb = b.name.toLowerCase();
-                return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-            }
-            return sortDir === 'asc'
-                ? a.total_budget - b.total_budget
-                : b.total_budget - a.total_budget;
-        });
-        const maxBudget = Math.max(...c.departments.map(d => d.total_budget), 1);
+    const ui = countyState.ui || (countyState.ui = { expanded: new Set(), cipQuery: '', cipSort: 'amount' });
+    bodyEl.innerHTML = `
+        ${renderCountyHero(c, fy)}
+        ${c.coverage_note ? `<p class="county-caveat">${escapeHtml(c.coverage_note)}</p>` : ''}
+        ${renderCountyOperating(c.operating, ui.expanded)}
+        ${renderCountyCip(c.cip, ui)}
+        <p class="county-source">Source: <a href="${escapeHtml(c.source.url)}" target="_blank" rel="noopener">${escapeHtml(c.source.label)}</a> · FY${fy}</p>`;
 
-        let body = '<tbody>';
-        for (const d of rows) {
-            const pct = c.total_budget ? (d.total_budget / c.total_budget * 100) : 0;
-            const isOpen = expanded.has(d.code);
-            body += `<tr class="county-dept-row ${isOpen ? 'open' : ''}" data-dept="${escapeHtml(d.code)}">
-                <td><span class="county-row-chevron" aria-hidden="true">${isOpen ? '▾' : '▸'}</span>${escapeHtml(d.name)}<span class="county-prog-count">${d.num_programs || d.programs.length} program${(d.num_programs || d.programs.length) === 1 ? '' : 's'}</span></td>
-                <td class="amount-cell"><span class="figure-chip">${fmtHtml(d.total_budget)}</span></td>
-                <td class="county-share-cell">
-                    <span class="county-share-bar"><span class="county-share-fill" style="width:${(d.total_budget / maxBudget * 100).toFixed(1)}%"></span></span>
-                    <span class="county-share-pct">${pct >= 1 ? pct.toFixed(0) + '%' : '<1%'}</span>
-                </td>
-            </tr>`;
-            if (isOpen) {
-                // Program/activity level: one row per program with its total,
-                // plus the program's fund detail as a sub-line. Single-fund
-                // programs inline the fund name instead of repeating it.
-                body += d.programs.map(p => {
-                    const fundDetail = p.funds.length === 1
-                        ? `<span class="county-prog-fund">${escapeHtml(p.funds[0].fund_name)}</span>`
-                        : `<span class="county-prog-funds">${p.funds.map(f =>
-                            `<span class="county-fund-chip">${escapeHtml(f.fund_name)} ${fmtHtml(f.amount)}</span>`
-                          ).join('')}</span>`;
-                    return `
-                    <tr class="county-prog-row">
-                        <td class="county-prog-name">${escapeHtml(p.program_name)}${fundDetail}</td>
-                        <td class="amount-cell"><span class="figure-chip">${fmtHtml(p.total_budget)}</span></td>
-                        <td></td>
-                    </tr>`;
-                }).join('');
-            }
-        }
-        body += '</tbody>';
+    // Charts are created after their canvases land in the DOM; this also
+    // destroys the previous render's instances so detached canvases never leak.
+    mountCountyCharts(c);
+}
 
-        const totals = `<tbody class="totals-block"><tr class="totals-row">
-            <td>Total <span class="totals-meta">${c.num_departments} departments</span></td>
-            <td class="amount-cell"><span class="figure-chip">${fmtHtml(c.total_budget)}</span></td>
-            <td></td>
-        </tr></tbody>`;
+window.initCountiesPage = function () {
+    if (!countyBudgetsData?.years) return;
+    countyState.ui = { expanded: new Set(), cipQuery: '', cipSort: 'amount' };
+    renderCountyBody();
 
-        const el = document.getElementById('county-results');
-        if (el) el.innerHTML = `
-            <table class="data-table county-table">
-                <thead><tr>
-                    <th class="sortable" data-sort="dept">Department${arrow('dept')}</th>
-                    <th class="sortable amount-cell" data-sort="budget">Budget${arrow('budget')}</th>
-                    <th>Share</th>
-                </tr></thead>
-                ${body}
-                ${totals}
-            </table>`;
-    };
+    // Year toggle — re-render the body in place (county tabs are real links).
+    document.querySelector('.county-year-toggle')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.county-year-btn');
+        if (!btn) return;
+        countyState.fy = btn.getAttribute('data-fy');
+        document.querySelectorAll('.county-year-btn').forEach(b =>
+            b.classList.toggle('active', b === btn));
+        renderCountyBody();
+    });
 
-    render();
+    // Body interactions. Expand / sort / search re-render only their own table
+    // region — never the whole body — so the Chart.js charts above survive.
+    const bodyEl = document.getElementById('county-body');
+    const curEntry = () => countyEntryFor(countyState.fy, countyState.county);
 
-    const resultsEl = document.getElementById('county-results');
-    resultsEl?.addEventListener('click', (e) => {
-        const th = e.target.closest('th.sortable');
-        if (th) {
-            const col = th.getAttribute('data-sort');
-            if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-            else { sortCol = col; sortDir = col === 'dept' ? 'asc' : 'desc'; }
-            render();
+    bodyEl?.addEventListener('click', (e) => {
+        const deptRow = e.target.closest('tr.county-dept-row');
+        if (deptRow) {
+            const key = deptRow.getAttribute('data-key');
+            if (!key) return;                 // flat rows (no program detail)
+            const ex = countyState.ui.expanded;
+            ex.has(key) ? ex.delete(key) : ex.add(key);
+            const c = curEntry();
+            const wrap = document.querySelector('.county-op-table-wrap');
+            if (wrap && c?.operating) wrap.innerHTML = countyOpTableHTML(c.operating, ex);
             return;
         }
-        const row = e.target.closest('tr.county-dept-row');
-        if (row) {
-            const code = row.getAttribute('data-dept');
-            if (expanded.has(code)) expanded.delete(code);
-            else expanded.add(code);
-            render();
+        const sortBtn = e.target.closest('.cip-sort-btn');
+        if (sortBtn) {
+            countyState.ui.cipSort = sortBtn.getAttribute('data-sort');
+            const c = curEntry();
+            const wrap = document.querySelector('.cip-results-wrap');
+            if (wrap && c?.cip) wrap.innerHTML = cipResultsHTML(c.cip, countyState.ui);
+        }
+    });
+    bodyEl?.addEventListener('input', (e) => {
+        const search = e.target.closest('#cip-search');
+        if (!search) return;
+        countyState.ui.cipQuery = search.value;
+        // Re-render only the CIP results so the donut/function bars and the
+        // input's focus/caret are preserved.
+        const c = curEntry();
+        const wrap = document.querySelector('.cip-results-wrap');
+        if (wrap && c?.cip) {
+            wrap.innerHTML = cipResultsHTML(c.cip, countyState.ui);
+            const input = document.getElementById('cip-search');
+            if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
         }
     });
 };
-

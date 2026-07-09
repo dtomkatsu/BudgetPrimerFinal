@@ -39,6 +39,74 @@ DATASET_IDS = {
     2027: 'puaw-t6sa',
 }
 
+# --- Capital Improvement Program (CIP) parsing -----------------------------
+# CIP is published only in the executive capital budget ordinance PDF (a
+# scanned, OCR'd document — Ord. 25-39 for FY2026). It is organized as
+# SECTION per government FUNCTION → projects, each funded from one or more
+# sources. We parse the project appropriation pages by word position and
+# emit one allocation per (project × fund) source line, mirroring how the
+# operating data is broken out to line items.
+#
+# Fund codes and their full names come from the ordinance's Section 1 revenue
+# summary (page 1). The seven CIP functions double as the CIP "departments"
+# in the output hierarchy (capital is budgeted by function, not by the
+# operating departments).
+CIP_FUND_NAMES = {
+    'SR': 'Sewer Revenue Bond Improvement Fund',
+    'GI': 'General Improvement Bond Fund',
+    'HI': 'Highway Improvement Bond Fund',
+    'TB': 'Taxable General Improvement Bond Fund',
+    'WB': 'Solid Waste Improvement Bond Fund',
+    'AF': 'Affordable Housing Fund',
+    'BK': 'Bikeway Fund',
+    'CF': 'Clean Water and Natural Lands Fund',
+    'CP': 'Capital Projects Fund',
+    'GN': 'General Fund',
+    'PP': 'Parks and Playgrounds Fund',
+    'SW': 'Sewer Fund',
+    'CD': 'Community Development Fund',
+    'FG': 'Federal Grants Fund',
+}
+# Recurring OCR misreads of the two-letter fund codes (the source is scanned).
+_CIP_FUND_OCR = {
+    'ILI': 'HI', 'CI': 'GI', 'GL': 'GI', 'GB': 'GI', '01': 'GI', '0I': 'GI',
+    'SVV': 'SW', 'SVI': 'SW',
+}
+CIP_FUNCTIONS = [
+    'GENERAL GOVERNMENT', 'PUBLIC SAFETY', 'HIGHWAYS AND STREETS',
+    'SANITATION', 'HUMAN SERVICES', 'CULTURE-RECREATION',
+    'UTILITIES OR OTHER ENTERPRISES',
+]
+# Published authoritative CIP grand total (Section 1, TOTAL ALL FUNDS) used to
+# sanity-check the parse.
+CIP_GRAND_TOTAL = {2026: 1286783101}
+
+
+def _cip_amount(text: str) -> Optional[int]:
+    """Parse an OCR'd whole-dollar amount. Amounts are always integers, so any
+    stray '.' is a misread comma (e.g. '28.075,000' → 28075000)."""
+    s = re.sub(r'[,.\s$]', '', text)
+    return int(s) if re.fullmatch(r'-?\d+', s) else None
+
+
+def _cip_fund_code(token: str) -> Optional[str]:
+    """Normalize an OCR'd fund-code token to a known two-letter code."""
+    t = re.sub(r'[^A-Za-z0-9]', '', token or '').upper()
+    if t in CIP_FUND_NAMES:
+        return t
+    if t in _CIP_FUND_OCR:
+        return _CIP_FUND_OCR[t]
+    sub = t.translate(str.maketrans({'L': 'I', '1': 'I', 'B': 'I', '0': 'G'}))
+    if sub in CIP_FUND_NAMES:
+        return sub
+    if sub[:2] in CIP_FUND_NAMES:
+        return sub[:2]
+    return None
+
+
+def _slug(text: str) -> str:
+    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
+
 # Explicit slugs for Honolulu departments; anything unlisted falls back to a
 # generic slug of the name.
 DEPT_SLUGS = {
@@ -117,9 +185,11 @@ class HonoluluParser(BaseCountyParser):
     # provisions, the legislative branch, and CIP appear only in the budget
     # ordinance PDFs (Ord. 25-38 / 25-39).
     coverage_note = (
-        "Executive departments' operating budget only — excludes debt service, "
-        "employee benefits and provisions, the legislative branch, and capital "
-        "improvements, which are published only in the budget ordinance PDFs."
+        "Operating figures cover executive departments only (from the open-data "
+        "portal) — they exclude debt service, employee benefits and provisions, "
+        "and the legislative branch, which appear only in the operating budget "
+        "ordinance. Capital (CIP) is the full executive capital budget parsed "
+        "from the ordinance PDF."
     )
 
     def parse(self, raw_dir: Path, fiscal_year: int) -> List[CountyAllocation]:
@@ -179,4 +249,131 @@ class HonoluluParser(BaseCountyParser):
             f"{len(allocations)} dept×division×fund allocations "
             f"({skipped} rows without amounts skipped)"
         )
+
+        # Capital Improvement Program from the ordinance PDF (committed by
+        # fetch_county_budgets.py --pdfs). Absent for years not yet published.
+        allocations.extend(self.parse_cip(raw_dir, fiscal_year))
+        return allocations
+
+    # -- CIP -----------------------------------------------------------------
+    def parse_cip(self, raw_dir: Path, fiscal_year: int) -> List[CountyAllocation]:
+        """Parse the executive capital budget ordinance PDF into per-(project ×
+        fund) capital allocations. Returns [] if the PDF isn't present."""
+        pdfs = sorted(raw_dir.glob(f'fy{fiscal_year}_cip_*.pdf'))
+        if not pdfs:
+            logger.info(f"Honolulu FY{fiscal_year}: no CIP ordinance PDF — skipping capital")
+            return []
+        try:
+            import pdfplumber
+        except ImportError:
+            logger.warning("pdfplumber not installed — cannot parse Honolulu CIP")
+            return []
+
+        pdf_path = pdfs[0]
+        source = pdf_path.stem.replace(f'fy{fiscal_year}_cip_', '')
+
+        def lines_of(page):
+            """Group a page's words into lines (by rounded y) sorted left→right."""
+            buckets: dict = defaultdict(list)
+            for w in page.extract_words(use_text_flow=False):
+                buckets[round(w['top'] / 3) * 3].append(w)
+            return [sorted(buckets[t], key=lambda w: w['x0']) for t in sorted(buckets)]
+
+        def left_text(ws):
+            return ' '.join(w['text'] for w in ws
+                            if w['x0'] < 345 and _cip_amount(w['text']) is None).strip()
+
+        def fund_token(ws):
+            # The SOURCE OF FUNDS code sits just left of the TOTAL ALL FUNDS
+            # column (x≈470–506): a short token that isn't a thousands amount.
+            cand = [w for w in ws if 470 <= w['x0'] <= 506 and len(w['text']) <= 4
+                    and ',' not in w['text'] and not re.fullmatch(r'\d{3,}', w['text'])]
+            return cand[-1] if cand else None
+
+        def source_amount(ws):
+            # The SOURCE OF FUNDS amount column sits at x≈426–468.
+            cand = [w for w in ws if 426 <= w['x0'] <= 468
+                    and _cip_amount(w['text']) is not None
+                    and abs(_cip_amount(w['text'])) >= 500]
+            return cand[-1] if cand else None
+
+        def total_funds(ws):
+            cand = [(w['x0'], _cip_amount(w['text'])) for w in ws if w['x0'] >= 505
+                    and _cip_amount(w['text']) is not None and abs(_cip_amount(w['text'])) >= 1000]
+            return max(cand, key=lambda t: t[0])[1] if cand else None
+
+        def is_label(ws):
+            up = left_text(ws).upper().replace(' ', '')
+            return up.startswith('TOTAL') or 'SOURCEOFFUNDS' in up or 'WORKPHASE' in up
+
+        allocations: List[CountyAllocation] = []
+        function = 'General Government'
+        project = None  # current project name
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                L = lines_of(page)
+                for i, ws in enumerate(L):
+                    if not ws:
+                        continue
+                    top = ws[0]['top']
+                    if top < 200 or top > 720:   # page header/footer band
+                        continue
+
+                    name = left_text(ws)
+                    upname = name.upper()
+                    # Function section header (also doubles as the CIP "dept").
+                    matched_fn = next((f for f in CIP_FUNCTIONS
+                                       if f.replace(' ', '') in upname.replace(' ', '')), None)
+                    if matched_fn and source_amount(ws) is None and total_funds(ws) is None:
+                        function = matched_fn.title()
+                        continue
+                    if is_label(ws):            # function/program subtotal lines
+                        continue
+
+                    # New project: a line carrying the TOTAL ALL FUNDS for a
+                    # named project (with or without a 7-digit project number).
+                    if total_funds(ws) is not None and name and not name.upper().startswith('TOTAL'):
+                        project = re.sub(r'^\d{7}\s*', '', name).strip() or project
+
+                    # Emit one allocation per source line: amount + fund code.
+                    code_tok = fund_token(ws)
+                    if not code_tok:
+                        continue
+                    amt_tok = source_amount(ws)
+                    if amt_tok is None and i > 0:    # wrapped: amount on prior line
+                        amt_tok = source_amount(L[i - 1])
+                    if amt_tok is None:
+                        continue
+                    code = _cip_fund_code(code_tok['text'])
+                    if not code:
+                        continue
+                    amount = _cip_amount(amt_tok['text'])
+                    if amount is None or amount == 0:
+                        continue
+                    fund_name = CIP_FUND_NAMES[code]
+                    allocations.append(CountyAllocation(
+                        county=self.county,
+                        department_code=_slug(function),
+                        department_name=function,
+                        section=BudgetSection.CAPITAL_IMPROVEMENT,
+                        fund_name=fund_name,
+                        fund_category=normalize_fund(fund_name),
+                        fiscal_year=fiscal_year,
+                        amount=float(amount),
+                        program_name=(project or 'Capital Projects').title(),
+                        source=f'Honolulu CIP ordinance ({source})',
+                    ))
+
+        parsed = sum(a.amount for a in allocations)
+        control = CIP_GRAND_TOTAL.get(fiscal_year)
+        pct = f"{(parsed - control) / control * 100:+.2f}% vs published" if control else ""
+        logger.info(
+            f"Honolulu FY{fiscal_year} CIP: {len(allocations)} project×fund rows, "
+            f"${parsed/1e6:.1f}M total {pct}"
+        )
+        if control and abs(parsed - control) / control > 0.03:
+            logger.warning(
+                f"Honolulu CIP parse off by >3% from published total "
+                f"(${parsed:,.0f} vs ${control:,}) — check OCR/layout drift"
+            )
         return allocations

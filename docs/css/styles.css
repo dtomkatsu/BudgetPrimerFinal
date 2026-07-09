@@ -32,13 +32,17 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     background-color: #f9f9f9;
+    /* Clamp page width to the viewport so nothing creates a horizontal scroll.
+       Tables/timeline scroll inside their own panes, so this is safe — and it
+       keeps the absolutely-positioned header scope toggle on-screen on phones. */
+    overflow-x: hidden;
 }
 
 .app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    max-width: 1200px;
+    max-width: 1440px;
     margin: 0 auto;
     background: white;
     box-shadow: var(--shadow);
@@ -63,7 +67,7 @@ body {
 .app-header-inner {
     position: relative;
     z-index: 1;
-    max-width: 880px;
+    max-width: 960px;
     margin: 0 auto;
 }
 /* Soft curved bottom edge — sits flush against the bottom of the sage
@@ -96,6 +100,15 @@ body {
     color: rgba(255, 255, 255, 0.75);
     margin: 0.85rem 0 0;
     letter-spacing: 0.005em;
+    line-height: 1.45;
+    /* Reserve two lines and vertically center the text, so the nav below keeps
+       a fixed position no matter how long each tab's tagline is — a 1-line vs
+       2-line tagline used to shove the nav up/down when switching tabs. The
+       grid item stays full-width (so the text still wraps); align-items only
+       centers it vertically within the reserved height. */
+    min-height: 2.9em;            /* 2 × line-height (1.45) */
+    display: grid;
+    align-items: center;
 }
 /* Year mark inside the title — refined editorial treatment: thin pipe
    separator + lighter-weight white. No tint, no badge — just a quiet
@@ -110,11 +123,12 @@ body {
 }
 
 /* "Open ↗" button — only visible when the page is embedded in an
-   iframe. Lets the user pop the tracker out into a full tab. */
+   iframe. Lets the user pop the tracker out into a full tab. Pinned top-LEFT
+   so it never collides with the scope toggle in the top-right corner. */
 .open-fullpage-btn {
     position: absolute;
     top: 0.9rem;
-    right: 1rem;
+    left: 1rem;
     display: inline-block;
     padding: 6px 12px;
     background: rgba(255,255,255,0.14);
@@ -132,6 +146,22 @@ body {
     border-color: rgba(255,255,255,0.55);
 }
 .open-fullpage-btn[hidden] { display: none; }
+
+/* Animated WebGL ocean (header-ocean.js) — a faint living version of the
+   swell mark, drifting across the lower band behind the masthead content.
+   Created by JS only when WebGL + motion are available; absent otherwise, so
+   the static gradient/swell remain the fallback. Sits above the gradient but
+   below both the white shore curve (z-index 0, later in the DOM) and the
+   title content (.app-header-inner, z-index 1). Non-interactive. */
+.app-header-ocean {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    display: block;
+}
 
 /* Stacked-wave mark — three soft swells above the title. Reads as
    the Pacific without leaning on a specific landmark. Sized as a
@@ -213,11 +243,16 @@ body {
 .nav-link {
     color: #ffffff;
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1.05rem;
     border-radius: 999px;
     white-space: nowrap;
     border: 1px solid transparent;
     background: transparent;
+    /* Center single-line links (About) against the taller stacked
+       sub-label links so the pill row stays vertically aligned. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     /* Smooth crossfade across every property the active state touches.
        Material-style standard easing gives a settling, polished feel. */
     transition:
@@ -225,7 +260,7 @@ body {
         color 0.22s ease,
         box-shadow 0.32s ease,
         transform 0.18s cubic-bezier(0.2, 0, 0.2, 1);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 650;
     letter-spacing: 0.005em;
     will-change: transform, background;
@@ -241,15 +276,19 @@ body {
     font-weight: 600;
 }
 
-/* Stacked nav variants — inline, single-line for the new pill chrome.
-   Sub-text becomes a faint inline complement instead of a stacked label. */
+/* Stacked nav variants — bill label on top, descriptive sub-label beneath
+   ("HB1800" / "2026 budget bill"). Stacking keeps each item narrow so the
+   four-item row still fits under the 960px header cap (inline sub-labels
+   overflowed it). The sub-labels collapse on phones (≤640px) — see .nav-sub. */
 .nav-link-stacked,
 .nav-link-hb300,
 .nav-link-actuals {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.6em;
-    line-height: 1.2;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15em;
+    line-height: 1.15;
 }
 /* HB300 differentiates by label only — same white text as siblings so
    contrast stays high on the sage background. */
@@ -257,19 +296,20 @@ body {
 .nav-link-hb300:hover { color: #ffffff; }
 .nav-link-hb300.active { color: #3d5249; }
 
-/* Sub-labels ("2026 budget bill" …) are permanently hidden: with them inline
-   the four-item row needs ~850–940px depending on the viewer's font metrics,
-   right at the 880px header cap — it fit on some machines and wrapped or
-   spilled on others. Short labels (~520px) fit everywhere, on any font stack.
-   The descriptive text lives on as each link's `title` tooltip. */
+/* Sub-labels ("2026 budget bill" …) sit beneath each bill label as a readable
+   caption. Hidden on phones (≤640px), where the no-wrap row has no room to
+   spare, and shown from 641px up — stacked they stay within the 960px header
+   cap. The text also lives on as each link's `title` tooltip. */
 .nav-sub {
     display: none;
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 450;
-    letter-spacing: 0.05em;
-    font-variant: small-caps;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    letter-spacing: 0.01em;
     transition: color 0.22s ease, opacity 0.22s ease;
+}
+@media (min-width: 680px) {
+    .nav-sub { display: block; }
 }
 .nav-link.active .nav-sub {
     color: #8aa595;                     /* sage tint, readable on white pill */
@@ -6368,38 +6408,63 @@ mark.search-highlight {
 
 /* Scope pill: sits between the subtitle and the main nav. Smaller-scale echo
    of the .main-nav segmented control so it reads as chrome, not a sibling. */
+/* Scope switch (State ↔ Counties) — a top-level mode toggle, pinned to the
+   header's top-right corner as a frosted-glass control so it's clearly its own
+   thing rather than competing with the centered bill tabs. */
 .scope-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1.15rem;
+    z-index: 3;
     display: inline-flex;
-    gap: 0.2rem;
-    margin: 1.1rem auto 0;
+    align-items: center;
+    gap: 0.1rem;
     padding: 4px;
-    background: rgba(0, 0, 0, 0.18);
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.20);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
 }
 .scope-btn {
-    color: rgba(255, 255, 255, 0.85);
+    color: #fff;
     text-decoration: none;
-    padding: 0.3rem 0.95rem;
+    padding: 0.34rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     white-space: nowrap;
-    transition: background 0.28s cubic-bezier(0.2, 0, 0.2, 1), color 0.22s ease;
+    transition: background 0.22s ease, color 0.22s ease;
 }
-.scope-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.scope-btn:hover { background: rgba(255, 255, 255, 0.14); }
 .scope-btn.active {
     background: #fff;
     color: #3d5249;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20);
 }
 
-/* In county mode the state bill tabs don't apply — hide all but About so the
-   header shows scope pill + About only. */
-body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
+/* County mode keeps the state bill tabs visible: the prominent scope toggle is
+   gone (the county view is reached by a quiet footer link now), so the bill
+   tabs are the way back to the state view. */
+
+/* Quiet entry to the county view — a small, faint footer link, intentionally
+   easy to miss. */
+.app-footer-counties {
+    margin: 0.4rem 0 0;
+}
+.app-footer-counties a {
+    color: #d2d7d3;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.app-footer-counties a:hover {
+    color: #8aa595;
+    text-decoration: underline;
+}
 
 /* County selector tabs on the counties page */
 .county-tabs {
@@ -6480,6 +6545,9 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 /* Department table: expandable rows + share bars */
 .county-table .county-dept-row { cursor: pointer; }
 .county-table .county-dept-row:hover td { background: #f5f8f6; }
+/* Flat rows have no program detail to expand (e.g. Hawaiʻi fund-level). */
+.county-table .county-dept-flat { cursor: default; }
+.county-table .county-dept-flat:hover td { background: transparent; }
 .county-row-chevron {
     display: inline-block;
     width: 1.1em;
@@ -6519,10 +6587,17 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 }
 
 @media (max-width: 768px) {
-    .scope-btn { padding: 0.28rem 0.8rem; font-size: 0.78rem; }
+    .scope-toggle { top: 0.7rem; right: 0.7rem; }
+    .scope-btn { padding: 0.26rem 0.7rem; font-size: 0.74rem; letter-spacing: 0.03em; }
     .county-tab { padding: 0.4rem 0.85rem; font-size: 0.88rem; }
     .county-share-cell { display: none; }
     .county-table th:nth-child(3) { display: none; }
+}
+/* Narrow phones: shrink the four bill tabs so the no-wrap row fits without
+   being clipped (the page can't scroll sideways — see body overflow-x). */
+@media (max-width: 430px) {
+    .main-nav { gap: 0.1rem; }
+    .nav-link { padding: 0.45rem 0.7rem; font-size: 1rem; }
 }
 
 /* Program-level detail inside expanded department rows */
@@ -6553,3 +6628,242 @@ body.scope-county .main-nav .nav-link:not([href="#/about"]) { display: none; }
 }
 .county-fund-chip .fmt-num { font-weight: 600; }
 .county-fund-chip .fmt-unit { color: #8a978f; }
+
+/* Toolbar: county tabs on the left, fiscal-year toggle on the right */
+.county-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem 1.2rem;
+    margin-bottom: 1.1rem;
+}
+.county-toolbar .county-tabs { margin: 0; }
+.county-year-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.county-year-label {
+    font-size: 0.95rem;
+    color: #6b7a72;
+    margin-right: 0.2rem;
+}
+.county-year-btn {
+    padding: 0.42rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    color: #3d5249;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+.county-year-btn:hover { background: #eef3ef; }
+.county-year-btn.active {
+    background: #3d5249;
+    border-color: #3d5249;
+    color: #fff;
+}
+
+/* Operating / CIP sections */
+.county-section { margin: 1.8rem 0; }
+.county-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e3eae5;
+    margin-bottom: 0.3rem;
+}
+.county-section-title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2f3f37;
+}
+.county-section-tag {
+    margin-left: 0.5em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #fff;
+    background: #a68c68;
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+.county-section-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #3d5249;
+    white-space: nowrap;
+}
+.fund-cat-bar-title {
+    font-size: 0.95rem;
+    color: #5c6b63;
+    margin-bottom: 0.5rem;
+}
+.county-total-card .amount { color: #2f3f37; }
+
+/* CIP project list */
+.cip-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    margin: 0.4rem 0 0.8rem;
+}
+.cip-search {
+    flex: 1 1 240px;
+    max-width: 360px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    font-size: 1rem;
+    color: #2f3f37;
+}
+.cip-search:focus {
+    outline: none;
+    border-color: #7da48d;
+    box-shadow: 0 0 0 3px rgba(125, 164, 141, 0.18);
+}
+.cip-sort { display: inline-flex; gap: 0.35rem; }
+.cip-sort-btn {
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid #d4ddd6;
+    background: #fff;
+    color: #4a5a52;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.cip-sort-btn.active { background: #3d5249; border-color: #3d5249; color: #fff; }
+.cip-table .cip-proj-name { color: #2f3f37; }
+.cip-proj-func {
+    display: block;
+    font-size: 0.8rem;
+    color: #8a978f;
+    margin-top: 0.15rem;
+}
+.cip-proj-fund {
+    font-size: 0.92rem;
+    color: #5c6b63;
+    white-space: nowrap;
+}
+.cip-fund-more {
+    font-size: 0.78rem;
+    color: #8a978f;
+    background: #eef3ef;
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+}
+.cip-note {
+    font-size: 0.9rem;
+    color: #6b7a72;
+    margin-top: 0.7rem;
+}
+.cip-empty { text-align: center; color: #8a978f; padding: 1.4rem 0; }
+
+@media (max-width: 768px) {
+    .county-toolbar { gap: 0.6rem; }
+    .cip-table th:nth-child(2), .cip-table td.cip-proj-fund { display: none; }
+}
+
+/* ── County data-viz: hero, fund donut, treemap, function bars ─────────────── */
+
+/* "Budget at a glance" hero — total + an Operating/Capital proportion bar. */
+.county-hero {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.8fr) 2fr;
+    gap: 1.4rem 2.2rem;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem 1.7rem;
+    margin: 1.5rem 0;
+}
+.chero-total-amt { font-size: 2.4rem; font-weight: 700; color: #2f3f37; line-height: 1; }
+.chero-total-amt .fmt-unit { font-size: 0.5em; color: #7a8fa6; margin-left: 0.12em; }
+.chero-total-lbl { margin-top: 0.45rem; font-size: 0.92rem; color: #6b7a72; letter-spacing: 0.02em; }
+.chero-fy {
+    display: inline-block; margin-left: 0.3em; padding: 0.05em 0.5em;
+    border-radius: 999px; background: #eef3ef; color: #3d5249;
+    font-weight: 700; font-size: 0.82em;
+}
+.chero-bar { display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: #edf1ee; }
+.chero-seg { height: 100%; transition: width 0.5s cubic-bezier(0.2, 0, 0.2, 1); }
+.chero-seg-op  { background: linear-gradient(90deg, #5a7b68, #6f9580); }
+.chero-seg-cap { background: linear-gradient(90deg, #b89a6f, #c9a87b); }
+.chero-figs { display: flex; flex-wrap: wrap; gap: 1.1rem 2rem; margin-top: 0.9rem; }
+.chero-fig { display: flex; align-items: flex-start; gap: 0.5rem; }
+.chero-fig-dot { width: 11px; height: 11px; border-radius: 3px; margin-top: 0.32rem; flex: none; }
+.chero-fig.is-op  .chero-fig-dot { background: #6f9580; }
+.chero-fig.is-cap .chero-fig-dot { background: #c9a87b; }
+.chero-fig-amt { font-size: 1.35rem; font-weight: 700; color: #2f3f37; line-height: 1.05; }
+.chero-fig-amt .fmt-unit { font-size: 0.55em; color: #7a8fa6; margin-left: 0.1em; }
+.chero-dash { color: #b6c0ba; }
+.chero-fig-lbl { font-size: 0.85rem; color: #6b7a72; margin-top: 0.12rem; }
+
+/* Two-up overview row: fund donut + treemap (operating) / function bars (CIP). */
+.county-overview {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.35fr);
+    gap: 1.4rem;
+    margin: 0.9rem 0 1.2rem;
+}
+.county-viz {
+    background: #fff; border: 1px solid var(--border-color);
+    border-radius: 10px; padding: 1rem 1.1rem 1.1rem;
+}
+.county-viz-title {
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #7a8a80; margin-bottom: 0.7rem;
+}
+
+/* Fund doughnut + legend */
+.cdonut { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.cdonut-chart { position: relative; width: 150px; height: 150px; flex: none; }
+.cdonut-center {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.cdonut-center-amt { font-size: 1.15rem; font-weight: 700; color: #2f3f37; }
+.cdonut-center-lbl { font-size: 0.66rem; color: #8a978f; text-transform: uppercase; letter-spacing: 0.06em; }
+.cdonut-legend { list-style: none; margin: 0; padding: 0; flex: 1 1 150px; min-width: 0; }
+.cdonut-legend-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.22rem 0; font-size: 0.9rem; color: #3f4f47; }
+.cdonut-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.cdonut-legend-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdonut-legend-amt { font-variant-numeric: tabular-nums; color: #2f3f37; font-weight: 600; white-space: nowrap; }
+.cdonut-legend-amt em { font-style: normal; color: #93a199; font-weight: 500; margin-left: 0.4em; }
+
+/* Treemap canvas */
+.ctreemap { width: 100%; height: 230px; }
+.county-viz-treemap { display: flex; flex-direction: column; }
+
+/* CIP "by function" bars */
+.cfn-list { list-style: none; margin: 0; padding: 0; }
+.cfn-row {
+    display: grid; grid-template-columns: minmax(84px, 1.1fr) 2fr auto;
+    align-items: center; gap: 0.6rem; padding: 0.3rem 0; font-size: 0.9rem;
+}
+.cfn-name { color: #3f4f47; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cfn-bar { height: 9px; border-radius: 5px; background: #edf1ee; overflow: hidden; }
+.cfn-fill { display: block; height: 100%; border-radius: 5px; }
+.cfn-amt { font-variant-numeric: tabular-nums; font-weight: 600; color: #2f3f37; white-space: nowrap; }
+
+/* Fund-color dot before each CIP project name (keeps fund visible when the
+   funding-source column is hidden on phones). */
+.cip-fund-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.5em; vertical-align: middle; }
+
+@media (max-width: 760px) {
+    .county-hero { grid-template-columns: 1fr; gap: 1rem; }
+    .county-overview { grid-template-columns: 1fr; }
+    .cdonut-chart { margin: 0 auto; }
+}
