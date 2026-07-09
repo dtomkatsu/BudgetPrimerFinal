@@ -859,28 +859,23 @@ window.homePage = async function () {
 // Department Detail Page (with program drill-down)
 // ---------------------------------------------------------------------------
 
-window.departmentDetailPage = async function (params) {
-    const deptId = params?.id;
-    if (!deptId) return window.notFoundPage();
+// Sage-aligned palette for the fund doughnut + legend (module scope so the
+// initial render and the per-year/variant re-render use identical colors).
+const DEPT_FUND_PALETTE = [
+    '#5a7b68', '#a08e58', '#7d97a3', '#b07560', '#8b6c8e',
+    '#6f8d70', '#c2924a', '#5e7d96', '#a87575', '#8b8158',
+    '#789689', '#a39378', '#7e93a8', '#b58472', '#928298',
+];
 
-    const dept = departmentsData.find(d => d.id === deptId);
-    if (!dept) return window.notFoundPage();
+// Compute the swappable "detail" parts (program cards, fund legend, doughnut
+// data) for a department-detail object — the shape shared by departments.json
+// and the Act 175/250 datasets. Used for the initial render AND when the year
+// picker switches variant, so the program/fund detail tracks the selection.
+window.buildDeptDetailParts = function (d) {
+    const programs = d.programs || [];
+    const total = (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0);
 
-    const total = (dept.operating_budget || 0) + (dept.capital_budget || 0) + (dept.one_time_appropriations || 0);
-    const programs = dept.programs || [];
-
-    // Group programs by program_id for aggregation
-    const progMap = {};
-    programs.forEach(p => {
-        const key = `${p.program_id}|${p.section}`;
-        if (!progMap[key]) {
-            progMap[key] = { ...p, fund_details: [] };
-        }
-        progMap[key].fund_details.push({ fund: p.fund_category, amount: p.amount, positions: p.positions });
-        progMap[key].amount = (progMap[key].amount || 0);
-    });
-
-    // Aggregate by program_id only (combine sections)
+    // Aggregate by program_id (combine sections/funds).
     const byProg = {};
     programs.forEach(p => {
         if (!byProg[p.program_id]) {
@@ -893,24 +888,12 @@ window.departmentDetailPage = async function (params) {
         if (p.positions) bp.positions = (bp.positions || 0) + p.positions;
         bp.funds[p.fund_category] = (bp.funds[p.fund_category] || 0) + p.amount;
     });
-
     const progList = Object.values(byProg).sort((a, b) => b.total - a.total);
 
-    // Fund breakdown for this department — sorted desc, used by the
-    // doughnut chart + matching swatch legend.
-    const fundBreakdown = dept.fund_breakdown || {};
-    const fundEntries = Object.entries(fundBreakdown)
-        .sort(([, a], [, b]) => b - a);
-    // Sage-aligned palette (matches sparklines + history chart). Repeats
-    // softly if a dept has more than `palette.length` distinct fund types.
-    const fundPalette = [
-        '#5a7b68', '#a08e58', '#7d97a3', '#b07560', '#8b6c8e',
-        '#6f8d70', '#c2924a', '#5e7d96', '#a87575', '#8b8158',
-        '#789689', '#a39378', '#7e93a8', '#b58472', '#928298',
-    ];
+    const fundEntries = Object.entries(d.fund_breakdown || {}).sort(([, a], [, b]) => b - a);
     const fundLegendHtml = fundEntries.map(([fund, amt], i) => {
         const pct = total ? (amt / total * 100) : 0;
-        const colour = fundPalette[i % fundPalette.length];
+        const colour = DEPT_FUND_PALETTE[i % DEPT_FUND_PALETTE.length];
         return `
             <div class="fund-legend-row" data-fund-idx="${i}">
                 <span class="fund-legend-swatch" style="background:${colour}"></span>
@@ -919,17 +902,8 @@ window.departmentDetailPage = async function (params) {
                 <span class="fund-legend-pct">${pct.toFixed(1)}%</span>
             </div>`;
     }).join('');
-    // Stash data for initDepartmentDetailPage so it can build the chart.
-    window.__deptFundData = {
-        labels: fundEntries.map(([f]) => f),
-        values: fundEntries.map(([, a]) => a),
-        colors: fundEntries.map((_, i) => fundPalette[i % fundPalette.length]),
-        total,
-    };
 
-    // Programs — rendered as visual cards instead of a flat table. Each
-    // card shows id-as-chip, name, an inline "share of dept" bar, and
-    // operating/capital/positions stats with the total on the right.
+    // Program cards: id-chip, name, "share of dept" bar, op/cap/positions stats.
     const programCardsHtml = progList.map(p => {
         const sharePct = total ? (p.total / total * 100) : 0;
         const opPct  = p.total ? (p.operating / p.total * 100) : 0;
@@ -956,6 +930,27 @@ window.departmentDetailPage = async function (params) {
                 <div class="program-card-stats">${stats.join('')}</div>
             </article>`;
     }).join('');
+
+    const fundData = {
+        labels: fundEntries.map(([f]) => f),
+        values: fundEntries.map(([, a]) => a),
+        colors: fundEntries.map((_, i) => DEPT_FUND_PALETTE[i % DEPT_FUND_PALETTE.length]),
+        total,
+    };
+
+    return { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData };
+};
+
+window.departmentDetailPage = async function (params) {
+    const deptId = params?.id;
+    if (!deptId) return window.notFoundPage();
+
+    const dept = departmentsData.find(d => d.id === deptId);
+    if (!dept) return window.notFoundPage();
+
+    const { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData } = window.buildDeptDetailParts(dept);
+    // Stash fund data for initDepartmentDetailPage's doughnut chart.
+    window.__deptFundData = fundData;
 
     // Historical context — pull this department's 12-yr series if available.
     // The chart and year picker are dev-only; public page shows FY2026 only.
@@ -1059,23 +1054,23 @@ window.departmentDetailPage = async function (params) {
             <section class="fund-breakdown-section">
                 <div class="fund-breakdown-head">
                     <h3>Fund Type Breakdown</h3>
-                    <p class="fund-breakdown-sub">Where ${dept.code}'s FY2026 budget comes from. ${fundEntries.length} fund type${fundEntries.length === 1 ? '' : 's'}.</p>
+                    <p class="fund-breakdown-sub" id="dept-fund-sub">Where ${dept.code}'s ${histDept ? 'FY2026 · Act 250' : 'FY2026'} budget comes from. ${fundEntries.length} fund type${fundEntries.length === 1 ? '' : 's'}.</p>
                 </div>
                 <div class="fund-breakdown-body">
                     <div class="fund-doughnut-wrap">
                         <canvas id="fund-doughnut-chart" width="240" height="240"></canvas>
                         <div class="fund-doughnut-center">
-                            <span class="fund-doughnut-total">${fmt(total)}</span>
-                            <span class="fund-doughnut-total-lbl">Total · FY2026</span>
+                            <span class="fund-doughnut-total" id="dept-fund-center-total">${fmt(total)}</span>
+                            <span class="fund-doughnut-total-lbl" id="dept-fund-center-label">Total · ${histDept ? 'FY2026 · Act 250' : 'FY2026'}</span>
                         </div>
                     </div>
-                    <div class="fund-legend-list">${fundLegendHtml}</div>
+                    <div class="fund-legend-list" id="dept-fund-legend">${fundLegendHtml}</div>
                 </div>
             </section>
 
             <section class="programs-section">
                 <div class="programs-head">
-                    <h3>Programs <span class="programs-count">${progList.length}</span></h3>
+                    <h3>Programs <span class="programs-count" id="dept-programs-count">${progList.length}</span></h3>
                     <button class="action-link export-btn" id="export-programs">⬇ Export CSV</button>
                 </div>
                 <div class="programs-legend">
@@ -1083,7 +1078,7 @@ window.departmentDetailPage = async function (params) {
                     <span class="prog-legend-item"><span class="prog-stat-dot prog-stat-cap"></span>Capital</span>
                     <span class="prog-legend-item"><span class="prog-stat-dot prog-stat-pos"></span>Positions</span>
                 </div>
-                <div class="programs-card-list">
+                <div class="programs-card-list" id="dept-programs-list">
                     ${programCardsHtml}
                 </div>
             </section>
@@ -1105,30 +1100,46 @@ window.initDepartmentDetailPage = async function () {
     });
 
     // ---- Fund Type doughnut chart ---------------------------------------
-    // Data is staged on window.__deptFundData by departmentDetailPage().
-    // Renders a Chart.js doughnut alongside the matching swatch legend
-    // built directly in the template.  Hovering a slice highlights its
-    // legend row and vice versa.
+    // Rebuildable: the year picker can swap the program/fund detail to another
+    // year/variant, so the doughnut + legend re-render from new fund data.
     const fundCanvas = document.getElementById('fund-doughnut-chart');
-    if (fundCanvas && typeof Chart !== 'undefined' && window.__deptFundData) {
-        const fd = window.__deptFundData;
-        const fmtFund = (v) => {
-            if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
-            if (Math.abs(v) >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
-            if (Math.abs(v) >= 1e3) return `$${(v / 1e3).toFixed(0)}K`;
-            return `$${v.toLocaleString()}`;
-        };
-        const fundChart = new Chart(fundCanvas.getContext('2d'), {
+    const fmtFund = (v) => {
+        if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
+        if (Math.abs(v) >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
+        if (Math.abs(v) >= 1e3) return `$${(v / 1e3).toFixed(0)}K`;
+        return `$${v.toLocaleString()}`;
+    };
+    let fundChart = null;
+    // Legend-row → slice highlight; re-bound after each (re)render.
+    const bindFundLegendHover = () => {
+        document.querySelectorAll('#dept-fund-legend .fund-legend-row').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                if (!fundChart) return;
+                const idx = parseInt(row.dataset.fundIdx, 10);
+                fundChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+                fundChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx }],
+                    { x: fundCanvas.width / 2, y: fundCanvas.height / 2 });
+                fundChart.update();
+                document.querySelectorAll('.fund-legend-row.active').forEach(r => r.classList.remove('active'));
+                row.classList.add('active');
+            });
+            row.addEventListener('mouseleave', () => {
+                if (!fundChart) return;
+                fundChart.setActiveElements([]);
+                fundChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+                fundChart.update();
+                row.classList.remove('active');
+            });
+        });
+    };
+    const renderFundChart = (fd) => {
+        if (!fundCanvas || typeof Chart === 'undefined' || !fd) return;
+        if (fundChart) fundChart.destroy();
+        fundChart = new Chart(fundCanvas.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: fd.labels,
-                datasets: [{
-                    data: fd.values,
-                    backgroundColor: fd.colors,
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                    hoverOffset: 8,
-                }],
+                datasets: [{ data: fd.values, backgroundColor: fd.colors, borderColor: '#fff', borderWidth: 2, hoverOffset: 8 }],
             },
             options: {
                 cutout: '62%',
@@ -1147,36 +1158,17 @@ window.initDepartmentDetailPage = async function () {
                     datalabels: { display: false },
                 },
                 onHover: (evt, elements) => {
-                    document.querySelectorAll('.fund-legend-row.active')
-                        .forEach(r => r.classList.remove('active'));
+                    document.querySelectorAll('.fund-legend-row.active').forEach(r => r.classList.remove('active'));
                     if (elements?.length) {
                         const idx = elements[0].index;
-                        document.querySelector(`.fund-legend-row[data-fund-idx="${idx}"]`)
-                            ?.classList.add('active');
+                        document.querySelector(`.fund-legend-row[data-fund-idx="${idx}"]`)?.classList.add('active');
                     }
                 },
             },
         });
-        // Reverse interaction — hovering a legend row highlights the slice
-        document.querySelectorAll('.fund-legend-row').forEach(row => {
-            row.addEventListener('mouseenter', () => {
-                const idx = parseInt(row.dataset.fundIdx, 10);
-                fundChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
-                fundChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx }],
-                    { x: fundCanvas.width / 2, y: fundCanvas.height / 2 });
-                fundChart.update();
-                document.querySelectorAll('.fund-legend-row.active')
-                    .forEach(r => r.classList.remove('active'));
-                row.classList.add('active');
-            });
-            row.addEventListener('mouseleave', () => {
-                fundChart.setActiveElements([]);
-                fundChart.tooltip.setActiveElements([], {x:0, y:0});
-                fundChart.update();
-                row.classList.remove('active');
-            });
-        });
-    }
+        bindFundLegendHover();
+    };
+    renderFundChart(window.__deptFundData);
 
     // ---- Historical chart + year picker --------------------------------
     // Renders whenever this department has a historical series; bails cleanly
@@ -1322,11 +1314,8 @@ window.initDepartmentDetailPage = async function () {
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(op)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${cap > 0 ? fmtHtmlCard(cap) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>
                 ${pos ? `<div class="summary-card"><div class="amount">${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}`;
-            // The program/fund detail below is always the FY2026 · Act 250 base;
-            // note it whenever the summary above is showing something else.
-            if (deptHelp) deptHelp.textContent = (fy === 2026 && variant !== 'act175')
-                ? ''
-                : `Summary above is FY${fy} · ${src}. Program and fund detail below reflect FY2026 · Act 250.`;
+            // Program/fund detail below now tracks the selection, so no caveat.
+            if (deptHelp) deptHelp.textContent = '';
         } else if (seriesEntry) {
             // Use historical op/cap split (added by the new aggregator)
             const totalNom = seriesEntry.nominal;
@@ -1346,6 +1335,27 @@ window.initDepartmentDetailPage = async function () {
         }
     };
 
+    // Swap the program cards + fund breakdown to the selected year/variant's
+    // data. FY2016–2025 have no per-year program detail, so they fall back to
+    // the FY2026 · Act 250 base (the summary card note explains this).
+    const updateDetailSections = (fy, variant) => {
+        const hasDetail = (fy === 2026 || fy === 2027);
+        const src = hasDetail ? deptIn(`${fy}:${variant === 'act175' ? 'act175' : 'historical'}`) : null;
+        const detailDept = src || dept;                 // fall back to FY2026 · Act 250 base
+        const labelText = hasDetail && src
+            ? `FY${fy} · ${variant === 'act175' ? 'Act 175' : 'Act 250'}`
+            : 'FY2026 · Act 250';
+        const parts = window.buildDeptDetailParts(detailDept);
+        const set = (id, html, prop = 'innerHTML') => { const el = document.getElementById(id); if (el) el[prop] = html; };
+        set('dept-fund-legend', parts.fundLegendHtml);
+        set('dept-programs-list', parts.programCardsHtml);
+        set('dept-programs-count', String(parts.progList.length), 'textContent');
+        set('dept-fund-sub', `Where ${dept.code}'s ${labelText} budget comes from. ${parts.fundEntries.length} fund type${parts.fundEntries.length === 1 ? '' : 's'}.`, 'textContent');
+        set('dept-fund-center-total', fmt(parts.total), 'textContent');
+        set('dept-fund-center-label', `Total · ${labelText}`, 'textContent');
+        renderFundChart(parts.fundData);
+    };
+
     const syncDeptStepperButtons = () => {
         const idx = deptSel.selectedIndex;
         const last = deptSel.options.length - 1;
@@ -1357,7 +1367,9 @@ window.initDepartmentDetailPage = async function () {
         const val = deptSel.value;                 // "2018" | "2026" | "2026:act175"
         const fy = parseInt(val, 10);
         if (!Number.isFinite(fy)) return;
-        renderDeptCards(fy, val.includes(':act175') ? 'act175' : 'historical');
+        const variant = val.includes(':act175') ? 'act175' : 'historical';
+        renderDeptCards(fy, variant);
+        updateDetailSections(fy, variant);
         syncDeptStepperButtons();
     });
     deptPrev?.addEventListener('click', () => {
