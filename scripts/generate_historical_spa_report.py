@@ -257,6 +257,31 @@ def main() -> int:
             f"(year-1 from main bill, year-2 from supplemental where present)"
         )
 
+    # Current biennium (FY2026-27): the final enacted budget is Act 175 (the
+    # HB1800 supplemental), which superseded Act 250. Unlike older supplementals
+    # it fully restates BOTH years (its year-1 federal matches the main bill),
+    # so it is authoritative for FY2026 and FY2027. Act 175 lives in the
+    # parallel By-Department datasets rather than this CSV, so splice it in:
+    # drop the Act 250 FY2026-27 rows and add Act 175's program-level rows.
+    act175 = {2026: PROJECT_ROOT / "docs" / "js" / "departments_act175_fy2026.json",
+              2027: PROJECT_ROOT / "docs" / "js" / "departments_act175_fy2027.json"}
+    if all(p.exists() for p in act175.values()):
+        df = df[~df["fiscal_year"].isin([2026, 2027])].copy()
+        spliced = []
+        for fy, path in act175.items():
+            for d in json.loads(path.read_text()):
+                for p in d.get("programs", []):
+                    spliced.append({
+                        "department_code": d["code"],
+                        "department_name": d["name"],
+                        "fiscal_year": fy,
+                        "section": p["section"],
+                        "fund_category": p["fund_category"],
+                        "amount": p["amount"],
+                    })
+        df = pd.concat([df, pd.DataFrame(spliced)], ignore_index=True)
+        logger.info(f"Spliced in {len(spliced)} Act 175 rows for FY2026-27 (final enacted supplemental)")
+
     cpi = json.loads(args.cpi.read_text())
     base_fy = int(cpi["base_fy"])
 
