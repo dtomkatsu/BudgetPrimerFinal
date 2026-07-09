@@ -98,19 +98,15 @@ window.loadHistoricalTrends = async function () {
     }
 };
 
-// Current-biennium "By Department" detail datasets, keyed by "fy:variant".
-// The By Department tab shows the current biennium (FY2026–27) as both the
-// original bill (Act 250, SLH 2025) and the enacted supplemental (Act 175,
-// SLH 2026 = HB1800 CD1). FY2026 · Act 250 detail is the existing
-// departmentsData; the other three current-biennium panes load here. Earlier
-// years (FY2016–2025) are totals-only from historical_trends.json.
-let byDeptDatasets = {};   // { '2026:act175': [...departments], ... }
+// Current-biennium "By Department" detail datasets, keyed by fiscal year.
+// FY2026–27 show the enacted supplemental budget (Act 175, SLH 2026 = HB1800
+// CD1) with full program detail. Earlier years (FY2016–2025) are totals-only
+// from historical_trends.json.
+let byDeptDatasets = {};   // { '2026': [...departments], '2027': [...] }
 window.loadByDeptDatasets = async function () {
     const files = {
-        '2026:act175':      'departments_act175_fy2026.json',
-        '2027:act175':      'departments_act175_fy2027.json',
-        '2026:historical':  'departments_act250_fy2026.json',
-        '2027:historical':  'departments_act250_fy2027.json',
+        '2026': 'departments_act175_fy2026.json',
+        '2027': 'departments_act175_fy2027.json',
     };
     await Promise.all(Object.entries(files).map(async ([key, fname]) => {
         try {
@@ -760,9 +756,8 @@ window.homePage = async function () {
     }
 
     // ── Multi-year "By Department" page ──────────────────────────────────────
-    // Year dropdown over the enacted-budget history (FY2016–FY2027) plus the
-    // current biennium as both the original (Act 250) and the enacted
-    // supplemental (Act 175). Formerly gated behind ?dev; now the default view.
+    // Year dropdown over the enacted-budget history (FY2016–FY2027); FY2026–27
+    // carry the enacted supplemental (Act 175). Formerly gated behind ?dev.
     // Year selector range — from historical_trends metadata when available,
     // else fall back to FY2026 only.  "Current" detail year (operating /
     // capital / positions / programs) is FY2026; older years show totals
@@ -771,31 +766,22 @@ window.homePage = async function () {
     const fyMin  = meta?.fy_range?.[0] ?? 2026;
     const fyMax  = meta?.fy_range?.[1] ?? 2026;
 
-    // FY options — newest first. The current biennium (FY2026 & FY2027) each
-    // get a pair: the enacted supplemental (Act 175, the operative budget) and
-    // the original bill (Act 250). Value scheme: "<fy>" = original/historical,
-    // "<fy>:act175" = supplemental. Default = FY2026 · Act 175 (current year,
-    // current law). Earlier years are single totals-only entries.
+    // FY options — newest first, one entry per year. FY2026–27 carry the
+    // enacted supplemental (Act 175) figures; earlier years are totals-only.
+    // Default = FY2026 (first year of the current biennium).
     const yearOptions = [];
     for (let y = fyMax; y >= fyMin; y--) {
-        if (y === 2026 || y === 2027) {
-            const sel = (y === 2026) ? ' selected' : '';
-            yearOptions.push(`<option value="${y}:act175"${sel}>FY${y} — enacted supplemental (Act 175)</option>`);
-            yearOptions.push(`<option value="${y}">FY${y} — original (Act 250)</option>`);
-        } else {
-            yearOptions.push(`<option value="${y}">FY${y}</option>`);
-        }
+        yearOptions.push(`<option value="${y}"${y === 2026 ? ' selected' : ''}>FY${y}</option>`);
     }
 
     const html = `
         <section class="home-page">
             <div class="context-banner">
                 <strong>Enacted budgets by department.</strong> Pick a fiscal year below.
-                FY2016–FY2025 show department totals from each biennial appropriations act.
-                The current biennium (FY2026–27) is available as both the original bill
-                (Act 250, SLH 2025) and the enacted supplemental (Act 175, SLH 2026), each
-                with full program detail. For how HB1800 moved from request to Act 175, see
-                <a href="#/">HB1800 →</a>
+                FY2016–FY2025 show department totals from each year's enacted appropriations act.
+                FY2026–27 reflect the enacted supplemental budget (Act 175, SLH 2026 — the same
+                figures the HB1800 tab tracks), with full program detail. For how HB1800 moved
+                from request to Act 175, see <a href="#/">HB1800 →</a>
             </div>
 
             <div class="year-picker-bar">
@@ -860,7 +846,7 @@ window.homePage = async function () {
 // ---------------------------------------------------------------------------
 
 // Sage-aligned palette for the fund doughnut + legend (module scope so the
-// initial render and the per-year/variant re-render use identical colors).
+// initial render and the per-year re-render use identical colors).
 const DEPT_FUND_PALETTE = [
     '#5a7b68', '#a08e58', '#7d97a3', '#b07560', '#8b6c8e',
     '#6f8d70', '#c2924a', '#5e7d96', '#a87575', '#8b8158',
@@ -870,7 +856,7 @@ const DEPT_FUND_PALETTE = [
 // Compute the swappable "detail" parts (program cards, fund legend, doughnut
 // data) for a department-detail object — the shape shared by departments.json
 // and the Act 175/250 datasets. Used for the initial render AND when the year
-// picker switches variant, so the program/fund detail tracks the selection.
+// picker switches year, so the program/fund detail tracks the selection.
 window.buildDeptDetailParts = function (d) {
     const programs = d.programs || [];
     const total = (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0);
@@ -948,7 +934,11 @@ window.departmentDetailPage = async function (params) {
     const dept = departmentsData.find(d => d.id === deptId);
     if (!dept) return window.notFoundPage();
 
-    const { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData } = window.buildDeptDetailParts(dept);
+    // Default view = FY2026 enacted supplemental (Act 175). `dept` (from
+    // departmentsData) supplies the header metadata; the budget figures come
+    // from the Act 175 FY2026 dataset for this department.
+    const detailSrc = (byDeptDatasets['2026'] || []).find(d => d.code === dept.code) || dept;
+    const { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData } = window.buildDeptDetailParts(detailSrc);
     // Stash fund data for initDepartmentDetailPage's doughnut chart.
     window.__deptFundData = fundData;
 
@@ -978,16 +968,7 @@ window.departmentDetailPage = async function (params) {
         const opts = [];
         const yrs = histDept.series.map(s => s.fy).sort((a, b) => b - a);
         for (const y of yrs) {
-            if (y === 2026 || y === 2027) {
-                // The program/fund detail on this page is the FY2026 · Act 250
-                // base, so default the picker there for a consistent landing
-                // view; Act 175 and other years update the summary cards.
-                const sel = (y === 2026) ? ' selected' : '';
-                opts.push(`<option value="${y}:act175">FY${y} — enacted supplemental (Act 175)</option>`);
-                opts.push(`<option value="${y}"${sel}>FY${y} — original (Act 250)</option>`);
-            } else {
-                opts.push(`<option value="${y}">FY${y}</option>`);
-            }
+            opts.push(`<option value="${y}"${y === 2026 ? ' selected' : ''}>FY${y}</option>`);
         }
         return opts.join('');
     })() : '';
@@ -1043,10 +1024,10 @@ window.departmentDetailPage = async function (params) {
             ${deptYearPicker}
 
             <div class="summary-cards-grid" id="dept-summary-cards">
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">${histDept ? 'FY2026 · Act 250' : 'FY2026'}</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.operating_budget)}</div><div class="label">Operating</div></div>
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(dept.capital_budget)}</div><div class="label">Capital</div></div>
-                ${dept.positions ? `<div class="summary-card"><div class="amount">${dept.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(total)}</div><div class="label">Total</div><div class="label-sub">${histDept ? 'FY2026 · Act 175' : 'FY2026'}</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(detailSrc.operating_budget)}</div><div class="label">Operating</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(detailSrc.capital_budget)}</div><div class="label">Capital</div></div>
+                ${detailSrc.positions ? `<div class="summary-card"><div class="amount">${detailSrc.positions.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}
             </div>
 
             ${histSection}
@@ -1054,14 +1035,14 @@ window.departmentDetailPage = async function (params) {
             <section class="fund-breakdown-section">
                 <div class="fund-breakdown-head">
                     <h3>Fund Type Breakdown</h3>
-                    <p class="fund-breakdown-sub" id="dept-fund-sub">Where ${dept.code}'s ${histDept ? 'FY2026 · Act 250' : 'FY2026'} budget comes from. ${fundEntries.length} fund type${fundEntries.length === 1 ? '' : 's'}.</p>
+                    <p class="fund-breakdown-sub" id="dept-fund-sub">Where ${dept.code}'s ${histDept ? 'FY2026 · Act 175' : 'FY2026'} budget comes from. ${fundEntries.length} fund type${fundEntries.length === 1 ? '' : 's'}.</p>
                 </div>
                 <div class="fund-breakdown-body">
                     <div class="fund-doughnut-wrap">
                         <canvas id="fund-doughnut-chart" width="240" height="240"></canvas>
                         <div class="fund-doughnut-center">
                             <span class="fund-doughnut-total" id="dept-fund-center-total">${fmt(total)}</span>
-                            <span class="fund-doughnut-total-lbl" id="dept-fund-center-label">Total · ${histDept ? 'FY2026 · Act 250' : 'FY2026'}</span>
+                            <span class="fund-doughnut-total-lbl" id="dept-fund-center-label">Total · ${histDept ? 'FY2026 · Act 175' : 'FY2026'}</span>
                         </div>
                     </div>
                     <div class="fund-legend-list" id="dept-fund-legend">${fundLegendHtml}</div>
@@ -1090,7 +1071,9 @@ window.initDepartmentDetailPage = async function () {
         const deptId = window.location.hash.split('/').pop();
         const dept = departmentsData.find(d => d.id === deptId);
         if (!dept) return;
-        const rows = (dept.programs || []).map(p => ({
+        // Export the FY2026 enacted supplemental (Act 175) program detail.
+        const src = (byDeptDatasets['2026'] || []).find(d => d.code === dept.code) || dept;
+        const rows = (src.programs || []).map(p => ({
             program_id: p.program_id, program_name: p.program_name,
             section: p.section, fund_type: p.fund_type,
             fund_category: p.fund_category, amount: p.amount,
@@ -1100,8 +1083,8 @@ window.initDepartmentDetailPage = async function () {
     });
 
     // ---- Fund Type doughnut chart ---------------------------------------
-    // Rebuildable: the year picker can swap the program/fund detail to another
-    // year/variant, so the doughnut + legend re-render from new fund data.
+    // Rebuildable: the year picker can swap the program/fund detail to another year,
+    // so the doughnut + legend re-render from new fund data.
     const fundCanvas = document.getElementById('fund-doughnut-chart');
     const fmtFund = (v) => {
         if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
@@ -1293,28 +1276,25 @@ window.initDepartmentDetailPage = async function () {
     const cardsWrap = document.getElementById('dept-summary-cards');
     if (!deptSel || !cardsWrap) return;
 
-    // Locate this department inside a loaded current-biennium detail dataset.
-    const deptIn = (key) => (byDeptDatasets[key] || []).find(d => d.code === dept.code) || null;
+    // Locate this department inside a current-biennium (Act 175) dataset,
+    // keyed by fiscal year. baseDept = FY2026 Act 175 (the detail-section
+    // fallback for totals-only historical years).
+    const deptIn = (fy) => (byDeptDatasets[String(fy)] || []).find(d => d.code === dept.code) || null;
+    const baseDept = deptIn(2026) || dept;
 
-    const renderDeptCards = (fy, variant) => {
+    const renderDeptCards = (fy) => {
         const seriesEntry = histDept.series.find(s => s.fy === fy);
-        // Current-biennium full-detail selection (FY2026/27 × Act 250/175).
-        const detailDept = (fy === 2026 && variant !== 'act175') ? dept
-            : (fy === 2026 || fy === 2027)
-                ? deptIn(`${fy}:${variant === 'act175' ? 'act175' : 'historical'}`)
-                : null;
+        const detailDept = (fy === 2026 || fy === 2027) ? deptIn(fy) : null;
         if (detailDept) {
             const op  = detailDept.operating_budget || 0;
             const cap = detailDept.capital_budget || 0;
             const tot = op + cap + (detailDept.one_time_appropriations || 0);
             const pos = detailDept.positions;
-            const src = variant === 'act175' ? 'Act 175' : 'Act 250';
             cardsWrap.innerHTML = `
-                <div class="summary-card"><div class="amount">${fmtHtmlCard(tot)}</div><div class="label">Total</div><div class="label-sub">FY${fy} · ${src}</div></div>
+                <div class="summary-card"><div class="amount">${fmtHtmlCard(tot)}</div><div class="label">Total</div><div class="label-sub">FY${fy} · Act 175</div></div>
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(op)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${cap > 0 ? fmtHtmlCard(cap) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>
                 ${pos ? `<div class="summary-card"><div class="amount">${pos.toLocaleString(undefined,{maximumFractionDigits:0})}</div><div class="label">Positions</div></div>` : ''}`;
-            // Program/fund detail below now tracks the selection, so no caveat.
             if (deptHelp) deptHelp.textContent = '';
         } else if (seriesEntry) {
             // Use historical op/cap split (added by the new aggregator)
@@ -1326,7 +1306,7 @@ window.initDepartmentDetailPage = async function () {
                 <div class="summary-card"><div class="amount">${fmtHtmlCard(opNom)}</div><div class="label">Operating</div></div>
                 <div class="summary-card"><div class="amount">${capNom > 0 ? fmtHtmlCard(capNom) : '<span class="fmt-num">—</span>'}</div><div class="label">Capital</div></div>`;
             if (deptHelp) {
-                deptHelp.textContent = `FY${fy} totals from the corresponding biennial appropriations act. Program and fund detail below reflect FY2026 · Act 250.`;
+                deptHelp.textContent = `FY${fy} totals from the corresponding biennial appropriations act. Program and fund detail below reflect FY2026 · Act 175.`;
             }
         } else {
             cardsWrap.innerHTML = `
@@ -1335,16 +1315,13 @@ window.initDepartmentDetailPage = async function () {
         }
     };
 
-    // Swap the program cards + fund breakdown to the selected year/variant's
-    // data. FY2016–2025 have no per-year program detail, so they fall back to
-    // the FY2026 · Act 250 base (the summary card note explains this).
-    const updateDetailSections = (fy, variant) => {
-        const hasDetail = (fy === 2026 || fy === 2027);
-        const src = hasDetail ? deptIn(`${fy}:${variant === 'act175' ? 'act175' : 'historical'}`) : null;
-        const detailDept = src || dept;                 // fall back to FY2026 · Act 250 base
-        const labelText = hasDetail && src
-            ? `FY${fy} · ${variant === 'act175' ? 'Act 175' : 'Act 250'}`
-            : 'FY2026 · Act 250';
+    // Swap the program cards + fund breakdown to the selected year's data.
+    // FY2016–2025 have no per-year program detail, so they fall back to the
+    // FY2026 · Act 175 base (the summary card note explains this).
+    const updateDetailSections = (fy) => {
+        const dd = (fy === 2026 || fy === 2027) ? deptIn(fy) : null;
+        const detailDept = dd || baseDept;
+        const labelText = dd ? `FY${fy} · Act 175` : 'FY2026 · Act 175';
         const parts = window.buildDeptDetailParts(detailDept);
         const set = (id, html, prop = 'innerHTML') => { const el = document.getElementById(id); if (el) el[prop] = html; };
         set('dept-fund-legend', parts.fundLegendHtml);
@@ -1364,12 +1341,10 @@ window.initDepartmentDetailPage = async function () {
     };
 
     deptSel.addEventListener('change', () => {
-        const val = deptSel.value;                 // "2018" | "2026" | "2026:act175"
-        const fy = parseInt(val, 10);
+        const fy = parseInt(deptSel.value, 10);
         if (!Number.isFinite(fy)) return;
-        const variant = val.includes(':act175') ? 'act175' : 'historical';
-        renderDeptCards(fy, variant);
-        updateDetailSections(fy, variant);
+        renderDeptCards(fy);
+        updateDetailSections(fy);
         syncDeptStepperButtons();
     });
     deptPrev?.addEventListener('click', () => {
@@ -2007,7 +1982,7 @@ window.aboutPage = async function () {
             <div class="about-hero">
                 <h2>About This Tracker</h2>
                 <p class="about-lead">This dashboard tracks <strong>HB1800</strong>, Hawaiʻi's supplemental appropriations bill for the FY 2026–2027 biennium. It follows the bill from the Governor's request through the House Draft (HD1), Senate Draft (SD1), and Conference Draft (CD1) to show how proposed spending changed through the legislative process. On June 26, 2026 the Governor signed the bill into law as <strong>Act 175</strong> with no line-item vetoes, so the Enacted budget matches CD1.</p>
-                <p class="about-lead">The <strong>By Department</strong> tab shows enacted appropriations by department across fiscal years 2016–2027. A year picker steps through each biennium's enacted budget; for the current biennium (FY2026–27) you can view both the original bill (<strong>Act 250</strong>, SLH 2025) and the enacted supplemental (<strong>Act 175</strong>, SLH 2026 — the same figures the HB1800 tab tracks). It provides the multi-year context for what HB1800 changed.</p>
+                <p class="about-lead">The <strong>By Department</strong> tab shows enacted appropriations by department across fiscal years 2016–2027. A year picker steps through each year's enacted budget; FY2026–27 reflect the enacted supplemental (<strong>Act 175</strong>, SLH 2026 — the same figures the HB1800 tab tracks), with full program-level detail. It provides the multi-year context for what HB1800 changed.</p>
                 <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #ddd;">
             </div>
 
@@ -5926,31 +5901,23 @@ window.initHomePage = async function () {
     if (!departmentsData?.length) return;
 
     // ── Multi-year "By Department" init ──────────────────────────────────────
-    // A "selection" is a fiscal year plus a variant. FY2016–2025 use the
-    // historical series (department totals only). The current biennium
-    // (FY2026–27) has two variants: 'act175' (the enacted supplemental) and
-    // the original bill ('historical', = Act 250 in historical_trends /
-    // departments.json). Default = FY2026 · Act 175 (current year, current law).
-    let selection = { fy: 2026, variant: 'act175' };
+    // Selected fiscal year. FY2016–2025 show department totals from the
+    // historical series; FY2026–27 show full program detail from the enacted
+    // supplemental (Act 175). Default = FY2026.
+    let selectedFy = 2026;
     let sortDir   = 'desc';
     let histMode  = 'nominal';   // 'nominal' | 'real' — drives top history chart
 
     const idByCode  = new Map(departmentsData.map(d => [d.code, d.id]));
     const deptTotal = (d) => (d.operating_budget || 0) + (d.capital_budget || 0) + (d.one_time_appropriations || 0);
 
-    // Program-level detail dataset for a selection, or null when the year is
-    // totals-only (FY2016–2025). All four current-biennium panes use parallel
-    // unfiltered datasets (keys "<fy>:historical" = Act 250, "<fy>:act175" =
-    // Act 175) so every pane's grid+summary reconciles with the history chart,
-    // including the county grant pass-through codes.
-    const detailFor = (fy, variant) => byDeptDatasets[`${fy}:${variant}`] || null;
+    // Program-level detail dataset for a year (Act 175 for FY2026–27), or null
+    // when the year is totals-only (FY2016–2025).
+    const detailFor = (fy) => byDeptDatasets[String(fy)] || null;
 
-    // Human label for the current selection, e.g. "FY2026 · Act 175".
-    const yearLabel = () => {
-        const { fy, variant } = selection;
-        if (fy === 2026 || fy === 2027) return `FY${fy} · ${variant === 'act175' ? 'Act 175' : 'Act 250'}`;
-        return `FY${fy}`;
-    };
+    // Human label for the selected year, e.g. "FY2026 · Act 175".
+    const yearLabel = () =>
+        (selectedFy === 2026 || selectedFy === 2027) ? `FY${selectedFy} · Act 175` : `FY${selectedFy}`;
 
     // ---- Department grid -------------------------------------------------
     // Full-detail selections show a per-dept operating/capital/positions
@@ -5987,8 +5954,8 @@ window.initHomePage = async function () {
     const renderGrid = () => {
         const grid = document.getElementById('dept-grid');
         if (!grid) return;
-        const { fy, variant } = selection;
-        const detail = detailFor(fy, variant);
+        const fy = selectedFy;
+        const detail = detailFor(fy);
         const histByCode = new Map((historicalTrendsData?.by_department || []).map(d => [d.dept_code, d]));
 
         let rows;
@@ -6024,8 +5991,8 @@ window.initHomePage = async function () {
     const renderSummaryCards = () => {
         const wrap = document.getElementById('hb300-summary-cards');
         if (!wrap) return;
-        const { fy, variant } = selection;
-        const detail = detailFor(fy, variant);
+        const fy = selectedFy;
+        const detail = detailFor(fy);
         let totalAmt, opAmt, capAmt, posAmt;
         if (detail) {
             // Sum the detail dataset so the summary reconciles with the grid.
@@ -6064,13 +6031,9 @@ window.initHomePage = async function () {
         // Help line below the year selector — explains the current selection.
         const help = document.getElementById('hb300-fy-help');
         if (help) {
-            if (fy === 2026 || fy === 2027) {
-                help.textContent = variant === 'act175'
-                    ? `FY${fy} enacted supplemental — Act 175 (HB1800), SLH 2026. Full operating, capital, and program detail.`
-                    : `FY${fy} original biennium bill — Act 250 (HB300), SLH 2025. Full operating, capital, and program detail.`;
-            } else {
-                help.textContent = `Department totals only — FY${fy} is from the corresponding biennial appropriations act.`;
-            }
+            help.textContent = (fy === 2026 || fy === 2027)
+                ? `FY${fy} enacted supplemental — Act 175 (HB1800), SLH 2026. Full operating, capital, and program detail.`
+                : `Department totals only — FY${fy} is from the corresponding biennial appropriations act.`;
         }
     };
 
@@ -6090,7 +6053,7 @@ window.initHomePage = async function () {
         const fmtB   = (v) => `$${(v / 1e9).toFixed(2)}B`;
 
         // Highlight the currently-selected year by tinting the matching point.
-        const highlightIndex = totals.findIndex(t => t.fy === selection.fy);
+        const highlightIndex = totals.findIndex(t => t.fy === selectedFy);
         const pointBg = totals.map((_t, i) => i === highlightIndex ? '#3d4a45' : '#88a194');
         const pointRadii = totals.map((_t, i) => i === highlightIndex ? 7 : 4);
 
@@ -6199,10 +6162,9 @@ window.initHomePage = async function () {
     };
 
     fySelect?.addEventListener('change', (e) => {
-        const val = e.target.value;               // "2018" | "2026" | "2026:act175"
-        const fy = parseInt(val, 10);
+        const fy = parseInt(e.target.value, 10);
         if (!Number.isFinite(fy)) return;
-        selection = { fy, variant: val.includes(':act175') ? 'act175' : 'historical' };
+        selectedFy = fy;
         syncStepperButtons();
         renderAll();
     });
@@ -6242,11 +6204,9 @@ window.initHomePage = async function () {
     });
 
     document.getElementById('export-depts')?.addEventListener('click', () => {
-        const { fy, variant } = selection;
-        const detail = detailFor(fy, variant);
-        const src = (fy === 2026 || fy === 2027)
-            ? (variant === 'act175' ? 'Act 175, SLH 2026' : 'Act 250, SLH 2025')
-            : 'enacted biennial act';
+        const fy = selectedFy;
+        const detail = detailFor(fy);
+        const src = (fy === 2026 || fy === 2027) ? 'Act 175, SLH 2026' : 'enacted biennial act';
         let rows;
         if (detail) {
             // Full detail: operating/capital/positions per department.
@@ -6266,8 +6226,7 @@ window.initHomePage = async function () {
                 return t ? { code: d.dept_code, name: d.dept_name, fiscal_year: fy, source: src, total: t.nominal } : null;
             }).filter(Boolean);
         }
-        const suffix = (fy === 2026 || fy === 2027) ? `_${variant === 'act175' ? 'act175' : 'act250'}` : '';
-        downloadCSV(rows, `departments_fy${fy}${suffix}.csv`);
+        downloadCSV(rows, `departments_fy${fy}.csv`);
     });
 
     // Initial render

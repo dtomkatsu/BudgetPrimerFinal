@@ -169,11 +169,11 @@ class Router {
     updateHeaderText(path) {
         const configs = {
             '/enacted': {
-                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; the current biennium shows both the original (Act 250) and the enacted supplemental (Act 175).',
+                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; FY2026–27 reflect the enacted supplemental (Act 175).',
                 docTitle: 'Hawaiʻi Budget Tracker · By Department'
             },
             '/history': {
-                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; the current biennium shows both the original (Act 250) and the enacted supplemental (Act 175).',
+                subtitle: 'Enacted appropriations by department · FY2016–FY2027. Pick a year; FY2026–27 reflect the enacted supplemental (Act 175).',
                 docTitle: 'Hawaiʻi Budget Tracker · By Department'
             },
             '/actuals': {
