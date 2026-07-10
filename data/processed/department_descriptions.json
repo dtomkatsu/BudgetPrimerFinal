@@ -29,7 +29,15 @@
   },
   "EDN": {
     "name": "The Department of Education",
-    "description": "This statewide system delivers public education for K–12, including public charter schools. In addition, the statewide library system is under the administration of EDN. EDN is semi-autonomous, with its own Board of Education. It employs more staff than any other department. The Offices of the Governor and Lieutenant Governor (GOV/LTG) The governor's office is responsible for the highest level of vision and direction for the state and supports intergovernmental relationships with other states and countries through its executive departments and budgetary resources. The lieutenant governor undertakes projects assigned by the governor, and exercises executive power when the governor is out of state or otherwise unable to carry out their duties."
+    "description": "This statewide system delivers public education for K–12, including public charter schools. In addition, the statewide library system is under the administration of EDN. EDN is semi-autonomous, with its own Board of Education. It employs more staff than any other department."
+  },
+  "GOV": {
+    "name": "The Office of the Governor",
+    "description": "The governor's office is responsible for the highest level of vision and direction for the state and supports intergovernmental relationships with other states and countries through its executive departments and budgetary resources."
+  },
+  "LTG": {
+    "name": "The Office of the Lieutenant Governor",
+    "description": "The lieutenant governor undertakes projects assigned by the governor, and exercises executive power when the governor is out of state or otherwise unable to carry out their duties."
   },
   "HHL": {
     "name": "The Department of Hawaiian Home Lands",
