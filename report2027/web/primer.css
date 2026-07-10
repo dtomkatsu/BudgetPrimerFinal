@@ -102,24 +102,29 @@ a { color: var(--sage); }
 
 /* charts */
 .chart { width: 100%; height: auto; display: block; margin: 4px 0; }
-.pie-row { display: flex; align-items: center; gap: .4in; justify-content: center;
-           flex-wrap: nowrap; }
-/* Keep the pie from being squeezed by the legend's intrinsic width: give it a
-   real basis and floor, and let the legend shrink into the remainder instead. */
-.pie-row .pie { flex: 0 0 3.6in; width: 3.6in; }
-.pie-row .legend { flex: 0 1 auto; min-width: 0; }
-.pie-row .legend .lg { line-height: 1.2; }
-.pie-lab { font-size: 17px; font-weight: 600; fill: var(--ink); font-family: var(--body); }
+/* Pie figures bleed slightly past the text column, as they do in the original,
+   so the discs can reach their reference diameters (Fig 3 4.06in, Fig 4 4.39in,
+   Fig 5 3.82in) with the legend still beside them. Widths are disc/0.79, the
+   disc-to-viewBox ratio of pie(). */
+.pie-row { display: flex; align-items: center; gap: .28in; justify-content: center;
+           flex-wrap: nowrap; margin-inline: -0.34in; }
+.pie-row .pie { flex: 0 0 auto; }
+.pie-cip { width: 5.10in; }
+.pie-mof { width: 5.45in; }
+.pie-tax { width: 4.80in; }
+.pie-row .legend { flex: 0 1 auto; min-width: 0; gap: 20px; }
+.pie-row .legend .lg { line-height: 1.2; white-space: nowrap; }
+.pie-lab { font-weight: 600; fill: var(--ink); font-family: var(--body); }
 .legend { display: flex; flex-direction: column; gap: 12px; }
-.legend .lg { display: flex; align-items: center; gap: 9px; font-size: 15px; }
-.legend .sw { width: 24px; height: 24px; border-radius: 4px; flex: none; }
+.legend .lg { display: flex; align-items: center; gap: 10px; font-size: 17.5px; }
+.legend .sw { width: 26px; height: 26px; border-radius: 4px; flex: none; }
 svg .ax { font-size: 12px; fill: #55655d; font-family: var(--body); }
-svg .qlab { font-size: 13px; font-weight: 700; fill: var(--forest);
+svg .qlab { font-size: 16.4px; font-weight: 700; fill: var(--forest);
             font-family: var(--body); }
-svg .rlab { font-size: 11px; fill: #7c948a; font-family: var(--body); }
+svg .rlab { font-size: 14.6px; fill: #7c948a; font-family: var(--body); }
 svg .ylab { font-size: 12px; fill: var(--ink); font-family: var(--body); }
 svg .vlab { font-size: 11.5px; fill: var(--ink); font-family: var(--body); }
-svg .vlab.b { font-size: 15px; font-weight: 600; }
+svg .vlab.b { font-size: 19.3px; font-weight: 600; }
 svg .mo { font-size: 14.5px; font-family: var(--body); letter-spacing: 1px; }
 svg .ph { font-size: 12px; font-family: var(--body); }
 .iv { cursor: default; }
@@ -129,6 +134,8 @@ svg .ph { font-size: 12px; font-family: var(--body); }
    Scoped to direct children of .page so it never captures .pie-row legends. */
 .page > .chart + .legend { flex-direction: row; flex-wrap: wrap;
                            justify-content: center; margin: 8px 0 14px; }
+.page > .chart + .legend .lg { font-size: 15px; }
+.page > .chart + .legend .sw { width: 22px; height: 22px; }
 
 /* lifecycle callouts — positioned around a 5.5in wheel centered in a 6.9in wrap,
    so the disc spans 1.8in–5.1in horizontally and 1.38in–4.68in vertically. */
@@ -172,7 +179,8 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   .branch { flex-direction: column; }
   .branch img { width: 100%; height: 1.6in; }
   .pie-row { flex-direction: column; gap: 12px; }
-  .pie-row .pie { flex: 0 0 auto; width: 100%; min-width: 0; max-width: 3.4in; }
+  .pie-row { margin-inline: 0; }
+  .pie-row .pie { width: 100% !important; max-width: 3.6in; }
   .pie-row .legend { flex: 0 0 auto; width: 100%; }
   .lifecycle-wrap { width: 100%; }
   .lc { position: static; width: auto; margin: 4px 0; }

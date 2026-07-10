@@ -135,12 +135,19 @@ def arc_path(cx, cy, r1, r2, a0, a1):
     return (f"M{x0:.1f},{y0:.1f} A{r2},{r2} 0 {large} 1 {x1:.1f},{y1:.1f} "
             f"L{x2:.1f},{y2:.1f} A{r1},{r1} 0 {large} 0 {x3:.1f},{y3:.1f} Z")
 
-def pie(slices, size=420, r=158, label_style="plain", start=0.0):
+def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0):
     """slices: [(name, value, color, label_lines)] clockwise from 12 o'clock.
 
-    size leaves room around the r=150 disc for the outside labels of thin slices,
-    which can sit ~46px beyond the rim plus their own text width.
+    size leaves room around the r=158 disc for the outside labels of thin slices,
+    which can sit ~40px beyond the rim plus their own text width.
+
+    The SVG scales to width_in on the page, so a user unit is
+    (width_in / size) inches. label_pt is converted into user units accordingly,
+    which is how the original's per-figure label sizes (13.7-15.5pt) are matched.
     """
+    unit_pt = width_in / size * 72.0
+    lab_u = label_pt / unit_pt
+    dy = lab_u * 1.08
     cx = cy = size / 2
     total = sum(s[1] for s in slices)
     a = start
@@ -152,23 +159,23 @@ def pie(slices, size=420, r=158, label_style="plain", start=0.0):
                      f'class="iv" data-tip="{esc(name)}: {short(val)}"/>')
         mid = math.radians(a + sweep / 2 - 90)
         big = sweep > 55
-        lr = r * 0.62 if big else r + 26
+        lr = r * 0.62 if big else r + 18
         if sweep < 26:                       # stagger consecutive small-slice labels
-            lr = r + (20 + 20 * (small_n % 2))
+            lr = r + (14 + 18 * (small_n % 2))
             small_n += 1
         lx, ly = cx + lr * math.cos(mid), cy + lr * math.sin(mid)
         anchor = "middle" if big else ("start" if math.cos(mid) > 0.25 else
                                        "end" if math.cos(mid) < -0.25 else "middle")
-        ty = ly - (len(lab) - 1) * 8
+        ty = ly - (len(lab) - 1) * dy / 2
         # keep multi-line labels inside the viewBox
-        ty = min(max(ty, 13), size - 6 - (len(lab) - 1) * 16)
-        lx = min(max(lx, 8), size - 8)
-        t = "".join(f'<tspan x="{lx:.0f}" dy="{16 if i else 0}">{l}</tspan>'
-                    for i, l in enumerate(lab))
+        ty = min(max(ty, lab_u), size - 4 - (len(lab) - 1) * dy)
+        lx = min(max(lx, 6), size - 6)
+        t = "".join(f'<tspan x="{lx:.0f}" dy="{dy:.0f}" >{l}</tspan>' if i else
+                    f'<tspan x="{lx:.0f}">{l}</tspan>' for i, l in enumerate(lab))
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
-                      f'class="pie-lab">{t}</text>')
+                      f'class="pie-lab" font-size="{lab_u:.1f}">{t}</text>')
         a += sweep
-    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie" '
+    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie {cls}" '
             f'preserveAspectRatio="xMidYMid meet" role="img">'
             + "".join(paths) + "".join(labels) + "</svg>")
 
@@ -304,22 +311,26 @@ def fig6_chart():
             ("Middle 20%", "$44,200–$80,100", 14.2), ("Fourth 20%", "$80,100–$136,600", 13.4),
             ("Next 15%", "$136,600–$278,200", 11.8), ("Next 4%", "$278,200–$594,900", 10.2),
             ("Top 1%", "Over $594,900", 10.1)]
-    W, H, BW = 720, 300, 74
+    # Geometry matched to the original: bar width 58.6pt, tallest bar 195.8pt,
+    # value 14pt / quintile 11.9pt / range 10.6pt. The SVG renders 720u across
+    # the 7.26in text column, so 1u = 0.726pt.
+    W, H, BW = 720, 390, 80
+    BASE, MAXH = 300, 285          # 285u = 207pt tall for the 15% gridline
     gap = (W - 40 - 7 * BW) / 6
     out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
     for i, (q, rng, v) in enumerate(data):
         x = 20 + i * (BW + gap)
-        h = (v / 15) * 210
-        y = 240 - h
+        h = (v / 15) * MAXH
+        y = BASE - h
         out.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{BW}" height="{h:.0f}" fill="{SAGE}" '
                    f'class="iv" data-tip="{q} ({rng}): {v}% of income"/>')
-        out.append(f'<text x="{x+BW/2:.0f}" y="{y-8:.0f}" text-anchor="middle" class="vlab b">{v}%</text>')
+        out.append(f'<text x="{x+BW/2:.0f}" y="{y-10:.0f}" text-anchor="middle" class="vlab b">{v}%</text>')
         # quintile name reads as the category; the income range is secondary detail
-        out.append(f'<text x="{x+BW/2:.0f}" y="262" text-anchor="middle" class="qlab">{q}</text>')
-        out.append(f'<text x="{x+BW/2:.0f}" y="278" text-anchor="middle" class="rlab">{rng.split("–")[0] if "–" in rng else rng}</text>')
+        out.append(f'<text x="{x+BW/2:.0f}" y="{BASE+24:.0f}" text-anchor="middle" class="qlab">{q}</text>')
+        out.append(f'<text x="{x+BW/2:.0f}" y="{BASE+43:.0f}" text-anchor="middle" class="rlab">{rng.split("–")[0] if "–" in rng else rng}</text>')
         if "–" in rng:
-            out.append(f'<text x="{x+BW/2:.0f}" y="291" text-anchor="middle" class="rlab">–{rng.split("–")[1]}</text>')
-    out.append(f'<line x1="16" y1="240" x2="{W-16}" y2="240" stroke="{INK}" stroke-width="1"/></svg>')
+            out.append(f'<text x="{x+BW/2:.0f}" y="{BASE+60:.0f}" text-anchor="middle" class="rlab">–{rng.split("–")[1]}</text>')
+    out.append(f'<line x1="16" y1="{BASE}" x2="{W-16}" y2="{BASE}" stroke="{INK}" stroke-width="1"/></svg>')
     return "".join(out)
 
 # ---------- figure data ----------
@@ -539,7 +550,7 @@ pages.append(f"""
  </div>
  <h3 class="sub2">Capital Improvement Appropriations</h3>
  <p class="figcap"><b>Figure 3.</b> Distribution of Capital Improvement Project Funding, FY2027 ($Millions)</p>
- <div class="pie-row">{pie(fig3_slices)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
+ <div class="pie-row">{pie(fig3_slices, cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
  <p>The total budget for Capital Improvement Projects (CIP) in FY2027 is {words(CIP_TOTAL)}. Transportation-related
  projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other
  things, the state's airports, harbors, and its 2,433 miles of roads and highways.<sup>7</sup></p>
@@ -569,7 +580,7 @@ pages.append(f"""
 <section class="page">
  <h1>FUNDING THE BUDGET</h1>
  <p class="figcap"><b>Figure 4.</b> Hawaiʻi Budget Means of Finance, FY2027 ($Billions)<sup>16</sup></p>
- <div class="pie-row">{pie(fig4_slices)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
+ <div class="pie-row">{pie(fig4_slices, cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
  <p>The state's spending primarily falls under three main categories: general funds, special funds and federal funds.</p>
  <div class="cards3">
   {card("General Funds", ["General funds are mostly made up of tax revenue. The main pot of state money, these funds can be used for almost any state need."], SAGE)}
@@ -584,7 +595,7 @@ pages.append(f"""
 <section class="page">
  <h2 class="sub">Taxes</h2>
  <p class="figcap"><b>Figure 5.</b> Projected Hawaiʻi State Tax Revenue, FY2027 ($Billions)<sup>17</sup></p>
- <div class="pie-row">{pie(fig5_slices)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices])}</div>
+ <div class="pie-row">{pie(fig5_slices, cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices])}</div>
  <div class="cards3">
   {card("General Excise Tax", ["The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state's tax revenue, but the tax increases the cost of living and hits low-income families the hardest."], SAGE)}
   {card("Individual Income Tax", ["Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.<sup>18</sup>"], SAGE_MID)}
