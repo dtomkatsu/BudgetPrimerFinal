@@ -134,4 +134,57 @@
     if (e.key === 'Escape') hide();
   });
   window.addEventListener('scroll', hide, {passive: true});
+
+  // ---- footnote popovers ----
+  var NOTES = window.PRIMER_NOTES || [];
+  var fnp = document.createElement('div');
+  fnp.id = 'fnpop';
+  fnp.className = 'noprint';
+  fnp.hidden = true;
+  document.body.appendChild(fnp);
+  var fnPinned = false, fnTimer = null;
+
+  function fnHide() { fnp.hidden = true; fnPinned = false; }
+
+  function fnShow(n, anchor) {
+    var note = NOTES[n - 1];
+    if (!note) return;
+    var host = '';
+    try { host = new URL(note.u).hostname.replace(/^www\./, ''); } catch (err) { host = 'source'; }
+    fnp.innerHTML = '<div class="fn-n">Note ' + n + '</div>' +
+      '<p>' + note.t + '</p>' +
+      '<a class="fn-cta" href="' + note.u + '" target="_blank" rel="noopener">' + host + ' ↗</a>';
+    fnp.hidden = false;
+    var r = anchor.getBoundingClientRect();
+    var pw = fnp.offsetWidth, ph = fnp.offsetHeight;
+    var x = Math.min(Math.max(r.left + r.width / 2 - pw / 2, 10), window.innerWidth - pw - 10);
+    var y = r.bottom + 8;
+    if (y + ph > window.innerHeight - 10) y = Math.max(r.top - ph - 8, 10);
+    fnp.style.left = x + 'px';
+    fnp.style.top = y + 'px';
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    var a = e.target.closest ? e.target.closest('a.fn') : null;
+    if (a) {
+      clearTimeout(fnTimer);
+      fnShow(+a.dataset.fn, a);
+    } else if (!fnPinned && !fnp.hidden && !(e.target.closest && e.target.closest('#fnpop'))) {
+      clearTimeout(fnTimer);
+      fnTimer = setTimeout(fnHide, 220);   // grace period to reach the popover
+    }
+  });
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a.fn') : null;
+    if (a) {
+      e.preventDefault();                  // stay on the page; the link is in the popover
+      fnShow(+a.dataset.fn, a);
+      fnPinned = true;
+      return;
+    }
+    if (!(e.target.closest && e.target.closest('#fnpop'))) fnHide();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fnHide(); });
+  window.addEventListener('scroll', fnHide, {passive: true});
 })();

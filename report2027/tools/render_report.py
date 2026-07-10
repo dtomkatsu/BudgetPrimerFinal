@@ -7,6 +7,7 @@ web/primer.js layers tooltips/hover on top for the interactive build.
 """
 import json
 import math
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
@@ -238,14 +239,50 @@ def fig2_chart():
 # Each lifecycle callout owns a contiguous run of months; brackets outside the
 # month ring make that span explicit rather than leaving it to proximity.
 LIFECYCLE_SPANS = [
-    ("dec", "DEC", 11, 11, "The governor submits the executive budget proposal to the legislature."),
-    ("jan", "JAN–APR", 0, 3, "The legislature reviews, amends and passes the budget bill."),
-    ("may", "MAY", 4, 4, "Emergency and supplemental appropriations are added if any are needed."),
-    ("jun", "JUN", 5, 5, "The governor signs the budget bill into law, with line-item veto power."),
-    ("jul", "JUL", 6, 6, "Funds are released to executive departments and agencies."),
-    ("aug", "AUG–SEP", 7, 8, "Agencies carry out spending."),
-    ("oct", "OCT–NOV", 9, 10, "Budget proposals are drafted by each branch."),
+    # key, label, first month, last month, text, side
+    ("dec", "DEC", 11, 11, "The governor submits the executive budget proposal to the legislature.", "top"),
+    ("jan", "JAN–APR", 0, 3, "The legislature reviews, amends and passes the budget bill.", "right"),
+    ("may", "MAY", 4, 4, "Emergency and supplemental appropriations are added if any are needed.", "right"),
+    ("jun", "JUN", 5, 5, "The governor signs the budget bill into law, with line-item veto power.", "bottom"),
+    ("jul", "JUL", 6, 6, "Funds are released to executive departments and agencies.", "left"),
+    ("aug", "AUG–SEP", 7, 8, "Agencies carry out spending.", "left"),
+    ("oct", "OCT–NOV", 9, 10, "Budget proposals are drafted by each branch.", "left"),
 ]
+
+# Geometry shared by the wheel SVG and the callout placement, so the text always
+# sits at the end of its bracket stub rather than at a hand-tuned coordinate.
+LC_VIEWBOX = 560            # svg user units
+LC_SVG_IN = 5.8             # rendered width  (see .lifecycle-wrap svg)
+LC_WRAP_IN = 6.9            # containing block width
+LC_MARGIN_IN = 0.28         # svg's vertical margin inside the wrap
+LC_STUB_U = 178 + 13        # bracket radius + stub length, in user units
+LC_CALLOUT_IN = 1.58        # .lc width
+LC_PAD_IN = 0.14            # gap between stub end and text block
+
+
+def lifecycle_callouts():
+    """Place each callout at the end of its bracket stub."""
+    unit = LC_SVG_IN / LC_VIEWBOX
+    cx = (LC_WRAP_IN - LC_SVG_IN) / 2 + LC_SVG_IN / 2
+    cy = LC_MARGIN_IN + LC_SVG_IN / 2
+    r = LC_STUB_U * unit
+    out = []
+    for key, lab, m0, m1, txt, side in LIFECYCLE_SPANS:
+        amid = (m0 * 30 + 2 + (m1 + 1) * 30 - 2) / 2
+        rad = math.radians(amid - 90)
+        x, y = cx + r * math.cos(rad), cy + r * math.sin(rad)
+        if side == "right":
+            style = f"left:{x + LC_PAD_IN:.2f}in;top:{y:.2f}in"
+        elif side == "left":
+            style = f"left:{x - LC_PAD_IN - LC_CALLOUT_IN:.2f}in;top:{y:.2f}in"
+        elif side == "top":
+            # a touch more clearance: the block grows upward into the wheel
+            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y - LC_PAD_IN - 0.1:.2f}in"
+        else:  # bottom
+            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y + LC_PAD_IN:.2f}in"
+        out.append(f'<div class="lc lc-{side}" style="{style}">'
+                   f'<span class="lc-mo">{lab}</span>{txt}</div>')
+    return "".join(out)
 
 def fig1_lifecycle(size=560):
     cx = cy = size / 2
@@ -266,12 +303,16 @@ def fig1_lifecycle(size=560):
         tx, ty = cx + 143 * math.cos(mid), cy + 143 * math.sin(mid)
         rot = ang - 180 if 90 < ang < 270 else ang   # tangential, never upside down
         fill = "#fff" if i >= 8 else INK
-        out.append(f'<text x="{tx:.0f}" y="{ty+4:.0f}" class="mo" fill="{fill}" text-anchor="middle" '
+        # Center the glyphs on (tx,ty) and rotate about that same point: a baseline
+        # nudge applied before the rotation gets rotated with it, which threw the
+        # flipped labels (APR-SEP, worst at MAY) off-center inside their segments.
+        out.append(f'<text x="{tx:.0f}" y="{ty:.0f}" class="mo" fill="{fill}" '
+                   f'text-anchor="middle" dominant-baseline="central" '
                    f'transform="rotate({rot:.0f},{tx:.0f},{ty:.0f})">{m}</text>')
 
     # brackets: arc over the span, inward end ticks, outward stub toward the text
     br = r2 + 10
-    for _key, _lab, m0, m1, _txt in LIFECYCLE_SPANS:
+    for _key, _lab, m0, m1, _txt, _side in LIFECYCLE_SPANS:
         a0, a1 = m0 * 30 + 2, (m1 + 1) * 30 - 2
         amid = (a0 + a1) / 2
         large = 1 if (a1 - a0) > 180 else 0
@@ -487,8 +528,7 @@ pages.append(f"""
  <p class="figcap"><b>Figure 1.</b> Hawaiʻi Budget Lifecycle</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
-  {"".join(f'<div class="lc lc-{k}"><span class="lc-mo">{lab}</span>{txt}</div>'
-           for k, lab, _m0, _m1, txt in LIFECYCLE_SPANS)}
+  {lifecycle_callouts()}
  </div>
  <div class="folio">4 • BUDGET PRIMER</div>
 </section>""")
@@ -663,6 +703,28 @@ notes = [
 ]
 en = "".join(endnote_link(i + 1, f"{i + 1}.&emsp;{esc(t)}" if False else f"{t}", u)
              for i, (t, u) in enumerate(notes))
+
+
+def linkify_footnotes(markup):
+    """Turn every <sup>N</sup> marker into a clickable ref the JS can pop.
+
+    Handles multi-note markers like <sup>4&thinsp;5</sup>. The href still points
+    at the endnote anchor, so the marker works without JS and in print.
+    """
+    def repl(m):
+        inner = m.group(1)
+        nums = re.findall(r"\d+", inner)
+        if not nums:
+            return m.group(0)
+        out = []
+        for n in nums:
+            i = int(n)
+            if 1 <= i <= len(notes):
+                out.append(f'<a class="fn" href="#en{i}" data-fn="{i}">{n}</a>')
+            else:
+                out.append(n)
+        return "<sup>" + "&thinsp;".join(out) + "</sup>"
+    return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
 pages.append(f"""
 <section class="page">
  <h1>ENDNOTES</h1>
@@ -688,9 +750,10 @@ html = f"""<!DOCTYPE html>
   <button onclick="window.print()">Download PDF</button>
  </span>
 </div>
-{"".join(pages)}
+{linkify_footnotes("".join(pages))}
 <div id="tip" class="noprint"></div>
-<script>window.PRIMER_FY_SPAN = {json.dumps(HIST_FY_SPAN)};
+<script>window.PRIMER_NOTES = {json.dumps([{"t": t, "u": u} for t, u in notes], separators=(",", ":"))};
+window.PRIMER_FY_SPAN = {json.dumps(HIST_FY_SPAN)};
 window.PRIMER_LINKS = {json.dumps({
     **DEPT_INFO,
     "__all": {"name": "Hawaiʻi Budget Tracker",
