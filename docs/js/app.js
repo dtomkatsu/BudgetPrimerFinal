@@ -2219,6 +2219,20 @@ function _escAttr(s) {
         .replace(/>/g, '&gt;');
 }
 
+// First sentence of a department description, for tight hover surfaces that can't
+// hold the full paragraph (e.g. the homepage cards' .has-tooltip box). A few
+// departments (PSD, LAW) open with reorg/creation history rather than what they
+// do, so skip that opener to the next sentence. Returns '' for empty descriptions.
+const _REORG_OPENER = /formerly|was renamed|authorized the creation|during the \d{4} session/i;
+function deptSummary(description) {
+    const text = String(description || '').trim();
+    if (!text) return '';
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    let first = sentences[0].trim();
+    if (_REORG_OPENER.test(first) && sentences[1]) first = sentences[1].trim();
+    return first;
+}
+
 // Pull the HD1 / SD1 amounts from either an aggregated `p` object (which
 // uses `hd1` / `d2` summed fields) or a raw `r` row (which uses
 // `amount_hd1` / `amount_sd1`).  Returns [hd, sd] — null when missing.
@@ -2738,11 +2752,15 @@ function buildDeptBreakdownHTML(deptCode, deptName, programs, splitProgramsMap) 
         return html;
     };
 
-    // Header: dept chip + dept name
+    // Header: dept chip + dept name, then the department's description (same copy
+    // the detail page shows at line ~1004). Empty for county pass-throughs and the
+    // few departments without a description — omit the line in that case.
+    const deptDesc = (departmentsData.find(d => d.code === deptCode) || {}).description || '';
     let html = `<div class="dept-bd-header">
         <span class="dept-bd-dept-chip">${_escHtml(deptCode)}</span>
         <span class="dept-bd-dept-name" title="${_escAttr(deptName)}">${_escHtml(deptName)}</span>
     </div>`;
+    if (deptDesc) html += `<p class="dept-bd-desc">${_escHtml(deptDesc)}</p>`;
 
     // Body: real changes first, then transfers split into OUT and IN sections.
     let body = '';
@@ -5099,6 +5117,7 @@ window.initDraftComparePage = async function () {
                     <span class="dept-bd-dept-chip">${_escHtml(dept.code)}</span>
                     <span class="dept-bd-dept-name" title="${_escAttr(dept.name)}">${_escHtml(dept.name)}</span>
                 </div>`;
+                if (dept.description) html += `<p class="dept-bd-desc">${_escHtml(dept.description)}</p>`;
                 html += renderSection('Increases', increases);
                 html += renderSection('Reductions', reductions);
                 const netCls = delta > 0 ? 'positive' : delta < 0 ? 'negative' : '';
@@ -5957,8 +5976,14 @@ window.initHomePage = async function () {
         // pass-through codes (CCH/COH/COK/COM) appear for total accuracy but
         // render as static (non-clickable) cards.
         const hasPage = idByCode.has(r.code);
+        // First-sentence description on hover (empty for county pass-throughs and
+        // the few departments without a description — no tooltip in that case).
+        const summary = deptSummary((departmentsData.find(d => d.code === r.code) || {}).description);
+        const h3 = summary
+            ? `<h3 class="has-tooltip" data-tooltip="${_escAttr(summary)}">${r.name}</h3>`
+            : `<h3>${r.name}</h3>`;
         const inner = `
-                <h3>${r.name}</h3>
+                ${h3}
                 <div class="card-content">
                     <div class="budget-total">
                         <span>Total Budget · ${yearLabel()}</span>

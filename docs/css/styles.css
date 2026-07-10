@@ -6078,6 +6078,16 @@ mark.search-highlight {
     line-height: 1.35;
 }
 
+/* Department description under the header — the same copy the detail page shows.
+   Scrolls with the body (the header above is sticky); clamps tall paragraphs. */
+.dept-bd-desc {
+    margin: 0;
+    padding: 10px 16px 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #5b6b62;
+}
+
 /* Body wrapper just provides padding inside the scrollable card */
 .dept-bd-body {
     padding: 4px 14px 6px;

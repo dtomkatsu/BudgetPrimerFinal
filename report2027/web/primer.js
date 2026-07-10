@@ -169,9 +169,11 @@
     if (a) {
       clearTimeout(fnTimer);
       fnShow(+a.dataset.fn, a);
-    } else if (!fnPinned && !fnp.hidden && !(e.target.closest && e.target.closest('#fnpop'))) {
+    } else if (e.target.closest && e.target.closest('#fnpop')) {
+      clearTimeout(fnTimer);   // inside the popover — keep it open so the link is reachable
+    } else if (!fnPinned && !fnp.hidden) {
       clearTimeout(fnTimer);
-      fnTimer = setTimeout(fnHide, 220);   // grace period to reach the popover
+      fnTimer = setTimeout(fnHide, 250);   // grace period to reach the popover
     }
   });
 
