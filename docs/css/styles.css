@@ -749,7 +749,6 @@ body {
     color: var(--primary-color) !important;
 }
 
-/* Removed override - using light gray background for better readability */
 
 /* ===== Controls Bar ===== */
 .controls-bar {
@@ -2024,7 +2023,7 @@ a.section-chip-link:hover {
 .card-section-label.card-section-total {
     font-weight: 700;
     font-size: 0.8rem;
-    color: var(--primary-dark, #2c3e50);
+    color: var(--primary-dark);
     margin-bottom: 0.1rem;
     padding-bottom: 0.35rem;
     border-bottom: 1px solid #ddd;
@@ -2039,7 +2038,7 @@ a.section-chip-link:hover {
     margin-top: 0.4rem;
 }
 .card-section-label.card-section-toggle:hover {
-    color: var(--primary-color, #2e7d32);
+    color: var(--primary-color);
 }
 
 .toggle-arrow {
@@ -2265,7 +2264,7 @@ th.sortable .sort-hint {
     cursor: help;
 }
 .fund-detail-heading .has-tooltip:hover {
-    color: var(--primary-color, #2e7d32);
+    color: var(--primary-color);
 }
 .fund-detail-heading .has-tooltip::after {
     white-space: pre-line;
@@ -2347,12 +2346,12 @@ th.sortable .sort-hint {
     font-style: italic;
 }
 .split-link {
-    color: var(--primary-color, #2e7d32);
+    color: var(--primary-color);
     text-decoration: underline dotted;
     font-style: normal;
 }
 .split-link:hover {
-    color: var(--primary-dark, #1b5e20);
+    color: var(--primary-dark);
 }
 
 /* Reallocation warning note */
@@ -2532,7 +2531,7 @@ th.sortable .sort-hint {
     border-right: none;
 }
 .fy-inline-btn.active {
-    background: var(--primary-color, #2e7d32);
+    background: var(--primary-color);
     color: #fff;
 }
 .fy-inline-btn:not(.active):hover {
@@ -2685,7 +2684,7 @@ th.sortable .sort-hint {
     max-width: calc(100vw - 32px);
     background: #fff;
     border: 1px solid #d0dbd5;
-    border-left: 4px solid var(--primary-color, #2e7d32);
+    border-left: 4px solid var(--primary-color);
     border-radius: 8px;
     padding: 0.85rem 1.1rem;
     box-shadow: 0 4px 14px rgba(0,0,0,0.15);
@@ -3410,7 +3409,7 @@ th.sortable .sort-hint {
     padding: 0.3rem 0 0.1rem;
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--primary-color, #2e7d32);
+    color: var(--primary-color);
     cursor: pointer;
     letter-spacing: 0.01em;
     display: block;
@@ -3428,7 +3427,7 @@ th.sortable .sort-hint {
 .about-hero {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 2px solid var(--primary-color, #2e7d32);
+    border-bottom: 2px solid var(--primary-color);
 }
 .about-hero h2 {
     margin-bottom: 0.5rem;
@@ -3448,7 +3447,7 @@ th.sortable .sort-hint {
 }
 .about-section h3 {
     font-size: 1.1rem;
-    color: var(--primary-dark, #1b5e20);
+    color: var(--primary-dark);
     margin-bottom: 0.6rem;
     margin-top: 0;
 }
@@ -3469,7 +3468,7 @@ th.sortable .sort-hint {
     margin-top: 1.2rem !important;
     padding: 0.75rem 1rem;
     background: #f0faf5;
-    border-left: 3px solid var(--primary-color, #2e7d32);
+    border-left: 3px solid var(--primary-color);
     border-radius: 0 6px 6px 0;
     font-size: 0.95rem;
     color: #2e4a30 !important;
@@ -3921,7 +3920,6 @@ mark.search-highlight {
     background: linear-gradient(to bottom, #6c8e7f, #8aa595);
 }
 /* ── Compare page description ── */
-/* .compare-page-eyebrow removed */
 .compare-page-titlerow {
     display: flex;
     align-items: center;
@@ -5628,7 +5626,7 @@ mark.search-highlight {
 .hb300-history-head h3 {
     margin: 0;
     font-size: 1.05rem;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
 }
 .hb300-history-sub {
     margin: 0.1rem 0 0.7rem;
@@ -5682,7 +5680,7 @@ mark.search-highlight {
 .dept-history-head h3 {
     margin: 0;
     font-size: 1.05rem;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
 }
 .dept-history-sub {
     margin: 0.1rem 0 0.7rem;
@@ -5718,7 +5716,7 @@ mark.search-highlight {
 .fund-breakdown-head h3 {
     margin: 0;
     font-size: 1.05rem;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
 }
 .fund-breakdown-sub {
     margin: 0.15rem 0 0.9rem;
@@ -5755,7 +5753,7 @@ mark.search-highlight {
     font-family: 'Newsreader', Georgia, serif;
     font-size: 1.45rem;
     font-weight: 600;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
 }
 .fund-doughnut-total-lbl {
     margin-top: 0.15rem;
@@ -5803,7 +5801,7 @@ mark.search-highlight {
 .fund-legend-pct {
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
     min-width: 48px;
     text-align: right;
 }
@@ -5828,7 +5826,7 @@ mark.search-highlight {
 .programs-head h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
     display: inline-flex;
     align-items: baseline;
     gap: 0.5rem;
@@ -5913,7 +5911,7 @@ mark.search-highlight {
     font-family: 'Newsreader', Georgia, serif;
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--primary-dark, #2f3a36);
+    color: var(--primary-dark);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
