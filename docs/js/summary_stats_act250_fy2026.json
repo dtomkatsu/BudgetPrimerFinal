@@ -4,7 +4,7 @@
   "operating_budget": 19940654149.0,
   "capital_budget": 3379596375.0,
   "one_time_appropriations": 0.0,
-  "total_positions": 141624.75,
+  "total_positions": 51525.229999999996,
   "fund_breakdown": {
     "County Funds": 26200000.0,
     "Federal Funds": 4313164273.0,
@@ -49,7 +49,7 @@
   "num_programs": 272,
   "num_records": 688,
   "metadata": {
-    "generated_at": "2026-07-09T10:30:02.564154",
+    "generated_at": "2026-07-09T19:17:57.761020",
     "source_file": "budget_allocations_fy2026_post_veto.csv",
     "total_records": 688,
     "fiscal_year": 2026,

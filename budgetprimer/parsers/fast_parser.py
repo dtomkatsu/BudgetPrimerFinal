@@ -178,6 +178,16 @@ class FastBudgetParser(BaseBudgetParser):
                 r'^\s+([\d,.]+)#\s+([\d,.]+)#\s*$',
             ),
 
+            # --- single-value ceiling amendment (3-column supplemental format) ---
+            # A lone "12,399.75*" (or "...#") right after a ceiling pair is the
+            # actual-FY2 amendment, mirroring how bare amount lines amend FY2.
+            'positions_amend': re.compile(
+                r'^\s+([\d,.]+)\*\s*$',
+            ),
+            'positions_temp_amend': re.compile(
+                r'^\s+([\d,.]+)#\s*$',
+            ),
+
             # --- structural markers ---
             # Program header: e.g. "1. BED100 - STRATEGIC MARKETING"
             # The program ID must look like a real budget code: 2-4 letters + 2-4 digits
@@ -484,6 +494,14 @@ class FastBudgetParser(BaseBudgetParser):
         if a2:
             allocations.append(a2)
 
+        # A ceiling line belongs to the single fund line it precedes in the act;
+        # consume it here so later fund lines of the same program don't inherit
+        # it (EDN100's 12,397.75* was bleeding onto its B/N/T/U lines).
+        state.positions_fy1 = None
+        state.positions_fy2 = None
+        state.positions_temp_fy1 = None
+        state.positions_temp_fy2 = None
+
     # ------------------------------------------------------------------
     # Main extraction loop
     # ------------------------------------------------------------------
@@ -562,6 +580,24 @@ class FastBudgetParser(BaseBudgetParser):
                     try:
                         state.positions_temp_fy1 = float(mt.group(1).replace(',', ''))
                         state.positions_temp_fy2 = float(mt.group(2).replace(',', ''))
+                    except ValueError:
+                        pass
+                    continue
+
+                # --- 0a2. Single-value ceiling amendments (3-column supplemental) ---
+                # Only meaningful while a ceiling pair is pending; a lone starred
+                # value amends the FY2 column, like bare amount lines amend dollars.
+                ma = pat['positions_amend'].match(raw_line)
+                if ma and state.positions_fy1 is not None:
+                    try:
+                        state.positions_fy2 = float(ma.group(1).replace(',', ''))
+                    except ValueError:
+                        pass
+                    continue
+                mta = pat['positions_temp_amend'].match(raw_line)
+                if mta and state.positions_temp_fy1 is not None:
+                    try:
+                        state.positions_temp_fy2 = float(mta.group(1).replace(',', ''))
                     except ValueError:
                         pass
                     continue

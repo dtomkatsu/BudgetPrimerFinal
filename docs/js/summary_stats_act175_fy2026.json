@@ -4,7 +4,7 @@
   "operating_budget": 19773000288.0,
   "capital_budget": 3378851000.0,
   "one_time_appropriations": 0.0,
-  "total_positions": 141624.75,
+  "total_positions": 51528.229999999996,
   "fund_breakdown": {
     "County Funds": 26200000.0,
     "Federal Funds": 4313164273.0,
@@ -49,7 +49,7 @@
   "num_programs": 273,
   "num_records": 687,
   "metadata": {
-    "generated_at": "2026-07-09T10:30:02.447845",
+    "generated_at": "2026-07-09T19:17:57.508728",
     "source_file": "HB1800 CD1 (Act 175, SLH 2026)",
     "total_records": 687,
     "fiscal_year": 2026,
