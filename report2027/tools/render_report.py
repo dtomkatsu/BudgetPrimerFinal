@@ -228,6 +228,18 @@ def fig2_chart():
     out.append("</svg>")
     return "".join(out)
 
+# Each lifecycle callout owns a contiguous run of months; brackets outside the
+# month ring make that span explicit rather than leaving it to proximity.
+LIFECYCLE_SPANS = [
+    ("dec", "DEC", 11, 11, "The governor submits the executive budget proposal to the legislature."),
+    ("jan", "JAN–APR", 0, 3, "The legislature reviews, amends and passes the budget bill."),
+    ("may", "MAY", 4, 4, "Emergency and supplemental appropriations are added if any are needed."),
+    ("jun", "JUN", 5, 5, "The governor signs the budget bill into law, with line-item veto power."),
+    ("jul", "JUL", 6, 6, "Funds are released to executive departments and agencies."),
+    ("aug", "AUG–SEP", 7, 8, "Agencies carry out spending."),
+    ("oct", "OCT–NOV", 9, 10, "Budget proposals are drafted by each branch."),
+]
+
 def fig1_lifecycle(size=560):
     cx = cy = size / 2
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
@@ -235,6 +247,10 @@ def fig1_lifecycle(size=560):
             "#6ba98b", "#5b997c", "#4c886d", "#3d775e", "#2d5545", "#122e20"]
     out = [f'<svg viewBox="0 0 {size} {size}" class="chart" role="img">']
     r1, r2 = 118, 168
+
+    def polar(r, a):
+        rad = math.radians(a - 90)
+        return cx + r * math.cos(rad), cy + r * math.sin(rad)
     for i, m in enumerate(months):
         a0 = i * 30
         out.append(f'<path d="{arc_path(cx, cy, r1, r2, a0 + 1, a0 + 29)}" fill="{ramp[i]}"/>')
@@ -245,6 +261,21 @@ def fig1_lifecycle(size=560):
         fill = "#fff" if i >= 8 else INK
         out.append(f'<text x="{tx:.0f}" y="{ty+4:.0f}" class="mo" fill="{fill}" text-anchor="middle" '
                    f'transform="rotate({rot:.0f},{tx:.0f},{ty:.0f})">{m}</text>')
+
+    # brackets: arc over the span, inward end ticks, outward stub toward the text
+    br = r2 + 10
+    for _key, _lab, m0, m1, _txt in LIFECYCLE_SPANS:
+        a0, a1 = m0 * 30 + 2, (m1 + 1) * 30 - 2
+        amid = (a0 + a1) / 2
+        large = 1 if (a1 - a0) > 180 else 0
+        x0, y0 = polar(br, a0); x1, y1 = polar(br, a1)
+        out.append(f'<path d="M{x0:.1f},{y0:.1f} A{br},{br} 0 {large} 1 {x1:.1f},{y1:.1f}" class="brk"/>')
+        for a in (a0, a1):
+            ix, iy = polar(br - 6, a); ox, oy = polar(br, a)
+            out.append(f'<line x1="{ix:.1f}" y1="{iy:.1f}" x2="{ox:.1f}" y2="{oy:.1f}" class="brk"/>')
+        sx, sy = polar(br, amid); ex, ey = polar(br + 13, amid)
+        out.append(f'<line x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" class="brk"/>')
+
     # Arc spans are sized to the label that rides on them: at pr the arc length
     # must exceed the rendered text width, or textPath silently truncates.
     phases = [("Legislative consideration", 0, 150, SAGE),
@@ -445,13 +476,8 @@ pages.append(f"""
  <p class="figcap"><b>Figure 1.</b> Hawaiʻi Budget Lifecycle</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
-  <div class="lc lc-dec">The governor submits the executive budget proposal to the legislature.</div>
-  <div class="lc lc-jan">The legislature reviews, amends and passes the budget bill.</div>
-  <div class="lc lc-may">Emergency and supplemental appropriations are added if any are needed.</div>
-  <div class="lc lc-jun">The governor signs the budget bill into law, with line-item veto power.</div>
-  <div class="lc lc-jul">Funds are released to executive departments and agencies.</div>
-  <div class="lc lc-aug">Agencies carry out spending.</div>
-  <div class="lc lc-oct">Budget proposals are drafted by each branch.</div>
+  {"".join(f'<div class="lc lc-{k}"><span class="lc-mo">{lab}</span>{txt}</div>'
+           for k, lab, _m0, _m1, txt in LIFECYCLE_SPANS)}
  </div>
  <div class="folio">4 • BUDGET PRIMER</div>
 </section>""")
