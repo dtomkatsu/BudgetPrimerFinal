@@ -32,7 +32,9 @@ for _d in _dept_src:
     }
 
 # ---------- palette (sampled from the original PDF) ----------
-SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE = "#6b9080", "#a4c3b2", "#cce3de", "#eaf4f4", "#d8f3dc"
+# SAGE_MID is darkened from the original's #a4c3b2: white text on that value reads
+# washed out. Keep in sync with --sage-mid in primer.css.
+SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE = "#6b9080", "#8ab19d", "#cce3de", "#eaf4f4", "#d8f3dc"
 DARK, FOREST, DARKEST = "#2d6a4f", "#1b4332", "#081c15"
 INK = "#26332c"
 SERIES = {"operating": SAGE, "capital": SAGE_MID, "one_time": DARK, "emergency": DARKEST}
@@ -244,10 +246,11 @@ def fig6_chart():
         out.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{BW}" height="{h:.0f}" fill="{SAGE}" '
                    f'class="iv" data-tip="{q} ({rng}): {v}% of income"/>')
         out.append(f'<text x="{x+BW/2:.0f}" y="{y-8:.0f}" text-anchor="middle" class="vlab b">{v}%</text>')
-        out.append(f'<text x="{x+BW/2:.0f}" y="262" text-anchor="middle" class="ax">{q}</text>')
-        out.append(f'<text x="{x+BW/2:.0f}" y="277" text-anchor="middle" class="ax">{rng.split("–")[0] if "–" in rng else rng}</text>')
+        # quintile name reads as the category; the income range is secondary detail
+        out.append(f'<text x="{x+BW/2:.0f}" y="262" text-anchor="middle" class="qlab">{q}</text>')
+        out.append(f'<text x="{x+BW/2:.0f}" y="278" text-anchor="middle" class="rlab">{rng.split("–")[0] if "–" in rng else rng}</text>')
         if "–" in rng:
-            out.append(f'<text x="{x+BW/2:.0f}" y="291" text-anchor="middle" class="ax">–{rng.split("–")[1]}</text>')
+            out.append(f'<text x="{x+BW/2:.0f}" y="291" text-anchor="middle" class="rlab">–{rng.split("–")[1]}</text>')
     out.append(f'<line x1="16" y1="240" x2="{W-16}" y2="240" stroke="{INK}" stroke-width="1"/></svg>')
     return "".join(out)
 

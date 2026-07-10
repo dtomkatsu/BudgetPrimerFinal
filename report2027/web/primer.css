@@ -1,6 +1,6 @@
 /* Budget Primer FY2026-27 — screen + print. Palette sampled from the original PDF. */
 :root {
-  --sage: #6b9080; --sage-mid: #a4c3b2; --sage-light: #cce3de; --mint: #eaf4f4;
+  --sage: #6b9080; --sage-mid: #8ab19d; --sage-light: #cce3de; --mint: #eaf4f4;
   --pale: #d8f3dc; --dark: #2d6a4f; --forest: #1b4332; --darkest: #081c15;
   --ink: #26332c;
   /* Font slots — swap for Adobe Fonts (Encorpada Classic / Glober / Source Sans Pro)
@@ -114,6 +114,9 @@ a { color: var(--sage); }
 .legend .lg { display: flex; align-items: center; gap: 9px; font-size: 15px; }
 .legend .sw { width: 24px; height: 24px; border-radius: 4px; flex: none; }
 svg .ax { font-size: 12px; fill: #55655d; font-family: var(--body); }
+svg .qlab { font-size: 13px; font-weight: 700; fill: var(--forest);
+            font-family: var(--body); }
+svg .rlab { font-size: 11px; fill: #7c948a; font-family: var(--body); }
 svg .ylab { font-size: 12px; fill: var(--ink); font-family: var(--body); }
 svg .vlab { font-size: 11.5px; fill: var(--ink); font-family: var(--body); }
 svg .vlab.b { font-size: 15px; font-weight: 600; }
@@ -176,12 +179,19 @@ svg .ph { font-size: 12px; font-family: var(--body); }
 
 @page { size: letter; margin: 0; }
 @media print {
+  /* Force background graphics even when the print dialog's "Background graphics"
+     box is unchecked — without this every green panel prints white. Must live on
+     a selector; a bare declaration inside @media is invalid and gets dropped. */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   body { background: #fff; }
   .noprint, .toolbar { display: none !important; }
-  .page { margin: 0; box-shadow: none; page-break-after: always; height: 11in; }
+  .page { margin: 0; box-shadow: none; page-break-after: always; height: 11in;
+          width: 8.5in; max-width: none; padding: 0.75in 0.62in 0.9in; }
   .page:last-child { page-break-after: auto; }
   a { color: var(--sage); text-decoration: underline; }
-  -webkit-print-color-adjust: exact;
 }
 
 /* budget-tracker interlinks */
