@@ -10,6 +10,21 @@
     --light-gray: #f5f5f5;
     --border-color: #ddd;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Spacing scale — the standard rungs for new and refactored rules, so the
+       file stops accumulating one-off padding/margin values. */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    /* Type scale — likewise the standard font-size rungs. */
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.8125rem;
+    --fs-md: 0.875rem;
+    --fs-base: 1rem;
+    --fs-lg: 1.125rem;
+    --fs-xl: 1.25rem;
+    --fs-2xl: 1.5rem;
 }
 
 /* Budget fallback styles */
@@ -392,14 +407,17 @@ body {
 .summary-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
 }
 
+/* Canonical summary card. A second, near-identical .summary-card block used to
+   live further down (the .summary-cards grid); it was redundant — its only
+   effective difference was overriding .amount to 1.8rem, folded in here. */
 .summary-card {
     background: white;
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: var(--space-lg);
     text-align: center;
     box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
@@ -412,7 +430,7 @@ body {
 }
 
 .summary-card .amount {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
@@ -711,26 +729,14 @@ body {
 }
 
 /* Summary Cards */
+/* Alternate grid container (auto-fill vs the -grid variant's auto-fit). The
+   .summary-card / .amount rules that used to sit here were duplicates of the
+   canonical block above and have been removed; only .label was unique. */
 .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin: 2rem 0;
-}
-
-.summary-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: var(--shadow);
-}
-
-.summary-card .amount {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
+    gap: var(--space-lg);
+    margin: var(--space-xl) 0;
 }
 
 .summary-card .label {
