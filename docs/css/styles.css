@@ -7,6 +7,9 @@
     /* Muted secondary text. Replaces the old light grays (hex 999/aaa/bbb/888),
        which all failed WCAG AA (1.9-3.5:1); this passes at 5.6:1 on white. */
     --text-muted: #5f6b63;
+    /* Section-header green — darker than --primary-dark so headings read as
+       headings; unifies the old #2e3e2e/#2f3a36 one-offs. */
+    --heading-color: #2f3a36;
     --light-gray: #f5f5f5;
     --border-color: #ddd;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -549,8 +552,8 @@ body {
 
 .department-card h3 {
     margin: 0 0 15px 0;
-    color: var(--primary-dark);
-    font-size: 1.2em;
+    color: var(--heading-color);
+    font-size: var(--fs-xl);
 }
 
 .budget-total {
@@ -724,7 +727,7 @@ body {
 }
 
 .department-header h2 {
-    color: var(--primary-color);
+    color: var(--heading-color);
     margin-bottom: 0.5rem;
 }
 
@@ -1753,8 +1756,8 @@ a.section-chip-link:hover {
 }
 .projects-section h3 {
     margin: 0 0 6px 0;
-    font-size: 1.375rem;
-    color: #2e3e2e;
+    font-size: var(--fs-xl);
+    color: var(--heading-color);
 }
 .projects-section .section-desc {
     font-size: 0.97rem;
@@ -3431,6 +3434,8 @@ th.sortable .sort-hint {
 }
 .about-hero h2 {
     margin-bottom: 0.5rem;
+    font-size: var(--fs-2xl);
+    color: var(--heading-color);
 }
 .about-lead {
     font-size: 1.05rem;
@@ -3446,8 +3451,8 @@ th.sortable .sort-hint {
     border-bottom: none;
 }
 .about-section h3 {
-    font-size: 1.1rem;
-    color: var(--primary-dark);
+    font-size: var(--fs-xl);
+    color: var(--heading-color);
     margin-bottom: 0.6rem;
     margin-top: 0;
 }
@@ -3920,21 +3925,8 @@ mark.search-highlight {
     background: linear-gradient(to bottom, #6c8e7f, #8aa595);
 }
 /* ── Compare page description ── */
-.compare-page-titlerow {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.3rem;
-}
-.compare-page-titlerow h2 {
-    margin: 0;
-    font-size: 1.73rem;
-}
-/* FY pill floats to far right of the title row */
-.compare-page-titlerow .fy-seg-ctrl {
-    margin-left: auto;
-}
+/* (.compare-page-titlerow rules removed — the markup they targeted is no
+   longer rendered anywhere in the app.) */
 /* Title-area variant — sage palette, gentle gradient + lift so the pill
    reads as an inviting affordance rather than a flat info badge.
    Sized compactly so it slots beside the search input without crowding. */
@@ -5242,7 +5234,6 @@ mark.search-highlight {
 }
 .hist-hero h2 {
     margin: 0 0 0.4rem;
-    font-size: 1.7rem;
     color: #2f3a36;
 }
 .hist-lead {
@@ -5381,8 +5372,8 @@ mark.search-highlight {
 }
 .hist-section h3 {
     margin: 0 0 0.25rem;
-    font-size: 1.2rem;
-    color: #2f3a36;
+    font-size: var(--fs-xl);
+    color: var(--heading-color);
 }
 .hist-section h4 {
     margin: 0 0 0.4rem;
@@ -5625,8 +5616,8 @@ mark.search-highlight {
 }
 .hb300-history-head h3 {
     margin: 0;
-    font-size: 1.05rem;
-    color: var(--primary-dark);
+    font-size: var(--fs-lg);
+    color: var(--heading-color);
 }
 .hb300-history-sub {
     margin: 0.1rem 0 0.7rem;
@@ -5679,8 +5670,8 @@ mark.search-highlight {
 }
 .dept-history-head h3 {
     margin: 0;
-    font-size: 1.05rem;
-    color: var(--primary-dark);
+    font-size: var(--fs-lg);
+    color: var(--heading-color);
 }
 .dept-history-sub {
     margin: 0.1rem 0 0.7rem;
@@ -5715,8 +5706,8 @@ mark.search-highlight {
 }
 .fund-breakdown-head h3 {
     margin: 0;
-    font-size: 1.05rem;
-    color: var(--primary-dark);
+    font-size: var(--fs-lg);
+    color: var(--heading-color);
 }
 .fund-breakdown-sub {
     margin: 0.15rem 0 0.9rem;
@@ -5825,8 +5816,8 @@ mark.search-highlight {
 }
 .programs-head h3 {
     margin: 0;
-    font-size: 1.1rem;
-    color: var(--primary-dark);
+    font-size: var(--fs-lg);
+    color: var(--heading-color);
     display: inline-flex;
     align-items: baseline;
     gap: 0.5rem;
