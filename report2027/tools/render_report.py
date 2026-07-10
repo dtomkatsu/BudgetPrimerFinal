@@ -25,6 +25,26 @@ _hist_by_dept = {d["dept_code"]: [round(p["nominal"] / 1e6) for p in d["series"]
                  for d in _hist["by_department"]}
 _hist_fys = [p["fy"] for p in _hist["by_department"][0]["series"]]
 
+_SMALL_WORDS = {"a", "an", "and", "as", "at", "by", "for", "in", "of", "on",
+                "or", "the", "to", "with"}
+_ACRONYMS = {"UH", "OHA", "HHSC", "EUTF", "EMS", "IT", "TANF", "DNA", "ADA"}
+
+def smart_title(name):
+    """ALL-CAPS act program names -> title case with small words and acronyms."""
+    def cap(word):
+        if word.upper() in _ACRONYMS:
+            return word.upper()
+        return "-".join(w[:1].upper() + w[1:].lower() for w in word.split("-"))
+    words = name.split()
+    out = []
+    for i, w in enumerate(words):
+        lw = w.lower()
+        if 0 < i < len(words) - 1 and lw.strip(",") in _SMALL_WORDS:
+            out.append(lw)
+        else:
+            out.append(cap(w))
+    return " ".join(out)
+
 DEPT_INFO = {}
 for _d in _dept_src:
     desc = (_d.get("description") or "").split(". ")
@@ -32,7 +52,7 @@ for _d in _dept_src:
     progs = {}
     for _p in _d["programs"]:
         key = _p["program_id"]
-        progs.setdefault(key, {"n": _p["program_name"].title(), "v": 0})
+        progs.setdefault(key, {"n": smart_title(_p["program_name"]), "v": 0})
         progs[key]["v"] += _p["amount"]
     top = sorted(progs.values(), key=lambda r: -r["v"])[:4]
     DEPT_INFO[_d["code"]] = {
@@ -40,6 +60,7 @@ for _d in _dept_src:
         "blurb": ". ".join(desc[:2]) + ("." if desc[:2] and not desc[1 if len(desc) > 1 else 0].endswith(".") else ""),
         "operating": _d.get("operating_budget", 0) or 0,
         "capital": _d.get("capital_budget", 0) or 0,
+        "positions": round(_d.get("positions") or 0),
         "programs": [[r["n"], round(r["v"])] for r in top],
         "nprogs": len(progs),
         "hist": _hist_by_dept.get(_d["code"]),

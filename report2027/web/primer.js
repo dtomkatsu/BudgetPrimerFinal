@@ -94,8 +94,8 @@
     var stats = '';
     if (d.operating) stats += '<div><span>Operating</span><b>' + money(d.operating) + '</b></div>';
     if (d.capital) stats += '<div><span>Capital</span><b>' + money(d.capital) + '</b></div>';
-    // NB: no Positions stat — the dept JSON position counts are inflated by
-    // fund-line duplication and would contradict the report's own workforce figure.
+    if (d.positions) stats += '<div><span>Positions</span><b>' +
+      d.positions.toLocaleString() + '</b></div>';
     pop.innerHTML =
       '<button class="pop-x" aria-label="Close">×</button>' +
       '<h5>' + d.name + '</h5>' +
