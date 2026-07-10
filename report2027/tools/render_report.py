@@ -19,17 +19,33 @@ REV = DATA["tax_revenue_fy2027"]
 TRACKER = "https://dtomkatsu.github.io/BudgetPrimerFinal/"
 _dept_src = json.loads(
     (HERE.parent / "docs" / "js" / "departments_act175_fy2027.json").read_text())
+_hist = json.loads(
+    (HERE.parent / "docs" / "js" / "historical_trends.json").read_text())
+_hist_by_dept = {d["dept_code"]: [round(p["nominal"] / 1e6) for p in d["series"]]
+                 for d in _hist["by_department"]}
+_hist_fys = [p["fy"] for p in _hist["by_department"][0]["series"]]
+
 DEPT_INFO = {}
 for _d in _dept_src:
     desc = (_d.get("description") or "").split(". ")
+    # aggregate fund-line rows into whole programs, mirroring the tracker's dept page
+    progs = {}
+    for _p in _d["programs"]:
+        key = _p["program_id"]
+        progs.setdefault(key, {"n": _p["program_name"].title(), "v": 0})
+        progs[key]["v"] += _p["amount"]
+    top = sorted(progs.values(), key=lambda r: -r["v"])[:4]
     DEPT_INFO[_d["code"]] = {
         "name": _d["name"],
         "blurb": ". ".join(desc[:2]) + ("." if desc[:2] and not desc[1 if len(desc) > 1 else 0].endswith(".") else ""),
         "operating": _d.get("operating_budget", 0) or 0,
         "capital": _d.get("capital_budget", 0) or 0,
-        "positions": _d.get("positions", 0) or 0,
+        "programs": [[r["n"], round(r["v"])] for r in top],
+        "nprogs": len(progs),
+        "hist": _hist_by_dept.get(_d["code"]),
         "url": f"{TRACKER}#/department/{_d['id']}",
     }
+HIST_FY_SPAN = [_hist_fys[0], _hist_fys[-1]]
 
 # ---------- palette (sampled from the original PDF) ----------
 # SAGE_MID is darkened from the original's #a4c3b2: white text on that value reads
@@ -616,11 +632,13 @@ html = f"""<!DOCTYPE html>
 </div>
 {"".join(pages)}
 <div id="tip" class="noprint"></div>
-<script>window.PRIMER_LINKS = {json.dumps({
+<script>window.PRIMER_FY_SPAN = {json.dumps(HIST_FY_SPAN)};
+window.PRIMER_LINKS = {json.dumps({
     **DEPT_INFO,
     "__all": {"name": "Hawaiʻi Budget Tracker",
               "blurb": "Interactive companion to this primer: every executive department and program in Act 175, governor's request vs. enacted, veto changes, positions, and historical trends back a decade.",
               "operating": EXEC_OP, "capital": EXEC_CIP,
+              "hist": [round(t["total_nominal"] / 1e6) for t in _hist["totals_by_fy"]],
               "url": TRACKER + "#/enacted"},
 }, separators=(",", ":"))};</script>
 <script src="primer.js"></script>
