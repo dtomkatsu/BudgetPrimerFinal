@@ -259,6 +259,7 @@ LC_STUB_U = 178 + 13        # bracket radius + stub length, in user units
 LC_CALLOUT_IN = 1.58        # .lc width
 LC_PAD_IN = 0.12            # gap past the stub end, measured along the stub
 LC_TOP_PAD_IN = 0.38        # DEC grows upward into the wheel; give it more room
+LC_EDGE_IN = 0.16           # top/bottom blocks overhang their stub by this much
 
 
 def lifecycle_callouts():
@@ -282,10 +283,11 @@ def lifecycle_callouts():
             style = f"left:{x:.2f}in;top:{y:.2f}in"
         elif side == "left":                       # text is right-aligned to x
             style = f"left:{x - LC_CALLOUT_IN:.2f}in;top:{y:.2f}in"
-        elif side == "top":
-            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y:.2f}in"
-        else:  # bottom
-            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y:.2f}in"
+        else:
+            # top/bottom text is left-aligned, so start the block at the stub
+            # rather than centring the box on it — a centred box puts its visual
+            # mass (and its bold month label) to the left of the bracket.
+            style = f"left:{x - LC_EDGE_IN:.2f}in;top:{y:.2f}in"
         out.append(f'<div class="lc lc-{side}" style="{style}">'
                    f'<span class="lc-mo">{lab}</span>{txt}</div>')
     return "".join(out)
