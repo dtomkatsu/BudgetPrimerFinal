@@ -185,14 +185,16 @@ def fig1_lifecycle(size=560):
         fill = "#fff" if i >= 8 else INK
         out.append(f'<text x="{tx:.0f}" y="{ty+4:.0f}" class="mo" fill="{fill}" text-anchor="middle" '
                    f'transform="rotate({rot:.0f},{tx:.0f},{ty:.0f})">{m}</text>')
+    # Arc spans are sized to the label that rides on them: at pr the arc length
+    # must exceed the rendered text width, or textPath silently truncates.
     phases = [("Legislative consideration", 0, 150, SAGE),
-              ("Planning and prep by B&amp;F Dept", 150, 240, SAGE_LIGHT),
-              ("Prep of proposed exec budget", 240, 360, MINT)]
+              ("Planning and prep by B&amp;F Dept", 150, 258, SAGE_LIGHT),
+              ("Prep of proposed exec budget", 258, 360, MINT)]
     for i, (name, a0, a1, col) in enumerate(phases):
-        out.append(f'<path d="{arc_path(cx, cy, 76, 114, a0 + 1, a1 - 1)}" fill="{col}"/>')
-        pr = 95
+        out.append(f'<path d="{arc_path(cx, cy, 72, 116, a0 + 1, a1 - 1)}" fill="{col}"/>')
+        pr = 100
         # curved phase label
-        f0, f1 = (a0 + 6, a1 - 6)
+        f0, f1 = (a0 + 3, a1 - 3)
         p0 = (cx + pr * math.cos(math.radians(f0 - 90)), cy + pr * math.sin(math.radians(f0 - 90)))
         p1 = (cx + pr * math.cos(math.radians(f1 - 90)), cy + pr * math.sin(math.radians(f1 - 90)))
         large = 1 if (f1 - f0) > 180 else 0
