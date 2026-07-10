@@ -69,7 +69,11 @@
   },
   "TRN": {
     "name": "The Department of Transportation",
-    "description": "This department plans, develops and maintains transportation systems including highways, airports and harbors. The Aloha Tower Development Corporation is housed within TRN. The department's capital improvement project budget is larger than its operating budget, and accounts for 60 percent of all executive CIP appropriations. The University of Hawaiʻi System (UOH) The UOH is a statewide university system that includes the University of Hawaiʻi (UH) at Mānoa, UH Hilo, UH West Oʻahu, and the statewide community college system. Other UOH programs include the John A. Burns School of Medicine, the UH Cancer Center and the Waikīkī Aquarium. The university system is semi-autonomous and has its own Board of Regents. It also manages its own capital and facilities budgets. Not included in state budget totals or subject to the legislative process are the many competitive grants that the UOH brings into the state."
+    "description": "This department plans, develops and maintains transportation systems including highways, airports and harbors. The Aloha Tower Development Corporation is housed within TRN. The department's capital improvement project budget is larger than its operating budget, and accounts for 60 percent of all executive CIP appropriations."
+  },
+  "UOH": {
+    "name": "The University of Hawaiʻi System",
+    "description": "The UOH is a statewide university system that includes the University of Hawaiʻi (UH) at Mānoa, UH Hilo, UH West Oʻahu, and the statewide community college system. Other UOH programs include the John A. Burns School of Medicine, the UH Cancer Center and the Waikīkī Aquarium. The university system is semi-autonomous and has its own Board of Regents. It also manages its own capital and facilities budgets. Not included in state budget totals or subject to the legislative process are the many competitive grants that the UOH brings into the state."
   },
   "CCH": {
     "name": "City and County of Honolulu",
