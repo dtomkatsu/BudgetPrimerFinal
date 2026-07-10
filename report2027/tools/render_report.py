@@ -80,8 +80,12 @@ def arc_path(cx, cy, r1, r2, a0, a1):
     return (f"M{x0:.1f},{y0:.1f} A{r2},{r2} 0 {large} 1 {x1:.1f},{y1:.1f} "
             f"L{x2:.1f},{y2:.1f} A{r1},{r1} 0 {large} 0 {x3:.1f},{y3:.1f} Z")
 
-def pie(slices, size=340, r=150, label_style="plain", start=0.0):
-    """slices: [(name, value, color, label_lines)] clockwise from 12 o'clock."""
+def pie(slices, size=420, r=158, label_style="plain", start=0.0):
+    """slices: [(name, value, color, label_lines)] clockwise from 12 o'clock.
+
+    size leaves room around the r=150 disc for the outside labels of thin slices,
+    which can sit ~46px beyond the rim plus their own text width.
+    """
     cx = cy = size / 2
     total = sum(s[1] for s in slices)
     a = start
@@ -95,18 +99,22 @@ def pie(slices, size=340, r=150, label_style="plain", start=0.0):
         big = sweep > 55
         lr = r * 0.62 if big else r + 26
         if sweep < 26:                       # stagger consecutive small-slice labels
-            lr = r + (22 + 24 * (small_n % 2))
+            lr = r + (20 + 20 * (small_n % 2))
             small_n += 1
         lx, ly = cx + lr * math.cos(mid), cy + lr * math.sin(mid)
         anchor = "middle" if big else ("start" if math.cos(mid) > 0.25 else
                                        "end" if math.cos(mid) < -0.25 else "middle")
         ty = ly - (len(lab) - 1) * 8
+        # keep multi-line labels inside the viewBox
+        ty = min(max(ty, 13), size - 6 - (len(lab) - 1) * 16)
+        lx = min(max(lx, 8), size - 8)
         t = "".join(f'<tspan x="{lx:.0f}" dy="{16 if i else 0}">{l}</tspan>'
                     for i, l in enumerate(lab))
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
                       f'class="pie-lab">{t}</text>')
         a += sweep
-    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie" role="img">'
+    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie" '
+            f'preserveAspectRatio="xMidYMid meet" role="img">'
             + "".join(paths) + "".join(labels) + "</svg>")
 
 def legend(items):
