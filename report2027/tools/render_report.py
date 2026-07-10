@@ -257,29 +257,35 @@ LC_WRAP_IN = 6.9            # containing block width
 LC_MARGIN_IN = 0.28         # svg's vertical margin inside the wrap
 LC_STUB_U = 178 + 13        # bracket radius + stub length, in user units
 LC_CALLOUT_IN = 1.58        # .lc width
-LC_PAD_IN = 0.14            # gap between stub end and text block
+LC_PAD_IN = 0.12            # gap past the stub end, measured along the stub
+LC_TOP_PAD_IN = 0.38        # DEC grows upward into the wheel; give it more room
 
 
 def lifecycle_callouts():
-    """Place each callout at the end of its bracket stub."""
+    """Place each callout just past the end of its bracket stub.
+
+    The offset is applied along the stub's own radial direction, not horizontally:
+    a fixed x-offset leaves the diagonal callouts (MAY, AUG-SEP, OCT-NOV) visibly
+    farther from their brackets than the ones due N/E/S/W.
+    """
     unit = LC_SVG_IN / LC_VIEWBOX
     cx = (LC_WRAP_IN - LC_SVG_IN) / 2 + LC_SVG_IN / 2
     cy = LC_MARGIN_IN + LC_SVG_IN / 2
-    r = LC_STUB_U * unit
     out = []
     for key, lab, m0, m1, txt, side in LIFECYCLE_SPANS:
         amid = (m0 * 30 + 2 + (m1 + 1) * 30 - 2) / 2
         rad = math.radians(amid - 90)
+        pad = LC_TOP_PAD_IN if side == "top" else LC_PAD_IN
+        r = LC_STUB_U * unit + pad
         x, y = cx + r * math.cos(rad), cy + r * math.sin(rad)
         if side == "right":
-            style = f"left:{x + LC_PAD_IN:.2f}in;top:{y:.2f}in"
-        elif side == "left":
-            style = f"left:{x - LC_PAD_IN - LC_CALLOUT_IN:.2f}in;top:{y:.2f}in"
+            style = f"left:{x:.2f}in;top:{y:.2f}in"
+        elif side == "left":                       # text is right-aligned to x
+            style = f"left:{x - LC_CALLOUT_IN:.2f}in;top:{y:.2f}in"
         elif side == "top":
-            # a touch more clearance: the block grows upward into the wheel
-            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y - LC_PAD_IN - 0.1:.2f}in"
+            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y:.2f}in"
         else:  # bottom
-            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y + LC_PAD_IN:.2f}in"
+            style = f"left:{x - LC_CALLOUT_IN / 2:.2f}in;top:{y:.2f}in"
         out.append(f'<div class="lc lc-{side}" style="{style}">'
                    f'<span class="lc-mo">{lab}</span>{txt}</div>')
     return "".join(out)

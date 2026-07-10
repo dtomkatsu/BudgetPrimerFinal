@@ -17,7 +17,7 @@ body { background: #f2f5f3; font-family: var(--body); color: var(--ink);
         padding: 0.75in 0.62in 0.9in; position: relative; overflow: hidden;
         box-shadow: 0 2px 14px rgba(8, 28, 21, .12); }
 .page p { margin: 0 0 12px; }
-sup { font-size: 9px; }
+sup { font-size: 11px; line-height: 0; }
 
 h1 { font-family: var(--heading); color: var(--sage); font-size: 44px;
      letter-spacing: .5px; border-bottom: 1.5px solid var(--sage-light);
@@ -147,6 +147,7 @@ svg .ph { font-size: 12px; font-family: var(--body); }
          color: var(--sage); margin-bottom: 2px; }
 svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: round; }
 .lc-right, .lc-left { transform: translateY(-50%); }
+.lc-left { text-align: right; }
 .lc-top { transform: translateY(-100%); }
 
 /* photo page */
@@ -154,7 +155,7 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .photocap { font-size: 11.5px; line-height: 1.4; margin-top: 7px !important; }
 
 /* endnotes */
-.endnotes { columns: 2; column-gap: .45in; padding-left: 20px; font-size: 12px; }
+.endnotes { columns: 2; column-gap: .45in; padding-left: 20px; font-size: 13px; }
 .endnotes li { margin-bottom: 12px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
 
@@ -179,7 +180,8 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   .pie-row .pie { width: 100% !important; max-width: 3.6in; }
   .pie-row .legend { flex: 0 0 auto; width: 100%; }
   .lifecycle-wrap { width: 100%; }
-  .lc { position: static; width: auto; margin: 4px 0; }
+  .lc { position: static; width: auto; margin: 4px 0;
+        transform: none !important; text-align: left !important; }
   .cover-title { font-size: 64px; }
   .endnotes { columns: 1; }
 }
@@ -253,9 +255,20 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 
 /* footnote refs -> tooltip with source link (screen only) */
 @media screen {
-  a.fn { color: var(--dark); text-decoration: none; cursor: pointer;
-         padding: 0 1px; border-radius: 2px; }
-  a.fn:hover { background: var(--sage-light); }
+  /* a tinted pill: reads as a control, not as body punctuation */
+  a.fn { color: var(--forest); font-weight: 700; text-decoration: none;
+         cursor: pointer; background: var(--sage-light); padding: 1px 4px;
+         border-radius: 4px; margin: 0 1px; }
+  a.fn:hover { background: var(--sage); color: #fff; }
+  /* on the dark cards/callouts the tint would vanish — invert it */
+  .card a.fn, .callout a.fn, .branch-card a.fn { background: rgba(255,255,255,.28);
+         color: #fff; }
+  .card a.fn:hover, .callout a.fn:hover, .branch-card a.fn:hover {
+         background: #fff; color: var(--forest); }
+  .card.light a.fn, .branch-card.onlight a.fn { background: var(--sage);
+         color: #fff; }
+  .card.light a.fn:hover, .branch-card.onlight a.fn:hover {
+         background: var(--forest); color: #fff; }
 }
 @media print { a.fn { color: inherit; text-decoration: none; } }
 #fnpop { position: fixed; z-index: 110; width: 320px; max-width: calc(100vw - 20px);
