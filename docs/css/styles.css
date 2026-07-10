@@ -4,6 +4,9 @@
     --primary-light: #8fa89d;
     --secondary-color: #d4b483;
     --text-color: #333;
+    /* Muted secondary text. Replaces the old light grays (hex 999/aaa/bbb/888),
+       which all failed WCAG AA (1.9-3.5:1); this passes at 5.6:1 on white. */
+    --text-muted: #5f6b63;
     --light-gray: #f5f5f5;
     --border-color: #ddd;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -349,7 +352,7 @@ body {
     border-bottom-color: #2c6e49;
 }
 .draft-meta-divider {
-    color: #bbb;
+    color: var(--text-muted);
     font-size: 1rem;
     flex-shrink: 0;
 }
@@ -440,7 +443,7 @@ body {
 }
 
 .summary-card .label-sub {
-    color: #999;
+    color: var(--text-muted);
     font-size: 0.78rem;
     font-weight: 400;
     margin-top: 0.15rem;
@@ -1226,7 +1229,7 @@ body {
 .sfs-page .seg-ctrl { margin: 0.5rem 0 1rem; }
 /* N/A chip — used when gov amount is unavailable for a project */
 .figure-chip.fig-na {
-    color: #aaa;
+    color: var(--text-muted);
     font-style: italic;
     background: #fafafa;
     border-color: #e8e8e8;
@@ -1864,7 +1867,7 @@ a.section-chip-link:hover {
 
 .positive { color: #28a745; }
 .negative { color: #dc3545; }
-.muted { color: #999; font-size: 0.85em; margin-top: 10px; }
+.muted { color: var(--text-muted); font-size: 0.85em; margin-top: 10px; }
 
 .badge {
     display: inline-block;
@@ -1976,7 +1979,7 @@ a.section-chip-link:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 1.1rem;
     padding: 0 2px;
     align-self: center;
@@ -2004,7 +2007,7 @@ a.section-chip-link:hover {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #888;
+    color: var(--text-muted);
     margin: 0.25rem 0 -0.25rem;
     padding-left: 2px;
     cursor: default;
@@ -2026,7 +2029,7 @@ a.section-chip-link:hover {
     padding-left: 0.85rem;
     font-size: 0.7rem;
     font-weight: 500;
-    color: #aaa;
+    color: var(--text-muted);
     margin-top: 0.4rem;
 }
 .card-section-label.card-section-toggle:hover {
@@ -2216,7 +2219,7 @@ th.sortable .sort-hint {
 }
 .dept-count {
     font-weight: 400;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.935em;
 }
 .dept-detail-row.hidden,
@@ -2333,7 +2336,7 @@ th.sortable .sort-hint {
 .split-note {
     font-size: 0.83rem;
     font-weight: 400;
-    color: #888;
+    color: var(--text-muted);
     margin-left: 0.5rem;
     font-style: italic;
 }
@@ -2551,7 +2554,7 @@ th.sortable .sort-hint {
     padding-left: 4.4rem !important;
 }
 .fund-name-full {
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.86rem;
     margin-left: 4px;
 }
@@ -3329,7 +3332,7 @@ th.sortable .sort-hint {
 .highlights-sub {
     font-weight: 400;
     font-size: 0.72rem;
-    color: #888;
+    color: var(--text-muted);
     text-transform: none;
     letter-spacing: 0;
     margin-left: 0.4rem;
@@ -3387,7 +3390,7 @@ th.sortable .sort-hint {
     font-size: 0.88em;
 }
 .highlight-empty {
-    color: #999;
+    color: var(--text-muted);
     font-style: italic;
     padding: 0.3rem 0;
     font-size: 0.85rem;
@@ -3444,7 +3447,6 @@ th.sortable .sort-hint {
     margin-top: 0;
 }
 .about-section-process h4 {
-    font-size: 0.95rem;
     font-weight: 700;
     color: #333;
     margin: 1.2rem 0 0.3rem;
@@ -3644,7 +3646,7 @@ th.sortable .sort-hint {
 .treemap-breadcrumb [data-crumb="root"]:hover { color: #2a5580; }
 .treemap-breadcrumb .crumb-sep {
     margin: 0 8px;
-    color: #aaa;
+    color: var(--text-muted);
 }
 .treemap-breadcrumb .crumb-current {
     color: #234;
@@ -3723,7 +3725,7 @@ th.sortable .sort-hint {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(108,142,127,0.15);
 }
-.search-icon { font-size: 0.99rem; color: #888; flex-shrink: 0; }
+.search-icon { font-size: 0.99rem; color: var(--text-muted); flex-shrink: 0; }
 .search-input-wrap input[type="text"] {
     border: none;
     outline: none;
@@ -3737,7 +3739,7 @@ th.sortable .sort-hint {
     background: none;
     border: none;
     cursor: pointer;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.88rem;
     padding: 0 2px;
     line-height: 1;
@@ -3792,12 +3794,12 @@ mark.search-highlight {
 
 .card-sub {
     font-size: 0.75rem;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 0.25rem;
     font-style: italic;
 }
 .summary-card.empty-state .amount {
-    color: #bbb;
+    color: var(--text-muted);
 }
 .summary-card.empty-state .card-sub {
     color: var(--primary-color);
@@ -3833,7 +3835,7 @@ mark.search-highlight {
 }
 .dept-pct-label {
     font-size: 0.72rem;
-    color: #888;
+    color: var(--text-muted);
     text-align: right;
 }
 
@@ -3884,7 +3886,7 @@ mark.search-highlight {
 .auto-label {
     font-weight: 400;
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
     margin-left: 0.25rem;
 }
 
