@@ -15,6 +15,22 @@ BUD = DATA["budget"]
 RES = DATA["research"]
 REV = DATA["tax_revenue_fy2027"]
 
+# --- budget tracker interlink (same repo, docs/ SPA on GitHub Pages) ---
+TRACKER = "https://dtomkatsu.github.io/BudgetPrimerFinal/"
+_dept_src = json.loads(
+    (HERE.parent / "docs" / "js" / "departments_act175_fy2027.json").read_text())
+DEPT_INFO = {}
+for _d in _dept_src:
+    desc = (_d.get("description") or "").split(". ")
+    DEPT_INFO[_d["code"]] = {
+        "name": _d["name"],
+        "blurb": ". ".join(desc[:2]) + ("." if desc[:2] and not desc[1 if len(desc) > 1 else 0].endswith(".") else ""),
+        "operating": _d.get("operating_budget", 0) or 0,
+        "capital": _d.get("capital_budget", 0) or 0,
+        "positions": _d.get("positions", 0) or 0,
+        "url": f"{TRACKER}#/department/{_d['id']}",
+    }
+
 # ---------- palette (sampled from the original PDF) ----------
 SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE = "#6b9080", "#a4c3b2", "#cce3de", "#eaf4f4", "#d8f3dc"
 DARK, FOREST, DARKEST = "#2d6a4f", "#1b4332", "#081c15"
@@ -125,17 +141,18 @@ def legend(items):
 
 def fig2_chart():
     rows = []
-    # branch rows first, like the original
+    # branch rows first, like the original (no tracker page -> code None)
     rows.append(("Judiciary", {"operating": JUD["operating_fy27"], "capital": JUD["cip_fy27"],
-                               "one_time": JUD_ONE_TIME, "emergency": 0}))
+                               "one_time": JUD_ONE_TIME, "emergency": 0}, None))
     rows.append(("Legislature", {"operating": LEG["total_fy27_published_style"], "capital": 0,
-                                 "one_time": 0, "emergency": 0}))
+                                 "one_time": 0, "emergency": 0}, None))
     rows.append(("OHA", {"operating": OHA["operating_fy27"], "capital": 0,
-                         "one_time": OHA_ONE_TIME, "emergency": 0}))
+                         "one_time": OHA_ONE_TIME, "emergency": 0}, None))
     for d in BUD["figure2_departments"]:
         rows.append((d["label"], {"operating": d["operating"], "capital": d["capital"],
                                   "one_time": ONE_TIME_BY_DEPT.get(d["code"], 0),
-                                  "emergency": EMERG_BY_DEPT.get(d["code"], 0)}))
+                                  "emergency": EMERG_BY_DEPT.get(d["code"], 0)},
+                     d["code"] if d["code"] in DEPT_INFO else None))
     W, LEFT, RH, GAP = 720, 150, 17, 7
     maxv = 5.5e9
     plot_w = W - LEFT - 60
@@ -146,9 +163,11 @@ def fig2_chart():
         out.append(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H-34}" stroke="#d9e4de" stroke-width="1"/>')
         out.append(f'<text x="{x:.0f}" y="{H-18}" text-anchor="middle" class="ax">${gx}B</text>')
     y = 4
-    for label, seg in rows:
+    for label, seg, code in rows:
         total = sum(seg.values())
-        out.append(f'<text x="{LEFT-8}" y="{y+RH-4}" text-anchor="end" class="ylab">{esc(label)}</text>')
+        dept_attr = f' data-dept="{code}"' if code else ""
+        out.append(f'<text x="{LEFT-8}" y="{y+RH-4}" text-anchor="end" '
+                   f'class="ylab{" lk" if code else ""}"{dept_attr}>{esc(label)}</text>')
         x = LEFT
         for key in ("operating", "capital", "one_time", "emergency"):
             v = seg[key]
@@ -156,8 +175,10 @@ def fig2_chart():
                 continue
             w = plot_w * v / maxv
             tip = f"{label} — {key.replace('_', '-').title()}: {short(v)}"
+            if code:
+                tip += " · click for tracker link"
             out.append(f'<rect x="{x:.1f}" y="{y}" width="{max(w,0.8):.1f}" height="{RH}" '
-                       f'fill="{SERIES[key]}" class="iv" data-tip="{esc(tip)}"/>')
+                       f'fill="{SERIES[key]}" class="iv" data-tip="{esc(tip)}"{dept_attr}/>')
             x += w
         if x + 44 > W:                        # widest bars: label inside, white
             out.append(f'<text x="{x-6:.0f}" y="{y+RH-4}" text-anchor="end" class="vlab" '
@@ -276,7 +297,7 @@ EMERG_BULLETS = [
 
 TABLE1 = f"""
 <table class="t1">
-<thead><tr><th></th><th>Executive<sup>2</sup></th><th>Judiciary<sup>3</sup></th>
+<thead><tr><th></th><th class="lk" data-dept="__all">Executive<sup>2</sup></th><th>Judiciary<sup>3</sup></th>
 <th>Legislature<sup>4&thinsp;5</sup></th><th>OHA<sup>6</sup></th></tr></thead>
 <tbody>
 <tr><td>Operating Budget</td><td>{words(EXEC_OP)}</td><td>{words(JUD['operating_fy27'])}</td>
@@ -420,10 +441,14 @@ pages.append(f"""
 <section class="page">
  <h2 class="sub">Spending Categories</h2>
  <h3 class="sub2">Operating Budget</h3>
- <p class="figcap"><b>Figure 2.</b> Hawaiʻi State Budget by Branch and Department, FY2027</p>
+ <p class="figcap"><b>Figure 2.</b> Hawaiʻi State Budget by Branch and Department, FY2027
+ <span class="noprint figcap-hint">— click a department for details &amp; tracker link</span></p>
  {fig2_chart()}
  {legend([("Operating Budget", SAGE), ("Capital Improvement Appr", SAGE_MID),
           ("One-Time Appr", DARK), ("Emergency Appr", DARKEST)])}
+ <div class="explore noprint">Want program-level detail, veto changes, and historical trends?
+  <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">Explore the interactive Budget
+  Tracker&nbsp;→</a></div>
  <p>The Executive departments with the largest overall budgets are the Departments of Human Services,
  Transportation, Budget and Finance, and Education. The Department of Transportation's Capital Improvement
  Appropriations budget is larger than its operating budget—the state's airports, harbors, and highways are
@@ -581,10 +606,20 @@ html = f"""<!DOCTYPE html>
 <body>
 <div class="toolbar noprint">
  <span>Hawaiʻi Budget Primer FY2026–27</span>
- <button onclick="window.print()">Download PDF</button>
+ <span class="tb-actions">
+  <a class="tb-link" href="{TRACKER}" target="_blank" rel="noopener">Budget Tracker ↗</a>
+  <button onclick="window.print()">Download PDF</button>
+ </span>
 </div>
 {"".join(pages)}
 <div id="tip" class="noprint"></div>
+<script>window.PRIMER_LINKS = {json.dumps({
+    **DEPT_INFO,
+    "__all": {"name": "Hawaiʻi Budget Tracker",
+              "blurb": "Interactive companion to this primer: every executive department and program in Act 175, governor's request vs. enacted, veto changes, positions, and historical trends back a decade.",
+              "operating": EXEC_OP, "capital": EXEC_CIP,
+              "url": TRACKER + "#/enacted"},
+}, separators=(",", ":"))};</script>
 <script src="primer.js"></script>
 </body>
 </html>"""
