@@ -9,7 +9,7 @@
   },
   "ATG": {
     "name": "The Department of the Attorney General",
-    "description": "This department provides legal support to the state's departments, prosecutes cases of tax and benefit fraud, and oversees fiduciary responsibilities for charitable nonprofits and trusts. The ATG is responsible for enforcing cigarette tax requirements and the tobacco settlement, maintains the system that collects and shares criminal history records, and manages the Child Support Enforcement Program. The department has been allocated $400 million in one-time general funds for the Maui wildfire settlement trust to support recovery and compensation efforts."
+    "description": "This department provides legal support to the state's departments, prosecutes cases of tax and benefit fraud, and oversees fiduciary responsibilities for charitable nonprofits and trusts. The ATG is responsible for enforcing cigarette tax requirements and the tobacco settlement, maintains the system that collects and shares criminal history records, and manages the Child Support Enforcement Program."
   },
   "BED": {
     "name": "The Department of Business, Economic Development & Tourism",
@@ -98,5 +98,9 @@
   "P": {
     "name": "Legislature",
     "description": "The Hawaiʻi State Legislature is the state legislature of the U.S. state of Hawaiʻi."
+  },
+  "COM": {
+    "name": "County of Maui",
+    "description": "The County of Maui is the local government entity for the islands of Maui, Molokaʻi, Lānaʻi, and Kahoʻolawe."
   }
 }
