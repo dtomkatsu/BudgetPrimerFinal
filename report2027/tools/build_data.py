@@ -13,7 +13,6 @@ the Act 250 FY2026 data to prove the category mappings before trusting FY27 outp
 import argparse
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -57,24 +56,51 @@ def load_departments(act: str, fy: int):
 
 
 def tax_revenue_from_pdf(fy: int) -> dict:
-    """Parse the COR estimates table (page 2 of the revenue plans PDF)."""
+    """Parse the COR estimates table (page 2 of the revenue plans PDF).
+
+    Positional word extraction via PyMuPDF (no external pdftotext dependency):
+    the header row's "FY YYYY" labels give each year column's x-center, then each
+    body row's label (left of x=270) is paired with the numeric cell nearest the
+    requested year's column. Validated to reproduce the published FY2027 figures.
+    """
+    import fitz
+    from collections import defaultdict
     pdf = HERE / "sources" / "revenue_plans_fb2527.pdf"
-    txt = subprocess.run(
-        ["pdftotext", "-f", "2", "-l", "2", "-layout", str(pdf), "-"],
-        capture_output=True, text=True, check=True).stdout
-    lines = [l for l in txt.splitlines() if l.strip()]
-    header = next(l for l in lines if "FY 2023" in l)
-    years = [int(y) for y in re.findall(r"FY (\d{4})", header)]
-    col = years.index(fy)
-    rows = {}
-    for l in lines:
-        m = re.match(r"^([A-Za-z][A-Za-z .,'&*()-]+?)\s{2,}\$?([\d,]+)", l)
-        if not m or "FY" in l:
+    page = fitz.open(str(pdf))[1]
+    rows = defaultdict(list)
+    for w in page.get_text("words"):                 # (x0, y0, x1, y1, text, ...)
+        rows[round(w[1])].append(w)
+
+    year_x = {}                                       # fiscal year -> column x-center
+    for _y, ws in sorted(rows.items()):
+        ws.sort(key=lambda w: w[0])
+        toks = [w[4] for w in ws]
+        if toks.count("FY") >= 4:
+            i = 0
+            while i < len(ws):
+                if ws[i][4] == "FY" and i + 1 < len(ws) and re.match(r"20\d\d", ws[i + 1][4]):
+                    year_x[int(ws[i + 1][4])] = (ws[i][0] + ws[i + 1][2]) / 2
+                    i += 2
+                else:
+                    i += 1
+            if year_x:
+                break
+    if fy not in year_x:
+        raise ValueError(f"FY{fy} column not found in {pdf.name}")
+    cx = year_x[fy]
+
+    out = {}
+    for _y, ws in sorted(rows.items()):
+        ws.sort(key=lambda w: w[0])
+        label = " ".join(w[4] for w in ws
+                         if w[2] < 270 and re.search(r"[A-Za-z]", w[4])).strip().rstrip("*").strip()
+        if not label or "FY" in label or label.upper() == "TYPE OF TAX":
             continue
-        nums = [int(n.replace(",", "")) for n in re.findall(r"[\d,]{4,}", l)]
-        if len(nums) == len(years):
-            rows[m.group(1).strip().rstrip("*").strip()] = nums[col] * 1000
-    return rows
+        for w in ws:
+            num = w[4].replace(",", "").lstrip("$")
+            if re.fullmatch(r"\d{2,}", num) and abs((w[0] + w[2]) / 2 - cx) < 26:
+                out[label] = int(num) * 1000
+    return out
 
 
 def program_categories(fy: int) -> dict:
@@ -167,7 +193,9 @@ def main():
     out = {
         "report": "Hawaiʻi Budget Primer FY2026–27",
         "budget": build_budget("act175", 2027),
+        "budget_fy2026": build_budget("act175", 2026),
         "tax_revenue_fy2027": tax_revenue_from_pdf(2027),
+        "tax_revenue_fy2026": tax_revenue_from_pdf(2026),
     }
     manual = HERE / "manual" / "research.json"
     if manual.exists():

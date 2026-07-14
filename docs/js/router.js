@@ -49,6 +49,9 @@ class Router {
             if (window.loadByDeptDatasets) {
                 loadPromises.push(window.loadByDeptDatasets());
             }
+            if (window.loadObligatedCosts) {
+                loadPromises.push(window.loadObligatedCosts());
+            }
             if (window.loadActuals) {
                 loadPromises.push(window.loadActuals());
             }

@@ -15,6 +15,7 @@ let projectsDataSD1FY26 = null;       // Section 14 CIP projects FY26 (SD1)
 let projectsDataSD1FY27 = null;       // Section 14 CIP projects FY27 (SD1)
 let governorProjectsData = null;      // Governor's supplemental capital projects (S78)
 let historicalTrendsData = null;    // 10-year history of biennial budget acts
+let obligatedData = null;           // general-fund obligated (fixed) costs FY2018-27
 
 // ---------------------------------------------------------------------------
 // Data loading
@@ -116,6 +117,20 @@ window.loadByDeptDatasets = async function () {
         } catch (e) { console.error(`Error loading ${fname}:`, e); }
     }));
     return byDeptDatasets;
+};
+
+// General-fund obligated ("fixed") costs FY2018-27, sourced from each biennium's
+// Budget in Brief (p.18). Mirrors report2027/manual/obligated_costs.json.
+window.loadObligatedCosts = async function () {
+    try {
+        const r = await fetch('./js/obligated_costs.json?v=' + Date.now());
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        obligatedData = await r.json();
+        return obligatedData;
+    } catch (e) {
+        console.error('Error loading obligated costs:', e);
+        return null;
+    }
 };
 
 // FY2025 actual spending (budgetary basis) by department — ACFR source.
@@ -820,6 +835,15 @@ window.homePage = async function () {
                 </div>
                 <p class="hb300-history-sub">Operating + Capital combined across ${meta.acts.length} biennial appropriations acts.</p>
                 <div class="hb300-history-chart-wrap"><canvas id="hb300-history-chart"></canvas></div>
+            </div>` : ''}
+
+            ${obligatedData ? `
+            <div class="hb300-history-section obligated-section">
+                <div class="hb300-history-head">
+                    <h3>Obligated Costs · FY2018–FY2027</h3>
+                </div>
+                <p class="hb300-history-sub">Non-negotiable general-fund “fixed” costs.</p>
+                <div class="hb300-history-chart-wrap"><canvas id="obligated-chart"></canvas></div>
             </div>` : ''}
 
             <div class="controls-bar">
@@ -6184,9 +6208,74 @@ window.initHomePage = async function () {
         });
     };
 
+    // Obligated (fixed) costs stacked-area chart, FY2018–FY2027. Same four
+    // bands and palette as the primer's chart; Certificate of Participation
+    // folds into Debt Service. White dots mark each year on every band line.
+    let obligatedChart = null;
+    const renderObligatedChart = () => {
+        const canvas = document.getElementById('obligated-chart');
+        if (!canvas || typeof Chart === 'undefined' || !obligatedData) return;
+        if (obligatedChart) obligatedChart.destroy();
+        const series = obligatedData.series;
+        const years  = Object.keys(series).sort();
+        const labels = years.map(y => `FY${y.slice(2)}`);
+        const bands = [
+            { label: 'Retirement (ERS)',        keys: ['Retirement System'],                             color: '#2d6a4f' },
+            { label: 'Health Benefits (EUTF)',  keys: ['Health Fund'],                                   color: '#6b9080' },
+            { label: 'Medicaid & Entitlements', keys: ['Medicaid & Entitlements'],                       color: '#8ab19d' },
+            { label: 'Debt Service',            keys: ['Debt Service', 'Certificate of Participation'],  color: '#cce3de' },
+        ];
+        const fmtB = (v) => `$${(v / 1e9).toFixed(2)}B`;
+        const hexA = (hex, a) => {
+            const n = parseInt(hex.slice(1), 16);
+            return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+        };
+        const datasets = bands.map((b, i) => ({
+            label: b.label,
+            data: years.map(y => b.keys.reduce((t, k) => t + (series[y][k] || 0), 0)),
+            borderColor: b.color,
+            backgroundColor: hexA(b.color, 0.78),
+            fill: i === 0 ? 'origin' : '-1',
+            tension: 0.25,
+            borderWidth: 1.4,
+            pointRadius: 3, pointHoverRadius: 5,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#1b4332',
+            pointBorderWidth: 1,
+        }));
+        obligatedChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { boxWidth: 14 } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtB(ctx.parsed.y)}`,
+                            footer: (items) => `Total: ${fmtB(items.reduce((s, it) => s + (it.parsed.y || 0), 0))}`,
+                        },
+                    },
+                    datalabels: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true, stacked: true,
+                        ticks: { callback: (v) => `$${(v / 1e9).toFixed(0)}B` },
+                        title: { display: true, text: 'General funds (nominal $)' },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+    };
+
     const renderAll = () => {
         renderSummaryCards();
         renderHistoryChart();
+        renderObligatedChart();
         renderGrid();
     };
 

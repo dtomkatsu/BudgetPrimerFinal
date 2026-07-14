@@ -150,6 +150,162 @@
       "Other Funds": 1613728143.0
     }
   },
+  "budget_fy2026": {
+    "source": "departments_act175_fy2026.json",
+    "fiscal_year": 2026,
+    "executive": {
+      "operating": 19773000288.0,
+      "capital": 3361851000.0,
+      "county_cip_grants": 17000000.0
+    },
+    "figure2_departments": [
+      {
+        "code": "HMS",
+        "label": "Human Services",
+        "operating": 4770041975.0,
+        "capital": 34400000.0
+      },
+      {
+        "code": "BUF",
+        "label": "Budget, Finance",
+        "operating": 4200028389.0,
+        "capital": 0
+      },
+      {
+        "code": "EDN",
+        "label": "Education",
+        "operating": 3070627838.0,
+        "capital": 378300000.0
+      },
+      {
+        "code": "TRN",
+        "label": "Transportation",
+        "operating": 1646163480.0,
+        "capital": 1781045000.0
+      },
+      {
+        "code": "HTH",
+        "label": "Health",
+        "operating": 2224523494.0,
+        "capital": 112198000.0
+      },
+      {
+        "code": "UOH",
+        "label": "UH System",
+        "operating": 1363165984.0,
+        "capital": 209206000.0
+      },
+      {
+        "code": "BED",
+        "label": "Bus, Econ, Dev, Tour",
+        "operating": 292248072.0,
+        "capital": 366101000.0
+      },
+      {
+        "code": "LBR",
+        "label": "Labor",
+        "operating": 463806077.0,
+        "capital": 20000000.0
+      },
+      {
+        "code": "AGS",
+        "label": "Accounting, Gen Serv",
+        "operating": 260994034.0,
+        "capital": 215524000.0
+      },
+      {
+        "code": "LNR",
+        "label": "Land, Natural Res",
+        "operating": 366957895.0,
+        "capital": 74955000.0
+      },
+      {
+        "code": "PSD",
+        "label": "Corrections",
+        "operating": 320439082.0,
+        "capital": 10000000.0
+      },
+      {
+        "code": "DEF",
+        "label": "Defense",
+        "operating": 113204466.0,
+        "capital": 106121000.0
+      },
+      {
+        "code": "HHL",
+        "label": "Hwn Home Lands",
+        "operating": 165159472.0,
+        "capital": 20000000.0
+      },
+      {
+        "code": "ATG",
+        "label": "Attorney General",
+        "operating": 135475160.0,
+        "capital": 0
+      },
+      {
+        "code": "CCA",
+        "label": "Commerce",
+        "operating": 119071633.0,
+        "capital": 0
+      },
+      {
+        "code": "LAW",
+        "label": "Law Enforcement",
+        "operating": 98176615.0,
+        "capital": 3000000.0
+      },
+      {
+        "code": "AGR",
+        "label": "Agriculture",
+        "operating": 75708926.0,
+        "capital": 5001000.0
+      },
+      {
+        "code": "TAX",
+        "label": "Taxation",
+        "operating": 43040091.0,
+        "capital": 0
+      },
+      {
+        "code": "HRD",
+        "label": "Human Resources",
+        "operating": 37052068.0,
+        "capital": 0
+      },
+      {
+        "code": "COK",
+        "label": "County of Kauai",
+        "operating": 0,
+        "capital": 26000000.0
+      },
+      {
+        "code": "GOV",
+        "label": "Governor",
+        "operating": 4551872.0,
+        "capital": 0
+      },
+      {
+        "code": "LTG",
+        "label": "Lt. Governor",
+        "operating": 2563665.0,
+        "capital": 0
+      }
+    ],
+    "figure3_cip": {
+      "All Others": 592611000.0,
+      "Formal Education": 620804000.0,
+      "Transportation": 1781045000.0,
+      "Health": 77889000.0,
+      "Economic Development": 306502000.0
+    },
+    "figure4_means_of_finance": {
+      "Federal Funds": 3593772273.0,
+      "General Funds": 10425983530.0,
+      "Special Funds": 4299832113.0,
+      "Other Funds": 1453412372.0
+    }
+  },
   "tax_revenue_fy2027": {
     "General Excise and Use Tax": 5563439000,
     "Individual Income Tax": 2978297000,
@@ -164,6 +320,21 @@
     "Miscellaneous Taxes": 22393000,
     "Transient Accommodations Tax": 772497000,
     "GENERAL FUND TOTAL": 10480070000
+  },
+  "tax_revenue_fy2026": {
+    "General Excise and Use Tax": 5254406000,
+    "Individual Income Tax": 2977339000,
+    "Corporate Income Tax": 446098000,
+    "Public Service Company Tax": 176411000,
+    "Tax on Insurance Premiums": 229908000,
+    "Cigarette and Tobacco Tax": 48272000,
+    "Liquor Tax": 53314000,
+    "Tax on Banks and Other Financial Corps.": 38649000,
+    "Inheritance and Estate Tax": 58596000,
+    "Conveyance Tax": 64052000,
+    "Miscellaneous Taxes": 22475000,
+    "Transient Accommodations Tax": 754932000,
+    "GENERAL FUND TOTAL": 10124452000
   },
   "research": {
     "_meta": {

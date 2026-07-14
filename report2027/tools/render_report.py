@@ -15,6 +15,14 @@ DATA = json.loads((HERE / "data" / "report_data.json").read_text())
 BUD = DATA["budget"]
 RES = DATA["research"]
 REV = DATA["tax_revenue_fy2027"]
+# FY2026 companions for the year-picker figures (3/4/5). Same category logic as
+# FY2027; validated to reproduce the published FY2025-26 primer numbers.
+BUD26 = DATA["budget_fy2026"]
+REV26 = DATA["tax_revenue_fy2026"]
+
+# General-fund obligated ("fixed") costs FY2018-27, hand-sourced from each
+# biennium's Budget in Brief (p.18); see manual/obligated_costs.json for sources.
+OBLIG = json.loads((HERE / "manual" / "obligated_costs.json").read_text())
 
 # --- budget tracker interlink (same repo, docs/ SPA on GitHub Pages) ---
 TRACKER = "https://dtomkatsu.github.io/BudgetPrimerFinal/"
@@ -46,9 +54,14 @@ def smart_title(name):
             out.append(cap(w))
     return " ".join(out)
 
+# split on sentence-ending periods only — a period preceded by an uppercase
+# letter (e.g. "John A. Burns", "U.S.") is almost always a mid-name initial or
+# abbreviation, not a sentence boundary, so it's excluded from the split.
+_SENTENCE_SPLIT = re.compile(r"(?<![A-Z])\.\s+(?=[A-Z])")
+
 DEPT_INFO = {}
 for _d in _dept_src:
-    desc = (_d.get("description") or "").split(". ")
+    desc = _SENTENCE_SPLIT.split((_d.get("description") or "").strip())
     # aggregate fund-line rows into whole programs, mirroring the tracker's dept page
     progs = {}
     for _p in _d["programs"]:
@@ -124,6 +137,31 @@ ONE_TIME_BY_DEPT = {"TRN": 612e6, "AGS": 176e6, "LNR": 12e6, "BUF": 100e6,
                     "BED": 49.5e6, "UOH": 28.5e6, "HMS": 16.5e6, "EDN": 3.365e6}
 EMERG_BY_DEPT = {"BUF": EXEC_EMERG}
 
+# Per-branch figures by fiscal year, for Table 1 and Figure 2's branch rows.
+# Executive op/cip come from the Budget Tracker (Act 175). Judiciary/Legislature/
+# OHA op/cip are research-derived for FY2027; for FY2026 they are the published
+# FY2025-26 primer figures (the tracker carries no branch data). One-time and
+# emergency appropriations are researched totals.
+BRANCHES_BY_FY = {
+    2027: {
+        "exec": {"op": EXEC_OP, "cip": EXEC_CIP, "one": EXEC_ONE_TIME, "emerg": EXEC_EMERG},
+        "jud":  {"op": JUD["operating_fy27"], "cip": JUD["cip_fy27"], "one": JUD_ONE_TIME, "emerg": 0},
+        "leg":  {"op": LEG["total_fy27_published_style"], "cip": 0, "one": 0, "emerg": 0},
+        "oha":  {"op": OHA["operating_fy27"], "cip": 0, "one": OHA_ONE_TIME, "emerg": 0},
+    },
+    2026: {
+        "exec": {"op": BUD26["executive"]["operating"],
+                 "cip": BUD26["executive"]["capital"] + BUD26["executive"]["county_cip_grants"],
+                 "one": 450_670_000, "emerg": 121_830_000},
+        "jud":  {"op": 214_570_000, "cip": 12_900_000, "one": 0, "emerg": 4_700_000},
+        "leg":  {"op": 51_630_000, "cip": 0, "one": 0, "emerg": 0},
+        "oha":  {"op": 6_000_000, "cip": 0, "one": 0, "emerg": 0},
+    },
+}
+FY_LABEL = {2026: "FY 2025–2026", 2027: "FY 2026–2027"}
+# county CIP grants ride in the tracker's dept list but are footnoted, not charted
+FIG2_COUNTY_CODES = {"COM", "COH", "CCH", "COK"}
+
 # ---------- svg helpers ----------
 def arc_path(cx, cy, r1, r2, a0, a1):
     """Annular sector path. Angles in degrees, 0 = 12 o'clock, clockwise."""
@@ -136,7 +174,7 @@ def arc_path(cx, cy, r1, r2, a0, a1):
     return (f"M{x0:.1f},{y0:.1f} A{r2},{r2} 0 {large} 1 {x1:.1f},{y1:.1f} "
             f"L{x2:.1f},{y2:.1f} A{r1},{r1} 0 {large} 0 {x3:.1f},{y3:.1f} Z")
 
-def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0):
+def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0, attrs=""):
     """slices: [(name, value, color, label_lines)] clockwise from 12 o'clock.
 
     size leaves room around the r=158 disc for the outside labels of thin slices,
@@ -176,7 +214,7 @@ def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0)
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
                       f'class="pie-lab" font-size="{lab_u:.1f}">{t}</text>')
         a += sweep
-    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie {cls}" '
+    return (f'<svg viewBox="0 0 {size} {size}" class="chart pie {cls}"{attrs} '
             f'preserveAspectRatio="xMidYMid meet" role="img">'
             + "".join(paths) + "".join(labels) + "</svg>")
 
@@ -186,25 +224,100 @@ def legend(items):
         for n, c in items)
     return f'<div class="legend">{rows}</div>'
 
-def fig2_chart():
-    rows = []
-    # branch rows first, like the original (no tracker page -> code None)
-    rows.append(("Judiciary", {"operating": JUD["operating_fy27"], "capital": JUD["cip_fy27"],
-                               "one_time": JUD_ONE_TIME, "emergency": 0}, None))
-    rows.append(("Legislature", {"operating": LEG["total_fy27_published_style"], "capital": 0,
-                                 "one_time": 0, "emergency": 0}, None))
-    rows.append(("OHA", {"operating": OHA["operating_fy27"], "capital": 0,
-                         "one_time": OHA_ONE_TIME, "emergency": 0}, None))
-    for d in BUD["figure2_departments"]:
+# Display bands for the obligated-costs stacked area, bottom -> top. Certificate
+# of Participation (a lease-financing debt instrument, <0.1%) folds into Debt
+# Service so the stack total equals the BIB "Fixed Sub-total" exactly.
+OBLIG_BANDS = [
+    ("Retirement (ERS)", ["Retirement System"], DARK),
+    ("Health Benefits (EUTF)", ["Health Fund"], SAGE),
+    ("Medicaid & Entitlements", ["Medicaid & Entitlements"], SAGE_MID),
+    ("Debt Service", ["Debt Service", "Certificate of Participation"], SAGE_LIGHT),
+]
+
+def fig_obligated():
+    """Stacked-area chart of general-fund obligated costs, FY2018-FY2027."""
+    series = OBLIG["series"]
+    years = sorted(int(y) for y in series)
+    def val(fy, keys):
+        return sum(series[str(fy)][k] for k in keys)
+    def bill(n):
+        return f"${n / 1e9:.2f}B"
+    W, H, L, R, TM, BM = 720, 400, 60, 14, 22, 30
+    pw, ph = W - L - R, H - TM - BM
+    ymax = 5.5e9
+    def X(i):
+        return L + pw * i / (len(years) - 1)
+    def Y(v):
+        return TM + ph * (1 - v / ymax)
+    out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
+    for gb in range(0, 6):                                   # $0-$5B gridlines
+        y = Y(gb * 1e9)
+        out.append(f'<line x1="{L}" y1="{y:.1f}" x2="{W-R}" y2="{y:.1f}" stroke="#d9e4de" stroke-width="1"/>')
+        out.append(f'<text x="{L-8}" y="{y+4:.1f}" text-anchor="end" class="ax">${gb}B</text>')
+    for i, fy in enumerate(years):                           # x-axis year labels
+        out.append(f'<text x="{X(i):.1f}" y="{H-10}" text-anchor="middle" class="ax">FY{str(fy)[2:]}</text>')
+    cum = [0.0] * len(years)                                 # stacked bands
+    band_tops = []
+    for name, keys, color in OBLIG_BANDS:
+        top = [cum[i] + val(fy, keys) for i, fy in enumerate(years)]
+        pts = ([f"{X(i):.1f},{Y(top[i]):.1f}" for i in range(len(years))]
+               + [f"{X(i):.1f},{Y(cum[i]):.1f}" for i in reversed(range(len(years)))])
+        out.append(f'<polygon points="{" ".join(pts)}" fill="{color}" stroke="#fff" stroke-width="0.7"/>')
+        band_tops.append(top)
+        cum = top
+    # data-point dots at each year on every band's top line
+    for top in band_tops:
+        for i in range(len(years)):
+            out.append(f'<circle cx="{X(i):.1f}" cy="{Y(top[i]):.1f}" r="2.3" '
+                       f'fill="#fff" stroke="{FOREST}" stroke-width="1"/>')
+    all_keys = [k for _, ks, _ in OBLIG_BANDS for k in ks]
+    total0, totalN = val(years[0], all_keys), val(years[-1], all_keys)
+    # endpoint total labels (first year above stack, last year above stack)
+    out.append(f'<text x="{X(0)+2:.1f}" y="{Y(total0)-7:.1f}" class="vlab">{bill(total0)}</text>')
+    out.append(f'<text x="{X(len(years)-1)-2:.1f}" y="{Y(totalN)-7:.1f}" text-anchor="end" class="vlab">{bill(totalN)}</text>')
+    for i, fy in enumerate(years):                           # per-year hover zones
+        parts = " · ".join(f"{nm.split(' (')[0]} {bill(val(fy, ks))}" for nm, ks, _ in OBLIG_BANDS)
+        tip = f"FY{fy} — Obligated total {bill(val(fy, all_keys))} · {parts}"
+        out.append(f'<rect x="{X(i)-14:.1f}" y="{TM}" width="28" height="{ph}" fill="transparent" '
+                   f'pointer-events="all" class="iv" data-tip="{esc(tip)}"/>')
+    out.append("</svg>")
+    return "".join(out)
+
+def fig2_rows_for(year):
+    """Branch + department rows for Figure 2. FY2027 carries per-department
+    one-time/emergency overlays; FY2026 (tracker op/cap only) shows just
+    operating + capital, since no FY2026 per-department overlay data exists."""
+    b = BRANCHES_BY_FY[year]
+    budget = BUD if year == 2027 else BUD26
+    overlays = (year == 2027)
+    j, l, o = b["jud"], b["leg"], b["oha"]
+    rows = [  # branch rows first, like the original (no tracker page -> code None)
+        ("Judiciary", {"operating": j["op"], "capital": j["cip"],
+                       "one_time": j["one"] if overlays else 0, "emergency": 0}, None),
+        ("Legislature", {"operating": l["op"], "capital": l["cip"],
+                         "one_time": 0, "emergency": 0}, None),
+        ("OHA", {"operating": o["op"], "capital": o["cip"],
+                 "one_time": o["one"] if overlays else 0, "emergency": 0}, None),
+    ]
+    for d in budget["figure2_departments"]:
+        if d["code"] in FIG2_COUNTY_CODES:
+            continue
         rows.append((d["label"], {"operating": d["operating"], "capital": d["capital"],
-                                  "one_time": ONE_TIME_BY_DEPT.get(d["code"], 0),
-                                  "emergency": EMERG_BY_DEPT.get(d["code"], 0)},
+                                  "one_time": ONE_TIME_BY_DEPT.get(d["code"], 0) if overlays else 0,
+                                  "emergency": EMERG_BY_DEPT.get(d["code"], 0) if overlays else 0},
                      d["code"] if d["code"] in DEPT_INFO else None))
+    return rows
+
+def fig2_chart_for(year):
+    return fig2_svg(fig2_rows_for(year), attrs=f' data-fig="fig2" data-fy="{year}"'
+                    + ("" if year == 2027 else " hidden"))
+
+def fig2_svg(rows, attrs=""):
     W, LEFT, RH, GAP = 720, 150, 17, 7
     maxv = 5.5e9
     plot_w = W - LEFT - 60
     H = len(rows) * (RH + GAP) + 40
-    out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
+    out = [f'<svg viewBox="0 0 {W} {H}" class="chart"{attrs} role="img">']
     for gx in range(0, 6):
         x = LEFT + plot_w * gx / 5.5
         out.append(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H-34}" stroke="#d9e4de" stroke-width="1"/>')
@@ -382,27 +495,45 @@ def fig6_chart():
     out.append(f'<line x1="16" y1="{BASE}" x2="{W-16}" y2="{BASE}" stroke="{INK}" stroke-width="1"/></svg>')
     return "".join(out)
 
-# ---------- figure data ----------
-f3 = BUD["figure3_cip"]
+# ---------- figure data (year-parameterized for the FY26/FY27 picker) ----------
 FIG3_ORDER = ["Transportation", "Formal Education", "All Others", "Economic Development", "Health"]
 FIG3_COLORS = [SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE]
-fig3_slices = [(k, f3[k], c, [f"${f3[k]/1e6:,.0f}"]) for k, c in zip(FIG3_ORDER, FIG3_COLORS)]
-CIP_TOTAL = sum(f3.values())
-
-f4 = BUD["figure4_means_of_finance"]
 FIG4_ORDER = ["General Funds", "Special Funds", "Federal Funds", "Other Funds"]
-f4_total = sum(f4.values())
-fig4_slices = [(k, f4[k], c, [f"${f4[k]/1e9:.1f}", f"({f4[k]/f4_total*100:.1f}%)"])
-               for k, c in zip(FIG4_ORDER, FIG3_COLORS)]
 
-get_, iit = REV["General Excise and Use Tax"], REV["Individual Income Tax"]
-tat, corp = REV["Transient Accommodations Tax"], REV["Corporate Income Tax"]
-other_tax = REV["GENERAL FUND TOTAL"] - get_ - iit - tat - corp
-fig5_slices = [(n, v, c, [f"${v/1e9:.2f}", f"({v/REV['GENERAL FUND TOTAL']*100:.1f}%)"])
-               for (n, v), c in zip(
+def fig3_slices_for(budget):
+    f3 = budget["figure3_cip"]
+    return [(k, f3[k], c, [f"${f3[k]/1e6:,.0f}"]) for k, c in zip(FIG3_ORDER, FIG3_COLORS)]
+
+def fig4_slices_for(budget):
+    f4 = budget["figure4_means_of_finance"]
+    tot = sum(f4.values())
+    return [(k, f4[k], c, [f"${f4[k]/1e9:.1f}", f"({f4[k]/tot*100:.1f}%)"])
+            for k, c in zip(FIG4_ORDER, FIG3_COLORS)]
+
+def fig5_slices_for(rev):
+    get_, iit = rev["General Excise and Use Tax"], rev["Individual Income Tax"]
+    tat, corp = rev["Transient Accommodations Tax"], rev["Corporate Income Tax"]
+    other_tax = rev["GENERAL FUND TOTAL"] - get_ - iit - tat - corp
+    return [(n, v, c, [f"${v/1e9:.2f}", f"({v/rev['GENERAL FUND TOTAL']*100:.1f}%)"])
+            for (n, v), c in zip(
         [("General Excise Tax", get_), ("Individual Income Tax", iit),
          ("Transient Accommodations Tax", tat), ("All Other Taxes", other_tax),
          ("Corporate Income Tax", corp)], FIG3_COLORS)]
+
+def cip_total_for(budget):
+    return sum(budget["figure3_cip"].values())
+
+# ---------- year-picker plumbing (Figures 2/3/4/5 + Table 1) ----------
+def fy_picker(fig_id, label27="FY2027", label26="FY2026"):
+    """Inline FY selector that replaces a hard-coded year in a figure caption."""
+    return (f'<select class="fy-pick" data-fig="{fig_id}" aria-label="Fiscal year">'
+            f'<option value="2027">{label27}</option>'
+            f'<option value="2026">{label26}</option></select>')
+
+def fy_pie_swap(fig_id, slices27, slices26, **kw):
+    """Both years' pies as sibling flex items; FY2026 starts hidden."""
+    return (pie(slices27, attrs=f' data-fig="{fig_id}" data-fy="2027"', **kw)
+            + pie(slices26, attrs=f' data-fig="{fig_id}" data-fy="2026" hidden', **kw))
 
 # ---------- page shells ----------
 def card(title, bullets, bg, light=False):
@@ -426,23 +557,27 @@ EMERG_BULLETS = [
     "The 2026 session also passed roughly $110 million in <i>FY26</i> emergency appropriations — a $14.2 million backfill of funds redirected to food assistance during the 2025 federal shutdown, and $95.8 million for labor-grievance cost items.<sup>15</sup>",
 ]
 
-TABLE1 = f"""
-<table class="t1">
+def table1_for(year):
+    b = BRANCHES_BY_FY[year]
+    e, j, l, o = b["exec"], b["jud"], b["leg"], b["oha"]
+    def tot(c):
+        return c["op"] + c["cip"] + c["one"] + c["emerg"]
+    hidden = "" if year == 2027 else " hidden"
+    return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}>
 <thead><tr><th></th><th class="lk" data-dept="__all">Executive<sup>2</sup></th><th>Judiciary<sup>3</sup></th>
 <th>Legislature<sup>4&thinsp;5</sup></th><th>OHA<sup>6</sup></th></tr></thead>
 <tbody>
-<tr><td>Operating Budget</td><td>{words(EXEC_OP)}</td><td>{words(JUD['operating_fy27'])}</td>
-<td>{words(LEG['total_fy27_published_style'])}</td><td>{words(OHA['operating_fy27'])}</td></tr>
-<tr><td>Capital Improvement Appropriations</td><td>{words(EXEC_CIP)}</td>
-<td>{words(JUD['cip_fy27'])}</td><td>$0</td><td>$0</td></tr>
-<tr><td>One-Time Appropriations</td><td>{words(EXEC_ONE_TIME)}</td><td>{words(JUD_ONE_TIME)}</td>
-<td>$0</td><td>{words(OHA_ONE_TIME)}</td></tr>
-<tr><td>Emergency Appropriations</td><td>{words(EXEC_EMERG)}</td><td>$0</td><td>$0</td><td>$0</td></tr>
+<tr><td>Operating Budget</td><td>{words(e['op'])}</td><td>{words(j['op'])}</td>
+<td>{words(l['op'])}</td><td>{words(o['op'])}</td></tr>
+<tr><td>Capital Improvement Appropriations</td><td>{words(e['cip'])}</td>
+<td>{words(j['cip'])}</td><td>{words(l['cip'])}</td><td>{words(o['cip'])}</td></tr>
+<tr><td>One-Time Appropriations</td><td>{words(e['one'])}</td><td>{words(j['one'])}</td>
+<td>{words(l['one'])}</td><td>{words(o['one'])}</td></tr>
+<tr><td>Emergency Appropriations</td><td>{words(e['emerg'])}</td><td>{words(j['emerg'])}</td>
+<td>{words(l['emerg'])}</td><td>{words(o['emerg'])}</td></tr>
 <tr class="total"><td>Total</td>
-<td>{words(EXEC_OP + EXEC_CIP + EXEC_ONE_TIME + EXEC_EMERG)}</td>
-<td>{words(JUD['operating_fy27'] + JUD['cip_fy27'] + JUD_ONE_TIME)}</td>
-<td>{words(LEG['total_fy27_published_style'])}</td>
-<td>{words(OHA['operating_fy27'] + OHA_ONE_TIME)}</td></tr>
+<td>{words(tot(e))}</td><td>{words(tot(j))}</td>
+<td>{words(tot(l))}</td><td>{words(tot(o))}</td></tr>
 </tbody></table>"""
 
 pages = []
@@ -453,9 +588,8 @@ pages.append(f"""
  <div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
-  <div class="logo-lockup"><span class="logo-mark">☘</span>
-   <div><div class="logo-name">HAWAIʻI APPLESEED</div>
-   <div class="logo-sub">CENTER FOR LAW &amp; ECONOMIC JUSTICE</div></div></div>
+  <div class="logo-lockup"><img class="logo-img" src="assets/appleseed-logo.svg"
+   alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <h1 class="cover-title">HAWAIʻI<br>BUDGET<br>PRIMER</h1>
   <div class="cover-year">FY2026–27</div>
  </div>
@@ -465,9 +599,8 @@ pages.append(f"""
 pages.append(f"""
 <section class="page toc-page">
  <div class="toc-head">
-  <div class="logo-lockup light"><span class="logo-mark">☘</span>
-   <div><div class="logo-name">HAWAIʻI APPLESEED</div>
-   <div class="logo-sub">CENTER FOR LAW &amp; ECONOMIC JUSTICE</div></div></div>
+  <div class="logo-lockup light"><img class="logo-img" src="assets/appleseed-logo-white.svg"
+   alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
   <p class="toc-author">Author: Devin Thomas</p>
  </div>
@@ -556,8 +689,9 @@ pages.append(f"""
  </div>
  <p>Since it manages the state's departments and agencies, the Executive Branch receives almost all of the funds
  in each spending category.</p>
- <p class="figcap"><b>Table 1.</b> Budget Breakdown by Branch and Spending Category, Hawaiʻi, FY 2026–27</p>
- {TABLE1}
+ <p class="figcap"><b>Table 1.</b> Budget Breakdown by Branch and Spending Category, Hawaiʻi, {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
+ {table1_for(2027)}
+ {table1_for(2026)}
  <div class="folio r">BUDGET PRIMER • 5</div>
 </section>""")
 
@@ -566,9 +700,10 @@ pages.append(f"""
 <section class="page">
  <h2 class="sub">Spending Categories</h2>
  <h3 class="sub2">Operating Budget</h3>
- <p class="figcap"><b>Figure 2.</b> Hawaiʻi State Budget by Branch and Department, FY2027
+ <p class="figcap"><b>Figure 2.</b> Hawaiʻi State Budget by Branch and Department, {fy_picker("fig2")}
  <span class="noprint figcap-hint">— click a department for details &amp; tracker link</span></p>
- {fig2_chart()}
+ {fig2_chart_for(2027)}
+ {fig2_chart_for(2026)}
  {legend([("Operating Budget", SAGE), ("Capital Improvement Appr", SAGE_MID),
           ("One-Time Appr", DARK), ("Emergency Appr", DARKEST)])}
  <div class="explore noprint">Want program-level detail, veto changes, and historical trends?
@@ -596,10 +731,25 @@ pages.append(f"""
   the costs named above are covered by the Department of Budget and Finance. These two departments have the
   largest operating budgets, and obligated costs are a significant share for each.</p>
  </div>
+ <details class="obligated noprint">
+  <summary>View Obligated Costs</summary>
+  <div class="obligated-panel">
+   <p class="figcap"><b>General-fund obligated costs, FY2018–FY2027 ($Billions).</b><sup>21</sup><span class="noprint">
+   Hover a year for the breakdown.</span></p>
+   {fig_obligated()}
+   {legend([(n, c) for n, _k, c in OBLIG_BANDS])}
+   <p class="obligated-note">General-fund fixed costs have climbed from {f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}"} billion in
+   FY2018 to {f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}"} billion in FY2027. Source: “Statewide Totals by Fixed vs. Non-Fixed
+   (General Funds),” p.18 of each biennium’s Hawaiʻi Executive Budget in Brief.</p>
+  </div>
+ </details>
  <h3 class="sub2">Capital Improvement Appropriations</h3>
- <p class="figcap"><b>Figure 3.</b> Distribution of Capital Improvement Project Funding, FY2027 ($Millions)</p>
- <div class="pie-row">{pie(fig3_slices, cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
- <p>The total budget for Capital Improvement Projects (CIP) in FY2027 is {words(CIP_TOTAL)}. Transportation-related
+ <p class="figcap"><b>Figure 3.</b> Distribution of Capital Improvement Project Funding, {fy_picker("fig3")} ($Millions)</p>
+ <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
+ <p data-fig="fig3" data-fy="2027">The total budget for Capital Improvement Projects (CIP) in FY2027 is {words(cip_total_for(BUD))}. Transportation-related
+ projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other
+ things, the state's airports, harbors, and its 2,433 miles of roads and highways.<sup>7</sup></p>
+ <p data-fig="fig3" data-fy="2026" hidden>The total budget for Capital Improvement Projects (CIP) in FY2026 is {words(cip_total_for(BUD26))}. Transportation-related
  projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other
  things, the state's airports, harbors, and its 2,433 miles of roads and highways.<sup>7</sup></p>
  <div class="folio r">BUDGET PRIMER • 7</div>
@@ -608,13 +758,11 @@ pages.append(f"""
 # -- page 8: photo + one-time/emergency
 pages.append(f"""
 <section class="page">
- <img class="photo" src="assets/signing.jpg" alt="Bill signing at Washington Place">
- <p class="photocap">On May 30, 2025, advocates and lawmakers joined Governor Josh Green at Washington Place as he
- signed <a href="https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=SB&billnumber=1300&year=2025">Senate
- Bill (SB) 1300</a> into law as <a href="https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1239_.PDF">Act
- 139</a>. The law's FY27 appropriations take effect this year, expanding subsidized meal access to public school
- students from households in the Asset-Limited, Income-Constrained, Employed (ALICE) category. // Will Caron,
- Hawaiʻi Appleseed</p>
+ <img class="photo" src="assets/hb2296-signing.jpg" alt="Governor Josh Green and lawmakers at the HB 2296 bill signing">
+ <p class="photocap">Governor Josh Green signed <a href="https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026">House
+ Bill (HB) 2296</a> into law as Act 236, SLH 2026. The law lowers the minimum share of meal preparation costs schools
+ must recover, giving the Department of Education more room to offer free and reduced-price school meals. // Office
+ of the Governor</p>
  <h3 class="sub2">One-Time and Emergency Appropriations</h3>
  <div class="cards2">
   {card("FY27 One-Time Appropriations", ONE_TIME_BULLETS, DARK)}
@@ -627,8 +775,8 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <h1>FUNDING THE BUDGET</h1>
- <p class="figcap"><b>Figure 4.</b> Hawaiʻi Budget Means of Finance, FY2027 ($Billions)<sup>16</sup></p>
- <div class="pie-row">{pie(fig4_slices, cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
+ <p class="figcap"><b>Figure 4.</b> Hawaiʻi Budget Means of Finance, {fy_picker("fig4")} ($Billions)<sup>16</sup></p>
+ <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
  <p>The state's spending primarily falls under three main categories: general funds, special funds and federal funds.</p>
  <div class="cards3">
   {card("General Funds", ["General funds are mostly made up of tax revenue. The main pot of state money, these funds can be used for almost any state need."], SAGE)}
@@ -642,8 +790,8 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <h2 class="sub">Taxes</h2>
- <p class="figcap"><b>Figure 5.</b> Projected Hawaiʻi State Tax Revenue, FY2027 ($Billions)<sup>17</sup></p>
- <div class="pie-row">{pie(fig5_slices, cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices])}</div>
+ <p class="figcap"><b>Figure 5.</b> Projected Hawaiʻi State Tax Revenue, {fy_picker("fig5")} ($Billions)<sup>17</sup></p>
+ <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
   {card("General Excise Tax", ["The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state's tax revenue, but the tax increases the cost of living and hits low-income families the hardest."], SAGE)}
   {card("Individual Income Tax", ["Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.<sup>18</sup>"], SAGE_MID)}
@@ -708,6 +856,10 @@ notes = [
      "https://itep.org/whopays/hawaii-who-pays-7th-edition"),
     ('"Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024.',
      "https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf"),
+    ('"Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. Obligated-cost '
+     'figures are drawn from the "Statewide Totals by Fixed vs. Non-Fixed (General Funds)" table (p. 18) of '
+     'each biennium\'s Budget in Brief, FB 2017–19 through FB 2025–27.',
+     "https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/"),
 ]
 en = "".join(endnote_link(i + 1, f"{i + 1}.&emsp;{esc(t)}" if False else f"{t}", u)
              for i, (t, u) in enumerate(notes))
@@ -745,9 +897,11 @@ html = f"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Unlisted: reachable only via direct link while in review. Remove once ready to publish. -->
+<meta name="robots" content="noindex, nofollow">
 <title>Hawaiʻi Budget Primer FY2026–27 — Hawaiʻi Appleseed</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Archivo+Black&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800;900&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="primer.css">
 </head>
 <body>
