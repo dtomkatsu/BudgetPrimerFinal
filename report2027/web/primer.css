@@ -33,6 +33,10 @@ h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
 .figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
 .figcap b { color: var(--ink); }
 
+/* Overflow slots ([[extra.<page>.<slug>]]) — bullet lists outside cards */
+ul.extra-bullets { margin: 0 0 12px; padding-left: 20px; }
+ul.extra-bullets li { margin: 3px 0; }
+
 /* FY year picker (Figures 3/4/5) */
 .fy-pick { font: inherit; font-weight: 700; color: var(--ink); background: var(--mint);
   border: 1px solid var(--sage-light); border-radius: 5px; padding: 0 3px; margin: 0 1px;

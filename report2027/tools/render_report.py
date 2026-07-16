@@ -588,6 +588,12 @@ def table1_for(year):
 <td>{words(tot(l))}</td><td>{words(tot(o))}</td></tr>
 </tbody></table>"""
 
+# Pages that accept overflow slots: a [[extra.<page>.<slug>]] key in content.md
+# renders automatically at the end of that page — new prose sections can be
+# added from the Google Doc alone, with no change to this file.
+EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
+               "onetime", "funding", "taxes", "whopays"]
+
 pages = []
 
 # -- page 1: cover
@@ -646,7 +652,7 @@ pages.append(f"""
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
- <div class="folio r">BUDGET PRIMER • 3</div>
+{C.extras("basics")} <div class="folio r">BUDGET PRIMER • 3</div>
 </section>""")
 
 # -- page 4: budget process
@@ -659,7 +665,7 @@ pages.append(f"""
   {fig1_lifecycle()}
   {lifecycle_callouts()}
  </div>
- <div class="folio">4 • BUDGET PRIMER</div>
+{C.extras("process")} <div class="folio">4 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 5: how money is spent
@@ -677,7 +683,7 @@ pages.append(f"""
  <p class="figcap"><b>Table 1.</b> {C.text("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
- <div class="folio r">BUDGET PRIMER • 5</div>
+{C.extras("spent")} <div class="folio r">BUDGET PRIMER • 5</div>
 </section>""")
 
 # -- page 6: figure 2
@@ -694,7 +700,7 @@ pages.append(f"""
  <div class="explore noprint">{C.text("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.text("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
- <div class="folio">6 • BUDGET PRIMER</div>
+{C.extras("categories")} <div class="folio">6 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 7: obligated costs + fig 3
@@ -720,7 +726,7 @@ pages.append(f"""
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
  <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
- <div class="folio r">BUDGET PRIMER • 7</div>
+{C.extras("cip")} <div class="folio r">BUDGET PRIMER • 7</div>
 </section>""")
 
 # -- page 8: photo + one-time/emergency
@@ -733,7 +739,7 @@ pages.append(f"""
   {card(C.text("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK)}
   {card(C.text("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST)}
  </div>
- <div class="folio">8 • BUDGET PRIMER</div>
+{C.extras("onetime")} <div class="folio">8 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 9: funding the budget
@@ -748,7 +754,7 @@ pages.append(f"""
   {card(C.text("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID)}
   {card(C.text("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True)}
  </div>
- <div class="folio r">BUDGET PRIMER • 9</div>
+{C.extras("funding")} <div class="folio r">BUDGET PRIMER • 9</div>
 </section>""")
 
 # -- page 10: taxes
@@ -762,7 +768,7 @@ pages.append(f"""
   {card(C.text("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID)}
   {card(C.text("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True)}
  </div>
- <div class="folio">10 • BUDGET PRIMER</div>
+{C.extras("taxes")} <div class="folio">10 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 11: who pays
@@ -777,7 +783,7 @@ pages.append(f"""
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
- <div class="folio r">BUDGET PRIMER • 11</div>
+{C.extras("whopays")} <div class="folio r">BUDGET PRIMER • 11</div>
 </section>""")
 
 # -- page 12: endnotes ------------------------------------------------------
@@ -825,7 +831,11 @@ body += f"""
 
 unused = C.unused_keys()
 if unused:
-    raise ContentError("content.md has keys the report never uses: " + ", ".join(unused))
+    msg = "content.md has keys the report never uses: " + ", ".join(unused)
+    if any(k.startswith("extra.") for k in unused):
+        msg += ("\n  extra.* slots must be named extra.<page>.<slug> where "
+                "<page> is one of: " + ", ".join(EXTRA_PAGES))
+    raise ContentError(msg)
 
 html = f"""<!DOCTYPE html>
 <html lang="en">

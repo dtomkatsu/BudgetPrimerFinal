@@ -102,6 +102,47 @@ def paragraph(block: str) -> str:
     return md_inline(" ".join(l.strip() for l in _unhead(block).splitlines() if l.strip()))
 
 
+def block_html(block: str) -> str:
+    """Generic renderer for overflow slots: headings, bullet lists and
+    paragraphs in source order. '##' -> section heading, '###' -> subheading,
+    matching the report's existing styles."""
+    out: list[str] = []
+    para: list[str] = []
+    items: list[str] = []
+
+    def flush_para():
+        if para:
+            out.append(f"<p>{md_inline(' '.join(para))}</p>")
+            para.clear()
+
+    def flush_items():
+        if items:
+            out.append('<ul class="extra-bullets">'
+                       + "".join(f"<li>{i}</li>" for i in items) + "</ul>")
+            items.clear()
+
+    for line in block.splitlines():
+        s = line.strip()
+        if not s:
+            flush_para(); flush_items()
+            continue
+        m = re.match(r"^(#{1,6})\s+(.*)$", s)
+        if m:
+            flush_para(); flush_items()
+            txt = md_inline(m.group(2))
+            out.append(f'<h2 class="sub">{txt}</h2>' if len(m.group(1)) <= 2
+                       else f'<h3 class="sub2">{txt}</h3>')
+            continue
+        if s.startswith("- "):
+            flush_para()
+            items.append(md_inline(s[2:].strip()))
+            continue
+        flush_items()
+        para.append(s)
+    flush_para(); flush_items()
+    return "".join(out)
+
+
 def paragraphs(block: str) -> list[str]:
     """A block -> one HTML string per blank-line-separated paragraph, so an
     editor can add a paragraph inside a slot and have it flow into the report."""
@@ -179,6 +220,15 @@ class Content:
 
     def lines(self, key: str) -> list[str]:
         return [l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip()]
+
+    def extras(self, page: str) -> str:
+        """Render every overflow slot for a page — keys named
+        [[extra.<page>.<slug>]] — in content.md order. This is what lets an
+        editor add a whole new prose section from the Google Doc alone:
+        no renderer change, the slot just appears at the end of that page."""
+        prefix = f"extra.{page}."
+        return "".join(block_html(self.raw(k))
+                       for k in self._raw if k.startswith(prefix))
 
     def unused_keys(self) -> list[str]:
         return sorted(set(self._raw) - self._used)
