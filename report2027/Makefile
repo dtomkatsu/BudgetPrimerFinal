@@ -5,6 +5,7 @@ all: data html pdf embed
 
 validate:
 	python3 tools/build_data.py --validate
+	python3 tools/test_pull_doc.py
 	python3 tools/pull_doc.py --check
 
 # Prose lives in the Google Doc; content.md is the committed snapshot the build

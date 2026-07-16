@@ -29,6 +29,7 @@ Author: Devin Thomas
 
 [[toc.copyright]]
 Copyright © 2026 Hawaiʻi Appleseed Center for Law & Economic Justice. All rights reserved.
+
 733 Bishop Street, Suite 1180, Honolulu, HI 96813
 
 [[basics.h1]]
@@ -303,7 +304,7 @@ Projected Hawaiʻi State Tax Revenue,
 - Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.[^cor-forecast]
 
 [[taxes.cards.tat.title]]
-### Transient Accomodations Tax
+### Transient Accommodations Tax
 
 [[taxes.cards.tat.bullets]]
 - The TAT is a tax on hotel rooms, short-term rentals and cruise ships. It is paid mainly by tourists and supports the general fund and special funds for tourism promotion, resource management, climate resiliency and economic development.

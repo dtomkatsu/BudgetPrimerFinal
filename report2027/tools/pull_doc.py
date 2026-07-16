@@ -41,18 +41,52 @@ def fetch(url: str = EXPORT) -> str:
         return r.read().decode("utf-8")
 
 
-def normalise(md: str) -> str:
-    """Undo the cosmetics Google's Markdown export adds.
+def _header() -> str:
+    """The instructions comment at the top of content.md. Docs drops HTML
+    comments, so it is re-attached on the way back rather than duplicated
+    here — content.md stays its own single source for that text."""
+    if not CONTENT.exists():
+        return ""
+    m = re.match(r"\A(.*?-->\n+)", CONTENT.read_text(), flags=re.S)
+    return m.group(1) if m else ""
 
-    It escapes literal punctuation (\\[, \\*, \\_) and can emit non-breaking or
-    smart characters inside our [[key]] markers; strip that back to the plain
-    form content.py parses.
+
+def normalise(md: str) -> str:
+    """Undo the cosmetics Google's Doc <-> Markdown round-trip adds.
+
+    Docs has no concept of our marker syntax, so importing content.md and then
+    re-exporting it reshapes the file in predictable ways. Each is reversed
+    here; the result is then validated, so anything unanticipated fails loudly
+    rather than landing half-converted in content.md.
     """
     md = md.replace("\r\n", "\n").replace(" ", " ")
-    md = re.sub(r"\\([\[\]*_`#\\])", r"\1", md)          # unescape \[ \* \_ ...
-    md = re.sub(r"^\s*(\[\[[A-Za-z0-9._-]+\]\])\s*$", r"\1", md, flags=re.M)  # tidy markers
+    # Unescape Google's \. \[ \_ ... — note '_' is \w, so it needs naming.
+    md = re.sub(r"\\([^\w\s]|_)", r"\1", md)
+    # Bare URLs come back as [url](url); collapse them (after unescaping, so
+    # the label and href compare equal).
+    md = re.sub(r"\[(https?://[^\]\s]+)\]\(\1\)", r"\1", md)
+
+    # A doc title line sits above the first marker; it is chrome, not content.
+    first = re.search(r"^\s*\[\[[A-Za-z0-9._-]+\]\]", md, flags=re.M)
+    if first:
+        md = md[first.start():]
+
+    # Docs merges a marker into the paragraph that follows it ("[[k]] text"),
+    # and pads markers that precede a heading/list with a blank line.
+    md = re.sub(r"^(\[\[[A-Za-z0-9._-]+\]\])[ \t]+(?=\S)", r"\1\n", md, flags=re.M)
+    md = re.sub(r"^[ \t]*(\[\[[A-Za-z0-9._-]+\]\])[ \t]*\n\n+", r"\1\n", md, flags=re.M)
+
+    # The sources block is soft-wrapped lines inside one Docs paragraph, so it
+    # returns as a single line. Split it back at each "[id]: ".
+    m = re.search(r"^\[\[sources\]\]\n", md, flags=re.M)
+    if m:
+        head, block = md[:m.end()], md[m.end():]
+        block = re.sub(r"[ \t]+(?=\[[A-Za-z0-9._-]+\]:\s)", "\n", block)
+        md = head + block
+
+    md = re.sub(r"[ \t]+$", "", md, flags=re.M)         # trailing hard-break spaces
     md = re.sub(r"\n{3,}", "\n\n", md)
-    return md.strip() + "\n"
+    return _header() + md.strip() + "\n"
 
 
 def validate(md: str) -> None:
