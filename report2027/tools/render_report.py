@@ -8,9 +8,15 @@ web/primer.js layers tooltips/hover on top for the interactive build.
 import json
 import math
 import re
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from content import Content, ContentError          # noqa: E402
+
 HERE = Path(__file__).resolve().parent.parent
+# Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
+C = Content(HERE / "content.md")
 DATA = json.loads((HERE / "data" / "report_data.json").read_text())
 BUD = DATA["budget"]
 RES = DATA["research"]
@@ -82,13 +88,21 @@ for _d in _dept_src:
     }
 HIST_FY_SPAN = [_hist_fys[0], _hist_fys[-1]]
 
-# ---------- palette (sampled from the original PDF) ----------
-# SAGE_MID is darkened from the original's #a4c3b2: white text on that value reads
-# washed out. Keep in sync with --sage-mid in primer.css.
-SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE = "#6b9080", "#8ab19d", "#cce3de", "#eaf4f4", "#d8f3dc"
-DARK, FOREST, DARKEST = "#2d6a4f", "#1b4332", "#081c15"
-INK = "#26332c"
+# ---------- palette (Hawaiʻi Appleseed brand) ----------
+# Muted Teal (logo) / light teal / Ash Grey + light tints; Deep Teal, Dark Slate
+# Grey, Charcoal Blue for the darks. Keep in sync with the vars in primer.css.
+SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE = "#6B9E78", "#95B7A2", "#CAD2C5", "#E8EDE6", "#D6E0D2"
+DARK, FOREST, DARKEST = "#52796F", "#354F52", "#2F3E46"
+INK = "#2F3E46"
 SERIES = {"operating": SAGE, "capital": SAGE_MID, "one_time": DARK, "emergency": DARKEST}
+
+def is_light_bg(hexc):
+    """True when a fill is light enough to need dark (not white) text. The brand's
+    Muted Teal / Ash Grey tiles read best with charcoal text; only Deep Teal,
+    Dark Slate, and Charcoal Blue take reversed (white) text."""
+    h = hexc.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 130
 
 # ---------- formatting ----------
 def words(n):
@@ -211,8 +225,10 @@ def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0,
         lx = min(max(lx, 6), size - 6)
         t = "".join(f'<tspan x="{lx:.0f}" dy="{dy:.0f}" >{l}</tspan>' if i else
                     f'<tspan x="{lx:.0f}">{l}</tspan>' for i, l in enumerate(lab))
+        # a label sitting inside a dark slice needs reversed (white) text
+        lab_fill = ' fill="#fff"' if (big and not is_light_bg(color)) else ''
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
-                      f'class="pie-lab" font-size="{lab_u:.1f}">{t}</text>')
+                      f'class="pie-lab"{lab_fill} font-size="{lab_u:.1f}">{t}</text>')
         a += sweep
     return (f'<svg viewBox="0 0 {size} {size}" class="chart pie {cls}"{attrs} '
             f'preserveAspectRatio="xMidYMid meet" role="img">'
@@ -252,7 +268,7 @@ def fig_obligated():
     out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
     for gb in range(0, 6):                                   # $0-$5B gridlines
         y = Y(gb * 1e9)
-        out.append(f'<line x1="{L}" y1="{y:.1f}" x2="{W-R}" y2="{y:.1f}" stroke="#d9e4de" stroke-width="1"/>')
+        out.append(f'<line x1="{L}" y1="{y:.1f}" x2="{W-R}" y2="{y:.1f}" stroke="#D7DEDC" stroke-width="1"/>')
         out.append(f'<text x="{L-8}" y="{y+4:.1f}" text-anchor="end" class="ax">${gb}B</text>')
     for i, fy in enumerate(years):                           # x-axis year labels
         out.append(f'<text x="{X(i):.1f}" y="{H-10}" text-anchor="middle" class="ax">FY{str(fy)[2:]}</text>')
@@ -320,7 +336,7 @@ def fig2_svg(rows, attrs=""):
     out = [f'<svg viewBox="0 0 {W} {H}" class="chart"{attrs} role="img">']
     for gx in range(0, 6):
         x = LEFT + plot_w * gx / 5.5
-        out.append(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H-34}" stroke="#d9e4de" stroke-width="1"/>')
+        out.append(f'<line x1="{x:.0f}" y1="0" x2="{x:.0f}" y2="{H-34}" stroke="#D7DEDC" stroke-width="1"/>')
         out.append(f'<text x="{x:.0f}" y="{H-18}" text-anchor="middle" class="ax">${gx}B</text>')
     y = 4
     for label, seg, code in rows:
@@ -352,14 +368,14 @@ def fig2_svg(rows, attrs=""):
 # Each lifecycle callout owns a contiguous run of months; brackets outside the
 # month ring make that span explicit rather than leaving it to proximity.
 LIFECYCLE_SPANS = [
-    # key, label, first month, last month, text, side
-    ("dec", "DEC", 11, 11, "The governor submits the executive budget proposal to the legislature.", "top"),
-    ("jan", "JAN–APR", 0, 3, "The legislature reviews, amends and passes the budget bill.", "right"),
-    ("may", "MAY", 4, 4, "Emergency and supplemental appropriations are added if any are needed.", "right"),
-    ("jun", "JUN", 5, 5, "The governor signs the budget bill into law, with line-item veto power.", "bottom"),
-    ("jul", "JUL", 6, 6, "Funds are released to executive departments and agencies.", "left"),
-    ("aug", "AUG–SEP", 7, 8, "Agencies carry out spending.", "left"),
-    ("oct", "OCT–NOV", 9, 10, "Budget proposals are drafted by each branch.", "left"),
+    # key, label, first month, last month, text, side  (label/text from content.md)
+    (k, C.text(f"process.lifecycle.{k}.label"), m0, m1,
+     C(f"process.lifecycle.{k}.text"), side)
+    for k, m0, m1, side in [
+        ("dec", 11, 11, "top"), ("jan", 0, 3, "right"), ("may", 4, 4, "right"),
+        ("jun", 5, 5, "bottom"), ("jul", 6, 6, "left"), ("aug", 7, 8, "left"),
+        ("oct", 9, 10, "left"),
+    ]
 ]
 
 # Geometry shared by the wheel SVG and the callout placement, so the text always
@@ -408,8 +424,8 @@ def lifecycle_callouts():
 def fig1_lifecycle(size=560):
     cx = cy = size / 2
     months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-    ramp = ["#e7f3ec", "#d9ece1", "#c4dfd0", "#aed2bf", "#98c5ae", "#82b89d",
-            "#6ba98b", "#5b997c", "#4c886d", "#3d775e", "#2d5545", "#122e20"]
+    ramp = ["#EAEFEA", "#D9E3DB", "#C6D6CB", "#B2C7BA", "#9EB8A8", "#89AB94",
+            "#6B9E78", "#5C8A70", "#4F7865", "#44645B", "#3A5254", "#2F3E46"]
     out = [f'<svg viewBox="0 0 {size} {size}" class="chart" role="img">']
     r1, r2 = 118, 168
 
@@ -447,9 +463,9 @@ def fig1_lifecycle(size=560):
 
     # Arc spans are sized to the label that rides on them: at pr the arc length
     # must exceed the rendered text width, or textPath silently truncates.
-    phases = [("Legislative consideration", 0, 150, SAGE),
-              ("Planning and prep by B&amp;F Dept", 150, 258, SAGE_LIGHT),
-              ("Prep of proposed exec budget", 258, 360, MINT)]
+    phases = [(esc(C.text("process.ring.legislative")), 0, 150, DARK),
+              (esc(C.text("process.ring.planning")), 150, 258, SAGE_LIGHT),
+              (esc(C.text("process.ring.prep")), 258, 360, MINT)]
     for i, (name, a0, a1, col) in enumerate(phases):
         out.append(f'<path d="{arc_path(cx, cy, 72, 116, a0 + 1, a1 - 1)}" fill="{col}"/>')
         pr = 100
@@ -461,7 +477,7 @@ def fig1_lifecycle(size=560):
         flip = 90 < (a0 + a1) / 2 < 270
         d = (f"M{p1[0]:.0f},{p1[1]:.0f} A{pr},{pr} 0 {large} 0 {p0[0]:.0f},{p0[1]:.0f}" if flip
              else f"M{p0[0]:.0f},{p0[1]:.0f} A{pr},{pr} 0 {large} 1 {p1[0]:.0f},{p1[1]:.0f}")
-        tc = "#fff" if col == SAGE else INK
+        tc = INK if is_light_bg(col) else "#fff"
         out.append(f'<defs><path id="ph{i}" d="{d}"/></defs>'
                    f'<text class="ph" fill="{tc}"><textPath href="#ph{i}" startOffset="50%" '
                    f'text-anchor="middle">{name}</textPath></text>')
@@ -497,7 +513,7 @@ def fig6_chart():
 
 # ---------- figure data (year-parameterized for the FY26/FY27 picker) ----------
 FIG3_ORDER = ["Transportation", "Formal Education", "All Others", "Economic Development", "Health"]
-FIG3_COLORS = [SAGE, SAGE_MID, SAGE_LIGHT, MINT, PALE]
+FIG3_COLORS = [DARK, SAGE_MID, SAGE_LIGHT, MINT, PALE]
 FIG4_ORDER = ["General Funds", "Special Funds", "Federal Funds", "Other Funds"]
 
 def fig3_slices_for(budget):
@@ -536,7 +552,9 @@ def fy_pie_swap(fig_id, slices27, slices26, **kw):
             + pie(slices26, attrs=f' data-fig="{fig_id}" data-fy="2026" hidden', **kw))
 
 # ---------- page shells ----------
-def card(title, bullets, bg, light=False):
+def card(title, bullets, bg, light=None):
+    if light is None:                       # auto: dark text on light tiles
+        light = is_light_bg(bg)
     cls = "card light" if light else "card"
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     return f'<div class="{cls}" style="background:{bg}"><h4>{title}</h4><ul>{lis}</ul></div>'
@@ -544,18 +562,8 @@ def card(title, bullets, bg, light=False):
 def endnote_link(n, txt, url):
     return f'<li id="en{n}">{txt} <a href="{url}">{url}</a></li>'
 
-ONE_TIME_BULLETS = [
-    f"<b>Transportation &amp; Budget/Finance:</b> $700 million in Act 99 — $600 million in county-surcharge transit funding and a new $100 million major disaster fund.<sup>8</sup>",
-    f"<b>Accounting, Transportation, Land:</b> $200 million in Maui wildfire insurance proceeds to rebuild King Kamehameha III Elementary and restore Lahaina's harbor.<sup>9</sup>",
-    f"<b>DBEDT:</b> $49.5 million for the New Aloha Stadium district.<sup>10</sup>",
-    f"<b>UH:</b> $28.5 million in revenue bonds for student housing.<sup>11</sup>",
-    f"<b>Human Services:</b> $16.5 million to supplement health-plan premiums for residents losing ACA coverage.<sup>12</sup>",
-    f"<b>Education:</b> $3.4 million to expand free school meals to all ALICE households — the FY27 expansion promised in Act 139 (2025).<sup>13</sup>",
-]
-EMERG_BULLETS = [
-    f"<b>Various Executive Departments:</b> $2,871,954 in collective-bargaining cost items for Bargaining Unit 11 employees.<sup>14</sup>",
-    "The 2026 session also passed roughly $110 million in <i>FY26</i> emergency appropriations — a $14.2 million backfill of funds redirected to food assistance during the 2025 federal shutdown, and $95.8 million for labor-grievance cost items.<sup>15</sup>",
-]
+ONE_TIME_BULLETS = C.list("onetime.cards.onetime.bullets")
+EMERG_BULLETS = C.list("onetime.cards.emergency.bullets")
 
 def table1_for(year):
     b = BRANCHES_BY_FY[year]
@@ -564,8 +572,8 @@ def table1_for(year):
         return c["op"] + c["cip"] + c["one"] + c["emerg"]
     hidden = "" if year == 2027 else " hidden"
     return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}>
-<thead><tr><th></th><th class="lk" data-dept="__all">Executive<sup>2</sup></th><th>Judiciary<sup>3</sup></th>
-<th>Legislature<sup>4&thinsp;5</sup></th><th>OHA<sup>6</sup></th></tr></thead>
+<thead><tr><th></th><th class="lk" data-dept="__all">{C("table1.header.executive")}</th><th>{C("table1.header.judiciary")}</th>
+<th>{C("table1.header.legislature")}</th><th>{C("table1.header.oha")}</th></tr></thead>
 <tbody>
 <tr><td>Operating Budget</td><td>{words(e['op'])}</td><td>{words(j['op'])}</td>
 <td>{words(l['op'])}</td><td>{words(o['op'])}</td></tr>
@@ -602,59 +610,41 @@ pages.append(f"""
   <div class="logo-lockup light"><img class="logo-img" src="assets/appleseed-logo-white.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
-  <p class="toc-author">Author: Devin Thomas</p>
+  <p class="toc-author">{C.text("toc.author")}</p>
  </div>
- <p class="mission">Hawaiʻi Appleseed is committed to a more socially and economically just Hawaiʻi, where everyone
- has genuine opportunities to achieve economic security and fulfill their potential. We change systems to address
- inequity and foster greater opportunity by conducting data analysis and research to address income inequality,
- educating policymakers and the public, engaging in collaborative problem solving and coalition building, and
- advocating for policy and systems change.</p>
- <p class="mission">The work of Hawaiʻi Appleseed is about people. The issues we work on—housing, food, wages,
- mobility, the state budget and taxation, and racial and indigenous equity—are important because they ensure people
- have access to shelter, sustenance, and the means to survive and thrive individually and collectively. Addressing
- these issues requires the knowledge and expertise of the people that have first-hand experience and live with the
- adverse consequences of our flawed systems.</p>
- <h2 class="toc-title">TABLE OF CONTENTS</h2>
+ <p class="mission">{C("toc.mission1")}</p>
+ <p class="mission">{C("toc.mission2")}</p>
+ <h2 class="toc-title">{C.text("toc.title")}</h2>
  <div class="toc-list">
   <div><span>Budget Basics</span><span>3</span></div>
   <div><span>How Money Is Spent</span><span>5</span></div>
   <div><span>Funding the Budget</span><span>9</span></div>
   <div><span>Endnotes</span><span>12</span></div>
  </div>
- <p class="copyright">Copyright © 2026 Hawaiʻi Appleseed Center for Law &amp; Economic Justice. All rights reserved.<br>
- 733 Bishop Street, Suite 1180, Honolulu, HI 96813</p>
+ <p class="copyright">{"<br>".join(esc(l) for l in C.lines("toc.copyright"))}</p>
  <div class="folio">2 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 3: budget basics
 branch_cards = [
-    ("Legislature", SAGE, "branch-0.jpg", True,
-     ["Creates laws and decides how the state's money is spent.",
-      "Consists of the State Senate and House of Representatives, Office of the Auditor, Office of the Ombudsman, and the Legislative Reference Bureau."]),
-    ("Judiciary", SAGE_MID, "branch-1.jpg", False,
-     ["Interprets laws and resolves legal cases through the court system.",
-      "Consists of the Hawaiʻi Supreme Court, Intermediate Court of Appeals, Land Court, Tax Appeal Court, Circuit Courts, Family Courts, District Courts, Environmental Courts, and Office of the Administrative Director of the Courts."]),
-    ("Executive", SAGE_LIGHT, "branch-2.jpg", False,
-     ["Enforces state laws and manages the daily operations of the government.",
-      "Consists of the Governor, Lieutenant Governor, State Departments, and the University of Hawaiʻi System."]),
-    ("Office of Hawaiian Affairs", MINT, "branch-3.jpg", False,
-     ["A semi-autonomous state agency responsible for improving the wellbeing of Native Hawaiians.",
-      "Legislative appropriations represent only a small portion of OHA's resources."]),
+    (C.text(f"basics.branch.{k}.title"), bg, img, lt, C.list(f"basics.branch.{k}.bullets"))
+    for k, bg, img, lt in [
+        ("legislature", DARK, "branch-0.jpg", True),
+        ("judiciary", SAGE_MID, "branch-1.jpg", False),
+        ("executive", SAGE_LIGHT, "branch-2.jpg", False),
+        ("oha", MINT, "branch-3.jpg", False),
+    ]
 ]
 bc = "".join(
     f'<div class="branch"><img src="assets/{img}" alt="{t}">'
-    f'<div class="branch-card{" onlight" if not lt else ""}" style="background:{bg}">'
+    f'<div class="branch-card{" onlight" if is_light_bg(bg) else ""}" style="background:{bg}">'
     f'<h4>{t}</h4><ul>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
     for t, bg, img, lt, bl in branch_cards)
 pages.append(f"""
 <section class="page">
- <h1>BUDGET BASICS</h1>
- <p><b>THE INVESTMENTS</b> that Hawaiʻi's government makes in its people through the state budget should reflect
- our shared priorities and values. This budget primer is intended to help readers understand how our state budget
- works and to encourage budget and policy decisions that improve the lives of Hawaiʻi's people.</p>
- <p>The state budget funds Hawaiʻi's three government branches: the Legislature; the Judiciary; and the Executive.
- A small portion funds the Office of Hawaiian Affairs (OHA) as well. More than 99 percent of the state budget goes
- toward funding the executive branch.</p>
+ <h1>{C.text("basics.h1")}</h1>
+ <p>{C("basics.p1")}</p>
+ <p>{C("basics.p2")}</p>
  {bc}
  <div class="folio r">BUDGET PRIMER • 3</div>
 </section>""")
@@ -662,11 +652,9 @@ pages.append(f"""
 # -- page 4: budget process
 pages.append(f"""
 <section class="page">
- <h2 class="sub">Budget Process</h2>
- <p>Hawaiʻi uses a two-year (biennial) budget cycle. The full budget is passed in odd-numbered years, and
- adjustments can be made in the second year. Fiscal Years (FY) cover July 1 through June 30, labeled by the
- calendar year in which they end (e.g. FY 2027 runs from July 2026 through June 2027).</p>
- <p class="figcap"><b>Figure 1.</b> Hawaiʻi Budget Lifecycle</p>
+ <h2 class="sub">{C.text("process.h2")}</h2>
+ <p>{C("process.p1")}</p>
+ <p class="figcap"><b>Figure 1.</b> {C.text("process.fig1.caption")}</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
   {lifecycle_callouts()}
@@ -677,19 +665,16 @@ pages.append(f"""
 # -- page 5: how money is spent
 pages.append(f"""
 <section class="page">
- <h1>HOW MONEY IS SPENT</h1>
- <p>Government spending is essential for the economy, especially in times of crisis. The executive branch alone
- employs over 47,000 workers, not including contractors.<sup>1</sup> These workers are responsible for running
- Hawaiʻi's departments and agencies—a task that is only made possible with billions of dollars in funding.</p>
- <p>There are three types of spending: operating, capital improvement, and one-time/emergency appropriations.</p>
+ <h1>{C.text("spent.h1")}</h1>
+ <p>{C("spent.p1")}</p>
+ <p>{C("spent.p2")}</p>
  <div class="cards3">
-  {card("Operating Budget", ["Regular funding for state agencies, public services, and programs."], SAGE)}
-  {card("Capital Improvement Appropriations", ["Funds to build, maintain, or improve infrastructure, such as roads, schools, and hospitals."], SAGE_MID)}
-  {card("One-Time &amp; Emergency Appropriations", ["Temporary funding for unexpected needs, such as disaster response or special projects."], SAGE_LIGHT, light=True)}
+  {card(C.text("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK)}
+  {card(C.text("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID)}
+  {card(esc(C.text("spent.cards.onetime.title")), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True)}
  </div>
- <p>Since it manages the state's departments and agencies, the Executive Branch receives almost all of the funds
- in each spending category.</p>
- <p class="figcap"><b>Table 1.</b> Budget Breakdown by Branch and Spending Category, Hawaiʻi, {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
+ <p>{C("spent.p3")}</p>
+ <p class="figcap"><b>Table 1.</b> {C.text("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
  <div class="folio r">BUDGET PRIMER • 5</div>
@@ -698,22 +683,17 @@ pages.append(f"""
 # -- page 6: figure 2
 pages.append(f"""
 <section class="page">
- <h2 class="sub">Spending Categories</h2>
- <h3 class="sub2">Operating Budget</h3>
- <p class="figcap"><b>Figure 2.</b> Hawaiʻi State Budget by Branch and Department, {fy_picker("fig2")}
- <span class="noprint figcap-hint">— click a department for details &amp; tracker link</span></p>
+ <h2 class="sub">{C.text("categories.h2")}</h2>
+ <h3 class="sub2">{C.text("categories.h3")}</h3>
+ <p class="figcap"><b>Figure 2.</b> {C.text("categories.fig2.caption")} {fy_picker("fig2")}
+ <span class="noprint figcap-hint">{esc(C.text("categories.fig2.hint"))}</span></p>
  {fig2_chart_for(2027)}
  {fig2_chart_for(2026)}
- {legend([("Operating Budget", SAGE), ("Capital Improvement Appr", SAGE_MID),
-          ("One-Time Appr", DARK), ("Emergency Appr", DARKEST)])}
- <div class="explore noprint">Want program-level detail, veto changes, and historical trends?
-  <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">Explore the interactive Budget
-  Tracker&nbsp;→</a></div>
- <p>The Executive departments with the largest overall budgets are the Departments of Human Services,
- Transportation, Budget and Finance, and Education. The Department of Transportation's Capital Improvement
- Appropriations budget is larger than its operating budget—the state's airports, harbors, and highways are
- in the middle of a multi-year construction cycle. The Department of Health has a larger operating budget than
- all but four departments, and the DOE operating budget covers K–12 public school teacher salaries statewide.</p>
+ {legend([(C.text("categories.legend.operating"), SAGE), (C.text("categories.legend.capital"), SAGE_MID),
+          (C.text("categories.legend.onetime"), DARK), (C.text("categories.legend.emergency"), DARKEST)])}
+ <div class="explore noprint">{C.text("categories.explore")}
+  <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.text("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
+ <p>{C("categories.p1")}</p>
  <div class="folio">6 • BUDGET PRIMER</div>
 </section>""")
 
@@ -721,52 +701,37 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <div class="callout">
-  <h4>Obligated Costs</h4>
-  <p>Before the state can consider any other spending, the Hawaiʻi constitution says it must pay its
-  non-negotiable obligated costs. These costs include pensions, health benefits, Medicaid, and debt
-  payments—and they are worth roughly $5 billion, or a quarter of the state's operating budget. The share of the
-  operating budget that these costs consume is increasing each year, limiting the state's flexibility for new
-  investments in areas like housing, schools, economic development and climate resilience.</p>
-  <p>Except for Medicaid expenses, which are included in the budget for the Department of Human Services,
-  the costs named above are covered by the Department of Budget and Finance. These two departments have the
-  largest operating budgets, and obligated costs are a significant share for each.</p>
+  <h4>{C.text("obligated.title")}</h4>
+  <p>{C("obligated.p1")}</p>
+  <p>{C("obligated.p2")}</p>
  </div>
  <details class="obligated noprint">
-  <summary>View Obligated Costs</summary>
+  <summary>{C.text("obligated.summary")}</summary>
   <div class="obligated-panel">
-   <p class="figcap"><b>General-fund obligated costs, FY2018–FY2027 ($Billions).</b><sup>21</sup><span class="noprint">
-   Hover a year for the breakdown.</span></p>
+   <p class="figcap"><b>{C("obligated.panel.caption").split("[^")[0].strip()}</b>{"[^" + C("obligated.panel.caption").split("[^")[1]}<span class="noprint">
+   {C.text("obligated.panel.hint")}</span></p>
    {fig_obligated()}
    {legend([(n, c) for n, _k, c in OBLIG_BANDS])}
-   <p class="obligated-note">General-fund fixed costs have climbed from {f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}"} billion in
-   FY2018 to {f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}"} billion in FY2027. Source: “Statewide Totals by Fixed vs. Non-Fixed
-   (General Funds),” p.18 of each biennium’s Hawaiʻi Executive Budget in Brief.</p>
+   <p class="obligated-note">{C("obligated.panel.note").format(oblig_first=f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}", oblig_last=f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}")}</p>
   </div>
  </details>
- <h3 class="sub2">Capital Improvement Appropriations</h3>
- <p class="figcap"><b>Figure 3.</b> Distribution of Capital Improvement Project Funding, {fy_picker("fig3")} ($Millions)</p>
+ <h3 class="sub2">{C.text("cip.h3")}</h3>
+ <p class="figcap"><b>Figure 3.</b> {C.text("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
- <p data-fig="fig3" data-fy="2027">The total budget for Capital Improvement Projects (CIP) in FY2027 is {words(cip_total_for(BUD))}. Transportation-related
- projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other
- things, the state's airports, harbors, and its 2,433 miles of roads and highways.<sup>7</sup></p>
- <p data-fig="fig3" data-fy="2026" hidden>The total budget for Capital Improvement Projects (CIP) in FY2026 is {words(cip_total_for(BUD26))}. Transportation-related
- projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other
- things, the state's airports, harbors, and its 2,433 miles of roads and highways.<sup>7</sup></p>
+ <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
+ <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
  <div class="folio r">BUDGET PRIMER • 7</div>
 </section>""")
 
 # -- page 8: photo + one-time/emergency
 pages.append(f"""
 <section class="page">
- <img class="photo" src="assets/hb2296-signing.jpg" alt="Governor Josh Green and lawmakers at the HB 2296 bill signing">
- <p class="photocap">Governor Josh Green signed <a href="https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026">House
- Bill (HB) 2296</a> into law as Act 236, SLH 2026. The law lowers the minimum share of meal preparation costs schools
- must recover, giving the Department of Education more room to offer free and reduced-price school meals. // Office
- of the Governor</p>
- <h3 class="sub2">One-Time and Emergency Appropriations</h3>
+ <img class="photo" src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
+ <p class="photocap">{C("onetime.photo.caption")}</p>
+ <h3 class="sub2">{C.text("onetime.h3")}</h3>
  <div class="cards2">
-  {card("FY27 One-Time Appropriations", ONE_TIME_BULLETS, DARK)}
-  {card("FY27 Emergency Appropriations", EMERG_BULLETS, DARKEST)}
+  {card(C.text("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK)}
+  {card(C.text("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST)}
  </div>
  <div class="folio">8 • BUDGET PRIMER</div>
 </section>""")
@@ -774,14 +739,14 @@ pages.append(f"""
 # -- page 9: funding the budget
 pages.append(f"""
 <section class="page">
- <h1>FUNDING THE BUDGET</h1>
- <p class="figcap"><b>Figure 4.</b> Hawaiʻi Budget Means of Finance, {fy_picker("fig4")} ($Billions)<sup>16</sup></p>
+ <h1>{C.text("funding.h1")}</h1>
+ <p class="figcap"><b>Figure 4.</b> {C.text("funding.fig4.caption")} {fy_picker("fig4")} {C.text("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
- <p>The state's spending primarily falls under three main categories: general funds, special funds and federal funds.</p>
+ <p>{C("funding.p1")}</p>
  <div class="cards3">
-  {card("General Funds", ["General funds are mostly made up of tax revenue. The main pot of state money, these funds can be used for almost any state need."], SAGE)}
-  {card("Special Funds", ["Money from tuition, fees, settlements, etc., special funds can only be spent on a specific purpose, often related to the revenue source."], SAGE_MID)}
-  {card("Federal Funds", ["Federal funds are monies provided to the state by the federal government, almost always in the form of grants."], SAGE_LIGHT, light=True)}
+  {card(C.text("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK)}
+  {card(C.text("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID)}
+  {card(C.text("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True)}
  </div>
  <div class="folio r">BUDGET PRIMER • 9</div>
 </section>""")
@@ -789,13 +754,13 @@ pages.append(f"""
 # -- page 10: taxes
 pages.append(f"""
 <section class="page">
- <h2 class="sub">Taxes</h2>
- <p class="figcap"><b>Figure 5.</b> Projected Hawaiʻi State Tax Revenue, {fy_picker("fig5")} ($Billions)<sup>17</sup></p>
+ <h2 class="sub">{C.text("taxes.h2")}</h2>
+ <p class="figcap"><b>Figure 5.</b> {C.text("taxes.fig5.caption")} {fy_picker("fig5")} {C.text("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
-  {card("General Excise Tax", ["The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state's tax revenue, but the tax increases the cost of living and hits low-income families the hardest."], SAGE)}
-  {card("Individual Income Tax", ["Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.<sup>18</sup>"], SAGE_MID)}
-  {card("Transient Accomodations Tax", ["The TAT is a tax on hotel rooms, short-term rentals and cruise ships. It is paid mainly by tourists and supports the general fund and special funds for tourism promotion, resource management, climate resiliency and economic development."], SAGE_LIGHT, light=True)}
+  {card(C.text("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK)}
+  {card(C.text("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID)}
+  {card(C.text("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True)}
  </div>
  <div class="folio">10 • BUDGET PRIMER</div>
 </section>""")
@@ -803,67 +768,32 @@ pages.append(f"""
 # -- page 11: who pays
 pages.append(f"""
 <section class="page">
- <h3 class="sub2">Who Pays These Taxes?</h3>
- <p class="figcap"><b>Figure 6.</b> Percentage of Income Paid in State and Local Taxes by Household Income
- Quintile (2024)<sup>19</sup></p>
+ <h3 class="sub2">{C.text("whopays.h3")}</h3>
+ <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
- <p>In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched-thin income on
- state and local taxes compared to wealthy families. This is due almost entirely to the General Excise Tax, which
- is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase
- the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger
- chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income
- families trapped in cycles of poverty, debt and income insecurity.</p>
+ <p>{C("whopays.p1")}</p>
  <div class="callout">
-  <h4>Tax Credits</h4>
-  <p>Tax credits are an effective tool available to lawmakers that are designed to lower or even eliminate the
-  tax liability owed to the state by people or businesses. The purpose of these tax credits is to stimulate the
-  economy by reducing costs either for businesses or struggling families that need help purchasing their basic
-  necessities.</p>
-  <p>In 2022, the state gave out $433.9 million in tax credits.<sup>20</sup> Out of this amount, only $111 million
-  went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise
-  Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the
-  Renewable Energy Technologies Tax Credit and Film/Media Production Credit.</p>
+  <h4>{C.text("whopays.callout.title")}</h4>
+  <p>{C("whopays.callout.p1")}</p>
+  <p>{C("whopays.callout.p2")}</p>
  </div>
  <div class="folio r">BUDGET PRIMER • 11</div>
 </section>""")
 
-# -- page 12: endnotes
-CAP26 = "https://www.capitol.hawaii.gov/sessions/session2026/bills"
-CAP25 = "https://www.capitol.hawaii.gov/sessions/session2025/bills"
-notes = [
-    ('"State of Hawaiʻi Executive Branch Workforce Profile," Hawaiʻi State Department of Human Resources Development, p. 5, December 16, 2024.',
-     "https://dhrd.hawaii.gov/wp-content/uploads/2024/12/Workforce-Profile_06302024_FINAL.pdf"),
-    ('"Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1).', f"{CAP26}/HB1800_CD1_.HTM"),
-    ('"Act 178," State of Hawaiʻi, 2026 (HB2095 CD1), amending Act 227, Session Laws of Hawaiʻi 2025.', f"{CAP26}/HB2095_CD1_.HTM"),
-    ('"Act 1," State of Hawaiʻi, 2026 (HB2240 HD1).', f"{CAP26}/HB2240_HD1_.HTM"),
-    ('"Act 127," State of Hawaiʻi, May 29, 2025 (HB1439 CD1), FY2026–27 legislative cost items.', f"{CAP25}/GM1227_.PDF"),
-    ('"Act 248," State of Hawaiʻi, June 30, 2025 (HB410 CD1).', f"{CAP25}/GM1351_.PDF"),
-    ('"Visitor Info," Hawaiʻi Department of Transportation.', "https://hidot.hawaii.gov/highways/visitor"),
-    ('"Act 99," State of Hawaiʻi, June 5, 2026 (HB2275 CD2).', f"{CAP26}/HB2275_CD2_.HTM"),
-    ('"Act 123," State of Hawaiʻi, June 8, 2026 (SB2930 CD1).', f"{CAP26}/SB2930_CD1_.HTM"),
-    ('"Act 184," State of Hawaiʻi, July 6, 2026 (SB2599 CD1).', f"{CAP26}/SB2599_CD1_.HTM"),
-    ('"Act 80," State of Hawaiʻi, June 4, 2026 (HB2339 CD1).', f"{CAP26}/HB2339_CD1_.HTM"),
-    ('"Act 21," State of Hawaiʻi, May 21, 2026 (HB2310 CD1), Part II.', f"{CAP26}/HB2310_CD1_.HTM"),
-    ('"Act 139," State of Hawaiʻi, May 30, 2025 (SB1300 CD1), §3–4.', f"{CAP25}/GM1239_.PDF"),
-    ('"Act 26," State of Hawaiʻi, May 22, 2026 (HB2272 CD1).', f"{CAP26}/HB2272_CD1_.HTM"),
-    ('"Act 21" Part I and "Act 33," State of Hawaiʻi, May 2026 (HB2310 CD1; HB2271 CD1).', f"{CAP26}/HB2271_CD1_.HTM"),
-    ('"Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1).', f"{CAP26}/HB1800_CD1_.HTM"),
-    ('"State Receipt and Revenue Plans FB25–27," Department of Budget and Finance, September 2024.',
-     "https://budget.hawaii.gov/wp-content/uploads/2024/12/05.-State-Receipt-and-Revenue-Plans-FB25-27-PFP7Lt.pdf"),
-    ('Kawafuchi, Kurt, "General Fund Forecast," Council on Revenues, March 12, 2025.',
-     "https://files.hawaii.gov/tax/useful/cor/2025gf03-12_with0416_Rpt2Gov.pdf"),
-    ('"Hawaiʻi: Who Pays? 7th Edition," Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes.',
-     "https://itep.org/whopays/hawaii-who-pays-7th-edition"),
-    ('"Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024.',
-     "https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf"),
-    ('"Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. Obligated-cost '
-     'figures are drawn from the "Statewide Totals by Fixed vs. Non-Fixed (General Funds)" table (p. 18) of '
-     'each biennium\'s Budget in Brief, FB 2017–19 through FB 2025–27.',
-     "https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/"),
-]
-en = "".join(endnote_link(i + 1, f"{i + 1}.&emsp;{esc(t)}" if False else f"{t}", u)
-             for i, (t, u) in enumerate(notes))
+# -- page 12: endnotes ------------------------------------------------------
+# Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
+# assembled body FIRST so numbering follows document order, then build the
+# endnotes page from the order that produced.
+body = C.fn.resolve("".join(pages))
 
+missing_src = C.fn.unused()
+if missing_src:
+    raise ContentError(
+        "content.md declares sources never cited in the prose: "
+        + ", ".join(f"[{s}]" for s in missing_src))
+
+en = "".join(endnote_link(i + 1, t, u) for i, (t, u) in enumerate(C.fn.endnotes()))
+notes = C.fn.endnotes()
 
 def linkify_footnotes(markup):
     """Turn every <sup>N</sup> marker into a clickable ref the JS can pop.
@@ -885,12 +815,17 @@ def linkify_footnotes(markup):
                 out.append(n)
         return "<sup>" + "&thinsp;".join(out) + "</sup>"
     return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
-pages.append(f"""
+
+body += f"""
 <section class="page">
- <h1>ENDNOTES</h1>
+ <h1>{C.text("endnotes.h1")}</h1>
  <ol class="endnotes">{en}</ol>
  <div class="folio">12 • BUDGET PRIMER</div>
-</section>""")
+</section>"""
+
+unused = C.unused_keys()
+if unused:
+    raise ContentError("content.md has keys the report never uses: " + ", ".join(unused))
 
 html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -912,7 +847,7 @@ html = f"""<!DOCTYPE html>
   <button onclick="window.print()">Download PDF</button>
  </span>
 </div>
-{linkify_footnotes("".join(pages))}
+{linkify_footnotes(body)}
 <div id="tip" class="noprint"></div>
 <script>window.PRIMER_NOTES = {json.dumps([{"t": t, "u": u} for t, u in notes], separators=(",", ":"))};
 window.PRIMER_FY_SPAN = {json.dumps(HIST_FY_SPAN)};

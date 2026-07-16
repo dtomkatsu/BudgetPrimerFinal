@@ -1,8 +1,10 @@
-/* Budget Primer FY2026-27 — screen + print. Palette sampled from the original PDF. */
+/* Budget Primer FY2026-27 — screen + print. Hawaiʻi Appleseed brand palette:
+   Muted Teal (logo) / Deep Teal / Ash Grey primaries; Dark Slate Grey +
+   Charcoal Blue for reversed-text backgrounds. Var names kept for continuity. */
 :root {
-  --sage: #6b9080; --sage-mid: #8ab19d; --sage-light: #cce3de; --mint: #eaf4f4;
-  --pale: #d8f3dc; --dark: #2d6a4f; --forest: #1b4332; --darkest: #081c15;
-  --ink: #26332c;
+  --sage: #6B9E78; --sage-mid: #95B7A2; --sage-light: #CAD2C5; --mint: #E8EDE6;
+  --pale: #D6E0D2; --dark: #52796F; --forest: #354F52; --darkest: #2F3E46;
+  --ink: #2F3E46;
   /* Font slots. Display/heading are Barlow (weight 900/800) — a free stand-in
      for Glober, the brand's licensed print typeface (see sources/original_primer_fy2526.pdf,
      which has Glober Black/Bold/SemiBold embedded). Swap in real Glober by loading
@@ -12,12 +14,12 @@
   --body: "Source Sans 3", "Source Sans Pro", sans-serif;
 }
 * { box-sizing: border-box; margin: 0; }
-body { background: #f2f5f3; font-family: var(--body); color: var(--ink);
+body { background: #EFF2F1; font-family: var(--body); color: var(--ink);
        font-size: 14.5px; line-height: 1.5; }
 
 .page { width: 8.5in; max-width: 100%; min-height: 11in; margin: 24px auto; background: #fff;
         padding: 0.75in 0.62in 0.9in; position: relative; overflow: hidden;
-        box-shadow: 0 2px 14px rgba(8, 28, 21, .12); }
+        box-shadow: 0 2px 14px rgba(47, 62, 70, .12); }
 .page p { margin: 0 0 12px; }
 sup { font-size: 11px; line-height: 0; }
 
@@ -28,7 +30,7 @@ h2.sub { font-family: var(--body); font-weight: 300; font-size: 30px;
          color: var(--sage); margin-bottom: 16px; }
 h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
           color: var(--sage); margin: 18px 0 10px; }
-.figcap { color: #5c6f66; font-size: 13.5px; margin: 10px 0 8px; }
+.figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
 .figcap b { color: var(--ink); }
 
 /* FY year picker (Figures 3/4/5) */
@@ -43,7 +45,7 @@ h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
 }
 .folio { position: absolute; bottom: .45in; left: .62in; font-size: 11.5px; font-weight: 700; }
 .folio.r { left: auto; right: .62in; }
-a { color: var(--sage); }
+a { color: var(--dark); }
 
 /* cover */
 .cover { background: var(--mint); padding: 0; }
@@ -67,7 +69,7 @@ a { color: var(--sage); }
               text-align: right; margin-top: .25in; }
 
 /* toc page */
-.toc-page { background: var(--sage); color: #fff; padding-top: 1.2in; }
+.toc-page { background: var(--dark); color: #fff; padding-top: 1.2in; }
 .toc-head { text-align: center; margin-bottom: .7in; }
 .toc-link a { color: var(--mint); }
 .toc-author { margin-top: 8px; }
@@ -106,13 +108,13 @@ a { color: var(--sage); }
 
 /* table 1 */
 .t1 { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.t1 th { background: var(--sage); color: #fff; font-weight: 600; padding: 9px 6px; }
-.t1 td { border: 1px solid #9fb5aa; padding: 9px 6px; text-align: center; }
+.t1 th { background: var(--dark); color: #fff; font-weight: 600; padding: 9px 6px; }
+.t1 td { border: 1px solid #A7C0B8; padding: 9px 6px; text-align: center; }
 .t1 td:first-child { width: 1.55in; }
 .t1 tr.total td { background: var(--sage-light); font-weight: 700; }
 
 /* callout */
-.callout { background: var(--sage); color: #fff; border-radius: 18px;
+.callout { background: var(--dark); color: #fff; border-radius: 18px;
            padding: 18px 24px; margin: 6px 0 18px; }
 .callout h4 { margin-bottom: 8px; }
 .callout p { font-size: 14px; }
@@ -131,7 +133,7 @@ a { color: var(--sage); }
 .obligated-panel .legend { flex-direction: row; flex-wrap: wrap; gap: 8px 20px; margin-top: 6px; }
 .obligated-panel .legend .lg { font-size: 14px; }
 .obligated-panel .legend .sw { width: 20px; height: 20px; }
-.obligated-note { font-size: 12px; color: #5c6f66; margin-top: 10px; }
+.obligated-note { font-size: 12px; color: #586A6D; margin-top: 10px; }
 
 /* print-only page holding the obligated chart, injected by primer.js when the
    expandable is open at print time (see beforeprint handler) */
@@ -159,10 +161,10 @@ a { color: var(--sage); }
 .legend { display: flex; flex-direction: column; gap: 12px; }
 .legend .lg { display: flex; align-items: center; gap: 10px; font-size: 17.5px; }
 .legend .sw { width: 26px; height: 26px; border-radius: 4px; flex: none; }
-svg .ax { font-size: 12px; fill: #55655d; font-family: var(--body); }
+svg .ax { font-size: 12px; fill: #556065; font-family: var(--body); }
 svg .qlab { font-size: 16.4px; font-weight: 700; fill: var(--forest);
             font-family: var(--body); }
-svg .rlab { font-size: 14.6px; fill: #7c948a; font-family: var(--body); }
+svg .rlab { font-size: 14.6px; fill: #7A8E92; font-family: var(--body); }
 svg .ylab { font-size: 12px; fill: var(--ink); font-family: var(--body); }
 svg .vlab { font-size: 11.5px; fill: var(--ink); font-family: var(--body); }
 svg .vlab.b { font-size: 19.3px; font-weight: 600; }
@@ -185,7 +187,7 @@ svg .ph { font-size: 12px; font-family: var(--body); }
 .lifecycle-wrap svg { width: 5.8in; margin: .28in auto; display: block; }
 .lc { position: absolute; width: 1.58in; font-size: 13.5px; line-height: 1.35; }
 .lc-mo { display: block; font-weight: 700; font-size: 11px; letter-spacing: .8px;
-         color: var(--sage); margin-bottom: 2px; }
+         color: var(--dark); margin-bottom: 2px; }
 svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: round; }
 .lc-right, .lc-left { transform: translateY(-50%); }
 .lc-left { text-align: right; }
@@ -241,16 +243,16 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   .page { margin: 0; box-shadow: none; page-break-after: always; height: 11in;
           width: 8.5in; max-width: none; padding: 0.75in 0.62in 0.9in; }
   .page:last-child { page-break-after: auto; }
-  a { color: var(--sage); text-decoration: underline; }
+  a { color: var(--dark); text-decoration: underline; }
 }
 
 /* budget-tracker interlinks */
-.figcap-hint { color: #8aa397; font-weight: 400; }
+.figcap-hint { color: #8AA39E; font-weight: 400; }
 .lk { cursor: pointer; }
 /* link affordances are screen-only: in print they'd suggest nothing clickable */
 @media screen {
   svg .ylab.lk { fill: var(--dark); text-decoration: underline;
-                 text-decoration-color: rgba(45,106,79,.35); text-underline-offset: 2px; }
+                 text-decoration-color: rgba(82,121,111,.35); text-underline-offset: 2px; }
   svg .ylab.lk:hover { fill: var(--forest); }
   .t1 th.lk { text-decoration: underline dotted rgba(255,255,255,.7); text-underline-offset: 3px; }
 }
@@ -262,37 +264,37 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .tb-link:hover { color: #fff; }
 #popover { position: fixed; z-index: 100; width: 356px; max-width: calc(100vw - 20px);
            background: #fff; border: 1.5px solid var(--sage-light); border-radius: 12px;
-           box-shadow: 0 10px 32px rgba(8,28,21,.25); padding: 16px 18px 14px;
+           box-shadow: 0 10px 32px rgba(47,62,70,.25); padding: 16px 18px 14px;
            font-size: 13.5px; }
 #popover h5 { font-size: 15px; color: var(--forest); margin: 0 34px 8px 0; }
-#popover p { margin: 8px 0 12px; color: #43554c; line-height: 1.45; }
+#popover p { margin: 8px 0 12px; color: #3F4F52; line-height: 1.45; }
 #popover .pop-blurb { margin-top: 0; font-size: 12.5px; }
 .pop-stats { display: flex; gap: 16px; border-block: 1px solid var(--mint); padding: 7px 0; }
 .pop-stats div { display: flex; flex-direction: column; }
-.pop-stats span { font-size: 11px; color: #7c948a; text-transform: uppercase; letter-spacing: .5px; }
+.pop-stats span { font-size: 11px; color: #7A8E92; text-transform: uppercase; letter-spacing: .5px; }
 .pop-stats b { font-size: 14.5px; color: var(--ink); }
-.pop-cta { display: inline-block; background: var(--sage); color: #fff !important;
+.pop-cta { display: inline-block; background: var(--dark); color: #fff !important;
            font-weight: 700; padding: 8px 14px; border-radius: 8px; text-decoration: none; }
 .pop-cta:hover { background: var(--dark); }
 .pop-x { position: absolute; top: 8px; right: 10px; border: 0; background: none;
-         font-size: 20px; color: #7c948a; cursor: pointer; line-height: 1; }
+         font-size: 20px; color: #7A8E92; cursor: pointer; line-height: 1; }
 @media print { #popover { display: none !important; } }
 
 /* popover preview sections (tracker slice) */
 .pop-sec { border-top: 1px solid var(--mint); padding: 9px 0 4px; }
-.pop-sec-h { font-size: 11px; font-weight: 700; color: #7c948a; text-transform: uppercase;
+.pop-sec-h { font-size: 11px; font-weight: 700; color: #7A8E92; text-transform: uppercase;
              letter-spacing: .6px; margin-bottom: 6px; }
 .pop-spark { display: flex; align-items: center; gap: 12px; }
 .spark { width: 150px; height: 40px; flex: none; }
 .pop-spark-meta b { display: block; font-size: 15px; color: var(--ink); }
-.pop-spark-meta span { font-size: 11.5px; color: #7c948a; }
+.pop-spark-meta span { font-size: 11.5px; color: #7A8E92; }
 .pop-prog { margin-bottom: 7px; }
 .pop-prog-t { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; }
-.pop-prog-t span { color: #43554c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pop-prog-t span { color: #3F4F52; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pop-prog-t b { color: var(--ink); flex: none; }
 .pop-bar { height: 5px; border-radius: 3px; background: var(--mint); margin-top: 2px; }
 .pop-bar i { display: block; height: 100%; border-radius: 3px; background: var(--sage); }
-.pop-more { font-size: 11.5px; color: #7c948a; margin: 2px 0 6px; }
+.pop-more { font-size: 11.5px; color: #7A8E92; margin: 2px 0 6px; }
 #popover .pop-cta { margin-top: 8px; }
 
 /* footnote refs -> tooltip with source link (screen only) */
@@ -301,13 +303,13 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   a.fn { color: var(--forest); font-weight: 700; text-decoration: none;
          cursor: pointer; background: var(--sage-light); padding: 1px 4px;
          border-radius: 4px; margin: 0 1px; }
-  a.fn:hover { background: var(--sage); color: #fff; }
+  a.fn:hover { background: var(--dark); color: #fff; }
   /* on the dark cards/callouts the tint would vanish — invert it */
   .card a.fn, .callout a.fn, .branch-card a.fn { background: rgba(255,255,255,.28);
          color: #fff; }
   .card a.fn:hover, .callout a.fn:hover, .branch-card a.fn:hover {
          background: #fff; color: var(--forest); }
-  .card.light a.fn, .branch-card.onlight a.fn { background: var(--sage);
+  .card.light a.fn, .branch-card.onlight a.fn { background: var(--dark);
          color: #fff; }
   .card.light a.fn:hover, .branch-card.onlight a.fn:hover {
          background: var(--forest); color: #fff; }
@@ -315,11 +317,11 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 @media print { a.fn { color: inherit; text-decoration: none; } }
 #fnpop { position: fixed; z-index: 110; width: 320px; max-width: calc(100vw - 20px);
          background: #fff; border: 1.5px solid var(--sage-light); border-radius: 10px;
-         box-shadow: 0 10px 30px rgba(8,28,21,.22); padding: 12px 14px; font-size: 12.5px; }
-#fnpop .fn-n { font-size: 10.5px; font-weight: 700; letter-spacing: .6px; color: #7c948a;
+         box-shadow: 0 10px 30px rgba(47,62,70,.22); padding: 12px 14px; font-size: 12.5px; }
+#fnpop .fn-n { font-size: 10.5px; font-weight: 700; letter-spacing: .6px; color: #7A8E92;
                text-transform: uppercase; margin-bottom: 4px; }
-#fnpop p { margin: 0 0 10px; color: #43554c; line-height: 1.42; }
-.fn-cta { display: inline-block; background: var(--sage); color: #fff !important;
+#fnpop p { margin: 0 0 10px; color: #3F4F52; line-height: 1.42; }
+.fn-cta { display: inline-block; background: var(--dark); color: #fff !important;
           font-weight: 700; padding: 6px 12px; border-radius: 7px; text-decoration: none;
           font-size: 12px; }
 .fn-cta:hover { background: var(--dark); }

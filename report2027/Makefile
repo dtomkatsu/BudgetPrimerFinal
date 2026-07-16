@@ -5,6 +5,16 @@ all: data html pdf embed
 
 validate:
 	python3 tools/build_data.py --validate
+	python3 tools/pull_doc.py --check
+
+# Prose lives in the Google Doc; content.md is the committed snapshot the build
+# reads. `pull-doc` refreshes it (refuses to write if the doc is malformed), so
+# every prose change lands as a reviewable git diff before it ships.
+pull-doc:
+	python3 tools/pull_doc.py
+
+doc-diff:
+	python3 tools/pull_doc.py --diff
 
 data:
 	python3 tools/build_data.py
@@ -26,4 +36,4 @@ embed: html
 preview: html
 	open web/index.html
 
-.PHONY: all validate data html pdf embed preview
+.PHONY: all validate data html pdf embed preview pull-doc doc-diff

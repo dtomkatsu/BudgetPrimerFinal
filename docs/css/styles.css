@@ -966,6 +966,8 @@ body {
     color: #6b7280;
     line-height: 1.5;
 }
+.actuals-caveat a { color: #2b4a38; font-weight: 600; text-decoration: underline; }
+.actuals-caveat a:hover { color: #5a7b68; }
 .actuals-table td:first-child { font-weight: 500; }
 /* Variance tint — under budget (money left) green, over budget red.
    Reuses the comparison table's positive/negative chip palette. */

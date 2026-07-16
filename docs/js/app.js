@@ -166,7 +166,8 @@ window.actualsPage = async function () {
             <p class="actuals-caveat">FY2025 spending on a <strong>budgetary basis</strong>, combining the
                 General Fund and four special revenue funds — i.e. <strong>appropriated funds</strong> under
                 legislative budgetary control (excludes federal aid and most special funds). A completed year,
-                separate from the FY2026–27 bills. Source: ${_escHtml(m.source)}.</p>
+                separate from the FY2026–27 bills. Source:
+                <a href="https://ags.hawaii.gov/wp-content/uploads/2026/02/acfr2025.pdf" target="_blank" rel="noopener">${_escHtml(m.source)}</a>.</p>
             <div id="actuals-results"></div>
         </section>`;
 };
