@@ -612,8 +612,8 @@ pages.append(f"""
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
   <p class="toc-author">{C.text("toc.author")}</p>
  </div>
- <p class="mission">{C("toc.mission1")}</p>
- <p class="mission">{C("toc.mission2")}</p>
+ {C.html("toc.mission1", "mission")}
+ {C.html("toc.mission2", "mission")}
  <h2 class="toc-title">{C.text("toc.title")}</h2>
  <div class="toc-list">
   <div><span>Budget Basics</span><span>3</span></div>
@@ -643,8 +643,8 @@ bc = "".join(
 pages.append(f"""
 <section class="page">
  <h1>{C.text("basics.h1")}</h1>
- <p>{C("basics.p1")}</p>
- <p>{C("basics.p2")}</p>
+ {C.html("basics.p1")}
+ {C.html("basics.p2")}
  {bc}
  <div class="folio r">BUDGET PRIMER • 3</div>
 </section>""")
@@ -653,7 +653,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <h2 class="sub">{C.text("process.h2")}</h2>
- <p>{C("process.p1")}</p>
+ {C.html("process.p1")}
  <p class="figcap"><b>Figure 1.</b> {C.text("process.fig1.caption")}</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
@@ -666,14 +666,14 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <h1>{C.text("spent.h1")}</h1>
- <p>{C("spent.p1")}</p>
- <p>{C("spent.p2")}</p>
+ {C.html("spent.p1")}
+ {C.html("spent.p2")}
  <div class="cards3">
   {card(C.text("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK)}
   {card(C.text("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID)}
   {card(esc(C.text("spent.cards.onetime.title")), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True)}
  </div>
- <p>{C("spent.p3")}</p>
+ {C.html("spent.p3")}
  <p class="figcap"><b>Table 1.</b> {C.text("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
@@ -693,7 +693,7 @@ pages.append(f"""
           (C.text("categories.legend.onetime"), DARK), (C.text("categories.legend.emergency"), DARKEST)])}
  <div class="explore noprint">{C.text("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.text("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
- <p>{C("categories.p1")}</p>
+ {C.html("categories.p1")}
  <div class="folio">6 • BUDGET PRIMER</div>
 </section>""")
 
@@ -702,8 +702,8 @@ pages.append(f"""
 <section class="page">
  <div class="callout">
   <h4>{C.text("obligated.title")}</h4>
-  <p>{C("obligated.p1")}</p>
-  <p>{C("obligated.p2")}</p>
+  {C.html("obligated.p1")}
+  {C.html("obligated.p2")}
  </div>
  <details class="obligated noprint">
   <summary>{C.text("obligated.summary")}</summary>
@@ -727,7 +727,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <img class="photo" src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
- <p class="photocap">{C("onetime.photo.caption")}</p>
+ {C.html("onetime.photo.caption", "photocap")}
  <h3 class="sub2">{C.text("onetime.h3")}</h3>
  <div class="cards2">
   {card(C.text("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK)}
@@ -742,7 +742,7 @@ pages.append(f"""
  <h1>{C.text("funding.h1")}</h1>
  <p class="figcap"><b>Figure 4.</b> {C.text("funding.fig4.caption")} {fy_picker("fig4")} {C.text("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
- <p>{C("funding.p1")}</p>
+ {C.html("funding.p1")}
  <div class="cards3">
   {card(C.text("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK)}
   {card(C.text("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID)}
@@ -771,11 +771,11 @@ pages.append(f"""
  <h3 class="sub2">{C.text("whopays.h3")}</h3>
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
- <p>{C("whopays.p1")}</p>
+ {C.html("whopays.p1")}
  <div class="callout">
   <h4>{C.text("whopays.callout.title")}</h4>
-  <p>{C("whopays.callout.p1")}</p>
-  <p>{C("whopays.callout.p2")}</p>
+  {C.html("whopays.callout.p1")}
+  {C.html("whopays.callout.p2")}
  </div>
  <div class="folio r">BUDGET PRIMER • 11</div>
 </section>""")

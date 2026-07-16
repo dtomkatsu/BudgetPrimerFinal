@@ -23,11 +23,14 @@
  *
  * RULES THAT KEEP THE BUILD WORKING
  * ---------------------------------
- * * Keep every "## key" heading exactly as-is. Renaming or deleting one fails
- *   the build loudly (it never silently drops text).
+ * * Keep every [[key]] marker exactly as-is (they render small and grey).
+ *   Renaming or deleting one fails the build loudly — it never silently drops
+ *   text. The real headings are what you read and edit against.
+ * * A slot can hold more than one paragraph: leave a blank line between them
+ *   and each becomes its own paragraph in the report.
  * * Footnote refs are stable ids like [^act99]; the report numbers them
  *   automatically, so inserting a source never means renumbering by hand.
- * * Every [^id] must have a matching entry under "## sources".
+ * * Every [^id] must have a matching entry under [[sources]].
  * * Figures, Table 1 and all dollar amounts are generated from the budget data
  *   — they are not in this doc and cannot be edited here.
  */
@@ -40,6 +43,8 @@ function onOpen() {
     .createMenu('Budget Primer')
     .addItem('Replace doc with report content', 'replaceDocWithReportContent')
     .addItem('Preview report content (no changes)', 'previewReportContent')
+    .addSeparator()
+    .addItem('Tidy [[key]] markers', 'tidyKeyMarkers')
     .addToUi();
 }
 
@@ -57,7 +62,7 @@ function fetchContent_() {
   }
   var md = res.getContentText();
   // Guard against replacing the doc with an error page or a truncated file.
-  if (md.indexOf('## sources') === -1 || md.indexOf('## basics.p1') === -1) {
+  if (md.indexOf('[[sources]]') === -1 || md.indexOf('[[basics.p1]]') === -1) {
     throw new Error('Fetched content does not look like the primer — aborting ' +
                     'so the doc is not clobbered.');
   }
@@ -68,7 +73,7 @@ function previewReportContent() {
   var ui = DocumentApp.getUi();
   try {
     var md = fetchContent_();
-    var keys = (md.match(/^## /gm) || []).length;
+    var keys = (md.match(/^\[\[[A-Za-z0-9._-]+\]\]$/gm) || []).length;
     ui.alert('Report content looks good',
              keys + ' sections fetched, ' + md.length + ' characters.\n\n' +
              'First lines:\n\n' + md.split('\n').slice(0, 6).join('\n'),
@@ -91,7 +96,7 @@ function replaceDocWithReportContent() {
   var ok = ui.alert(
     'Replace this document?',
     'This overwrites the ENTIRE document with the report\'s current prose ' +
-    '(' + (md.match(/^## /gm) || []).length + ' sections).\n\n' +
+    '(' + (md.match(/^\[\[[A-Za-z0-9._-]+\]\]$/gm) || []).length + ' sections).\n\n' +
     'Anything currently in this doc is lost, and existing comments will ' +
     'detach. Make a copy first if you need the old version.\n\nContinue?',
     ui.ButtonSet.OK_CANCEL);
@@ -99,9 +104,10 @@ function replaceDocWithReportContent() {
 
   var docId = DocumentApp.getActiveDocument().getId();
   try {
-    // Import the Markdown over the existing doc: Drive converts "## key" to
-    // Heading 2, **bold**, [links](), and "- " lists into real Docs formatting,
-    // and the Markdown export round-trips it back for `make pull-doc`.
+    // Import the Markdown over the existing doc: Drive converts the report's
+    // real headings to Heading 1/2/3, plus **bold**, [links]() and "- " lists,
+    // into native Docs formatting — and the Markdown export round-trips it back
+    // for `make pull-doc`.
     var blob = Utilities.newBlob(md, 'text/markdown', 'content.md');
     Drive.Files.update({ mimeType: 'application/vnd.google-apps.document' },
                        docId, blob);
@@ -112,5 +118,40 @@ function replaceDocWithReportContent() {
              ui.ButtonSet.OK);
     return;
   }
-  ui.alert('Done', 'Reload the doc to see the new content.', ui.ButtonSet.OK);
+
+  var dimmed = dimKeyMarkers_();
+  ui.alert('Done',
+           'Reload the doc to see the new content.\n\n' +
+           dimmed + ' [[key]] markers were dimmed so the real headings stand out.',
+           ui.ButtonSet.OK);
+}
+
+/**
+ * Push the [[key]] markers into the background: small, grey, italic. They have
+ * to stay in the text (the build maps them to slots), but nobody should have to
+ * read them — the real headings are what you edit against.
+ */
+function dimKeyMarkers_() {
+  var body = DocumentApp.getActiveDocument().getBody();
+  var paras = body.getParagraphs();
+  var n = 0;
+  for (var i = 0; i < paras.length; i++) {
+    var p = paras[i];
+    if (!/^\s*\[\[[A-Za-z0-9._-]+\]\]\s*$/.test(p.getText())) continue;
+    p.editAsText()
+      .setFontSize(7.5)
+      .setForegroundColor('#9aa5a0')   // recedes against body copy
+      .setItalic(true)
+      .setBold(false);
+    p.setSpacingBefore(10).setSpacingAfter(0);
+    n++;
+  }
+  return n;
+}
+
+/** Re-dim markers if editing has reset their formatting. Safe to run anytime. */
+function tidyKeyMarkers() {
+  var n = dimKeyMarkers_();
+  DocumentApp.getUi().alert('Tidied', n + ' markers dimmed.',
+                            DocumentApp.getUi().ButtonSet.OK);
 }

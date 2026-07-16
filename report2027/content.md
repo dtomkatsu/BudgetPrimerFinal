@@ -1,249 +1,242 @@
 # Budget Primer FY2026–27 — Content
 
 <!--
-  THIS FILE IS THE PROSE SOURCE OF TRUTH for the Budget Primer.
+  PROSE SOURCE OF TRUTH — kept in sync with the Google Doc via `make pull-doc`.
 
-  It is kept in sync with the Google Doc:
-  https://docs.google.com/document/d/1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU/edit
-  Run `make pull-doc` to overwrite this file from the doc, then `make html`.
+  [[key]] marks the slot that follows. Keep every [[key]] line exactly as-is;
+  the build fails loudly if one goes missing. In the Doc these render small and
+  grey — the real headings below them are the ones to read and edit.
 
-  RULES FOR EDITORS
-  -----------------
-  * Every "## key" heading is a slot the renderer looks up. Do NOT rename or
-    delete one — the build fails loudly if a key goes missing.
-  * Text under a key is the content for that slot. Bullet lists use "- ".
-  * Inline formatting: **bold**, *italic*, [link text](https://url)
-  * Footnote refs are stable IDs: [^act99]. The renderer numbers them
-    automatically in order of appearance, so you can insert or remove a source
-    without renumbering anything by hand.
-  * Every ID used in the prose must exist under "## sources" (and vice versa) —
-    the build checks this.
-  * Numbers that come from the budget data (totals, chart values, Table 1) are
-    NOT here; they are generated. Only prose lives in this file.
+  A slot may hold MORE THAN ONE paragraph: leave a blank line between them and
+  each becomes its own paragraph in the report.
+
+  Footnote refs are stable ids ([^act99]), auto-numbered in order of appearance.
+  Figures, Table 1 and all dollar amounts are generated from the budget data and
+  are not editable here.
 -->
 
-## toc.mission1
+[[toc.mission1]]
 Hawaiʻi Appleseed is committed to a more socially and economically just Hawaiʻi, where everyone has genuine opportunities to achieve economic security and fulfill their potential. We change systems to address inequity and foster greater opportunity by conducting data analysis and research to address income inequality, educating policymakers and the public, engaging in collaborative problem solving and coalition building, and advocating for policy and systems change.
 
-## toc.mission2
+[[toc.mission2]]
 The work of Hawaiʻi Appleseed is about people. The issues we work on—housing, food, wages, mobility, the state budget and taxation, and racial and indigenous equity—are important because they ensure people have access to shelter, sustenance, and the means to survive and thrive individually and collectively. Addressing these issues requires the knowledge and expertise of the people that have first-hand experience and live with the adverse consequences of our flawed systems.
 
-## toc.author
+[[toc.author]]
 Author: Devin Thomas
 
-## toc.title
-TABLE OF CONTENTS
+[[toc.title]]
+## TABLE OF CONTENTS
 
-## toc.copyright
+[[toc.copyright]]
 Copyright © 2026 Hawaiʻi Appleseed Center for Law & Economic Justice. All rights reserved.
 733 Bishop Street, Suite 1180, Honolulu, HI 96813
 
-## basics.h1
-BUDGET BASICS
+[[basics.h1]]
+# BUDGET BASICS
 
-## basics.p1
+[[basics.p1]]
 **THE INVESTMENTS** that Hawaiʻi's government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage budget and policy decisions that improve the lives of Hawaiʻi's people.
 
-## basics.p2
+[[basics.p2]]
 The state budget funds Hawaiʻi's three government branches: the Legislature; the Judiciary; and the Executive. A small portion funds the Office of Hawaiian Affairs (OHA) as well. More than 99 percent of the state budget goes toward funding the executive branch.
 
-## basics.branch.legislature.title
-Legislature
+[[basics.branch.legislature.title]]
+### Legislature
 
-## basics.branch.legislature.bullets
+[[basics.branch.legislature.bullets]]
 - Creates laws and decides how the state's money is spent.
 - Consists of the State Senate and House of Representatives, Office of the Auditor, Office of the Ombudsman, and the Legislative Reference Bureau.
 
-## basics.branch.judiciary.title
-Judiciary
+[[basics.branch.judiciary.title]]
+### Judiciary
 
-## basics.branch.judiciary.bullets
+[[basics.branch.judiciary.bullets]]
 - Interprets laws and resolves legal cases through the court system.
 - Consists of the Hawaiʻi Supreme Court, Intermediate Court of Appeals, Land Court, Tax Appeal Court, Circuit Courts, Family Courts, District Courts, Environmental Courts, and Office of the Administrative Director of the Courts.
 
-## basics.branch.executive.title
-Executive
+[[basics.branch.executive.title]]
+### Executive
 
-## basics.branch.executive.bullets
+[[basics.branch.executive.bullets]]
 - Enforces state laws and manages the daily operations of the government.
 - Consists of the Governor, Lieutenant Governor, State Departments, and the University of Hawaiʻi System.
 
-## basics.branch.oha.title
-Office of Hawaiian Affairs
+[[basics.branch.oha.title]]
+### Office of Hawaiian Affairs
 
-## basics.branch.oha.bullets
+[[basics.branch.oha.bullets]]
 - A semi-autonomous state agency responsible for improving the wellbeing of Native Hawaiians.
 - Legislative appropriations represent only a small portion of OHA's resources.
 
-## process.h2
-Budget Process
+[[process.h2]]
+## Budget Process
 
-## process.p1
+[[process.p1]]
 Hawaiʻi uses a two-year (biennial) budget cycle. The full budget is passed in odd-numbered years, and adjustments can be made in the second year. Fiscal Years (FY) cover July 1 through June 30, labeled by the calendar year in which they end (e.g. FY 2027 runs from July 2026 through June 2027).
 
-## process.fig1.caption
+[[process.fig1.caption]]
 Hawaiʻi Budget Lifecycle
 
-## process.lifecycle.dec.label
+[[process.lifecycle.dec.label]]
 DEC
 
-## process.lifecycle.dec.text
+[[process.lifecycle.dec.text]]
 The governor submits the executive budget proposal to the legislature.
 
-## process.lifecycle.jan.label
+[[process.lifecycle.jan.label]]
 JAN–APR
 
-## process.lifecycle.jan.text
+[[process.lifecycle.jan.text]]
 The legislature reviews, amends and passes the budget bill.
 
-## process.lifecycle.may.label
+[[process.lifecycle.may.label]]
 MAY
 
-## process.lifecycle.may.text
+[[process.lifecycle.may.text]]
 Emergency and supplemental appropriations are added if any are needed.
 
-## process.lifecycle.jun.label
+[[process.lifecycle.jun.label]]
 JUN
 
-## process.lifecycle.jun.text
+[[process.lifecycle.jun.text]]
 The governor signs the budget bill into law, with line-item veto power.
 
-## process.lifecycle.jul.label
+[[process.lifecycle.jul.label]]
 JUL
 
-## process.lifecycle.jul.text
+[[process.lifecycle.jul.text]]
 Funds are released to executive departments and agencies.
 
-## process.lifecycle.aug.label
+[[process.lifecycle.aug.label]]
 AUG–SEP
 
-## process.lifecycle.aug.text
+[[process.lifecycle.aug.text]]
 Agencies carry out spending.
 
-## process.lifecycle.oct.label
+[[process.lifecycle.oct.label]]
 OCT–NOV
 
-## process.lifecycle.oct.text
+[[process.lifecycle.oct.text]]
 Budget proposals are drafted by each branch.
 
-## process.ring.legislative
+[[process.ring.legislative]]
 Legislative consideration
 
-## process.ring.planning
+[[process.ring.planning]]
 Planning and prep by B&F Dept
 
-## process.ring.prep
+[[process.ring.prep]]
 Prep of proposed exec budget
 
-## spent.h1
-HOW MONEY IS SPENT
+[[spent.h1]]
+# HOW MONEY IS SPENT
 
-## spent.p1
+[[spent.p1]]
 Government spending is essential for the economy, especially in times of crisis. The executive branch alone employs over 47,000 workers, not including contractors.[^workforce-profile] These workers are responsible for running Hawaiʻi's departments and agencies—a task that is only made possible with billions of dollars in funding.
 
-## spent.p2
+[[spent.p2]]
 There are three types of spending: operating, capital improvement, and one-time/emergency appropriations.
 
-## spent.cards.operating.title
-Operating Budget
+[[spent.cards.operating.title]]
+### Operating Budget
 
-## spent.cards.operating.bullets
+[[spent.cards.operating.bullets]]
 - Regular funding for state agencies, public services, and programs.
 
-## spent.cards.capital.title
-Capital Improvement Appropriations
+[[spent.cards.capital.title]]
+### Capital Improvement Appropriations
 
-## spent.cards.capital.bullets
+[[spent.cards.capital.bullets]]
 - Funds to build, maintain, or improve infrastructure, such as roads, schools, and hospitals.
 
-## spent.cards.onetime.title
-One-Time & Emergency Appropriations
+[[spent.cards.onetime.title]]
+### One-Time & Emergency Appropriations
 
-## spent.cards.onetime.bullets
+[[spent.cards.onetime.bullets]]
 - Temporary funding for unexpected needs, such as disaster response or special projects.
 
-## spent.p3
+[[spent.p3]]
 Since it manages the state's departments and agencies, the Executive Branch receives almost all of the funds in each spending category.
 
-## spent.table1.caption
+[[spent.table1.caption]]
 Budget Breakdown by Branch and Spending Category, Hawaiʻi,
 
-## categories.h2
-Spending Categories
+[[categories.h2]]
+## Spending Categories
 
-## categories.h3
-Operating Budget
+[[categories.h3]]
+### Operating Budget
 
-## categories.fig2.caption
+[[categories.fig2.caption]]
 Hawaiʻi State Budget by Branch and Department,
 
-## categories.fig2.hint
+[[categories.fig2.hint]]
 — click a department for details & tracker link
 
-## categories.legend.operating
+[[categories.legend.operating]]
 Operating Budget
 
-## categories.legend.capital
+[[categories.legend.capital]]
 Capital Improvement Appr
 
-## categories.legend.onetime
+[[categories.legend.onetime]]
 One-Time Appr
 
-## categories.legend.emergency
+[[categories.legend.emergency]]
 Emergency Appr
 
-## categories.explore
+[[categories.explore]]
 Want program-level detail, veto changes, and historical trends?
 
-## categories.explore.link
+[[categories.explore.link]]
 Explore the interactive Budget Tracker →
 
-## categories.p1
+[[categories.p1]]
 The Executive departments with the largest overall budgets are the Departments of Human Services, Transportation, Budget and Finance, and Education. The Department of Transportation's Capital Improvement Appropriations budget is larger than its operating budget—the state's airports, harbors, and highways are in the middle of a multi-year construction cycle. The Department of Health has a larger operating budget than all but four departments, and the DOE operating budget covers K–12 public school teacher salaries statewide.
 
-## obligated.title
-Obligated Costs
+[[obligated.title]]
+### Obligated Costs
 
-## obligated.p1
+[[obligated.p1]]
 Before the state can consider any other spending, the Hawaiʻi constitution says it must pay its non-negotiable obligated costs. These costs include pensions, health benefits, Medicaid, and debt payments—and they are worth roughly $5 billion, or a quarter of the state's operating budget. The share of the operating budget that these costs consume is increasing each year, limiting the state's flexibility for new investments in areas like housing, schools, economic development and climate resilience.
 
-## obligated.p2
+[[obligated.p2]]
 Except for Medicaid expenses, which are included in the budget for the Department of Human Services, the costs named above are covered by the Department of Budget and Finance. These two departments have the largest operating budgets, and obligated costs are a significant share for each.
 
-## obligated.summary
+[[obligated.summary]]
 View Obligated Costs
 
-## obligated.panel.caption
+[[obligated.panel.caption]]
 General-fund obligated costs, FY2018–FY2027 ($Billions).[^exec-biennium]
 
-## obligated.panel.hint
+[[obligated.panel.hint]]
 Hover a year for the breakdown.
 
-## obligated.panel.note
+[[obligated.panel.note]]
 General-fund fixed costs have climbed from {oblig_first} billion in FY2018 to {oblig_last} billion in FY2027. Source: “Statewide Totals by Fixed vs. Non-Fixed (General Funds),” p.18 of each biennium’s Hawaiʻi Executive Budget in Brief.
 
-## cip.h3
-Capital Improvement Appropriations
+[[cip.h3]]
+### Capital Improvement Appropriations
 
-## cip.fig3.caption
+[[cip.fig3.caption]]
 Distribution of Capital Improvement Project Funding,
 
-## cip.body
+[[cip.body]]
 The total budget for Capital Improvement Projects (CIP) in FY{fy} is {cip_total}. Transportation-related projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other things, the state's airports, harbors, and its 2,433 miles of roads and highways.[^hidot-visitor]
 
-## onetime.photo.alt
+[[onetime.photo.alt]]
 Governor Josh Green and lawmakers at the HB 2296 bill signing
 
-## onetime.photo.caption
+[[onetime.photo.caption]]
 Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) into law as Act 236, SLH 2026. The law lowers the minimum share of meal preparation costs schools must recover, giving the Department of Education more room to offer free and reduced-price school meals. // Office of the Governor
 
-## onetime.h3
-One-Time and Emergency Appropriations
+[[onetime.h3]]
+### One-Time and Emergency Appropriations
 
-## onetime.cards.onetime.title
-FY27 One-Time Appropriations
+[[onetime.cards.onetime.title]]
+### FY27 One-Time Appropriations
 
-## onetime.cards.onetime.bullets
+[[onetime.cards.onetime.bullets]]
 - **Transportation & Budget/Finance:** $700 million in Act 99 — $600 million in county-surcharge transit funding and a new $100 million major disaster fund.[^act99]
 - **Accounting, Transportation, Land:** $200 million in Maui wildfire insurance proceeds to rebuild King Kamehameha III Elementary and restore Lahaina's harbor.[^act123]
 - **DBEDT:** $49.5 million for the New Aloha Stadium district.[^act184]
@@ -251,104 +244,104 @@ FY27 One-Time Appropriations
 - **Human Services:** $16.5 million to supplement health-plan premiums for residents losing ACA coverage.[^act21-partii]
 - **Education:** $3.4 million to expand free school meals to all ALICE households — the FY27 expansion promised in Act 139 (2025).[^act139]
 
-## onetime.cards.emergency.title
-FY27 Emergency Appropriations
+[[onetime.cards.emergency.title]]
+### FY27 Emergency Appropriations
 
-## onetime.cards.emergency.bullets
+[[onetime.cards.emergency.bullets]]
 - **Various Executive Departments:** $2,871,954 in collective-bargaining cost items for Bargaining Unit 11 employees.[^act26]
 - The 2026 session also passed roughly $110 million in *FY26* emergency appropriations — a $14.2 million backfill of funds redirected to food assistance during the 2025 federal shutdown, and $95.8 million for labor-grievance cost items.[^act21-parti-act33]
 
-## funding.h1
-FUNDING THE BUDGET
+[[funding.h1]]
+# FUNDING THE BUDGET
 
-## funding.fig4.caption
+[[funding.fig4.caption]]
 Hawaiʻi Budget Means of Finance,
 
-## funding.fig4.caption.suffix
+[[funding.fig4.caption.suffix]]
 ($Billions)[^act175-mof]
 
-## funding.p1
+[[funding.p1]]
 The state's spending primarily falls under three main categories: general funds, special funds and federal funds.
 
-## funding.cards.general.title
-General Funds
+[[funding.cards.general.title]]
+### General Funds
 
-## funding.cards.general.bullets
+[[funding.cards.general.bullets]]
 - General funds are mostly made up of tax revenue. The main pot of state money, these funds can be used for almost any state need.
 
-## funding.cards.special.title
-Special Funds
+[[funding.cards.special.title]]
+### Special Funds
 
-## funding.cards.special.bullets
+[[funding.cards.special.bullets]]
 - Money from tuition, fees, settlements, etc., special funds can only be spent on a specific purpose, often related to the revenue source.
 
-## funding.cards.federal.title
-Federal Funds
+[[funding.cards.federal.title]]
+### Federal Funds
 
-## funding.cards.federal.bullets
+[[funding.cards.federal.bullets]]
 - Federal funds are monies provided to the state by the federal government, almost always in the form of grants.
 
-## taxes.h2
-Taxes
+[[taxes.h2]]
+## Taxes
 
-## taxes.fig5.caption
+[[taxes.fig5.caption]]
 Projected Hawaiʻi State Tax Revenue,
 
-## taxes.fig5.caption.suffix
+[[taxes.fig5.caption.suffix]]
 ($Billions)[^revenue-plans]
 
-## taxes.cards.get.title
-General Excise Tax
+[[taxes.cards.get.title]]
+### General Excise Tax
 
-## taxes.cards.get.bullets
+[[taxes.cards.get.bullets]]
 - The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state's tax revenue, but the tax increases the cost of living and hits low-income families the hardest.
 
-## taxes.cards.iit.title
-Individual Income Tax
+[[taxes.cards.iit.title]]
+### Individual Income Tax
 
-## taxes.cards.iit.bullets
+[[taxes.cards.iit.bullets]]
 - Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.[^cor-forecast]
 
-## taxes.cards.tat.title
-Transient Accomodations Tax
+[[taxes.cards.tat.title]]
+### Transient Accomodations Tax
 
-## taxes.cards.tat.bullets
+[[taxes.cards.tat.bullets]]
 - The TAT is a tax on hotel rooms, short-term rentals and cruise ships. It is paid mainly by tourists and supports the general fund and special funds for tourism promotion, resource management, climate resiliency and economic development.
 
-## whopays.h3
-Who Pays These Taxes?
+[[whopays.h3]]
+### Who Pays These Taxes?
 
-## whopays.fig6.caption
+[[whopays.fig6.caption]]
 Percentage of Income Paid in State and Local Taxes by Household Income Quintile (2024)[^itep-whopays]
 
-## whopays.p1
+[[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched-thin income on state and local taxes compared to wealthy families. This is due almost entirely to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
-## whopays.callout.title
-Tax Credits
+[[whopays.callout.title]]
+### Tax Credits
 
-## whopays.callout.p1
+[[whopays.callout.p1]]
 Tax credits are an effective tool available to lawmakers that are designed to lower or even eliminate the tax liability owed to the state by people or businesses. The purpose of these tax credits is to stimulate the economy by reducing costs either for businesses or struggling families that need help purchasing their basic necessities.
 
-## whopays.callout.p2
+[[whopays.callout.p2]]
 In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Renewable Energy Technologies Tax Credit and Film/Media Production Credit.
 
-## endnotes.h1
-ENDNOTES
+[[endnotes.h1]]
+# ENDNOTES
 
-## table1.header.executive
+[[table1.header.executive]]
 Executive[^act175-exec]
 
-## table1.header.judiciary
+[[table1.header.judiciary]]
 Judiciary[^act178]
 
-## table1.header.legislature
+[[table1.header.legislature]]
 Legislature[^act1][^act127]
 
-## table1.header.oha
+[[table1.header.oha]]
 OHA[^act248]
 
-## sources
+[[sources]]
 [workforce-profile]: "State of Hawaiʻi Executive Branch Workforce Profile," Hawaiʻi State Department of Human Resources Development, p. 5, December 16, 2024. — https://dhrd.hawaii.gov/wp-content/uploads/2024/12/Workforce-Profile_06302024_FINAL.pdf
 [act175-exec]: "Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
 [act178]: "Act 178," State of Hawaiʻi, 2026 (HB2095 CD1), amending Act 227, Session Laws of Hawaiʻi 2025. — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2095_CD1_.HTM

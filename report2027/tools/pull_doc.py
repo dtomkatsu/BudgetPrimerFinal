@@ -45,12 +45,12 @@ def normalise(md: str) -> str:
     """Undo the cosmetics Google's Markdown export adds.
 
     It escapes literal punctuation (\\[, \\*, \\_) and can emit non-breaking or
-    smart characters inside our '## key' headings; strip that back to the plain
+    smart characters inside our [[key]] markers; strip that back to the plain
     form content.py parses.
     """
     md = md.replace("\r\n", "\n").replace(" ", " ")
     md = re.sub(r"\\([\[\]*_`#\\])", r"\1", md)          # unescape \[ \* \_ ...
-    md = re.sub(r"^\s*#{2}\s+", "## ", md, flags=re.M)   # normalise key headings
+    md = re.sub(r"^\s*(\[\[[A-Za-z0-9._-]+\]\])\s*$", r"\1", md, flags=re.M)  # tidy markers
     md = re.sub(r"\n{3,}", "\n\n", md)
     return md.strip() + "\n"
 
@@ -64,7 +64,7 @@ def validate(md: str) -> None:
         for sid in re.findall(r"\[\^([^\]]+)\]", md):
             if sid not in c.sources:
                 raise ContentError(
-                    f"prose cites [^{sid}] but no such id under '## sources'")
+                    f"prose cites [^{sid}] but no such id under [[sources]]")
         print(f"  parsed {len(c._raw)} keys, {len(c.sources)} sources")
     finally:
         tmp.unlink(missing_ok=True)
