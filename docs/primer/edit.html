@@ -91,6 +91,9 @@
   <input id="ty-color" type="color" title="Text colour">
   <label class="ty-num" title="Letter spacing (px)">A|A<input id="ty-track" type="number" step="0.1" min="-5" max="20"></label>
   <label class="ty-num" title="Line height">≡<input id="ty-lead" type="number" step="0.05" min="0.6" max="4"></label>
+  <span class="ty-sep"></span>
+  <select id="ty-fx" title="Effect"></select>
+  <span id="ty-fxp"></span>
   <button id="ty-reset" title="Put this text back the way the report designed it">Reset type</button>
 </div>
 <iframe id="out" title="editable draft"></iframe>
@@ -537,6 +540,68 @@ function reportFit(d) {
   $('fit').title = bad.map(b => `page ${b.page}: ${b.who} is ${b.over}in past the cut`).join('\n');
 }
 
+// ----------------------------------------------------------------- effects
+// Which knobs an effect has comes from the engine (EFFECT_PARAMS), not a list
+// retyped here: a control that does nothing is worse than a missing one, and a
+// second list would drift from the first.
+let fxParams = {};
+
+const FX_RANGE = {                       // step, min, max — physical units
+  offset:    [0.01, 0, 0.5],             // em, so it scales with the type
+  direction: [15, 0, 360],               // degrees, 0 = 12 o'clock, clockwise
+  blur:      [0.01, 0, 0.5],
+  alpha:     [0.05, 0, 1],               // alpha, not "transparency" — see layout.py
+  intensity: [0.1, 0, 3],
+  width:     [0.005, 0, 0.2],
+};
+
+function fxOf(k) { return styleOf(k).effect || {}; }
+
+function setFx(k, patch) {
+  const fx = { ...fxOf(k), ...patch };
+  Object.keys(fx).forEach(p => { if (fx[p] === '' || fx[p] === null) delete fx[p]; });
+  setStyle(k, { effect: fx.kind ? fx : null });
+}
+
+function showFxParams(key) {
+  const host = $('ty-fxp');
+  host.innerHTML = '';
+  const fx = fxOf(key);
+  if (!fx.kind) return;
+  (fxParams[fx.kind] || []).forEach(name => {
+    if (name === 'color' || name === 'shadow') {
+      const c = document.createElement('input');
+      c.type = 'color'; c.title = name === 'color' ? 'Effect colour' : 'Second colour';
+      c.value = /^#[0-9a-f]{6}$/i.test(fx[name] || '') ? fx[name]
+              : (name === 'color' ? '#52796f' : '#95b7a2');
+      c.addEventListener('input', () => { setFx(key, { [name]: c.value }); paintText(key); });
+      c.addEventListener('change', async () => {
+        setFx(key, { [name]: c.value }); markDirty(); await render(); showType(key);
+      });
+      host.appendChild(c);
+      return;
+    }
+    const [step, min, max] = FX_RANGE[name] || [0.01, 0, 1];
+    const w = document.createElement('label');
+    w.className = 'ty-num';
+    w.title = name;
+    w.textContent = name.slice(0, 3);
+    const n = document.createElement('input');
+    n.type = 'number'; n.step = step; n.min = min; n.max = max;
+    n.value = fx[name] ?? '';
+    n.placeholder = 'auto';
+    n.addEventListener('input', () => {
+      setFx(key, { [name]: n.value === '' ? null : +n.value }); paintText(key);
+    });
+    n.addEventListener('change', async () => {
+      setFx(key, { [name]: n.value === '' ? null : +n.value });
+      markDirty(); await render(); showType(key);
+    });
+    w.appendChild(n);
+    host.appendChild(w);
+  });
+}
+
 // ------------------------------------------------------------------- type
 // A contextual row, Canva's own pattern: it appears when text is selected and
 // is otherwise not in the way. It lives OUTSIDE the iframe and is keyed on a
@@ -589,6 +654,8 @@ function showType(key) {
   $('ty-lead').value = st.leading ?? '';
   $('ty-case').value = st.case || 'none';
   $('ty-color').value = /^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#2f3e46';
+  $('ty-fx').value = (st.effect && st.effect.kind) || '';
+  showFxParams(key);
   $('ty-i').classList.toggle('on', !!st.italic);
   $('ty-u').classList.toggle('on', !!st.underline);
   document.querySelectorAll('.ty-al').forEach(b =>
@@ -639,6 +706,13 @@ function wireType() {
     setStyle(selected, { align: a });
     markDirty(); await render(); showType(selected);
   }));
+  $('ty-fx').addEventListener('change', async () => {
+    const kind = $('ty-fx').value || null;
+    // Drop the old effect's parameters rather than carrying them across: they
+    // mean different things per effect, and 'width' on a shadow is noise.
+    setStyle(selected, { effect: kind ? { kind } : null });
+    markDirty(); await render(); showType(selected);
+  });
   $('ty-reset').addEventListener('click', async () => {
     if (layout.text) delete layout.text[selected];
     markDirty(); await render(); showType(selected);
@@ -1023,6 +1097,10 @@ async function boot() {
   py.runPython("import sys\nsys.path.insert(0, '/repo')");
   fonts = JSON.parse(py.runPython(
     'import json\nfrom docsync.layout import FONTS\njson.dumps(FONTS)'));
+  fxParams = JSON.parse(py.runPython(
+    'import json\nfrom docsync.layout import EFFECT_PARAMS\njson.dumps(EFFECT_PARAMS)'));
+  $('ty-fx').innerHTML = '<option value="">no effect</option>'
+    + Object.keys(fxParams).map(k => `<option value="${k}">${k}</option>`).join('');
   $('ty-font').innerHTML = '<option value="">font</option>'
     + Object.keys(fonts).sort().map(f => `<option value="${f}">${f}</option>`).join('');
   wireType();

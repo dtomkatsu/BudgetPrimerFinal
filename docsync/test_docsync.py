@@ -419,6 +419,54 @@ check_eq("a style aimed at an unstyleable slot is reported",
          _layout({"text": {"cip.body": {"size": 9}}}).unknown_text_keys({"a.b"}),
          ["cip.body"])
 
+# ----------------------------------------------------------------- effects
+from docsync.layout import EFFECTS, EFFECT_PARAMS                # noqa: E402
+
+# The direction convention is 0 = 12 o'clock, clockwise — the same one
+# arc_path() uses in the renderer. Pin it: a second convention for the same idea
+# in one repo is a bug waiting to be written.
+check("direction 0 casts the shadow straight up",
+      text_css({"effect": {"kind": "shadow", "offset": 0.1, "direction": 0, "blur": 0}}),
+      "0.0em -0.1em")
+check("direction 90 casts it to the right",
+      text_css({"effect": {"kind": "shadow", "offset": 0.1, "direction": 90, "blur": 0}}),
+      "0.1em -0.0em")
+# em, not px: a shadow measured in px detaches from its glyphs the moment the
+# type is resized.
+check("offsets scale with the type", text_css({"effect": {"kind": "shadow"}}), "em")
+
+check("hollow empties the glyph",
+      text_css({"effect": {"kind": "hollow"}}), "color:transparent")
+check("hollow strokes the glyph",
+      text_css({"effect": {"kind": "hollow"}}), "-webkit-text-stroke:")
+check("neon glows in its own colour",
+      text_css({"effect": {"kind": "neon", "color": "#6B9E78"}}), "0 0 ")
+check("echo repeats at increasing distance and decreasing weight",
+      text_css({"effect": {"kind": "echo", "offset": 0.05, "direction": 90}}), "0.1em")
+check_eq("every effect produces CSS", all(text_css({"effect": {"kind": k}}) for k in EFFECTS), True)
+check_eq("every effect declares its own knobs", sorted(EFFECT_PARAMS) == sorted(EFFECTS), True)
+
+# hollow/splice hollow the glyph out, so they must land after any colour the
+# same style set — otherwise the colour wins and the effect silently does
+# nothing.
+check("an effect that empties the glyph beats a colour set beside it",
+      text_css({"color": "#ff0000", "effect": {"kind": "hollow"}}),
+      "color:#ff0000;color:transparent")
+
+check("an unknown effect is caught at load",
+      _layout_error({"text": {"a": {"effect": {"kind": "sparkle"}}}}), "must be one of")
+# An empty effect object is falsy, so a truthiness check would skip every
+# validation below it and let a malformed file through as a no-op.
+check("an effect with no kind is caught",
+      _layout_error({"text": {"a": {"effect": {}}}}), "needs a 'kind'")
+check("alpha outside 0..1 is caught",
+      _layout_error({"text": {"a": {"effect": {"kind": "shadow", "alpha": 40}}}}),
+      "not a fraction")
+check("an effect colour that is not a colour is caught",
+      _layout_error({"text": {"a": {"effect": {"kind": "neon", "color": "hotpink"}}}}),
+      "not a hex colour")
+check_eq("no effect means no effect CSS", "text-shadow" in text_css({"size": 12}), False)
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

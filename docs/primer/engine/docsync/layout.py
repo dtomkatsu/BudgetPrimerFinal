@@ -23,6 +23,7 @@ Coordinates are inches from the page's top-left corner, because `.page` is
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 from pathlib import Path
@@ -72,6 +73,89 @@ FONTS = {
 BRAND_FONTS = {"Barlow": [800, 900], "Source Sans 3": [300, 400, 600, 700]}
 BRAND_ITALICS = {"Source Sans 3": [400]}
 
+# Effects. Each is a function from its parameters to CSS, so validation can
+# name the ones that exist and the editor can ask which parameters to show.
+#
+# Two conventions worth stating once:
+#  * 0 degrees is 12 o'clock and it goes clockwise — the same convention
+#    arc_path() already uses in the renderer. A second convention for the same
+#    idea in one repo is a bug waiting to happen.
+#  * Offsets and blurs are in em, so a shadow stays proportional when the type
+#    is resized instead of detaching from it.
+#  * We store ALPHA, not Canva's "transparency". Storing the inverted quantity
+#    invites a 1-x slip at every read; the slider can show whatever it likes.
+def _rgba(hexc: str, a: float) -> str:
+    h = hexc.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{a:g})"
+
+
+def _xy(offset: float, deg: float) -> tuple[float, float]:
+    rad = math.radians(deg)
+    return round(offset * math.sin(rad), 3), round(-offset * math.cos(rad), 3)
+
+
+def _fx_shadow(e: dict) -> str:
+    dx, dy = _xy(e.get("offset", 0.06), e.get("direction", 135))
+    c = _rgba(e.get("color", "#2F3E46"), e.get("alpha", 0.45))
+    return f'text-shadow:{dx}em {dy}em {e.get("blur", 0.04)}em {c}'
+
+
+def _fx_lift(e: dict) -> str:
+    k = e.get("intensity", 0.5)
+    return f'text-shadow:0 {round(k * .5, 3)}em {round(k * 1.2, 3)}em rgba(0,0,0,{round(k * .5, 3)})'
+
+
+def _fx_hollow(e: dict) -> str:
+    return (f'color:transparent;-webkit-text-stroke:{e.get("width", 0.02)}em '
+            f'{e.get("color", "#52796F")}')
+
+
+def _fx_splice(e: dict) -> str:
+    dx, dy = _xy(e.get("offset", 0.06), e.get("direction", 135))
+    return (f'color:transparent;-webkit-text-stroke:{e.get("width", 0.02)}em '
+            f'{e.get("color", "#52796F")};'
+            f'text-shadow:{dx}em {dy}em 0 {e.get("shadow", "#95B7A2")}')
+
+
+def _fx_echo(e: dict) -> str:
+    dx, dy = _xy(e.get("offset", 0.06), e.get("direction", 135))
+    c = e.get("color", "#52796F")
+    return (f'text-shadow:{dx}em {dy}em 0 {_rgba(c, .5)},'
+            f'{round(dx * 2, 3)}em {round(dy * 2, 3)}em 0 {_rgba(c, .3)}')
+
+
+def _fx_glitch(e: dict) -> str:
+    dx, dy = _xy(e.get("offset", 0.04), e.get("direction", 90))
+    return (f'text-shadow:{round(-dx, 3)}em {round(-dy, 3)}em 0 {e.get("color", "#00E5FF")},'
+            f'{dx}em {dy}em 0 {e.get("shadow", "#FF00A0")}')
+
+
+def _fx_neon(e: dict) -> str:
+    c = e.get("color", "#6B9E78")
+    k = e.get("intensity", 1.0)
+    return (f'color:{c};text-shadow:0 0 {round(.08 * k, 3)}em {c},'
+            f'0 0 {round(.25 * k, 3)}em {c},0 0 {round(.6 * k, 3)}em {_rgba(c, .7)}')
+
+
+EFFECTS = {"shadow": _fx_shadow, "lift": _fx_lift, "hollow": _fx_hollow,
+           "splice": _fx_splice, "echo": _fx_echo, "glitch": _fx_glitch,
+           "neon": _fx_neon}
+
+# Which knobs each effect actually uses — the editor shows only these, so no
+# control is ever offered that does nothing.
+EFFECT_PARAMS = {
+    "shadow": ["offset", "direction", "blur", "alpha", "color"],
+    "lift":   ["intensity"],
+    "hollow": ["width", "color"],
+    "splice": ["width", "offset", "direction", "color", "shadow"],
+    "echo":   ["offset", "direction", "color"],
+    "glitch": ["offset", "direction", "color", "shadow"],
+    "neon":   ["intensity", "color"],
+}
+
 ALIGNS = ("left", "center", "right", "justify")
 CASES = ("none", "upper", "lower", "title")
 
@@ -119,6 +203,11 @@ def text_css(st: dict) -> str:
     if case and case != "none":
         out.append("text-transform:" + {"upper": "uppercase", "lower": "lowercase",
                                         "title": "capitalize"}[case])
+    fx = st.get("effect")
+    if fx and fx.get("kind"):
+        # After colour, deliberately: hollow and splice hollow the glyph out, so
+        # they must win over a colour the same style also set.
+        out.append(EFFECTS[fx["kind"]](fx))
     if st.get("align"):
         out.append(f'text-align:{st["align"]}')
         # text-align does nothing to an inline box, and the inline slots are
@@ -153,6 +242,26 @@ def _check_text(st: dict, where: str) -> None:
     for k in ("size", "tracking", "leading"):
         if st.get(k) is not None:
             _num(st[k], f"{where}.{k}")
+    # `is not None`, not truthiness: an empty effect object is falsy, so a bare
+    # "effect": {} would skip every check below and pass as a no-op rather than
+    # as the malformed thing it is.
+    fx = st.get("effect")
+    if fx is not None:
+        if not isinstance(fx, dict) or not fx.get("kind"):
+            raise LayoutError(f"{where}: effect needs a 'kind'")
+        if fx["kind"] not in EFFECTS:
+            raise LayoutError(f"{where}: effect {fx['kind']!r} must be one of "
+                              f"{', '.join(sorted(EFFECTS))}")
+        for c in ("color", "shadow"):
+            if fx.get(c):
+                _hex(fx[c], f"{where}.effect.{c}")
+        a = fx.get("alpha")
+        if a is not None and not (0 <= float(a) <= 1):
+            raise LayoutError(f"{where}: effect alpha {a} is not a fraction "
+                              f"between 0 and 1")
+        for k in ("offset", "direction", "blur", "intensity", "width"):
+            if fx.get(k) is not None:
+                _num(fx[k], f"{where}.effect.{k}")
 
 
 class LayoutError(RuntimeError):
