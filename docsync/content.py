@@ -11,6 +11,7 @@ removed in the doc without renumbering anything by hand.
 """
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -211,9 +212,15 @@ class Content:
         return " ".join(l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip())
 
     def html(self, key: str, cls: str | None = None) -> str:
-        """Slot -> one or more <p> elements (multi-paragraph slots supported)."""
+        """Slot -> one or more <p> elements (multi-paragraph slots supported).
+
+        DOCSYNC_EDIT stamps the slot name on each paragraph so the draft editor
+        can map a click back to the text that produced it. Off by default: the
+        published HTML carries no editing scaffolding.
+        """
         attr = f' class="{cls}"' if cls else ""
-        return "".join(f"<p{attr}>{h}</p>" for h in paragraphs(self.raw(key)))
+        slot = f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
+        return "".join(f"<p{attr}{slot}>{h}</p>" for h in paragraphs(self.raw(key)))
 
     def list(self, key: str) -> list[str]:
         return bullets(self.raw(key))

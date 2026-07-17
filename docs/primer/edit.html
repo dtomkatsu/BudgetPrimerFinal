@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Budget Primer — draft editor</title>
+<!--
+  Edit the report's prose in the report itself.
+
+  Click a paragraph, its source appears in place, edit, click away — the whole
+  page re-renders through the repo's REAL renderer (Pyodide), so footnote
+  numbers, layout and every figure stay honest. No Google Doc, no CORS, no
+  deploy: the page fetches content.md and the renderer from main and does the
+  work locally.
+
+  What is editable: the report's prose blocks. Everything else — figures,
+  Table 1, dollar amounts — is generated from the budget data and has no text
+  to edit. Structural changes (new sections, new footnotes) still belong in
+  content.md or the doc.
+
+  Save commits content.md via a fine-grained token, which is what triggers the
+  site rebuild and pushes the same text to the Google Doc. Nothing is written
+  anywhere until you press it.
+-->
+<style>
+  :root { --ink:#2F3E46; --sage:#6B9E78; --deep:#52796F; }
+  html, body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif; }
+  #bar { display:flex; gap:10px; align-items:center; padding:7px 12px;
+         background:var(--ink); color:#E8EDE6; flex-wrap:wrap; }
+  #bar b { color:#fff; letter-spacing:.3px; }
+  #stat { flex:1; min-width:180px; opacity:.85; }
+  #bar button { background:var(--sage); color:#fff; border:0; border-radius:4px;
+                padding:4px 11px; cursor:pointer; font:inherit; }
+  #bar button:hover { background:var(--deep); }
+  #bar button:disabled { background:#66707a; cursor:default; }
+  #save.dirty { background:#c2703a; }
+  #out { border:0; width:100%; height:calc(100% - 36px); background:#EDF1EE; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>DRAFT EDITOR</b>
+  <span id="stat">loading the render engine…</span>
+  <button id="save" disabled>Save</button>
+  <button id="revert" disabled>Discard</button>
+</div>
+<iframe id="out" title="editable draft"></iframe>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+const REPO = 'dtomkatsu/BudgetPrimerFinal';
+const RAW  = `https://raw.githubusercontent.com/${REPO}/main/`;
+const FILES = [
+  'docsync/content.py', 'docsync/normalise.py',
+  'report2027/tools/render_report.py', 'report2027/content.md',
+  'report2027/data/report_data.json', 'report2027/manual/obligated_costs.json',
+  'docs/js/departments_act175_fy2027.json', 'docs/js/historical_trends.json',
+];
+const $ = id => document.getElementById(id);
+const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+
+let py = null, source = '', original = '', dirty = false;
+
+async function get(u) {
+  const r = await fetch(bust(u));
+  if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
+  return r.text();
+}
+
+// content.md is [[key]] lines followed by their text. Reading and rewriting a
+// single slot is all the editor needs, so it works on the raw string and
+// leaves every byte it did not touch exactly as it was.
+const slotRe = k => new RegExp(`(^\\[\\[${k.replace(/\./g, '\\.')}\\]\\]\\n)([\\s\\S]*?)(?=\\n\\[\\[|$)`, 'm');
+const readSlot  = k => (source.match(slotRe(k)) || [,,''])[2].trim();
+const writeSlot = (k, v) => { source = source.replace(slotRe(k), (m, head) => head + v.trim() + '\n'); };
+
+async function boot() {
+  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...FILES.map(f => get(RAW + f))]);
+  py = pyodide;
+  ['docsync', 'report2027/tools', 'report2027/data', 'report2027/manual',
+   'report2027/web', 'docs/js'].forEach(d => py.FS.mkdirTree('/repo/' + d));
+  py.FS.writeFile('/repo/docsync/__init__.py', '');
+  FILES.forEach((f, i) => py.FS.writeFile('/repo/' + f, files[i]));
+  source = original = files[FILES.indexOf('report2027/content.md')];
+  await render();
+}
+
+async function render() {
+  $('stat').textContent = 'rendering…';
+  py.globals.set('SRC', source);
+  let html;
+  try {
+    html = await py.runPythonAsync(`
+import sys, os, io, runpy, contextlib
+if '/repo' not in sys.path: sys.path.insert(0, '/repo')
+os.environ['DOCSYNC_EDIT'] = '1'            # stamp data-slot on prose blocks
+open('/repo/report2027/content.md','w').write(SRC)
+for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
+with contextlib.redirect_stdout(io.StringIO()):
+    runpy.run_path('/repo/report2027/tools/render_report.py', run_name='__main__')
+open('/repo/report2027/web/index.html').read()
+`);
+  } catch (e) {
+    // A validation failure is the guardrail working — show it and keep the
+    // source, so the edit that broke it can be fixed rather than lost.
+    const tail = String(e.message || e).split('\n').filter(l => l.trim()).slice(-6).join('\n');
+    $('out').srcdoc = `<pre style="color:#b00020;white-space:pre-wrap;padding:24px;
+      font:12px/1.5 ui-monospace,monospace">This draft does not build:\n\n${
+      tail.replace(/&/g,'&amp;').replace(/</g,'&lt;')}\n\nYour text is still here — fix it and it recovers.</pre>`;
+    $('stat').textContent = 'draft does not build';
+    return;
+  }
+  $('out').srcdoc = html;
+  $('out').onload = wire;
+  $('stat').textContent = dirty ? 'unsaved changes' : 'click any paragraph to edit it';
+}
+
+function wire() {
+  const d = $('out').contentDocument;
+  const css = d.createElement('style');
+  css.textContent = `
+    [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
+                  outline:1px dashed transparent; outline-offset:3px; }
+    [data-slot]:hover { background:#EAF3EC; outline-color:#95B7A2; }
+    .ds-edit { width:100%; box-sizing:border-box; font:inherit; line-height:1.5;
+               padding:8px 10px; border:2px solid #6B9E78; border-radius:4px;
+               background:#fff; resize:vertical; }
+    .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }`;
+  d.head.appendChild(css);
+
+  const seen = new Set();
+  d.querySelectorAll('[data-slot]').forEach(el => {
+    const key = el.dataset.slot;
+    if (seen.has(key)) return;              // a slot can render several <p>s
+    seen.add(key);
+    el.addEventListener('click', () => edit(d, key), { once: true });
+  });
+}
+
+function edit(d, key) {
+  const blocks = [...d.querySelectorAll(`[data-slot="${key}"]`)];
+  if (!blocks.length || d.querySelector('.ds-edit')) return;
+
+  const ta = d.createElement('textarea');
+  ta.className = 'ds-edit';
+  ta.value = readSlot(key);
+  const hint = d.createElement('p');
+  hint.className = 'ds-hint';
+  hint.textContent = `${key} — **bold**, *italic*, [text](url). Blank line = new paragraph. `
+                   + `Click away to render, Esc to cancel.`;
+
+  blocks[0].replaceWith(ta);
+  ta.after(hint);
+  blocks.slice(1).forEach(b => b.remove());
+  ta.style.height = Math.max(ta.scrollHeight + 4, 60) + 'px';
+  ta.focus();
+
+  const finish = async (keep) => {
+    if (ta.dataset.done) return;
+    ta.dataset.done = '1';
+    if (keep && ta.value.trim() !== readSlot(key)) {
+      writeSlot(key, ta.value);
+      dirty = source !== original;
+      $('save').disabled = $('revert').disabled = !dirty;
+      $('save').classList.toggle('dirty', dirty);
+    }
+    await render();
+  };
+  ta.addEventListener('blur', () => finish(true));
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+}
+
+// --- persistence -----------------------------------------------------------
+// The one credential: a fine-grained token, this repo only, Contents r/w. It
+// lives in this browser and never leaves it except to call GitHub. Committing
+// content.md is what rebuilds the site and pushes the same text to the doc.
+async function gh(path, opts = {}) {
+  const tok = localStorage.getItem('docsync-pat');
+  const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json',
+               ...(opts.headers || {}) },
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 160)}`);
+  return r.json();
+}
+
+$('save').onclick = async () => {
+  let tok = localStorage.getItem('docsync-pat');
+  if (!tok) {
+    tok = prompt('Paste a GitHub fine-grained token\n\n' +
+      'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
+      `Repository access: only ${REPO}\nPermissions: Contents -> Read and write\n\n` +
+      'Stored in this browser only.');
+    if (!tok) return;
+    localStorage.setItem('docsync-pat', tok.trim());
+  }
+  $('save').disabled = true;
+  $('stat').textContent = 'saving…';
+  try {
+    const path = 'report2027/content.md';
+    const cur = await gh(`contents/${path}?ref=main`);
+    await gh(`contents/${path}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        message: 'primer: edit prose from the draft editor',
+        content: btoa(String.fromCharCode(...new TextEncoder().encode(source))),
+        sha: cur.sha, branch: 'main',
+      }),
+    });
+    original = source; dirty = false;
+    $('revert').disabled = true;
+    $('save').classList.remove('dirty');
+    $('stat').textContent = 'saved — the site rebuilds and the doc updates in ~2 min';
+  } catch (e) {
+    $('stat').textContent = 'save failed: ' + e.message;
+    $('save').disabled = false;
+    if (String(e.message).match(/401|403/)) localStorage.removeItem('docsync-pat');
+  }
+};
+
+$('revert').onclick = async () => {
+  if (!confirm('Discard your unsaved edits?')) return;
+  source = original; dirty = false;
+  $('save').disabled = $('revert').disabled = true;
+  $('save').classList.remove('dirty');
+  await render();
+};
+
+addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
+boot().catch(e => { $('stat').textContent = 'failed to start: ' + e.message; });
+</script>
+</body>
+</html>
