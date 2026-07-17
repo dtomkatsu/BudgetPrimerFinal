@@ -198,8 +198,17 @@ class Footnotes:
 class Content:
     """Key lookup with a loud failure when a key is missing."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, styles=None):
+        """`styles` is anything with text_attr(key) — a Layout, in practice.
+
+        A constructor argument rather than an attribute set afterwards: the
+        renderer builds some slots at import time, so a later assignment would
+        work only by luck of line order. This makes using it unbound impossible
+        rather than merely unlikely.
+        """
         self.path = path
+        self._styles = styles
+        self._styleable: set[str] = set()
         self._raw = parse_content(path)
         if "sources" not in self._raw:
             raise ContentError(f"{path.name}: missing the '[[sources]]' section")
@@ -223,6 +232,29 @@ class Content:
         """Raw single-line value (titles, labels) with no Markdown conversion."""
         return " ".join(l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip())
 
+    def _style(self, key: str) -> str:
+        """The style for a slot, and a note that this slot can carry one.
+
+        Every call site that can take a style goes through here, so the set it
+        records is exactly the set of styleable slots — which is what lets the
+        build say so when someone styles one that cannot.
+        """
+        self._styleable.add(key)
+        return self._styles.text_attr(key) if self._styles else ""
+
+    def styleable(self) -> set:
+        return set(self._styleable)
+
+    def slot_attr(self, key: str) -> str:
+        """data-slot + style for an element the CALLER builds.
+
+        Preferred over t() wherever the element already exists (<h1>, <th>, an
+        SVG <text>): no wrapper span, and it works where a span is invalid.
+        A generalisation of ul_attr(), which was this idea for one tag.
+        """
+        slot = f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
+        return slot + self._style(key)
+
     def t(self, key: str, esc: bool = False) -> str:
         """text(), but tagged for the editor when DOCSYNC_EDIT is set.
 
@@ -237,10 +269,14 @@ class Content:
         v = self.text(key)
         if esc:
             v = v.replace("&", "&amp;").replace("<", "&lt;")
+        style = self._style(key)
         if not os.environ.get("DOCSYNC_EDIT"):
-            return v
+            # A bare string, as always — unless this slot has actually been
+            # styled, which is the only case where the published build needs a
+            # span to hang the style on. Unstyled slots are untouched.
+            return f"<span{style}>{v}</span>" if style else v
         safe = v if esc else v.replace("&", "&amp;").replace("<", "&lt;")
-        return f'<span data-slot="{key}" data-inline="1">{safe}</span>'
+        return f'<span data-slot="{key}" data-inline="1"{style}>{safe}</span>'
 
     def html(self, key: str, cls: str | None = None) -> str:
         """Slot -> one or more <p> elements (multi-paragraph slots supported).
@@ -251,14 +287,16 @@ class Content:
         """
         attr = f' class="{cls}"' if cls else ""
         slot = f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
-        return "".join(f"<p{attr}{slot}>{h}</p>" for h in paragraphs(self.raw(key)))
+        style = self._style(key)
+        return "".join(f"<p{attr}{slot}{style}>{h}</p>"
+                       for h in paragraphs(self.raw(key)))
 
     def list(self, key: str) -> list[str]:
         return bullets(self.raw(key))
 
     def ul_attr(self, key: str) -> str:
-        """data-slot for a <ul> the caller builds itself, in edit mode only."""
-        return f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
+        """data-slot + style for a <ul> the caller builds itself."""
+        return self.slot_attr(key)
 
     def lines(self, key: str) -> list[str]:
         return [l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip()]

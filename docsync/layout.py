@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
 # Letter portrait, because that is what the Budget Primer is. Any report with a
@@ -31,6 +32,127 @@ from pathlib import Path
 # the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
 KINDS = ("rect", "ellipse", "line")
+
+# Fonts a report may ask for, with the weights Google will actually serve. An
+# allowlist, not free text: a typo'd family falls back to sans-serif in the PDF
+# with nothing to catch it, and an unchecked family name would land inside a
+# style="…" attribute, where a stray quote ends the attribute. Canva's picker is
+# a fixed list too — this is parity, not a compromise.
+FONTS = {
+    "Barlow":         [400, 500, 600, 700, 800, 900],
+    "Source Sans 3":  [300, 400, 600, 700],
+    "Playfair Display": [400, 500, 600, 700, 800, 900],
+    "Merriweather":   [300, 400, 700, 900],
+    "Lora":           [400, 500, 600, 700],
+    "Libre Baskerville": [400, 700],
+    "Inter":          [300, 400, 500, 600, 700, 800, 900],
+    "Roboto":         [300, 400, 500, 700, 900],
+    "Open Sans":      [300, 400, 600, 700, 800],
+    "Lato":           [300, 400, 700, 900],
+    "Montserrat":     [300, 400, 500, 600, 700, 800, 900],
+    "Oswald":         [300, 400, 500, 600, 700],
+    "Raleway":        [300, 400, 500, 600, 700, 800, 900],
+    "Nunito":         [300, 400, 600, 700, 800, 900],
+    "Work Sans":      [300, 400, 500, 600, 700, 800],
+    "IBM Plex Sans":  [300, 400, 500, 600, 700],
+    "IBM Plex Serif": [300, 400, 500, 600, 700],
+    "Space Grotesk":  [300, 400, 500, 600, 700],
+    "Bebas Neue":     [400],
+    "Anton":          [400],
+    "Archivo":        [300, 400, 500, 600, 700, 800, 900],
+    "Karla":          [300, 400, 500, 600, 700, 800],
+    "Rubik":          [300, 400, 500, 600, 700, 800, 900],
+    "Cormorant Garamond": [300, 400, 500, 600, 700],
+    "Crimson Text":   [400, 600, 700],
+}
+
+# What primer.css already asks Google for. The report needs these whether or not
+# anything is overridden, and font_link must reproduce the old hardcoded literal
+# from exactly this when nothing is.
+BRAND_FONTS = {"Barlow": [800, 900], "Source Sans 3": [300, 400, 600, 700]}
+BRAND_ITALICS = {"Source Sans 3": [400]}
+
+ALIGNS = ("left", "center", "right", "justify")
+CASES = ("none", "upper", "lower", "title")
+
+
+def _hex(v, where: str) -> str:
+    if not isinstance(v, str) or not re.fullmatch(r"#[0-9a-fA-F]{3,8}", v):
+        raise LayoutError(f"{where}: {v!r} is not a hex colour")
+    return v
+
+
+def text_css(st: dict) -> str:
+    """One text style -> the CSS declarations it means.
+
+    A module function, not a method, because the editor calls it through Pyodide
+    to preview a slider without a full re-render. One implementation of what a
+    style means; a JavaScript twin would drift from this one silently and
+    forever.
+
+    Returns "" for an empty style, which is what keeps an unstyled report
+    byte-identical to the one that shipped before any of this existed.
+    """
+    if not st:
+        return ""
+    out = []
+    if st.get("font"):
+        # Single quotes: this lands inside style="…", so a double quote here
+        # would end the attribute and the rest of the style would become stray
+        # markup. Family names are allowlisted, so no apostrophe can appear.
+        out.append(f"font-family:'{st['font']}'")
+    if st.get("size"):
+        out.append(f'font-size:{st["size"]}px')
+    if st.get("weight"):
+        out.append(f'font-weight:{int(st["weight"])}')
+    if st.get("italic"):
+        out.append("font-style:italic")
+    if st.get("underline"):
+        out.append("text-decoration:underline")
+    if st.get("color"):
+        out.append(f'color:{st["color"]}')
+    if st.get("tracking") is not None:
+        out.append(f'letter-spacing:{st["tracking"]}px')
+    if st.get("leading") is not None:
+        out.append(f'line-height:{st["leading"]}')
+    case = st.get("case")
+    if case and case != "none":
+        out.append("text-transform:" + {"upper": "uppercase", "lower": "lowercase",
+                                        "title": "capitalize"}[case])
+    if st.get("align"):
+        out.append(f'text-align:{st["align"]}')
+        # text-align does nothing to an inline box, and the inline slots are
+        # spans. Give it a box to align within — but only when alignment was
+        # actually asked for, so nothing else grows a width it never had.
+        out.append("display:inline-block;width:100%")
+    return ";".join(out)
+
+
+def _check_text(st: dict, where: str) -> None:
+    """A bad style must fail here, at load, like a bad layer does — not reach
+    the page as a silently ignored declaration."""
+    fam = st.get("font")
+    if fam is not None:
+        if fam not in FONTS:
+            raise LayoutError(
+                f"{where}: {fam!r} is not a font this report can load. "
+                f"One of: {', '.join(sorted(FONTS))}")
+        w = st.get("weight")
+        if w is not None and int(w) not in FONTS[fam]:
+            raise LayoutError(
+                f"{where}: {fam} has no weight {w} — it would be faked by the "
+                f"browser. One of: {FONTS[fam]}")
+    if st.get("align") and st["align"] not in ALIGNS:
+        raise LayoutError(f"{where}: align {st['align']!r} must be one of "
+                          f"{', '.join(ALIGNS)}")
+    if st.get("case") and st["case"] not in CASES:
+        raise LayoutError(f"{where}: case {st['case']!r} must be one of "
+                          f"{', '.join(CASES)}")
+    if st.get("color"):
+        _hex(st["color"], where + ".color")
+    for k in ("size", "tracking", "leading"):
+        if st.get(k) is not None:
+            _num(st[k], f"{where}.{k}")
 
 
 class LayoutError(RuntimeError):
@@ -70,6 +192,7 @@ class Layout:
                 raise LayoutError(f"{path.name}: not valid JSON — {e}")
         self.positions = raw.get("positions") or {}
         self.shapes = raw.get("shapes") or []
+        self.text = raw.get("text") or {}
         self._validate()
 
     def _validate(self):
@@ -98,6 +221,10 @@ class Layout:
         for el, p in self.positions.items():
             if "z" in p and not isinstance(p["z"], int):
                 raise LayoutError(f"position '{el}': z {p['z']!r} is not a layer number")
+        for key, st in self.text.items():
+            if not isinstance(st, dict):
+                raise LayoutError(f"text '{key}': expected a style object")
+            _check_text(st, f"text '{key}'")
 
     # ---- positions -------------------------------------------------------
 
@@ -162,6 +289,62 @@ class Layout:
 
     def moved(self, el_id: str) -> bool:
         return el_id in self.positions
+
+    # ---- text ------------------------------------------------------------
+
+    def text_style(self, key: str) -> str:
+        """The CSS for one slot's text, or "" when it was never styled."""
+        return text_css(self.text.get(key) or {})
+
+    def text_attr(self, key: str) -> str:
+        """ style="…" for a slot, or "" — never style="", which would change
+        the bytes of a report nobody has styled."""
+        css = self.text_style(key)
+        return f' style="{css}"' if css else ""
+
+    def styled(self, key: str) -> bool:
+        return bool(self.text.get(key))
+
+    def unknown_text_keys(self, styleable: set) -> list:
+        """Styles aimed at slots the report cannot carry a style on.
+
+        The renderer builds a few slots into a string before they reach the page
+        (a caption that gets sliced, a label inside SVG). A style on those does
+        nothing at all — silently. Better to say so.
+        """
+        return sorted(k for k in self.text if k not in styleable)
+
+    def font_link(self) -> str:
+        """The Google Fonts <link>, covering the brand's fonts plus anything a
+        style asks for.
+
+        It was a hardcoded literal. It has to keep producing that exact literal
+        when nothing is styled — the head of an unstyled report must not move a
+        byte — while also actually requesting a weight someone picks. Today
+        Barlow 400 would simply be faked; now it is fetched.
+        """
+        want: dict[str, set] = {f: set(ws) for f, ws in BRAND_FONTS.items()}
+        ital: dict[str, set] = {f: set(ws) for f, ws in BRAND_ITALICS.items()}
+        for st in self.text.values():
+            fam = st.get("font")
+            if not fam:
+                continue
+            w = int(st.get("weight") or 400)
+            (ital if st.get("italic") else want).setdefault(fam, set()).add(w)
+            want.setdefault(fam, set())
+        parts = []
+        for fam in list(BRAND_FONTS) + [f for f in want if f not in BRAND_FONTS]:
+            roman, italic = sorted(want.get(fam, set())), sorted(ital.get(fam, set()))
+            if not roman and not italic:
+                continue
+            name = fam.replace(" ", "+")
+            if italic:
+                axis = ";".join([f"0,{w}" for w in roman] + [f"1,{w}" for w in italic])
+                parts.append(f"family={name}:ital,wght@{axis}")
+            else:
+                parts.append(f"family={name}:wght@{';'.join(str(w) for w in roman)}")
+        return ('<link href="https://fonts.googleapis.com/css2?'
+                + "&".join(parts) + '&display=swap" rel="stylesheet">')
 
     # ---- shapes ----------------------------------------------------------
 

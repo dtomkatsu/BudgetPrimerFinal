@@ -330,6 +330,95 @@ check("a nonsense layer is caught",
                                  "x": 0, "y": 0, "w": 1, "h": 1, "z": "middle"}]}),
       "not a layer number")
 
+# -------------------------------------------------------------------- text
+# Styling must be invisible until it is used. An unstyled report has to build to
+# the same bytes it always did — head included — or the whole premise ("the
+# design is the default, JSON only speaks where someone changed something")
+# quietly stops being true.
+from docsync.layout import text_css, FONTS                      # noqa: E402
+from docsync.content import Content                             # noqa: E402
+
+SHIPPED_LINK = ('<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800;900'
+                '&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400'
+                '&display=swap" rel="stylesheet">')
+
+nostyle = _layout({})
+check_eq("an empty layout styles nothing", nostyle.text_attr("basics.h1"), "")
+check_eq("an unstyled report asks for exactly the fonts it always did",
+         nostyle.font_link(), SHIPPED_LINK)
+check_eq("text_css of nothing is nothing", text_css({}), "")
+
+styled = _layout({"text": {"a.b": {"font": "Playfair Display", "weight": 700}}})
+check("a picked font joins the link", styled.font_link(), "family=Playfair+Display:wght@700")
+check("the brand's own fonts survive a pick", styled.font_link(), "family=Barlow:wght@800;900")
+check("a weight the report asks for is actually requested",
+      _layout({"text": {"a": {"font": "Barlow", "weight": 400}}}).font_link(),
+      "Barlow:wght@400;800;900")
+check("italic moves the family onto the ital axis",
+      _layout({"text": {"a": {"font": "Barlow", "weight": 400, "italic": True}}}).font_link(),
+      "Barlow:ital,wght@0,800;0,900;1,400")
+
+# A style attribute is quoted with ", so a family name quoted the same way ends
+# the attribute early and the rest becomes stray markup. Every family with a
+# space in it would have done this.
+check("a font with a space cannot break out of the style attribute",
+      text_css({"font": "Playfair Display"}), "font-family:'Playfair Display'")
+check_eq("no double quote ever reaches the style attribute",
+         '"' in text_css({"font": "Playfair Display", "color": "#fff"}), False)
+
+# text-align does nothing to an inline box, and inline slots are spans.
+check("centring an inline slot gives it a box to centre in",
+      text_css({"align": "center"}), "display:inline-block;width:100%")
+check_eq("a slot that was not aligned grows no width it never had",
+         "width:100%" in text_css({"size": 20}), False)
+
+check("an unknown family is caught at load",
+      _layout_error({"text": {"a": {"font": "Comic Papyrus"}}}),
+      "not a font this report can load")
+check("a weight the family lacks is caught, because the browser would fake it",
+      _layout_error({"text": {"a": {"font": "Barlow", "weight": 333}}}),
+      "has no weight 333")
+check("a colour that is not a colour is caught",
+      _layout_error({"text": {"a": {"color": "red"}}}), "not a hex colour")
+check("an alignment that is not one is caught",
+      _layout_error({"text": {"a": {"align": "middle"}}}), "must be one of")
+check_eq("the font list is a list, not free text", len(FONTS) > 10, True)
+
+
+def _content(styles=None, body="[[a.b]]\nText.\n\n[[sources]]\n[x]: A. — https://a.gov\n"):
+    t = Path(tempfile.mktemp(suffix=".md"))
+    t.write_text(body)
+    try:
+        return Content(t, styles=styles)
+    finally:
+        t.unlink(missing_ok=True)
+
+
+plain = _content(nostyle)
+check_eq("an unstyled paragraph is the paragraph it always was",
+         plain.html("a.b"), "<p>Text.</p>")
+# t() emits a bare string in the published build. Styling it means a span — but
+# ONLY for a slot someone actually styled, or every heading in the report grows
+# a wrapper it never had.
+check_eq("an unstyled t() is still a bare string, not a span", plain.t("a.b"), "Text.")
+
+one = _content(_layout({"text": {"a.b": {"size": 20}}}))
+check("a styled paragraph carries its style", one.html("a.b"), '<p style="font-size:20px">')
+check("a styled t() becomes a span, and only then", one.t("a.b"), '<span style="font-size:20px">')
+check_eq("text() is never wrapped — it lands in alt= and SVG, where a span is invalid",
+         one.text("a.b"), "Text.")
+
+# data-slot <=> styleable: the editor never offers a control that does nothing,
+# and a style aimed at a slot the renderer builds into a string fails loudly.
+c = _content(nostyle)
+c.html("a.b")
+check_eq("a slot that rendered an element is styleable", "a.b" in c.styleable(), True)
+check_eq("a style aimed at a slot that never rendered one is reported",
+         nostyle.unknown_text_keys({"a.b"}), [])
+check_eq("a style aimed at an unstyleable slot is reported",
+         _layout({"text": {"cip.body": {"size": 9}}}).unknown_text_keys({"a.b"}),
+         ["cip.body"])
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

@@ -17,11 +17,13 @@ from docsync.content import Content, ContentError  # noqa: E402
 from docsync.layout import Layout, LayoutError     # noqa: E402
 
 HERE = Path(__file__).resolve().parent.parent
-# Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
-C = Content(HERE / "content.md")
-# Position/shape overrides. Empty by default: the design below is the
-# default, and this only speaks where someone has moved something.
+# Position/shape/text overrides. Empty by default: the design below is the
+# default, and this only speaks where someone has moved or restyled something.
+# Built BEFORE C because C consumes it — and because some slots are rendered at
+# import time, so a later hand-off would work only by luck of line order.
 L = Layout(HERE / "layout.json")
+# Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
+C = Content(HERE / "content.md", styles=L)
 DATA = json.loads((HERE / "data" / "report_data.json").read_text())
 BUD = DATA["budget"]
 RES = DATA["research"]
@@ -859,6 +861,17 @@ body += f"""
  {L.layer(12)}<div class="folio">12 • BUDGET PRIMER</div>
 </section>"""
 
+# A few slots are built into a string before they reach the page (a caption the
+# renderer slices, a label inside SVG). A style on those does nothing at all,
+# and silence is the one thing this project does not do.
+unstyleable = L.unknown_text_keys(C.styleable())
+if unstyleable:
+    raise LayoutError(
+        "layout.json styles text that cannot carry a style: "
+        + ", ".join(unstyleable)
+        + "\n  Only slots rendered as a paragraph, a span or a list can be "
+          "styled — these reach the page already built into a string.")
+
 out_of_bounds = L.check_bounds()
 if out_of_bounds:
     raise LayoutError("layout.json puts content off the page:\n  "
@@ -881,7 +894,7 @@ html = f"""<!DOCTYPE html>
 <meta name="robots" content="noindex, nofollow">
 <title>Hawaiʻi Budget Primer FY2026–27 — Hawaiʻi Appleseed</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@800;900&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+{L.font_link()}
 <link rel="stylesheet" href="primer.css">
 </head>
 <body>
