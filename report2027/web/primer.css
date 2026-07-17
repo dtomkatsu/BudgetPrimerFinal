@@ -33,6 +33,11 @@ h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
 .figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
 .figcap b { color: var(--ink); }
 
+/* Images placed in prose via ![alt](assets/…). Bounded by the text column so
+   an upload can never blow out the page grid. */
+img.inline-img { display: block; max-width: 100%; height: auto; margin: 10px 0;
+                 border-radius: 3px; }
+
 /* Overflow slots ([[extra.<page>.<slug>]]) — bullet lists outside cards */
 ul.extra-bullets { margin: 0 0 12px; padding-left: 20px; }
 ul.extra-bullets li { margin: 3px 0; }

@@ -71,17 +71,29 @@ def md_inline(s: str) -> str:
     (?a=1&b=2) keep their raw ampersands, matching the report's existing markup.
     """
     urls: list[str] = []
+    imgs: list[tuple[str, str]] = []
 
     def stash(m):
         urls.append(m.group(2))
         return f"\x00LINK{len(urls) - 1}\x00{m.group(1)}\x01"
 
+    def stash_img(m):
+        imgs.append((m.group(2), m.group(1)))
+        return f"\x00IMG{len(imgs) - 1}\x00"
+
+    # Images first: ![alt](src) also matches the link pattern, so a link pass
+    # would leave a stray '!' in front of an anchor. Unlike links, src may be
+    # repo-relative (assets/…), which is how uploaded images are referenced.
+    s = re.sub(r"!\[([^\]]*)\]\(([^)\s]+)\)", stash_img, s)
     s = re.sub(r"\[([^\]^][^\]]*)\]\((https?://[^)\s]+)\)", stash, s)
     s = s.replace("&", "&amp;").replace("<", "&lt;")
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s, flags=re.S)
     s = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<i>\1</i>", s, flags=re.S)
     s = re.sub(r"\x00LINK(\d+)\x00(.*?)\x01",
                lambda m: f'<a href="{urls[int(m.group(1))]}">{m.group(2)}</a>', s, flags=re.S)
+    s = re.sub(r"\x00IMG(\d+)\x00",
+               lambda m: '<img class="inline-img" src="{}" alt="{}">'.format(*imgs[int(m.group(1))]),
+               s)
     return s
 
 

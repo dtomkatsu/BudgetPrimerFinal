@@ -38,7 +38,11 @@ bindings:
     doc: 1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU
     mode: slots
     content: report2027/content.md
+    # assets too: an image added from the editor lands in web/assets and
+    # would otherwise render as a broken link on the deployed copy
     build: make -C report2027 html && cp report2027/web/index.html docs/primer/
+      && cp report2027/web/primer.css docs/primer/
+      && mkdir -p docs/primer/assets && cp -R report2027/web/assets/. docs/primer/assets/
     outputs:
       - report2027/web/index.html
       - docs/primer/index.html

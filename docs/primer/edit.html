@@ -107,6 +107,7 @@ function buildTools(d, ta, key) {
 
   btn('Link', 'Wrap the selection in a link (\u2318K)', () => link(d, ta));
   btn('Cite', 'Insert a footnote reference', () => cite(d, ta, bar));
+  btn('Image', 'Upload an image and place it here', () => image(d, ta));
   btn('Bold', 'Wrap the selection in **bold**', () => spliceAt(ta, '**', '**'));
   btn('Italic', 'Wrap the selection in *italic*', () => spliceAt(ta, '*', '*'));
 
@@ -162,6 +163,63 @@ function cite(d, ta, bar) {
   sel.focus();
 }
 
+// Uploaded images live in the report's own assets dir; the binding's build
+// copies them to the deployed page, so the path in the prose ("assets/x.jpg")
+// is the same one the published report uses.
+const ASSETS = 'report2027/web/assets/';
+const localImages = new Map();     // path -> data URL, for previewing pre-deploy
+
+function image(d, ta) {
+  const tok = askToken();
+  if (!tok) return;
+  const inp = d.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.addEventListener('change', async () => {
+    const file = inp.files[0];
+    if (!file) return;
+    const name = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-')
+                          .replace(/^-|-$/g, '');
+    const path = ASSETS + name;
+    const dataUrl = await new Promise(r => {
+      const fr = new FileReader();
+      fr.onload = () => r(fr.result);
+      fr.readAsDataURL(file);
+    });
+    const b64 = String(dataUrl).split(',')[1];
+    $('stat').textContent = `uploading ${name}…`;
+    try {
+      // Overwrite needs the blob's sha; a fresh path has none.
+      let sha;
+      try { sha = (await gh(`contents/${path}?ref=main`)).sha; } catch (e) { sha = undefined; }
+      await gh(`contents/${path}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `primer: add image ${name}`,
+          content: b64, branch: 'main', ...(sha ? { sha } : {}),
+        }),
+      });
+      localImages.set('assets/' + name, dataUrl);
+      const alt = d.defaultView.prompt('Describe the image (alt text)', name) || name;
+      spliceAt(ta, `\n\n![${alt}](assets/${name})\n\n`);
+      $('stat').textContent = `${name} uploaded — it renders below`;
+    } catch (e) {
+      $('stat').textContent = 'upload failed: ' + e.message;
+    }
+  });
+  inp.click();
+}
+
+/** Show just-uploaded images before they are deployed: the page resolves
+ *  assets/… against the live site, where a new file does not exist yet. */
+function showLocalImages(d) {
+  if (!localImages.size) return;
+  d.querySelectorAll('img[src^="assets/"]').forEach(img => {
+    const local = localImages.get(img.getAttribute('src'));
+    if (local) img.src = local;
+  });
+}
+
 async function boot() {
   const [pyodide, ...files] = await Promise.all([loadPyodide(), ...FILES.map(f => get(RAW + f))]);
   py = pyodide;
@@ -207,6 +265,7 @@ open('/repo/report2027/web/index.html').read()
 
 function wire() {
   const d = $('out').contentDocument;
+  showLocalImages(d);
   const css = d.createElement('style');
   css.textContent = `
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
@@ -334,16 +393,21 @@ async function gh(path, opts = {}) {
   return r.json();
 }
 
-$('save').onclick = async () => {
+function askToken() {
   let tok = localStorage.getItem('docsync-pat');
-  if (!tok) {
-    tok = prompt('Paste a GitHub fine-grained token\n\n' +
-      'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
-      `Repository access: only ${REPO}\nPermissions: Contents -> Read and write\n\n` +
-      'Stored in this browser only.');
-    if (!tok) return;
-    localStorage.setItem('docsync-pat', tok.trim());
-  }
+  if (tok) return tok;
+  tok = prompt('Paste a GitHub fine-grained token\n\n' +
+    'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
+    `Repository access: only ${REPO}\n` +
+    'Permissions: Contents -> Read and write   <- must be WRITE\n\n' +
+    'Stored in this browser only.');
+  if (!tok) return null;
+  localStorage.setItem('docsync-pat', tok.trim());
+  return tok.trim();
+}
+
+$('save').onclick = async () => {
+  if (!askToken()) return;
   $('save').disabled = true;
   $('stat').textContent = 'saving…';
   try {
