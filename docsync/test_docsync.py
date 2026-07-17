@@ -588,6 +588,17 @@ check("a box rotates too", rotb.text_boxes(3), "rotate(-10deg)")
 check("an opacity above one is caught",
       _layout_error({"positions": {"c.o": {"x": 1, "y": 2, "alpha": 1.5}}}),
       "not a fraction")
+scaled = _layout({"positions": {"logo": {"x": 1, "y": 2, "scale": 1.4}}})
+check("a scaled graphic carries its factor", scaled.attr("logo"), "scale(1.4)")
+check_eq("a scale of exactly 1 emits nothing",
+         "scale" in _layout({"positions": {"c.o": {"x": 1, "y": 2, "scale": 1}}}).attr("c.o"),
+         False)
+check("rotation and scale share one transform, in order",
+      _layout({"positions": {"g": {"x": 1, "y": 2, "rot": 20, "scale": 1.5}}}).attr("g"),
+      "transform:rotate(20deg) scale(1.5)")
+check("a non-positive scale is caught",
+      _layout_error({"positions": {"g": {"x": 1, "y": 2, "scale": 0}}}),
+      "scale must be positive")
 check("a shadow that is not an object is caught",
       _layout_error({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3,
                                 "md": "hi", "shadow": "big"}]}),

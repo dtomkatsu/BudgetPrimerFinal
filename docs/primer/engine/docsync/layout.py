@@ -398,6 +398,8 @@ class Layout:
                 _num(p[k], f"position '{el}'.{k}")
             if p.get("rot") is not None:
                 _num(p["rot"], f"position '{el}'.rot")
+            if p.get("scale") is not None and _num(p["scale"], f"position '{el}'.scale") <= 0:
+                raise LayoutError(f"position '{el}': scale must be positive")
             if p.get("alpha") is not None:
                 _alpha(p["alpha"], f"position '{el}'.alpha")
             if p.get("flip") is not None and p["flip"] not in ("h", "v", "hv"):
@@ -562,11 +564,15 @@ class Layout:
             s += f';height:{p["h"]}in'
         # z is an integer layer: below 0 sits under the text, above 0 over it.
         s += f';z-index:{int(p.get("z", 1))}'
-        # One transform declaration for both: a second one would silently
+        # One transform declaration for all of it: a second would silently
         # replace the first, which is exactly how a flip would eat a rotation.
+        # Default (centre) origin, so scale grows a graphic from its middle and
+        # rotate/flip pivot in place — one origin that suits every operation.
         tf = []
         if p.get("rot"):
             tf.append(f'rotate({p["rot"]}deg)')
+        if p.get("scale") is not None and float(p["scale"]) != 1:
+            tf.append(f'scale({p["scale"]})')
         if p.get("flip"):
             f = p["flip"]
             tf.append(f'scale({-1 if "h" in f else 1},{-1 if "v" in f else 1})')

@@ -404,8 +404,9 @@
   <span class="ty-sep" id="ar-possep"></span>
   <label class="ar-pos" title="Left edge, inches">X<input id="ar-x" type="number" step="0.01"></label>
   <label class="ar-pos" title="Top edge, inches">Y<input id="ar-y" type="number" step="0.01"></label>
-  <label class="ar-pos" title="Width, inches">W<input id="ar-w" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Width, inches" id="ar-wwrap">W<input id="ar-w" type="number" step="0.01" min="0.1"></label>
   <label class="ar-pos" title="Height, inches" id="ar-hwrap">H<input id="ar-h" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Scale, percent" id="ar-swrap">⤢<input id="ar-scale" type="number" step="1" min="20" max="500"></label>
   <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
   <span class="ar-lab" id="ar-hint"></span>
 </div>
@@ -1109,8 +1110,10 @@ const MIN_IN = 0.4;
 
 function handlesFor(el) {
   if (el.dataset.shape) return ['e', 's', 'se'];
-  const img = el.tagName === 'IMG' || el.querySelector('img');
-  return img ? ['e', 's', 'se'] : ['e'];
+  // A graphic scales uniformly — one corner is the honest handle for that,
+  // aspect locked. Text reflows on width alone, so it keeps its east edge.
+  if (isGraphic(el)) return ['se'];
+  return ['e'];
 }
 
 function showHandles(d, page, el) {
@@ -1151,16 +1154,34 @@ function startResize(d, el, e0, dir) {
   const px = DPI * zoomOf(page);
   const shapeId = el.dataset.shape;
   const id = shapeId || el.dataset.el;
+  const graphic = !shapeId && isGraphic(el);
+  // A graphic keeps its position and grows by SCALE; pin it first (rotate and
+  // resize alike are placements), then read the scale it starts from.
+  if (graphic) ensureStore(d, el);
   const P = placer(d, el, page);          // reuse: a resize is a layout override too
-  const b = P.box;
+  const b = P.box;                        // b.w/b.h are the CURRENT (scaled) size
+  const baseScale = graphic ? ((storeOf(id) || {}).scale || 1) : 1;
   const grab = { x: e0.clientX, y: e0.clientY };
   el.classList.add('ds-lifted');
   d.body.classList.add('ds-resizing');
 
   const apply = e => {
+    const dx = (e.clientX - grab.x) / px, dy = (e.clientY - grab.y) / px;
+    if (graphic) {
+      // Uniform, aspect-locked: the corner's dominant travel drives one factor.
+      const fx = (b.w + dx) / b.w, fy = (b.h + dy) / b.h;
+      const factor = Math.abs(dx) > Math.abs(dy) ? fx : fy;
+      const scale = Math.max(0.2, Math.min(5, +(baseScale * factor).toFixed(3)));
+      const st = storeOf(id);
+      if (Math.abs(scale - 1) < 0.005) delete st.scale; else st.scale = scale;
+      paintRot(d, el);
+      showHandles(d, page, el);
+      $('stat').textContent = `${id} → ${Math.round(scale * 100)}%`;
+      return { scale };
+    }
     let w = b.w, h = b.h;
-    if (dir.includes('e')) w = Math.max(MIN_IN, b.w + (e.clientX - grab.x) / px);
-    if (dir.includes('s')) h = Math.max(MIN_IN, b.h + (e.clientY - grab.y) / px);
+    if (dir.includes('e')) w = Math.max(MIN_IN, b.w + dx);
+    if (dir.includes('s')) h = Math.max(MIN_IN, b.h + dy);
     // Never let a resize push content off the page — same rule as the drag.
     w = Math.min(w, PAGE_W_IN - b.x);
     h = Math.min(h, PAGE_H_IN - b.y);
@@ -1185,7 +1206,9 @@ function startResize(d, el, e0, dir) {
     d.removeEventListener('mouseup', up);
     el.classList.remove('ds-lifted');
     d.body.classList.remove('ds-resizing');
-    if (!shapeId) {
+    if (graphic) {
+      markDirty();                        // the scale is already on the store
+    } else if (!shapeId) {
       P.commit({ x: b.x, y: b.y });
       const p = layout.positions[id];
       p.w = +size.w.toFixed(2);
@@ -1230,13 +1253,23 @@ function paintRot(d, el) {
       `rotate(${st.rot} ${+(s.x + s.w / 2).toFixed(4)} ${+(s.y + s.h / 2).toFixed(4)})`);
     else el.removeAttribute('transform');
   } else {
-    // Rotation and flip share one declaration, same as the renderer emits.
+    // Rotation, scale and flip share one declaration in the renderer's order,
+    // so the live node and the committed page can never disagree.
     el.style.transform = [
       st.rot ? `rotate(${st.rot}deg)` : '',
+      (st.scale && st.scale !== 1) ? `scale(${st.scale})` : '',
       st.flip ? `scale(${st.flip.includes('h') ? -1 : 1},${st.flip.includes('v') ? -1 : 1})` : '',
     ].filter(Boolean).join(' ');
   }
 }
+// A graphic — an image or a logo lockup with no editable text — resizes by
+// SCALING, because its content has a fixed intrinsic size a width alone cannot
+// stretch (the logo's image is 95px tall no matter how wide its box). Text
+// containers keep width-reflow; shapes keep w/h. This is the one distinction
+// the resize needs.
+const isGraphic = el => !el.dataset.shape && !el.matches('[data-slot]')
+  && !el.querySelector('[data-slot]') && !el.classList.contains('ds-textbox')
+  && (el.tagName === 'IMG' || !!el.querySelector('img'));
 
 function startRotate(d, el, e0) {
   const page = el.closest('section.page') || d.querySelector('section.page');
@@ -1850,8 +1883,13 @@ function arrangeBar(d) {
   const st = storeOf(idOf(one)) || {};
   $('ar-x').value = (st.x ?? b.x).toFixed(2);
   $('ar-y').value = (st.y ?? b.y).toFixed(2);
-  $('ar-w').value = (st.w ?? b.w).toFixed(2);
-  const hasH = !!one.dataset.shape || st.h != null;
+  // A graphic reads out as a scale percent, not a width its box would ignore.
+  const graphic = isGraphic(one);
+  $('ar-wwrap').hidden = graphic;
+  $('ar-swrap').hidden = !graphic;
+  if (graphic) $('ar-scale').value = Math.round((st.scale || 1) * 100);
+  else $('ar-w').value = (st.w ?? b.w).toFixed(2);
+  const hasH = !graphic && (!!one.dataset.shape || st.h != null);
   $('ar-hwrap').hidden = !hasH;
   if (hasH) $('ar-h').value = (st.h ?? b.h).toFixed(2);
   $('ar-rot').value = st.rot ?? 0;
@@ -1892,6 +1930,12 @@ arField('ar-h', (d, el, page, v) => {
   const sh = layout.shapes.find(s => s.id === id);
   if (sh) { sh.h = v; paintShape(d, id); }
   else { ensureStore(d, el).h = v; el.style.height = v + 'in'; }
+});
+arField('ar-scale', (d, el, page, v) => {
+  const st = ensureStore(d, el);
+  const s = Math.max(0.2, Math.min(5, v / 100));
+  if (Math.abs(s - 1) < 0.005) delete st.scale; else st.scale = +s.toFixed(3);
+  paintRot(d, el);
 });
 arField('ar-rot', (d, el, page, v) => {
   const st = ensureStore(d, el);
