@@ -240,8 +240,11 @@ def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0,
             + "".join(paths) + "".join(labels) + "</svg>")
 
 def legend(items):
+    """items: (label_html, colour). Labels arrive ready to print — authored ones
+    via C.t(..., esc=True), data-derived ones via esc(). Escaping here instead
+    would mangle the editor's slot markup into visible tags."""
     rows = "".join(
-        f'<div class="lg"><span class="sw" style="background:{c}"></span>{esc(n)}</div>'
+        f'<div class="lg"><span class="sw" style="background:{c}"></span>{n}</div>'
         for n, c in items)
     return f'<div class="legend">{rows}</div>'
 
@@ -720,8 +723,10 @@ pages.append(f"""
  <span class="noprint figcap-hint">{C.t("categories.fig2.hint", esc=True)}</span></p>
  {fig2_chart_for(2027)}
  {fig2_chart_for(2026)}
- {legend([(C.t("categories.legend.operating"), SAGE), (C.t("categories.legend.capital"), SAGE_MID),
-          (C.t("categories.legend.onetime"), DARK), (C.t("categories.legend.emergency"), DARKEST)])}
+ {legend([(C.t("categories.legend.operating", esc=True), SAGE),
+          (C.t("categories.legend.capital", esc=True), SAGE_MID),
+          (C.t("categories.legend.onetime", esc=True), DARK),
+          (C.t("categories.legend.emergency", esc=True), DARKEST)])}
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
@@ -742,13 +747,13 @@ pages.append(f"""
    <p class="figcap"><b>{C("obligated.panel.caption").split("[^")[0].strip()}</b>{"[^" + C("obligated.panel.caption").split("[^")[1]}<span class="noprint">
    {C.t("obligated.panel.hint")}</span></p>
    {fig_obligated()}
-   {legend([(n, c) for n, _k, c in OBLIG_BANDS])}
+   {legend([(esc(n), c) for n, _k, c in OBLIG_BANDS])}
    <p class="obligated-note">{C("obligated.panel.note").format(oblig_first=f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}", oblig_last=f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}")}</p>
   </div>
  </details>
  <h3 class="sub2">{C.t("cip.h3")}</h3>
  <p class="figcap"><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
- <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
+ <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
 {C.extras("cip")} {L.layer(7)}<div class="folio r">BUDGET PRIMER • 7</div>
@@ -772,7 +777,7 @@ pages.append(f"""
 <section class="page">
  <h1>{C.t("funding.h1")}</h1>
  <p class="figcap"><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
- <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
+ <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
  {C.html("funding.p1")}
  <div class="cards3">
   {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets")}
@@ -787,7 +792,7 @@ pages.append(f"""
 <section class="page">
  <h2 class="sub">{C.t("taxes.h2")}</h2>
  <p class="figcap"><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
- <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
   {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets")}
   {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}

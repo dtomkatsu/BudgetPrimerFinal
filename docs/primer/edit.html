@@ -569,6 +569,17 @@ function placer(d, el, page) {
 
   const lines = snapLines(d, page, el);
 
+  // One rule for the width, used by the drag AND by what gets saved — they had
+  // two, and the drag's was "none". An absolutely positioned block with no
+  // width shrink-to-fits to its preferred width, which for a card of prose is
+  // its longest line: drag it and it stretches into a strip. Pin the width it
+  // had. Skip only things genuinely wider than the page (the cover lockup is
+  // full-bleed on purpose); pinning that would shove it off the edge.
+  const pinW = () => {
+    const prev = (shapeId ? null : layout.positions[id]) || {};
+    return prev.w ?? (box.w <= PAGE_W_IN ? +box.w.toFixed(2) : undefined);
+  };
+
   const put = (x, y, snap = true) => {
     let vx = null, hy = null;
     if (snap) {
@@ -589,6 +600,8 @@ function placer(d, el, page) {
       el.style.position = 'absolute';
       el.style.left = x.toFixed(2) + 'in';
       el.style.top = y.toFixed(2) + 'in';
+      const w = pinW();
+      if (w) el.style.width = w + 'in';     // what the renderer will do, now
     }
     showGuides(d, page, vx, hy);
     $('stat').textContent = `${id} → ${x.toFixed(2)}in, ${y.toFixed(2)}in`
@@ -599,7 +612,7 @@ function placer(d, el, page) {
   const commit = ({ x, y }) => {
     if (!shapeId) {
       const prev = layout.positions[id] || {};
-      const w = prev.w ?? (x + box.w <= PAGE_W_IN ? +box.w.toFixed(2) : undefined);
+      const w = pinW();
       const reserve = prev.reserve ?? (heldFlow ? +box.h.toFixed(2) : undefined);
       layout.positions[id] = { ...prev, x: +x.toFixed(2), y: +y.toFixed(2),
                               ...(w ? { w } : {}),
