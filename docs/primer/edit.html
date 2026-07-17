@@ -60,10 +60,12 @@ const FILES = [
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
-let py = null, source = '', original = '', dirty = false;
+let py = null, source = '', original = '', dirty = false, editing = false;
 
 async function get(u) {
-  const r = await fetch(bust(u));
+  // no-store: a query string alone does not reliably defeat the raw CDN,
+  // and a stale renderer silently produces a wrong page.
+  const r = await fetch(bust(u), { cache: 'no-store' });
   if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
   return r.text();
 }
@@ -111,8 +113,10 @@ open('/repo/report2027/web/index.html').read()
     $('stat').textContent = 'draft does not build';
     return;
   }
-  $('out').srcdoc = html;
+  // onload before srcdoc: assigning srcdoc starts the load, so wiring the
+  // handler afterwards is a race the editor loses by silently going inert.
   $('out').onload = wire;
+  $('out').srcdoc = html;
   $('stat').textContent = dirty ? 'unsaved changes' : 'click any paragraph to edit it';
 }
 
@@ -134,13 +138,14 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    el.addEventListener('click', () => edit(d, key), { once: true });
+    el.addEventListener('click', () => edit(d, key));
   });
 }
 
 function edit(d, key) {
   const blocks = [...d.querySelectorAll(`[data-slot="${key}"]`)];
-  if (!blocks.length || d.querySelector('.ds-edit')) return;
+  if (!blocks.length || editing) return;
+  editing = true;
 
   const ta = d.createElement('textarea');
   ta.className = 'ds-edit';
@@ -153,12 +158,20 @@ function edit(d, key) {
   blocks[0].replaceWith(ta);
   ta.after(hint);
   blocks.slice(1).forEach(b => b.remove());
-  ta.style.height = Math.max(ta.scrollHeight + 4, 60) + 'px';
+  // Size to the text only once layout has settled: measured any earlier the
+  // box is still zero-width, so the content "wraps" into thousands of pixels.
+  const fit = () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
+  };
+  requestAnimationFrame(fit);
+  ta.addEventListener('input', fit);
   ta.focus();
 
   const finish = async (keep) => {
     if (ta.dataset.done) return;
     ta.dataset.done = '1';
+    editing = false;
     if (keep && ta.value.trim() !== readSlot(key)) {
       writeSlot(key, ta.value);
       dirty = source !== original;

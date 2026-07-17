@@ -62,7 +62,9 @@ const TREE = {
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 async function fetchText(u) {
-  const r = await fetch(bust(u));
+  // no-store: a query string alone does not reliably defeat the raw CDN,
+  // and a stale renderer silently produces a wrong page.
+  const r = await fetch(bust(u), { cache: 'no-store' });
   if (!r.ok) throw new Error('HTTP ' + r.status + ' fetching ' + u);
   return r.text();
 }
