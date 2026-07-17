@@ -2933,8 +2933,10 @@ function dragify(d) {
     // grab cursor gives way. It still SELECTS (so it can be unlocked) but the
     // drag refuses.
     el.classList.toggle('ds-locked', isLocked(idOf(el)));
-    // Reachable without a mouse: focus it, Space to pick up, arrows to move.
-    el.setAttribute('tabindex', '0');
+    // Deliberately NOT focusable. A focusable element scrolls itself into view
+    // the instant a click focuses it — the page "jumped up" on every select.
+    // Keyboard moves work on the SELECTION at the document level (keysFor), so
+    // arrows still nudge a selected element without any element owning focus.
     el.addEventListener('mousedown', e => {
       if (editing || e.button !== 0) return;
       // A movable object grabs from ANYWHERE on itself — including over its own
@@ -2965,9 +2967,6 @@ function dragify(d) {
       el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
     else if (el.tagName === 'IMG' || el.classList.contains('ds-cropw'))
       el.addEventListener('dblclick', e => { e.preventDefault(); cropMode(d, el); });
-    el.addEventListener('keydown', e => keyDrag(d, el, e));
-    // Focus is selection's keyboard route; the handles ride the selection.
-    el.addEventListener('focus', () => { if (!selIds.has(idOf(el))) setSel(d, [idOf(el)]); });
   });
 }
 
@@ -3316,6 +3315,17 @@ addEventListener('keydown', e => {
     layerStep($('out').contentDocument, e.key === ']' ? 1 : -1, e.altKey);
   }
   if (e.key === 'Escape' && selIds.size) clearSel($('out').contentDocument);
+  // Arrow-nudge and Delete here too, not only in the iframe's own handler:
+  // after a click the keyboard focus may sit on the outer page rather than the
+  // iframe, and without this the selection would be unreachable by keyboard.
+  if (selIds.size) {
+    const d = $('out').contentDocument;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSel(d); }
+    const step = e.shiftKey ? NUDGE_BIG_IN : NUDGE_IN;
+    const d4 = { ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+                 ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (d4) { e.preventDefault(); nudgeSel(d, d4); }
+  }
 });
 
 async function boot() {
@@ -3614,8 +3624,11 @@ function wire() {
        from lifted's elevation — three states, three silhouettes. */
     .ds-sel { outline:2px solid #6B9E78 !important; outline-offset:2px; }
     /* outline is not a thing SVG children have; a glow rings a shape without
-       repainting the stroke it actually owns */
-    svg.shape-layer .ds-sel { outline:none;
+       repainting the stroke it actually owns. The !important is REQUIRED — the
+       base rule above has one, and without a matching !important here that base
+       outline wins and paints a green box around the whole page-sized <svg>
+       viewport, the "larger square" around a selected shape. */
+    svg.shape-layer .ds-sel { outline:none !important;
        filter:drop-shadow(0 0 .02in #6B9E78) drop-shadow(0 0 .01in #6B9E78); }
     /* A whole group selected reads as one object: a softer, dashed shared ring
        instead of N hard outlines. */
