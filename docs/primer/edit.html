@@ -42,6 +42,8 @@
 <div id="bar">
   <b>DRAFT EDITOR</b>
   <span id="stat">loading the render engine…</span>
+  <button id="mode" title="Switch between editing text and moving things">Move mode</button>
+  <button id="shape" title="Add a shape to this page" hidden>+ Shape</button>
   <button id="save" disabled>Save</button>
   <button id="revert" disabled>Discard</button>
 </div>
@@ -58,8 +60,10 @@ const REPO = 'dtomkatsu/BudgetPrimerFinal';
 const FILES = {
   'engine/docsync/content.py':                   'docsync/content.py',
   'engine/docsync/normalise.py':                 'docsync/normalise.py',
+  'engine/docsync/layout.py':                    'docsync/layout.py',
   'engine/report2027/tools/render_report.py':    'report2027/tools/render_report.py',
   'engine/report2027/content.md':                'report2027/content.md',
+  'engine/report2027/layout.json':               'report2027/layout.json',
   'engine/report2027/data/report_data.json':     'report2027/data/report_data.json',
   'engine/report2027/manual/obligated_costs.json': 'report2027/manual/obligated_costs.json',
   '../js/departments_act175_fy2027.json':        'docs/js/departments_act175_fy2027.json',
@@ -69,6 +73,7 @@ const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
 let py = null, source = '', original = '', dirty = false, editing = false;
+let layout = null, layoutOrig = '', mode = 'text';   // text | move
 
 async function get(u) {
   // no-store: a query string alone does not reliably defeat the raw CDN,
@@ -228,6 +233,138 @@ function showLocalImages(d) {
   });
 }
 
+// ---------------------------------------------------------------- move mode
+// Text and drag cannot share a click, so they are modes. In move mode every
+// [data-el] and [data-shape] is draggable; a drop writes inches into
+// layout.json and re-renders through the real renderer, so what you see is
+// what the build produces — including it refusing to build if you drag
+// something off the page.
+const DPI = 96;                       // CSS px per inch
+const PAGE_W_IN = 8.5;                // must match docsync/layout.py
+
+function pageOf(el) {
+  const sec = el.closest('section.page');
+  const all = [...el.ownerDocument.querySelectorAll('section.page')];
+  return all.indexOf(sec) + 1;
+}
+
+function setMode(next) {
+  mode = next;
+  $('mode').textContent = mode === 'move' ? 'Text mode' : 'Move mode';
+  $('mode').style.background = mode === 'move' ? '#c2703a' : '';
+  $('shape').hidden = mode !== 'move';
+  $('stat').textContent = mode === 'move'
+    ? 'drag any box, logo or shape — arrows nudge, Delete removes a shape'
+    : 'click any text to edit it';
+  const d = $('out').contentDocument;
+  if (d) d.body.classList.toggle('ds-move', mode === 'move');
+}
+
+function dragify(d) {
+  d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      if (mode !== 'move') return;
+      e.preventDefault();
+      e.stopPropagation();
+      startDrag(d, el, e);
+    });
+  });
+}
+
+function startDrag(d, el, e0) {
+  const shapeId = el.dataset.shape;
+  const id = shapeId || el.dataset.el;
+  const rect = el.getBoundingClientRect();
+  const page = el.closest('section.page') || el.ownerDocument.querySelector('section.page');
+  const pr = page.getBoundingClientRect();
+  // A hidden or unlaid-out pane reports every rect as zero, and the drag would
+  // then write nonsense inches into layout.json. Refuse rather than corrupt.
+  if (!pr.width || !rect.width) {
+    $('stat').textContent = 'cannot move while the page has no layout — try again once it is visible';
+    return;
+  }
+  // Where the box currently sits, in page inches — whether it was placed by
+  // the renderer or by a previous drag.
+  const start = { x: (rect.left - pr.left) / DPI, y: (rect.top - pr.top) / DPI };
+  const grab = { x: e0.clientX, y: e0.clientY };
+  el.style.outline = '2px solid #c2703a';
+
+  const move = e => {
+    const x = +(start.x + (e.clientX - grab.x) / DPI).toFixed(2);
+    const y = +(start.y + (e.clientY - grab.y) / DPI).toFixed(2);
+    if (shapeId) {
+      const sh = layout.shapes.find(s => s.id === shapeId);
+      if (sh) { sh.x = x; sh.y = y; }
+      el.ownerDocument.defaultView.requestAnimationFrame(() => paintShape(d, shapeId));
+    } else {
+      el.style.position = 'absolute';
+      el.style.left = x + 'in';
+      el.style.top = y + 'in';
+    }
+    $('stat').textContent = `${id} → ${x}in, ${y}in`;
+  };
+  const up = async e => {
+    d.removeEventListener('mousemove', move);
+    d.removeEventListener('mouseup', up);
+    const x = +(start.x + (e.clientX - grab.x) / DPI).toFixed(2);
+    const y = +(start.y + (e.clientY - grab.y) / DPI).toFixed(2);
+    if (!shapeId) {
+      const prev = layout.positions[id] || {};
+      // Pinning the width keeps a flow box from shrink-to-fitting once it is
+      // absolute. But some elements are wider than the page on purpose (the
+      // cover lockup is full-bleed, clipped by overflow:hidden) — pinning
+      // *that* width would shove it off the page and fail the build. Only pin
+      // a width that actually fits where the box now sits.
+      const wIn = +(rect.width / DPI).toFixed(2);
+      const w = prev.w ?? (x + wIn <= PAGE_W_IN ? wIn : undefined);
+      layout.positions[id] = { ...prev, x, y, ...(w ? { w } : {}) };
+    }
+    markDirty();
+    await render();
+  };
+  d.addEventListener('mousemove', move);
+  d.addEventListener('mouseup', up);
+}
+
+/** Live-move a shape without a full re-render, so dragging stays smooth. */
+function paintShape(d, id) {
+  const sh = layout.shapes.find(s => s.id === id);
+  const node = d.querySelector(`[data-shape="${id}"]`);
+  if (!sh || !node) return;
+  if (sh.kind === 'rect') { node.setAttribute('x', sh.x); node.setAttribute('y', sh.y); }
+  else if (sh.kind === 'ellipse') {
+    node.setAttribute('cx', sh.x + sh.w / 2); node.setAttribute('cy', sh.y + sh.h / 2);
+  } else {
+    node.setAttribute('x1', sh.x); node.setAttribute('y1', sh.y);
+    node.setAttribute('x2', sh.x + sh.w); node.setAttribute('y2', sh.y + sh.h);
+  }
+}
+
+function markDirty() {
+  dirty = source !== original
+       || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
+  $('save').disabled = $('revert').disabled = !dirty;
+  $('save').classList.toggle('dirty', dirty);
+}
+
+$('mode').onclick = () => setMode(mode === 'move' ? 'text' : 'move');
+
+$('shape').onclick = async () => {
+  const d = $('out').contentDocument;
+  const kind = prompt('Shape: rect, ellipse or line', 'rect');
+  if (!kind || !['rect', 'ellipse', 'line'].includes(kind)) return;
+  const page = +(prompt('Which page? (1–12)', '3') || 0);
+  if (!page) return;
+  const fill = prompt('Fill colour (or "none")', '#E8EDE6') || 'none';
+  const id = 's' + (layout.shapes.length + 1) + '-' + kind;
+  layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: 1, fill,
+                       stroke: kind === 'line' ? '#52796F' : 'none',
+                       sw: 0.02, z: 'back' });
+  markDirty();
+  await render();
+  $('stat').textContent = `${id} added to page ${page} — drag it into place`;
+};
+
 async function boot() {
   const urls = Object.keys(FILES);
   const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(get)]);
@@ -237,12 +374,17 @@ async function boot() {
   py.FS.writeFile('/repo/docsync/__init__.py', '');
   urls.forEach((u, i) => py.FS.writeFile('/repo/' + FILES[u], files[i]));
   source = original = files[urls.indexOf('engine/report2027/content.md')];
+  layoutOrig = files[urls.indexOf('engine/report2027/layout.json')];
+  layout = JSON.parse(layoutOrig || '{}');
+  layout.positions = layout.positions || {};
+  layout.shapes = layout.shapes || [];
   await render();
 }
 
 async function render() {
   $('stat').textContent = 'rendering…';
   py.globals.set('SRC', source);
+  py.globals.set('LAYOUT', JSON.stringify(layout, null, 2));
   let html;
   try {
     html = await py.runPythonAsync(`
@@ -250,6 +392,7 @@ import sys, os, io, runpy, contextlib
 if '/repo' not in sys.path: sys.path.insert(0, '/repo')
 os.environ['DOCSYNC_EDIT'] = '1'            # stamp data-slot on prose blocks
 open('/repo/report2027/content.md','w').write(SRC)
+open('/repo/report2027/layout.json','w').write(LAYOUT)
 for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
 with contextlib.redirect_stdout(io.StringIO()):
     runpy.run_path('/repo/report2027/tools/render_report.py', run_name='__main__')
@@ -275,6 +418,8 @@ open('/repo/report2027/web/index.html').read()
 function wire() {
   const d = $('out').contentDocument;
   showLocalImages(d);
+  dragify(d);
+  d.body.classList.toggle('ds-move', mode === 'move');
   const css = d.createElement('style');
   css.textContent = `
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
@@ -293,7 +438,14 @@ function wire() {
     .ds-tools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
     .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
     .ds-cite { flex-basis:100%; margin-top:4px; }
-    .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }`;
+    .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }
+    body.ds-move [data-slot] { cursor:default; }
+    body.ds-move [data-slot]:hover { background:none; outline-color:transparent; }
+    body.ds-move [data-el], body.ds-move [data-shape] {
+      cursor:grab; outline:1px dashed #95B7A2; outline-offset:2px; }
+    body.ds-move [data-el]:hover, body.ds-move [data-shape]:hover {
+      outline:2px solid #6B9E78; }
+    body.ds-move svg.shape-layer { pointer-events:auto; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -301,7 +453,7 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    el.addEventListener('click', () => edit(d, key));
+    el.addEventListener('click', () => { if (mode === 'text') edit(d, key); });
   });
 }
 
@@ -373,7 +525,7 @@ function edit(d, key) {
     tools.remove();
     if (keep && ta.value.trim() !== readSlot(key)) {
       writeSlot(key, ta.value);
-      dirty = source !== original;
+      dirty = source !== original || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
       $('save').disabled = $('revert').disabled = !dirty;
       $('save').classList.toggle('dirty', dirty);
     }
@@ -420,17 +572,27 @@ $('save').onclick = async () => {
   $('save').disabled = true;
   $('stat').textContent = 'saving…';
   try {
-    const path = 'report2027/content.md';
-    const cur = await gh(`contents/${path}?ref=main`);
-    await gh(`contents/${path}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        message: 'primer: edit prose from the draft editor',
-        content: btoa(String.fromCharCode(...new TextEncoder().encode(source))),
-        sha: cur.sha, branch: 'main',
-      }),
-    });
-    original = source; dirty = false;
+    // Prose and layout are separate files, so a text edit and a move are
+    // separate commits — each reviewable on its own.
+    const layoutText = JSON.stringify(layout, null, 2) + '\n';
+    const writes = [];
+    if (source !== original)
+      writes.push(['report2027/content.md', source, 'primer: edit prose from the draft editor']);
+    if (layoutText !== layoutOrig)
+      writes.push(['report2027/layout.json', layoutText, 'primer: move layout from the draft editor']);
+
+    for (const [path, body, message] of writes) {
+      const cur = await gh(`contents/${path}?ref=main`).catch(() => ({}));
+      await gh(`contents/${path}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          message,
+          content: btoa(String.fromCharCode(...new TextEncoder().encode(body))),
+          ...(cur.sha ? { sha: cur.sha } : {}), branch: 'main',
+        }),
+      });
+    }
+    original = source; layoutOrig = layoutText; dirty = false;
     $('revert').disabled = true;
     $('save').classList.remove('dirty');
     $('stat').textContent = 'saved — the site rebuilds and the doc updates in ~2 min';
@@ -452,7 +614,11 @@ $('save').onclick = async () => {
 
 $('revert').onclick = async () => {
   if (!confirm('Discard your unsaved edits?')) return;
-  source = original; dirty = false;
+  source = original;
+  layout = JSON.parse(layoutOrig || '{}');
+  layout.positions = layout.positions || {};
+  layout.shapes = layout.shapes || [];
+  dirty = false;
   $('save').disabled = $('revert').disabled = true;
   $('save').classList.remove('dirty');
   await render();

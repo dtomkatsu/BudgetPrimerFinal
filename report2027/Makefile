@@ -27,7 +27,7 @@ doc-status:
 E := ../docs/primer/engine
 editor: html
 	@mkdir -p $(E)/docsync $(E)/report2027/tools $(E)/report2027/data $(E)/report2027/manual
-	cp ../docsync/content.py ../docsync/normalise.py $(E)/docsync/
+	cp ../docsync/content.py ../docsync/normalise.py ../docsync/layout.py $(E)/docsync/
 	cp tools/render_report.py $(E)/report2027/tools/
 	cp content.md layout.json $(E)/report2027/
 	cp data/report_data.json $(E)/report2027/data/
