@@ -50,6 +50,7 @@ function onOpen() {
     .addItem('Update from report (safe)', 'updateFromReport')
     .addItem('Enable instant sync (doc edits -> site in ~2 min)', 'enableInstantSync')
     .addItem('Disable instant sync', 'disableInstantSync')
+    .addItem('Sync now', 'syncNow')
     .addItem('Preview report content (no changes)', 'previewReportContent')
     .addSeparator()
     .addItem('Enable hourly auto-sync', 'enableAutoSync')
@@ -318,11 +319,15 @@ function tidyKeyMarkers() {
 // ---------------------------------------------------------------------------
 // instant sync: doc edit -> repository_dispatch -> the docsync workflow pulls
 // ---------------------------------------------------------------------------
-// onChange fires constantly while someone types, and firing CI per keystroke
-// would be noise. Debounce instead: each change (re)arms a one-shot trigger
-// ~60s out, so the dispatch fires once, one quiet minute after the last edit.
+// Docs cannot tell us an edit happened — it has no onChange/onEdit trigger
+// (those are Sheets and Forms only), and a time-based trigger is the finest
+// grain on offer. So poll the modified time once a minute and dispatch when it
+// settles. ~2 min from last keystroke to live site; for seconds, the draft
+// preview renders this doc directly and needs none of this.
 
 var GH_REPO = 'dtomkatsu/BudgetPrimerFinal';
+// Triggers and web-app requests have no active document, so the id is pinned.
+var DOC_ID = '1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU';
 
 function enableInstantSync() {
   var ui = DocumentApp.getUi();
@@ -337,32 +342,53 @@ function enableInstantSync() {
     if (r.getSelectedButton() !== ui.Button.OK || !r.getResponseText().trim()) return;
     props.setProperty('GH_TOKEN', r.getResponseText().trim());
   }
-  removeTriggers_('onDocChange');
-  ScriptApp.newTrigger('onDocChange')
-    .forDocument(DocumentApp.getActiveDocument().getId())
-    .onChange().create();
+  removeTriggers_('pollDocChange');
+  ScriptApp.newTrigger('pollDocChange').timeBased().everyMinutes(1).create();
+  PropertiesService.getScriptProperties().deleteProperty('SEEN_MOD');
   ui.alert('Instant sync on',
-    'Edits now reach the site ~2 minutes after you stop typing.\n' +
-    '(One quiet minute, then the sync workflow runs.)', ui.ButtonSet.OK);
+    'The doc is checked once a minute. Edits reach the site about two '
+    + 'minutes after you stop typing.\n\n'
+    + 'For seconds-level feedback while you write, keep the draft preview '
+    + 'open — it renders the real page from this doc as you go.',
+    ui.ButtonSet.OK);
 }
 
 function disableInstantSync() {
-  var n = removeTriggers_('onDocChange') + removeTriggers_('firePull_');
+  var n = removeTriggers_('pollDocChange');
   DocumentApp.getUi().alert('Instant sync off',
-    n ? 'Triggers removed.' : 'It was not on.',
+    n ? 'Trigger removed.' : 'It was not on.',
     DocumentApp.getUi().ButtonSet.OK);
 }
 
-function onDocChange() {
-  removeTriggers_('firePull_');                       // re-arm: still typing
-  ScriptApp.newTrigger('firePull_').timeBased().after(60 * 1000).create();
+/**
+ * Fire a pull once the doc has been quiet for a minute.
+ *
+ * Docs has no edit trigger — onChange/onEdit exist for Sheets and Forms only,
+ * so an edit cannot summon anything. Polling the modified time is the closest
+ * legal thing, and the minute of quiet falls out of it for free: a change is
+ * noticed on one tick and dispatched on the next, so a run happens after the
+ * typing stops rather than in the middle of it.
+ */
+function pollDocChange() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('GH_TOKEN')) return;
+  var mod = String(DriveApp.getFileById(DOC_ID).getLastUpdated().getTime());
+  var seen = props.getProperty('SEEN_MOD');
+  var fired = props.getProperty('FIRED_MOD');
+
+  if (mod !== seen) {
+    props.setProperty('SEEN_MOD', mod);      // still moving; wait for quiet
+    return;
+  }
+  if (mod === fired) return;                 // quiet, and already dispatched
+  firePull_();
+  props.setProperty('FIRED_MOD', mod);
 }
 
 function firePull_() {
-  removeTriggers_('firePull_');
   var token = PropertiesService.getScriptProperties().getProperty('GH_TOKEN');
   if (!token) return;
-  UrlFetchApp.fetch('https://api.github.com/repos/' + GH_REPO + '/dispatches', {
+  var res = UrlFetchApp.fetch('https://api.github.com/repos/' + GH_REPO + '/dispatches', {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + token,
@@ -370,6 +396,25 @@ function firePull_() {
     payload: JSON.stringify({ event_type: 'docsync-pull' }),
     muteHttpExceptions: true,
   });
+  // 204 is success. A 401/403 means the token expired or lacks Contents:write,
+  // and a silent no-op would look exactly like "sync is just slow".
+  if (res.getResponseCode() >= 300) {
+    console.log('dispatch failed ' + res.getResponseCode() + ': '
+                + res.getContentText().slice(0, 200));
+  }
+}
+
+/** Fire a pull right now, without waiting for the poll. */
+function syncNow() {
+  var ui = DocumentApp.getUi();
+  if (!PropertiesService.getScriptProperties().getProperty('GH_TOKEN')) {
+    ui.alert('No GitHub token', 'Run "Enable instant sync" first.', ui.ButtonSet.OK);
+    return;
+  }
+  firePull_();
+  ui.alert('Sync requested',
+    'The workflow was asked to pull this doc. Give it a minute or two.',
+    ui.ButtonSet.OK);
 }
 
 function removeTriggers_(handler) {
@@ -390,10 +435,8 @@ function removeTriggers_(handler) {
 // preview page's settings. Serving text only; the doc is link-visible anyway.
 
 function doGet() {
-  // Web-app requests have no "active" document, so the id is pinned here.
-  var docId = '1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU';
   var res = UrlFetchApp.fetch(
-    'https://docs.google.com/document/d/' + docId + '/export?format=markdown',
+    'https://docs.google.com/document/d/' + DOC_ID + '/export?format=markdown',
     { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } });
   return ContentService.createTextOutput(res.getContentText())
                        .setMimeType(ContentService.MimeType.TEXT);
