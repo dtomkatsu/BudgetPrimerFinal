@@ -625,6 +625,30 @@ check("a negative corner radius is caught",
                                  "y": 0, "w": 1, "h": 1, "r": -0.1}]}),
       "cannot be negative")
 
+# ---------------------------------------------------------------- images
+imged = _layout({"positions": {"p": {"x": 1, "y": 1, "rot": 10, "flip": "h"}},
+                 "img": {"p": {"radius": 0.12, "src": "assets/new.jpg",
+                               "filter": {"bright": 1.1, "gray": 0.3},
+                               "crop": {"imgW": 6.0, "dx": 1.2, "dy": 0.4}}}})
+check("rotate and flip share one transform declaration",
+      imged.attr("p"), "transform:rotate(10deg) scale(-1,1)")
+check_eq("a replaced image shows its replacement",
+         imged.img_src("p", "assets/old.jpg"), "assets/new.jpg")
+check_eq("an unreplaced image keeps the designed file",
+         imged.img_src("q", "assets/old.jpg"), "assets/old.jpg")
+check("radius and filters come out as one style", imged.img_css("p"),
+      "border-radius:0.12in;filter:brightness(1.1) grayscale(0.3)")
+check_eq("no overrides, no style", imged.img_css("q"), "")
+check_eq("the crop window's geometry round-trips",
+         imged.cropped("p"), {"imgW": 6.0, "dx": 1.2, "dy": 0.4})
+check("an unknown flip is caught",
+      _layout_error({"positions": {"p": {"x": 1, "y": 1, "flip": "x"}}}),
+      "must be h, v or hv")
+check("a crop missing its geometry is caught",
+      _layout_error({"img": {"p": {"crop": {"imgW": 5}}}}), "needs imgW, dx and dy")
+check("a negative filter is caught",
+      _layout_error({"img": {"p": {"filter": {"sat": -1}}}}), "cannot be negative")
+
 # The lock list is an editor affordance the renderer never reads — but a
 # malformed one must still fail at load, not quietly stop locking anything.
 check_eq("locked ids load", _layout({"locked": ["cover.logo", "s1-rect"]}).locked,

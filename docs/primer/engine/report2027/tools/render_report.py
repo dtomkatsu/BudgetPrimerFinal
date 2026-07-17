@@ -599,6 +599,27 @@ def card(title, bullets, bg, light=None, key=""):
             f'<div class="{cls}"{tag} style="{style}">'
             f'<h4>{title}</h4><ul{ul}>{lis}</ul></div>')
 
+def img_el(el_id, cls, src, alt):
+    """One image element, honouring replace/radius/filter/crop overrides.
+
+    Untouched, this emits exactly the literal it replaced — attribute order is
+    part of the bytes. A cropped image grows an overflow:hidden wrapper that
+    carries the element id and the window's size, with the full image drawn
+    inside at absolute inches (see Layout.cropped for why no pixel sizes).
+    """
+    src = L.img_src(el_id, src)
+    css = L.img_css(el_id)
+    crop = L.cropped(el_id)
+    head = f'<img class="{cls}"' if cls else "<img"
+    if not crop:
+        return f'{head}{L.attr(el_id, css)} src="{src}" alt="{alt}">'
+    inner = (f'<img src="{src}" alt="{alt}" style="position:absolute;'
+             f'left:-{crop["dx"]}in;top:-{crop["dy"]}in;width:{crop["imgW"]}in;'
+             f'max-width:none">')
+    wcls = f"ds-cropw {cls}".strip()
+    return f'<span class="{wcls}"{L.attr(el_id, css)}>{inner}</span>'
+
+
 def callout_open(key):
     """The opening tag of a callout, honouring a recolour.
 
@@ -682,7 +703,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page toc-page"{L.fill_attr(f"page.2")}>
  <div class="toc-head">
-  <div class="logo-lockup light"><img class="logo-img" src="assets/appleseed-logo-white.svg"
+  {L.spacer("toc.logo")}<div class="logo-lockup light"{L.attr("toc.logo")}><img class="logo-img" src="assets/appleseed-logo-white.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
   <p class="toc-author">{C.t("toc.author")}</p>
@@ -713,7 +734,7 @@ branch_cards = [
     ]
 ]
 bc = "".join(
-    f'<div class="branch"><img src="assets/{img}" alt="{esc(C.text(f"basics.branch.{k}.title"))}">'
+    f'<div class="branch">{img_el(f"branch.photo.{k}", "", f"assets/{img}", esc(C.text(f"basics.branch.{k}.title")))}'
     f'<div class="branch-card{" onlight" if is_light_bg(L.fill(f"branch.{k}", bg)) else ""}"'
     f'{L.tag(f"branch.{k}")}{L.fill_tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
     f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
@@ -806,7 +827,7 @@ pages.append(f"""
 # -- page 8: photo + one-time/emergency
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.8")}>
- {L.spacer("onetime.photo")}<img class="photo"{L.attr("onetime.photo")} src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
+ {L.spacer("onetime.photo")}{img_el("onetime.photo", "photo", "assets/hb2296-signing.jpg", esc(C.text("onetime.photo.alt")))}
  {C.html("onetime.photo.caption", "photocap")}
  <h3 class="sub2">{C.t("onetime.h3")}</h3>
  <div class="cards2">

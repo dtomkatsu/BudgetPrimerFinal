@@ -378,6 +378,7 @@ class Layout:
         # never reads it, so it cannot move a byte of the published page — it
         # is validated so a hand-edit cannot quietly disable the lock.
         self.locked = raw.get("locked") or []
+        self.imgs = raw.get("img") or {}
         self._validate()
 
     def _validate(self):
@@ -390,6 +391,9 @@ class Layout:
                 _num(p["rot"], f"position '{el}'.rot")
             if p.get("alpha") is not None:
                 _alpha(p["alpha"], f"position '{el}'.alpha")
+            if p.get("flip") is not None and p["flip"] not in ("h", "v", "hv"):
+                raise LayoutError(f"position '{el}': flip {p['flip']!r} must be "
+                                  f"h, v or hv")
         seen = set()
         for i, s in enumerate(self.shapes):
             where = f"shape #{i + 1}"
@@ -441,6 +445,31 @@ class Layout:
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
+        for el, g in self.imgs.items():
+            where = f"img '{el}'"
+            if not isinstance(g, dict):
+                raise LayoutError(f"{where}: expected an image-override object")
+            if g.get("radius") is not None and _num(g["radius"], f"{where}.radius") < 0:
+                raise LayoutError(f"{where}: radius cannot be negative")
+            if g.get("src") is not None and (
+                    not isinstance(g["src"], str) or not g["src"].strip()):
+                raise LayoutError(f"{where}: src must be a path")
+            if g.get("filter") is not None:
+                f = g["filter"]
+                if not isinstance(f, dict):
+                    raise LayoutError(f"{where}: filter must be an object")
+                for k in ("bright", "contrast", "sat"):
+                    if f.get(k) is not None and _num(f[k], f"{where}.filter.{k}") < 0:
+                        raise LayoutError(f"{where}.filter.{k} cannot be negative")
+                if f.get("gray") is not None:
+                    _alpha(f["gray"], f"{where}.filter.gray")
+            if g.get("crop") is not None:
+                c = g["crop"]
+                if not isinstance(c, dict) or any(k not in c for k in ("imgW", "dx", "dy")):
+                    raise LayoutError(f"{where}: crop needs imgW, dx and dy")
+                for k in ("imgW", "dx", "dy"):
+                    if _num(c[k], f"{where}.crop.{k}") < 0:
+                        raise LayoutError(f"{where}.crop.{k} cannot be negative")
         for i, b in enumerate(self.boxes):
             where = f"box #{i + 1}"
             bid = b.get("id")
@@ -484,8 +513,16 @@ class Layout:
             s += f';height:{p["h"]}in'
         # z is an integer layer: below 0 sits under the text, above 0 over it.
         s += f';z-index:{int(p.get("z", 1))}'
+        # One transform declaration for both: a second one would silently
+        # replace the first, which is exactly how a flip would eat a rotation.
+        tf = []
         if p.get("rot"):
-            s += f';transform:rotate({p["rot"]}deg)'
+            tf.append(f'rotate({p["rot"]}deg)')
+        if p.get("flip"):
+            f = p["flip"]
+            tf.append(f'scale({-1 if "h" in f else 1},{-1 if "v" in f else 1})')
+        if tf:
+            s += f';transform:{" ".join(tf)}'
         if p.get("alpha") is not None:
             s += f';opacity:{p["alpha"]:g}'
         return s
@@ -638,6 +675,41 @@ class Layout:
         if self.refilled(el_id):
             bits.append(f'style="background:{self.fills[el_id]}"')
         return (" " + " ".join(bits)) if bits else ""
+
+    # ---- images ----------------------------------------------------------
+
+    def img_src(self, el_id: str, default: str) -> str:
+        """The file an image element actually shows — replaced or designed."""
+        return (self.imgs.get(el_id) or {}).get("src") or default
+
+    def img_css(self, el_id: str) -> str:
+        """Radius and colour-filter declarations for one image, or ""."""
+        g = self.imgs.get(el_id) or {}
+        out = []
+        if g.get("radius"):
+            out.append(f'border-radius:{g["radius"]}in')
+        f = g.get("filter") or {}
+        fx = []
+        if f.get("bright") is not None:
+            fx.append(f'brightness({f["bright"]:g})')
+        if f.get("contrast") is not None:
+            fx.append(f'contrast({f["contrast"]:g})')
+        if f.get("sat") is not None:
+            fx.append(f'saturate({f["sat"]:g})')
+        if f.get("gray"):
+            fx.append(f'grayscale({f["gray"]:g})')
+        if fx:
+            out.append("filter:" + " ".join(fx))
+        return ";".join(out)
+
+    def cropped(self, el_id: str):
+        """The crop window's inner-image geometry, or None.
+
+        Absolute inches, deliberately: imgW is how wide the full image is
+        drawn, dx/dy how far the window sits into it. The editor measures
+        these against the rendered page, so this code never needs to know a
+        source file's pixel size."""
+        return (self.imgs.get(el_id) or {}).get("crop")
 
     # ---- free-floating text ---------------------------------------------
 

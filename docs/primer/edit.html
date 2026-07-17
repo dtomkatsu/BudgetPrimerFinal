@@ -457,7 +457,9 @@ function cite(d, ta, bar) {
 const assetPath = name => (M.assets || 'assets') + '/' + name;
 const localImages = new Map();     // path -> data URL, for previewing pre-deploy
 
-async function image(d, ta) {
+/** Pick a file, push it to the repo's assets, and hand back its path — the
+ *  one upload flow, whether the image lands in prose or replaces another. */
+async function uploadImageFile(d, onDone) {
   const tok = await askToken();
   if (!tok) return;
   const inp = d.createElement('input');
@@ -488,14 +490,21 @@ async function image(d, ta) {
         }),
       });
       localImages.set('assets/' + name, dataUrl);
-      const alt = d.defaultView.prompt('Describe the image (alt text)', name) || name;
-      spliceAt(ta, `\n\n![${alt}](assets/${name})\n\n`);
-      $('stat').textContent = `${name} uploaded — it renders below`;
+      $('stat').textContent = `${name} uploaded`;
+      onDone('assets/' + name, name);
     } catch (e) {
       $('stat').textContent = 'upload failed: ' + e.message;
     }
   });
   inp.click();
+}
+
+function image(d, ta) {
+  uploadImageFile(d, (path, name) => {
+    const alt = d.defaultView.prompt('Describe the image (alt text)', name) || name;
+    spliceAt(ta, `\n\n![${alt}](${path})\n\n`);
+    $('stat').textContent = `${name} uploaded — it renders below`;
+  });
 }
 
 /** Show just-uploaded images before they are deployed: the page resolves
@@ -806,6 +815,83 @@ function layerMenu(d, el, e) {
       });
     }
   }
+  // Images: flip, tone, replace, crop. The wrapper of a cropped image counts.
+  if (el.tagName === 'IMG' || el.classList.contains('ds-cropw')) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    menuHead('image');
+    const ig = () => {
+      layout.img = layout.img || {};
+      return (layout.img[id] = layout.img[id] || {});
+    };
+    const igNow = (layout.img || {})[id] || {};
+    const flipItem = axis => {
+      const cur = (storeOf(id) || {}).flip || '';
+      const on = cur.includes(axis);
+      item((on ? 'Unflip ' : 'Flip ') + (axis === 'h' ? 'horizontal' : 'vertical'),
+        async () => {
+          pushHistory();
+          const st = ensureStore(d, el);
+          const next = on ? cur.replace(axis, '')
+                          : (cur + axis).split('').sort().join('');
+          if (next) st.flip = next; else delete st.flip;
+          markDirty(); await render();
+        });
+    };
+    flipItem('h');
+    flipItem('v');
+    slider('corners', 0, 0.4, 0.01, igNow.radius || 0, v => {
+      const g = ig();
+      if (v) g.radius = v; else delete g.radius;
+      el.style.borderRadius = v ? v + 'in' : '';
+    });
+    // Live tone preview is plain JS on purpose-matched values — the renderer's
+    // img_css emits the same brightness()/contrast()/saturate()/grayscale().
+    const fdef = { bright: 1, contrast: 1, sat: 1, gray: 0 };
+    const paintF = () => {
+      const f = (ig().filter) || {};
+      el.style.filter = [
+        f.bright != null ? `brightness(${f.bright})` : '',
+        f.contrast != null ? `contrast(${f.contrast})` : '',
+        f.sat != null ? `saturate(${f.sat})` : '',
+        f.gray ? `grayscale(${f.gray})` : '',
+      ].filter(Boolean).join(' ');
+    };
+    const setF = (k, v) => {
+      const g = ig();
+      g.filter = g.filter || {};
+      if (Math.abs(v - fdef[k]) < 0.001) delete g.filter[k]; else g.filter[k] = v;
+      if (!Object.keys(g.filter).length) delete g.filter;
+      paintF();
+    };
+    slider('brightness', 0.3, 1.7, 0.05, igNow.filter?.bright ?? 1, v => setF('bright', v));
+    slider('contrast', 0.3, 1.7, 0.05, igNow.filter?.contrast ?? 1, v => setF('contrast', v));
+    slider('colour', 0, 2, 0.05, igNow.filter?.sat ?? 1, v => setF('sat', v));
+    slider('mono', 0, 1, 0.05, igNow.filter?.gray ?? 0, v => setF('gray', v));
+    item('Replace image…', () => {
+      closeMenu(d);
+      uploadImageFile(d, async path => {
+        pushHistory();
+        ig().src = path;
+        markDirty(); await render();
+      });
+    });
+    item('Crop… (or double-click)', () => { closeMenu(d); cropMode(d, el); });
+    if (igNow.crop) {
+      item('Reset crop', async () => {
+        pushHistory();
+        delete ig().crop;
+        markDirty(); await render();
+      });
+    }
+    if (Object.keys(igNow).length) {
+      item('Reset image styling', async () => {
+        pushHistory();
+        delete layout.img[id];
+        if (!Object.keys(layout.img).length) delete layout.img;
+        markDirty(); await render();
+      });
+    }
+  }
   if (layout.shapes.some(s => s.id === id)) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     item('Delete shape', async () => {
@@ -977,7 +1063,11 @@ function paintRot(d, el) {
       `rotate(${st.rot} ${+(s.x + s.w / 2).toFixed(4)} ${+(s.y + s.h / 2).toFixed(4)})`);
     else el.removeAttribute('transform');
   } else {
-    el.style.transform = st.rot ? `rotate(${st.rot}deg)` : '';
+    // Rotation and flip share one declaration, same as the renderer emits.
+    el.style.transform = [
+      st.rot ? `rotate(${st.rot}deg)` : '',
+      st.flip ? `scale(${st.flip.includes('h') ? -1 : 1},${st.flip.includes('v') ? -1 : 1})` : '',
+    ].filter(Boolean).join(' ');
   }
 }
 
@@ -1033,6 +1123,97 @@ function paintShadow(d, el) {
   } else {
     el.style.boxShadow = st.shadow ? shadowCssFor(st.shadow, false) : '';
   }
+}
+
+// -------------------------------------------------------------------- crop
+// The window stays put; the image moves under it. Pan by dragging, zoom by
+// scrolling, Enter keeps it, Esc puts everything back. What gets stored is
+// absolute inches — how wide the full image is drawn and how far the window
+// sits into it — so the renderer never needs to know a file's pixel size.
+// Afterwards the normal resize handles size the WINDOW, which is also
+// cropping; no special mode needed for that half.
+function cropMode(d, el) {
+  if (editing) return;
+  const id = idOf(el);
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  pushHistory();
+  const b = inchBox(el, page);
+  const st = ensureStore(d, el);          // the window must be a fixed frame
+  st.w = +b.w.toFixed(2);
+  st.h = +b.h.toFixed(2);
+  layout.img = layout.img || {};
+  const g = (layout.img[id] = layout.img[id] || {});
+  const c = g.crop ? { ...g.crop } : { imgW: +b.w.toFixed(2), dx: 0, dy: 0 };
+  const srcNode = el.tagName === 'IMG' ? el : el.querySelector('img');
+
+  const ov = d.createElement('div');
+  ov.className = 'ds-cropov';
+  ov.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
+  const ghost = d.createElement('img');
+  ghost.src = srcNode.src;
+  ghost.className = 'ds-crop-ghost';
+  const frame = d.createElement('div');
+  frame.className = 'ds-crop-frame';
+  const hint = d.createElement('div');
+  hint.className = 'ds-crop-hint';
+  hint.textContent = 'drag to pan · scroll to zoom · Enter keeps it · Esc cancels';
+  ov.append(ghost, frame, hint);
+  page.appendChild(ov);
+  hideHandles(d);
+
+  const aspect = () => ghost.naturalWidth
+    ? ghost.naturalHeight / ghost.naturalWidth : 0.75;
+  const paint = () => {
+    // The image may never leave the window uncovered.
+    c.imgW = Math.max(c.imgW, b.w, b.h / aspect());
+    c.dx = Math.min(Math.max(c.dx, 0), c.imgW - b.w);
+    c.dy = Math.min(Math.max(c.dy, 0), c.imgW * aspect() - b.h);
+    ghost.style.cssText =
+      `position:absolute;left:${-c.dx}in;top:${-c.dy}in;width:${c.imgW}in;max-width:none`;
+  };
+  ghost.onload = paint;
+  paint();
+
+  ov.addEventListener('mousedown', e0 => {
+    e0.preventDefault();
+    e0.stopPropagation();
+    const px = DPI * zoomOf(page);
+    const g0 = { x: e0.clientX, y: e0.clientY, dx: c.dx, dy: c.dy };
+    const mv = e => {
+      c.dx = g0.dx - (e.clientX - g0.x) / px;
+      c.dy = g0.dy - (e.clientY - g0.y) / px;
+      paint();
+    };
+    const up2 = () => {
+      d.removeEventListener('mousemove', mv);
+      d.removeEventListener('mouseup', up2);
+    };
+    d.addEventListener('mousemove', mv);
+    d.addEventListener('mouseup', up2);
+  });
+  ov.addEventListener('wheel', e => {
+    e.preventDefault();
+    const k = e.deltaY < 0 ? 1.06 : 1 / 1.06;
+    c.imgW *= k;                          // zoom about the window's centre
+    c.dx = (c.dx + b.w / 2) * k - b.w / 2;
+    c.dy = (c.dy + b.h / 2) * k - b.h / 2;
+    paint();
+  }, { passive: false });
+
+  const finish = async keep => {
+    d.removeEventListener('keydown', keys, true);
+    ov.remove();
+    if (!keep) { await undo(); return; }
+    g.crop = { imgW: +c.imgW.toFixed(2), dx: +c.dx.toFixed(2), dy: +c.dy.toFixed(2) };
+    markDirty();
+    await render();
+    $('stat').textContent = `${id} cropped — the resize handles size the window`;
+  };
+  const keys = e => {
+    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
+  };
+  d.addEventListener('keydown', keys, true);
 }
 
 // -------------------------------------------------------------------- fit
@@ -1969,9 +2150,12 @@ function dragify(d) {
     });
     // A text box has no [data-slot] inside it — its words live in layout.json —
     // so it needs its own way in. Double-click, since a single click is the
-    // drag it shares with every other placed thing.
+    // drag it shares with every other placed thing. An image's double-click
+    // is Canva's: it opens the crop.
     if ((el.dataset.el || '').startsWith('text.'))
       el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
+    else if (el.tagName === 'IMG' || el.classList.contains('ds-cropw'))
+      el.addEventListener('dblclick', e => { e.preventDefault(); cropMode(d, el); });
     el.addEventListener('keydown', e => keyDrag(d, el, e));
     // Focus is selection's keyboard route; the handles ride the selection.
     el.addEventListener('focus', () => { if (!selIds.has(idOf(el))) setSel(d, [idOf(el)]); });
@@ -2533,6 +2717,14 @@ function wire() {
     .ds-menu-slider { display:flex; align-items:center; gap:7px; font:11px system-ui;
              color:#5B6E66; padding:3px 8px; }
     .ds-menu-slider input[type=range] { flex:1; accent-color:#6B9E78; min-width:110px; }
+    /* crop mode: the kept window stays bright, everything else dims */
+    .ds-cropov { position:absolute; z-index:9999; cursor:move; }
+    .ds-crop-frame { position:absolute; inset:0; outline:2px solid #6B9E78;
+             box-shadow:0 0 0 4000px rgba(47,62,70,.45); pointer-events:none; }
+    .ds-crop-hint { position:absolute; left:50%; transform:translateX(-50%);
+             bottom:-26px; white-space:nowrap; font:11px system-ui; color:#fff;
+             background:#2F3E46; padding:3px 10px; border-radius:99px;
+             pointer-events:none; }
     .ds-swatches { display:flex; flex-wrap:wrap; gap:4px; padding:2px 8px 6px; }
     .ds-sw { width:20px; height:20px; padding:0; border:1px solid rgba(0,0,0,.18);
              border-radius:4px; cursor:pointer; }

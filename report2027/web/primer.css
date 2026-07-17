@@ -42,6 +42,9 @@ img.inline-img { display: block; max-width: 100%; height: auto; margin: 10px 0;
    from the prose. No height — it grows with its words, like any text should. */
 .ds-textbox { font-size: 13.5px; line-height: 1.45; }
 .ds-textbox p:last-child { margin-bottom: 0; }
+/* a cropped image: the wrapper is the window, the full image hangs inside it
+   at absolute inches; the editor sizes the window, layout.json remembers */
+.ds-cropw { position: relative; display: block; overflow: hidden; }
 
 /* Overflow slots ([[extra.<page>.<slug>]]) — bullet lists outside cards */
 ul.extra-bullets { margin: 0 0 12px; padding-left: 20px; }
