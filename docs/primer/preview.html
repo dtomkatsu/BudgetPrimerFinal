@@ -45,18 +45,19 @@
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
-const RAW = 'https://raw.githubusercontent.com/dtomkatsu/BudgetPrimerFinal/main/';
-// Everything the renderer touches, fetched fresh from main so this page never
-// carries a copy of the code or data (no second pipeline to maintain).
+// Same-origin engine, deployed with this page (see `make -C report2027 editor`).
+// raw.githubusercontent's CDN could serve a stale renderer for minutes after a
+// push — a wrong page that looked right. TREE maps a URL to the path the
+// renderer expects inside Pyodide's FS.
 const TREE = {
-  'docsync/content.py':                     'text',
-  'docsync/normalise.py':                   'text',
-  'report2027/tools/render_report.py':      'text',
-  'report2027/content.md':                  'text',
-  'report2027/data/report_data.json':       'text',
-  'report2027/manual/obligated_costs.json': 'text',
-  'docs/js/departments_act175_fy2027.json': 'text',
-  'docs/js/historical_trends.json':         'text',
+  'engine/docsync/content.py':                     'docsync/content.py',
+  'engine/docsync/normalise.py':                   'docsync/normalise.py',
+  'engine/report2027/tools/render_report.py':      'report2027/tools/render_report.py',
+  'engine/report2027/content.md':                  'report2027/content.md',
+  'engine/report2027/data/report_data.json':       'report2027/data/report_data.json',
+  'engine/report2027/manual/obligated_costs.json': 'report2027/manual/obligated_costs.json',
+  '../js/departments_act175_fy2027.json':          'docs/js/departments_act175_fy2027.json',
+  '../js/historical_trends.json':                  'docs/js/historical_trends.json',
 };
 
 const $ = id => document.getElementById(id);
@@ -75,10 +76,8 @@ async function boot() {
   const feedParam = new URLSearchParams(location.search).get('feed');
   if (feedParam) localStorage.setItem('docsync-feed', feedParam);
 
-  const [pyodide, ...files] = await Promise.all([
-    loadPyodide(),
-    ...Object.keys(TREE).map(p => fetchText(RAW + p)),
-  ]);
+  const urls = Object.keys(TREE);
+  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(fetchText)]);
   py = pyodide;
   ['/repo/docsync', '/repo/report2027/tools', '/repo/report2027/data',
    '/repo/report2027/manual', '/repo/report2027/web', '/repo/docs/js',
@@ -86,8 +85,8 @@ async function boot() {
   // A minimal package init: the real one pulls in the registry (pyyaml),
   // which the renderer never needs.
   py.FS.writeFile('/repo/docsync/__init__.py', '');
-  Object.keys(TREE).forEach((p, i) => py.FS.writeFile('/repo/' + p, files[i]));
-  py.FS.writeFile('/repo/committed.md', files[Object.keys(TREE).indexOf('report2027/content.md')]);
+  urls.forEach((u, i) => py.FS.writeFile('/repo/' + TREE[u], files[i]));
+  py.FS.writeFile('/repo/committed.md', files[urls.indexOf('engine/report2027/content.md')]);
 
   $('stat').textContent = 'engine ready';
   await render(true);
@@ -100,7 +99,7 @@ async function render(force) {
   let md, src;
   try {
     if (feed) { md = await fetchText(feed); src = 'the Google Doc'; }
-    else { md = await fetchText(RAW + 'report2027/content.md');
+    else { md = await fetchText('engine/report2027/content.md');
            src = 'committed content.md (no doc feed set)'; }
   } catch (e) {
     $('stat').textContent = 'feed error: ' + e.message;

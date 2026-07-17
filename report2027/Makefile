@@ -20,6 +20,19 @@ doc-diff:
 doc-status:
 	cd .. && python3 -m docsync.sync status --id budget-primer
 
+# The draft editor runs the real renderer in the browser. Serving its code
+# from raw.githubusercontent meant the CDN could hand out a stale renderer for
+# minutes after a push — a silently wrong page that looked fine. Copy what it
+# needs next to the page instead: same origin, deployed atomically with it.
+E := ../docs/primer/engine
+editor: html
+	@mkdir -p $(E)/docsync $(E)/report2027/tools $(E)/report2027/data $(E)/report2027/manual
+	cp ../docsync/content.py ../docsync/normalise.py $(E)/docsync/
+	cp tools/render_report.py $(E)/report2027/tools/
+	cp content.md $(E)/report2027/
+	cp data/report_data.json $(E)/report2027/data/
+	cp manual/obligated_costs.json $(E)/report2027/manual/
+
 data:
 	python3 tools/build_data.py
 
@@ -40,4 +53,4 @@ embed: html
 preview: html
 	open web/index.html
 
-.PHONY: doc-status all validate data html pdf embed preview pull-doc doc-diff
+.PHONY: editor doc-status all validate data html pdf embed preview pull-doc doc-diff

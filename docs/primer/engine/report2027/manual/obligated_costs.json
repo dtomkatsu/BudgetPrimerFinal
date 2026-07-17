@@ -1,0 +1,25 @@
+{
+  "_comment": "General-fund obligated ('fixed') costs by fiscal year, from the 'Statewide Totals by Fixed vs. Non-Fixed — General Funds' table (printed page 18) of each biennium's Hawaiʻi Executive Budget in Brief. Each biennium BIB supplies two fiscal years; together they form a continuous FY2018–FY2027 series. Values in dollars.",
+  "fund": "General Funds",
+  "unit": "dollars",
+  "sources": {
+    "FY2018-FY2019": "FB 17-19 Budget in Brief (12/15/2016), p.18 — https://budget.hawaii.gov/wp-content/uploads/2016/12/FB-17-19-BIB-FINAL-12.15.16.pdf",
+    "FY2020-FY2021": "FB 19-21 Budget in Brief (12/13/2018), p.18 — https://budget.hawaii.gov/wp-content/uploads/2018/12/FB-19-21-BIB-FINAL-12.13.18.pdf",
+    "FY2022-FY2023": "FB 21-23 Budget in Brief (12/19/2020), p.18 — https://budget.hawaii.gov/wp-content/uploads/2020/12/FB-21-23-BIB-12-19-20.8ag.pdf",
+    "FY2024-FY2025": "FB 23-25 Budget in Brief (12/16/2022), p.18 — https://budget.hawaii.gov/wp-content/uploads/2022/12/FB-23-25-BIB-12-16-22.Lk0_.pdf",
+    "FY2026-FY2027": "FY27 Supplemental Budget in Brief (12/2025), p.18 — https://budget.hawaii.gov/wp-content/uploads/2025/12/Budget-in-Brief-FY-27-BIB.xApH_.pdf"
+  },
+  "categories": ["Retirement System", "Health Fund", "Medicaid & Entitlements", "Debt Service", "Certificate of Participation"],
+  "series": {
+    "2018": {"Retirement System": 811394363, "Health Fund": 1021401508, "Medicaid & Entitlements": 1063679505, "Debt Service": 742764528, "Certificate of Participation": 4739600, "_printed_subtotal": 3643979504},
+    "2019": {"Retirement System": 827959641, "Health Fund": 1076817768, "Medicaid & Entitlements": 1100841558, "Debt Service": 825615381, "Certificate of Participation": 4739600, "_printed_subtotal": 3835973948},
+    "2020": {"Retirement System": 1016188135, "Health Fund": 1130621825, "Medicaid & Entitlements": 1068398642, "Debt Service": 862867714, "Certificate of Participation": 6489600, "_printed_subtotal": 4084565916},
+    "2021": {"Retirement System": 1122405222, "Health Fund": 1169962184, "Medicaid & Entitlements": 1123278642, "Debt Service": 857237498, "Certificate of Participation": 6489600, "_printed_subtotal": 4279373146},
+    "2022": {"Retirement System": 1101986274, "Health Fund": 829330182, "Medicaid & Entitlements": 1156803897, "Debt Service": 1017082741, "Certificate of Participation": 2183296, "_printed_subtotal": 4107386390},
+    "2023": {"Retirement System": 1101986274, "Health Fund": 870527182, "Medicaid & Entitlements": 1177083166, "Debt Service": 1071323809, "Certificate of Participation": 2183296, "_printed_subtotal": 4223103727},
+    "2024": {"Retirement System": 1178674986, "Health Fund": 1160450475, "Medicaid & Entitlements": 1164685099, "Debt Service": 1138771074, "Certificate of Participation": 1750000, "_printed_subtotal": 4644331634},
+    "2025": {"Retirement System": 1243228505, "Health Fund": 1212428805, "Medicaid & Entitlements": 1169685099, "Debt Service": 1256711456, "Certificate of Participation": 1750000, "_printed_subtotal": 4883803865},
+    "2026": {"Retirement System": 1285044848, "Health Fund": 1253138546, "Medicaid & Entitlements": 1209989759, "Debt Service": 1130856122, "Certificate of Participation": 1750000, "_printed_subtotal": 4880779275},
+    "2027": {"Retirement System": 1319693340, "Health Fund": 1266833291, "Medicaid & Entitlements": 1254989759, "Debt Service": 1182805140, "Certificate of Participation": 1750000, "_printed_subtotal": 5026071530}
+  }
+}

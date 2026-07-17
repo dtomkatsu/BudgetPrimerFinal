@@ -50,13 +50,21 @@
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 const REPO = 'dtomkatsu/BudgetPrimerFinal';
-const RAW  = `https://raw.githubusercontent.com/${REPO}/main/`;
-const FILES = [
-  'docsync/content.py', 'docsync/normalise.py',
-  'report2027/tools/render_report.py', 'report2027/content.md',
-  'report2027/data/report_data.json', 'report2027/manual/obligated_costs.json',
-  'docs/js/departments_act175_fy2027.json', 'docs/js/historical_trends.json',
-];
+// Same-origin, deployed with this page by `make -C report2027 editor`. Fetching
+// the renderer from raw.githubusercontent instead let its CDN serve a stale
+// copy for minutes after a push, which rendered a wrong page that looked right.
+// Here the engine can only ever be the one that shipped alongside the editor.
+// FILES maps a URL to the path the renderer expects inside Pyodide's FS.
+const FILES = {
+  'engine/docsync/content.py':                   'docsync/content.py',
+  'engine/docsync/normalise.py':                 'docsync/normalise.py',
+  'engine/report2027/tools/render_report.py':    'report2027/tools/render_report.py',
+  'engine/report2027/content.md':                'report2027/content.md',
+  'engine/report2027/data/report_data.json':     'report2027/data/report_data.json',
+  'engine/report2027/manual/obligated_costs.json': 'report2027/manual/obligated_costs.json',
+  '../js/departments_act175_fy2027.json':        'docs/js/departments_act175_fy2027.json',
+  '../js/historical_trends.json':                'docs/js/historical_trends.json',
+};
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
@@ -221,13 +229,14 @@ function showLocalImages(d) {
 }
 
 async function boot() {
-  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...FILES.map(f => get(RAW + f))]);
+  const urls = Object.keys(FILES);
+  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(get)]);
   py = pyodide;
   ['docsync', 'report2027/tools', 'report2027/data', 'report2027/manual',
    'report2027/web', 'docs/js'].forEach(d => py.FS.mkdirTree('/repo/' + d));
   py.FS.writeFile('/repo/docsync/__init__.py', '');
-  FILES.forEach((f, i) => py.FS.writeFile('/repo/' + f, files[i]));
-  source = original = files[FILES.indexOf('report2027/content.md')];
+  urls.forEach((u, i) => py.FS.writeFile('/repo/' + FILES[u], files[i]));
+  source = original = files[urls.indexOf('engine/report2027/content.md')];
   await render();
 }
 
