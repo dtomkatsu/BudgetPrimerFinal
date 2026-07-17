@@ -39,6 +39,25 @@
   #fit { background:#C0392B; color:#fff; padding:2px 8px; border-radius:4px;
          font:11px system-ui; cursor:help; }
   #out { border:0; width:100%; height:calc(100% - 36px); background:#EDF1EE; }
+  /* The contextual type row. Present only while text is selected, so the
+     chrome does not shout at you while you are reading. */
+  #type { display:flex; gap:5px; align-items:center; flex-wrap:wrap;
+          padding:5px 12px; background:#3B4C55; border-top:1px solid #4C5F69; }
+  #type:not([hidden]) ~ #out { height:calc(100% - 72px); }
+  #type select, #type input[type=number] { font:11px system-ui; padding:2px 4px;
+          border:1px solid #5C6F79; border-radius:4px; background:#fff; color:#2F3E46; }
+  #type select { max-width:130px; }
+  #type input[type=number] { width:52px; }
+  #type input[type=color] { width:26px; height:22px; padding:0; border:1px solid #5C6F79;
+          border-radius:4px; background:none; cursor:pointer; }
+  #type button { font:11px system-ui; min-width:24px; padding:3px 7px; cursor:pointer;
+          border:1px solid #5C6F79; border-radius:4px; background:#fff; color:#2F3E46; }
+  #type button:hover { background:#6B9E78; color:#fff; }
+  #type button.on { background:#6B9E78; color:#fff; border-color:#6B9E78; }
+  #ty-reset { margin-left:auto; }
+  .ty-key { font:10px ui-monospace,monospace; color:#9FB3AE; min-width:90px; }
+  .ty-sep { width:1px; height:18px; background:#5C6F79; margin:0 3px; }
+  .ty-num { display:flex; align-items:center; gap:3px; font:10px system-ui; color:#C7D6D1; }
 </style>
 </head>
 <body>
@@ -51,6 +70,28 @@
   <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
   <button id="save" disabled>Save</button>
   <button id="revert" disabled>Discard</button>
+</div>
+<div id="type" hidden>
+  <span class="ty-key" id="ty-key"></span>
+  <select id="ty-font" title="Font"></select>
+  <select id="ty-weight" title="Weight"></select>
+  <input id="ty-size" type="number" min="6" max="200" step="0.5" title="Size (px)">
+  <button id="ty-i" title="Italic"><i>I</i></button>
+  <button id="ty-u" title="Underline"><u>U</u></button>
+  <span class="ty-sep"></span>
+  <button class="ty-al" data-a="left" title="Align left">◧</button>
+  <button class="ty-al" data-a="center" title="Align centre">▣</button>
+  <button class="ty-al" data-a="right" title="Align right">◨</button>
+  <button class="ty-al" data-a="justify" title="Justify">▤</button>
+  <span class="ty-sep"></span>
+  <select id="ty-case" title="Letter case">
+    <option value="none">Aa</option><option value="upper">AA</option>
+    <option value="lower">aa</option><option value="title">Aa Bb</option>
+  </select>
+  <input id="ty-color" type="color" title="Text colour">
+  <label class="ty-num" title="Letter spacing (px)">A|A<input id="ty-track" type="number" step="0.1" min="-5" max="20"></label>
+  <label class="ty-num" title="Line height">≡<input id="ty-lead" type="number" step="0.05" min="0.6" max="4"></label>
+  <button id="ty-reset" title="Put this text back the way the report designed it">Reset type</button>
 </div>
 <iframe id="out" title="editable draft"></iframe>
 
@@ -496,6 +537,114 @@ function reportFit(d) {
   $('fit').title = bad.map(b => `page ${b.page}: ${b.who} is ${b.over}in past the cut`).join('\n');
 }
 
+// ------------------------------------------------------------------- type
+// A contextual row, Canva's own pattern: it appears when text is selected and
+// is otherwise not in the way. It lives OUTSIDE the iframe and is keyed on a
+// slot NAME, never a DOM node — so a blur that commits and re-renders cannot
+// invalidate it, and its <select>s need none of the mousedown gymnastics the
+// in-page strip does.
+let selected = null;                   // the slot key the type row is editing
+let fonts = {};                        // family -> weights, from the engine
+
+const styleOf = k => (layout.text && layout.text[k]) || {};
+const setStyle = (k, patch) => {
+  layout.text = layout.text || {};
+  const st = { ...styleOf(k), ...patch };
+  Object.keys(st).forEach(p => { if (st[p] === '' || st[p] === null) delete st[p]; });
+  if (Object.keys(st).length) layout.text[k] = st; else delete layout.text[k];
+};
+
+/** The CSS a style means, asked of the engine rather than reimplemented here.
+ *  Two implementations of that question would drift apart silently. */
+function cssFor(st) {
+  py.globals.set('STYLE_JSON', JSON.stringify(st || {}));
+  return py.runPython('import json\nfrom docsync.layout import text_css\ntext_css(json.loads(STYLE_JSON))');
+}
+
+/** Paint the style straight onto the node while a control is being dragged.
+ *  A full re-render is ~1s; a slider is 60fps. Same bargain the drag strikes —
+ *  the renderer catches up on release. */
+function paintText(key) {
+  const d = $('out').contentDocument;
+  const css = cssFor(styleOf(key));
+  d.querySelectorAll(`[data-slot="${key}"]`).forEach(el => el.style.cssText = css);
+}
+
+function fillWeights(fam, want) {
+  const sel = $('ty-weight');
+  const ws = fonts[fam] || [400];
+  sel.innerHTML = '<option value="">weight</option>'
+    + ws.map(w => `<option value="${w}">${w}</option>`).join('');
+  sel.value = want && ws.includes(+want) ? String(want) : '';
+}
+
+function showType(key) {
+  selected = key;
+  const st = styleOf(key);
+  $('ty-key').textContent = key;
+  $('ty-font').value = st.font || '';
+  fillWeights(st.font, st.weight);
+  $('ty-size').value = st.size ?? '';
+  $('ty-track').value = st.tracking ?? '';
+  $('ty-lead').value = st.leading ?? '';
+  $('ty-case').value = st.case || 'none';
+  $('ty-color').value = /^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#2f3e46';
+  $('ty-i').classList.toggle('on', !!st.italic);
+  $('ty-u').classList.toggle('on', !!st.underline);
+  document.querySelectorAll('.ty-al').forEach(b =>
+    b.classList.toggle('on', b.dataset.a === st.align));
+  $('type').hidden = false;
+}
+
+/** input -> paint (fast, local). change -> commit and re-render, because the
+ *  cascade and is_light_bg are the renderer's job, not something to fake. */
+function wireType() {
+  const live = (el, read) => {
+    el.addEventListener('input', () => { setStyle(selected, read()); paintText(selected); });
+    el.addEventListener('change', async () => {
+      setStyle(selected, read()); markDirty(); await render(); showType(selected);
+    });
+  };
+  live($('ty-size'), () => ({ size: $('ty-size').value === '' ? null : +$('ty-size').value }));
+  live($('ty-track'), () => ({ tracking: $('ty-track').value === '' ? null : +$('ty-track').value }));
+  live($('ty-lead'), () => ({ leading: $('ty-lead').value === '' ? null : +$('ty-lead').value }));
+  live($('ty-color'), () => ({ color: $('ty-color').value }));
+
+  $('ty-font').addEventListener('change', async () => {
+    const fam = $('ty-font').value || null;
+    // A weight the new family does not have would be faked by the browser, and
+    // the engine refuses it at load — so drop it rather than carry it over.
+    const w = fam && fonts[fam] && fonts[fam].includes(+styleOf(selected).weight)
+      ? styleOf(selected).weight : null;
+    setStyle(selected, { font: fam, weight: w });
+    markDirty(); await render(); showType(selected);
+  });
+  $('ty-weight').addEventListener('change', async () => {
+    setStyle(selected, { weight: $('ty-weight').value === '' ? null : +$('ty-weight').value });
+    markDirty(); await render(); showType(selected);
+  });
+  $('ty-case').addEventListener('change', async () => {
+    const v = $('ty-case').value;
+    setStyle(selected, { case: v === 'none' ? null : v });
+    markDirty(); await render(); showType(selected);
+  });
+  const toggle = (id, prop) => $(id).addEventListener('click', async () => {
+    setStyle(selected, { [prop]: !styleOf(selected)[prop] || null });
+    markDirty(); await render(); showType(selected);
+  });
+  toggle('ty-i', 'italic');
+  toggle('ty-u', 'underline');
+  document.querySelectorAll('.ty-al').forEach(b => b.addEventListener('click', async () => {
+    const a = styleOf(selected).align === b.dataset.a ? null : b.dataset.a;
+    setStyle(selected, { align: a });
+    markDirty(); await render(); showType(selected);
+  }));
+  $('ty-reset').addEventListener('click', async () => {
+    if (layout.text) delete layout.text[selected];
+    markDirty(); await render(); showType(selected);
+  });
+}
+
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
@@ -868,6 +1017,15 @@ async function boot() {
   }
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
+  // Put the rebuilt checkout on the path once, here, rather than inside the
+  // render call — the type row asks the engine for its font list before
+  // anything has rendered.
+  py.runPython("import sys\nsys.path.insert(0, '/repo')");
+  fonts = JSON.parse(py.runPython(
+    'import json\nfrom docsync.layout import FONTS\njson.dumps(FONTS)'));
+  $('ty-font').innerHTML = '<option value="">font</option>'
+    + Object.keys(fonts).sort().map(f => `<option value="${f}">${f}</option>`).join('');
+  wireType();
   await render();
 }
 
@@ -883,7 +1041,6 @@ async function render() {
   try {
     html = await py.runPythonAsync(`
 import sys, os, io, runpy, contextlib
-if '/repo' not in sys.path: sys.path.insert(0, '/repo')
 os.environ['DOCSYNC_EDIT'] = '1'            # stamp data-slot on prose blocks
 open('/repo/' + CONTENT, 'w').write(SRC)
 if LAYOUT_PATH: open('/repo/' + LAYOUT_PATH, 'w').write(LAYOUT)
@@ -1010,7 +1167,7 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    el.addEventListener('click', () => edit(d, key));
+    el.addEventListener('click', () => { showType(key); edit(d, key); });
   });
 }
 
