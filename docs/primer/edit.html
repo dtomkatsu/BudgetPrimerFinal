@@ -24,79 +24,215 @@
   anywhere until you press it.
 -->
 <style>
-  :root { --ink:#2F3E46; --sage:#6B9E78; --deep:#52796F; }
+  :root { --ink:#2F3E46; --sage:#6B9E78; --deep:#52796F; --chrome:#334049;
+          --chrome2:#3B4A54; --line:#4B5C66; --ctl:#455460; --ctl-line:#57686F;
+          --txt:#EDF2EF; --dim:#A9BCB4; }
   html, body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif; }
-  #bar { display:flex; gap:10px; align-items:center; padding:7px 12px;
-         background:var(--ink); color:#E8EDE6; flex-wrap:wrap; }
-  #bar b { color:#fff; letter-spacing:.3px; }
-  #stat { flex:1; min-width:180px; opacity:.85; }
-  #bar button { background:var(--sage); color:#fff; border:0; border-radius:4px;
-                padding:4px 11px; cursor:pointer; font:inherit; }
-  #bar button:hover { background:var(--deep); }
-  #bar button:disabled { background:#66707a; cursor:default; }
-  #save.dirty { background:#c2703a; }
-  .ds-id { font:10px ui-monospace,monospace; opacity:.6; }
-  #fit { background:#C0392B; color:#fff; padding:2px 8px; border-radius:4px;
-         font:11px system-ui; cursor:help; }
-  #out { border:0; width:100%; height:calc(100% - 36px); background:#EDF1EE; }
-  /* The contextual type row. Present only while text is selected, so the
-     chrome does not shout at you while you are reading. */
-  #type { display:flex; gap:5px; align-items:center; flex-wrap:wrap;
-          padding:5px 12px; background:#3B4C55; border-top:1px solid #4C5F69; }
-  #type:not([hidden]) ~ #out { height:calc(100% - 72px); }
-  #type select, #type input[type=number] { font:11px system-ui; padding:2px 4px;
-          border:1px solid #5C6F79; border-radius:4px; background:#fff; color:#2F3E46; }
-  #type select { max-width:130px; }
-  #type input[type=number] { width:52px; }
-  #type input[type=color] { width:26px; height:22px; padding:0; border:1px solid #5C6F79;
-          border-radius:4px; background:none; cursor:pointer; }
-  #type button { font:11px system-ui; min-width:24px; padding:3px 7px; cursor:pointer;
-          border:1px solid #5C6F79; border-radius:4px; background:#fff; color:#2F3E46; }
-  #type button:hover { background:#6B9E78; color:#fff; }
-  #type button.on { background:#6B9E78; color:#fff; border-color:#6B9E78; }
-  #ty-reset { margin-left:auto; }
-  .ty-key { font:10px ui-monospace,monospace; color:#9FB3AE; min-width:90px; }
-  .ty-sep { width:1px; height:18px; background:#5C6F79; margin:0 3px; }
-  .ty-num { display:flex; align-items:center; gap:3px; font:10px system-ui; color:#C7D6D1; }
+
+  /* -- top bar ----------------------------------------------------------- */
+  #bar { position:relative; display:flex; gap:8px; align-items:center; padding:8px 14px;
+         background:var(--chrome); color:var(--txt); flex-wrap:wrap;
+         border-bottom:1px solid var(--line); }
+  #brand { display:flex; align-items:center; gap:7px; font-weight:700;
+           letter-spacing:.2px; color:#fff; white-space:nowrap; }
+  #brand svg { display:block; }
+  #stat { flex:1; min-width:180px; opacity:.9; overflow:hidden;
+          text-overflow:ellipsis; white-space:nowrap; }
+  .ds-id { font:11.5px ui-monospace,monospace; color:var(--dim);
+           background:rgba(255,255,255,.07); padding:2px 8px; border-radius:99px; }
+  #fit { background:#C0392B; color:#fff; padding:3px 10px; border-radius:99px;
+         font:12px system-ui; cursor:help; }
+  /* one button language everywhere: quiet by default, sage when primary */
+  #bar button { display:inline-flex; align-items:center; gap:6px; font:12.5px system-ui;
+                background:var(--ctl); color:var(--txt); border:1px solid var(--ctl-line);
+                border-radius:7px; padding:5px 12px; cursor:pointer; height:29px;
+                transition:background .12s, border-color .12s; }
+  #bar button:hover { border-color:var(--sage); background:#4B5B68; }
+  #bar button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
+                         background:var(--ctl); }
+  #save { background:var(--sage); border-color:var(--sage); color:#fff; font-weight:600; }
+  #save:hover { background:var(--deep); border-color:var(--deep); }
+  #save.dirty { background:#C2703A; border-color:#C2703A; }
+  #save.dirty:hover { background:#A85E2F; }
+  #out { border:0; width:100%; height:calc(100% - 46px); background:#EDF1EE; }
+
+  /* -- the type row: contextual, Canva's own pattern --------------------- */
+  #type { position:relative; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+          padding:7px 14px; background:var(--chrome2); border-bottom:1px solid var(--line); }
+  /* display:flex would silently beat the hidden attribute's display:none */
+  #type[hidden] { display:none; }
+  #type:not([hidden]) ~ #out { height:calc(100% - 91px); }
+  #type select, #type input[type=number] {
+          font:12.5px system-ui; height:29px; padding:0 7px; box-sizing:border-box;
+          border:1px solid var(--ctl-line); border-radius:7px; background:var(--ctl);
+          color:var(--txt); transition:border-color .12s; }
+  #type select:hover, #type input[type=number]:hover { border-color:var(--sage); }
+  #type select:focus, #type input:focus, #type button:focus-visible
+        { outline:2px solid rgba(107,158,120,.55); outline-offset:1px; }
+  #ty-font { width:150px; }
+  #ty-weight { width:78px; }
+  #type input[type=number] { width:54px; }
+  #type button { display:inline-flex; align-items:center; justify-content:center;
+          font:12.5px system-ui; min-width:29px; height:29px; padding:0 8px;
+          cursor:pointer; border:1px solid var(--ctl-line); border-radius:7px;
+          background:var(--ctl); color:var(--txt);
+          transition:background .12s, border-color .12s; }
+  #type button:hover { border-color:var(--sage); background:#4B5B68; }
+  #type button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #type button svg { display:block; pointer-events:none; }
+  /* segmented align group reads as one control, like Canva's */
+  .ty-seg { display:inline-flex; }
+  .ty-seg button { border-radius:0; margin-left:-1px; }
+  .ty-seg button:first-child { border-radius:7px 0 0 7px; margin-left:0; }
+  .ty-seg button:last-child { border-radius:0 7px 7px 0; }
+  .ty-seg button.on { position:relative; z-index:1; }
+  #ty-reset { margin-left:auto; color:var(--dim); }
+  #ty-reset:hover { color:#fff; }
+  .ty-key { font:11.5px ui-monospace,monospace; color:var(--dim); max-width:170px;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+            background:rgba(255,255,255,.07); padding:3px 9px; border-radius:99px; }
+  .ty-sep { width:1px; height:20px; background:var(--line); margin:0 4px; }
+  /* effect parameter chips */
+  .ty-num { display:inline-flex; align-items:center; gap:4px; font:11.5px system-ui;
+            color:var(--dim); background:rgba(255,255,255,.05); border-radius:7px;
+            padding:0 0 0 7px; }
+  .ty-num input[type=number] { border:0; background:none; width:48px; }
+  #ty-fxp { display:inline-flex; gap:5px; align-items:center; }
+  #ty-fxp input[type=color] { width:29px; height:29px; padding:2px; border:1px solid
+            var(--ctl-line); border-radius:7px; background:var(--ctl); cursor:pointer; }
+  /* the text-colour button: an A over its current colour, Canva's icon */
+  #ty-colorbtn { flex-direction:column; gap:1px; padding:3px 9px 4px; line-height:1; }
+  #ty-colorbtn .A { font:700 13px/1 system-ui; }
+  #ty-colorbtn .Abar { width:16px; height:4px; border-radius:2px;
+            background:linear-gradient(90deg,#e66,#6b9e78,#66e); }
+  /* size stepper: − number + as one unit */
+  .ty-step { display:inline-flex; align-items:center; }
+  .ty-step button { border-radius:7px 0 0 7px; font-size:15px; }
+  .ty-step button:last-child { border-radius:0 7px 7px 0; }
+  .ty-step input { border-radius:0 !important; margin:0 -1px; position:relative;
+                   z-index:1; text-align:center; }
+  .ty-step input::-webkit-inner-spin-button { display:none; }
+  /* popovers: colour panel, spacing panel, shape picker */
+  .pop { position:absolute; z-index:1000; top:calc(100% - 4px); background:#fff;
+         color:var(--ink); border:1px solid #C9D6CD; border-radius:10px;
+         box-shadow:0 10px 32px rgba(20,30,35,.35); padding:12px; min-width:190px; }
+  .pop-h { font:600 11px system-ui; letter-spacing:.7px; text-transform:uppercase;
+           color:#7A8E92; margin:0 0 8px; }
+  .swgrid { display:grid; grid-template-columns:repeat(5, 26px); gap:6px; }
+  .sw { width:26px; height:26px; border:1px solid rgba(0,0,0,.16); border-radius:6px;
+        cursor:pointer; padding:0; position:relative; }
+  .sw:hover { outline:2px solid var(--ink); outline-offset:1px; }
+  .sw.on::after { content:"✓"; position:absolute; inset:0; display:grid;
+        place-items:center; font:700 13px system-ui; color:#fff;
+        text-shadow:0 0 3px rgba(0,0,0,.85); }
+  .sw.custom { border:1px dashed #8B9A90;
+        background:conic-gradient(#e66,#ea3,#6b9e78,#39c,#96e,#e66); }
+  .sw-default { margin-top:9px; width:100%; font:12.5px system-ui; padding:5px 0;
+        border:1px solid #C9D6CD; border-radius:7px; background:#fff;
+        color:var(--ink); cursor:pointer; }
+  .sw-default:hover { background:var(--sage); border-color:var(--sage); color:#fff; }
+  .pop label { display:flex; align-items:center; gap:8px; font:12.5px system-ui;
+        margin:7px 0; white-space:nowrap; }
+  .pop label span { width:92px; color:#5B6E66; }
+  .pop input[type=range] { width:110px; accent-color:var(--sage); }
+  .pop input[type=number] { width:56px; font:12.5px system-ui; padding:3px 5px;
+        border:1px solid #C9D6CD; border-radius:6px; }
+  .pop .shp { display:flex; align-items:center; gap:9px; width:100%; border:0;
+        background:none; font:12.5px system-ui; color:var(--ink); padding:7px 8px;
+        border-radius:7px; cursor:pointer; }
+  .pop .shp:hover { background:var(--sage); color:#fff; }
+  .pop .shp svg { display:block; }
 </style>
 </head>
 <body>
 <div id="bar">
-  <b>DRAFT EDITOR</b>
+  <span id="brand"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"
+    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path
+    d="M11.3 1.9l2.8 2.8L5 13.8l-3.6.8.8-3.6z"/></svg>Draft editor</span>
   <span id="title" class="ds-id"></span>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
-  <button id="text" title="Add a text box to a page">+ Text</button>
-  <button id="shape" title="Add a shape to this page">+ Shape</button>
+  <button id="text" title="Add a text box to the page in view">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round"><path d="M2 3.2V2h10v1.2M7 2v10M5.2 12h3.6"/></svg>
+    Text</button>
+  <button id="shape" title="Add a shape to the page in view">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.5"><rect x="1.2" y="3.4" width="8" height="8" rx="1.4"/>
+      <circle cx="10" cy="4.4" r="2.9"/></svg>
+    Shape</button>
   <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
-  <button id="save" disabled>Save</button>
   <button id="revert" disabled>Discard</button>
+  <button id="save" disabled>Save</button>
+  <div class="pop" id="shapepop" hidden>
+    <p class="pop-h">Add to the page in view</p>
+    <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
+      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><rect x="1.5" y="3" width="12"
+      height="9" rx="1.5"/></svg>Rectangle</button>
+    <button class="shp" data-k="ellipse"><svg width="15" height="15" viewBox="0 0 15 15"
+      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><ellipse cx="7.5" cy="7.5"
+      rx="6" ry="4.6"/></svg>Ellipse</button>
+    <button class="shp" data-k="line"><svg width="15" height="15" viewBox="0 0 15 15"
+      stroke="#52796F" stroke-width="1.6" stroke-linecap="round"><path
+      d="M2 12.5L13 2.5"/></svg>Line</button>
+  </div>
 </div>
 <div id="type" hidden>
   <span class="ty-key" id="ty-key"></span>
+  <span class="ty-sep"></span>
   <select id="ty-font" title="Font"></select>
   <select id="ty-weight" title="Weight"></select>
-  <input id="ty-size" type="number" min="6" max="200" step="0.5" title="Size (px)">
-  <button id="ty-i" title="Italic"><i>I</i></button>
-  <button id="ty-u" title="Underline"><u>U</u></button>
+  <span class="ty-step" title="Size (px)">
+    <button id="ty-down" title="Smaller">−</button><input id="ty-size" type="number"
+      min="6" max="200" step="0.5"><button id="ty-up" title="Bigger">+</button>
+  </span>
   <span class="ty-sep"></span>
-  <button class="ty-al" data-a="left" title="Align left">◧</button>
-  <button class="ty-al" data-a="center" title="Align centre">▣</button>
-  <button class="ty-al" data-a="right" title="Align right">◨</button>
-  <button class="ty-al" data-a="justify" title="Justify">▤</button>
-  <span class="ty-sep"></span>
+  <button id="ty-i" title="Italic"><svg width="14" height="14" viewBox="0 0 14 14"
+    fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M6 2h5M3 12h5M8.5 2l-3 10"/></svg></button>
+  <button id="ty-u" title="Underline"><svg width="14" height="14" viewBox="0 0 14 14"
+    fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M3.5 1.8v4.7a3.5 3.5 0 0 0 7 0V1.8M2.5 12.4h9"/></svg></button>
+  <span class="ty-seg">
+    <button class="ty-al" data-a="left" title="Align left"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 3h10M2 6h6M2 9h10M2 12h6"/></svg></button>
+    <button class="ty-al" data-a="center" title="Align centre"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 3h10M4 6h6M2 9h10M4 12h6"/></svg></button>
+    <button class="ty-al" data-a="right" title="Align right"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 3h10M6 6h6M2 9h10M6 12h6"/></svg></button>
+    <button class="ty-al" data-a="justify" title="Justify"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 3h10M2 6h10M2 9h10M2 12h10"/></svg></button>
+  </span>
   <select id="ty-case" title="Letter case">
     <option value="none">Aa</option><option value="upper">AA</option>
     <option value="lower">aa</option><option value="title">Aa Bb</option>
   </select>
-  <select id="ty-swatch" title="Text colour from the report's palette"></select>
-  <input id="ty-color" type="color" title="Custom text colour">
-  <label class="ty-num" title="Letter spacing (px)">A|A<input id="ty-track" type="number" step="0.1" min="-5" max="20"></label>
-  <label class="ty-num" title="Line height">≡<input id="ty-lead" type="number" step="0.05" min="0.6" max="4"></label>
   <span class="ty-sep"></span>
+  <button id="ty-colorbtn" title="Text colour"><span class="A">A</span><span
+    class="Abar" id="ty-Abar"></span></button>
+  <button id="ty-spacebtn" title="Letter spacing and line height"><svg width="14"
+    height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
+    stroke-linecap="round"><path d="M2 2v10M12 2v10M4.6 7h4.8M4.6 7l1.5-1.5M4.6 7l1.5 1.5M9.4 7L7.9 5.5M9.4 7l-1.5 1.5"/></svg></button>
   <select id="ty-fx" title="Effect"></select>
   <span id="ty-fxp"></span>
-  <button id="ty-reset" title="Put this text back the way the report designed it">Reset type</button>
+  <button id="ty-reset" title="Put this text back the way the report designed it">Reset</button>
+  <div class="pop" id="ty-colorpop" hidden>
+    <p class="pop-h">Text colour</p>
+    <div class="swgrid" id="ty-swgrid"></div>
+    <button class="sw-default" id="ty-colordefault">Report's own colour</button>
+  </div>
+  <div class="pop" id="ty-spacepop" hidden>
+    <p class="pop-h">Spacing</p>
+    <label><span>Letter spacing</span><input type="range" id="ty-track-r" min="-2"
+      max="12" step="0.1"><input id="ty-track" type="number" step="0.1" min="-5" max="20"></label>
+    <label><span>Line height</span><input type="range" id="ty-lead-r" min="0.8"
+      max="2.6" step="0.05"><input id="ty-lead" type="number" step="0.05" min="0.6" max="4"></label>
+  </div>
+  <input type="color" id="ty-color" hidden>
 </div>
 <iframe id="out" title="editable draft"></iframe>
 
@@ -285,22 +421,58 @@ function showLocalImages(d) {
 // ride the same class — so painting a new colour onto the DOM would leave the
 // old contrast decision in place. That is not "slightly off": it is white text
 // on a pale tile. So: write the fill, re-render, let Python decide again.
-const fillable = id => /^(card|branch)\./.test(id || '');
+//
+// What CAN be recoloured is not this file's opinion. The renderer stamps
+// data-fill on exactly the surfaces whose colour it consults — cards, branch
+// tiles, callouts, pages, Table 1's rows — so a new report teaches the editor
+// by marking its page, not by editing it. Shapes and text boxes carry their
+// colour in their own objects, so they route there instead of layout.fill.
+function fillTargets(id) {
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) return {
+    label: sh.kind === 'line' ? 'Line colour' : 'Fill',
+    get: () => (sh.kind === 'line' ? sh.stroke : sh.fill),
+    set: c => { if (sh.kind === 'line') sh.stroke = c || '#52796F';
+                else sh.fill = c || '#E8EDE6'; },
+    resettable: false,             // a shape's colour is intrinsic — no "default"
+  };
+  const b = boxOf(id);
+  if (b) return {
+    label: 'Background',
+    get: () => b.fill,
+    set: c => { if (c) b.fill = c; else delete b.fill; },
+    resettable: !!b.fill,
+    resetLabel: 'No background',
+  };
+  return {
+    label: id.startsWith('page.') ? 'Page colour' : 'Fill',
+    get: () => layout.fill && layout.fill[id],
+    set: c => { layout.fill = layout.fill || {};
+                if (c) layout.fill[id] = c; else delete layout.fill[id]; },
+    resettable: !!(layout.fill && layout.fill[id]),
+    resetLabel: 'Reset colour',
+  };
+}
 
 function fillRow(d, m, id) {
+  const t = fillTargets(id);
+  const h = d.createElement('div');
+  h.className = 'ds-menu-head';
+  h.textContent = t.label.toLowerCase();
+  m.appendChild(h);
   const row = d.createElement('div');
   row.className = 'ds-swatches';
+  const current = (t.get() || '').toUpperCase();
   const paint = async c => {
     pushHistory();
-    layout.fill = layout.fill || {};
-    if (c) layout.fill[id] = c; else delete layout.fill[id];
+    t.set(c);
     markDirty();
     closeMenu(d);
     await render();
   };
   (M.palette || []).forEach(c => {
     const b = d.createElement('button');
-    b.className = 'ds-sw';
+    b.className = 'ds-sw' + (c.toUpperCase() === current ? ' on' : '');
     b.style.background = c;
     b.title = c;
     b.addEventListener('click', () => paint(c));
@@ -310,13 +482,13 @@ function fillRow(d, m, id) {
   custom.type = 'color';
   custom.className = 'ds-sw-custom';
   custom.title = 'Custom colour';
-  custom.value = (layout.fill && layout.fill[id]) || '#6b9e78';
+  custom.value = /^#[0-9A-F]{6}$/.test(current) ? current : '#6b9e78';
   custom.addEventListener('change', () => paint(custom.value));
   row.appendChild(custom);
   m.appendChild(row);
-  if (layout.fill && layout.fill[id]) {
+  if (t.resettable) {
     const b = d.createElement('button');
-    b.textContent = 'Reset colour';
+    b.textContent = t.resetLabel;
     b.addEventListener('click', () => paint(null));
     m.appendChild(b);
   }
@@ -354,7 +526,10 @@ function closeMenu(d) {
 
 function layerMenu(d, el, e) {
   closeMenu(d);
-  const id = el.dataset.shape || el.dataset.el;
+  const id = el.dataset.shape || el.dataset.el || el.dataset.fill;
+  // A page or a table row is a SURFACE: it can change colour but it is not a
+  // thing that moves, so it gets the fill section and nothing else.
+  const surface = !el.dataset.shape && !el.dataset.el;
   // Only a moved element has a layer to change: an untouched one is still
   // wherever the design put it, and z-index would not apply to it anyway.
   const known = layout.shapes.some(s => s.id === id) || !!layout.positions[id] || !!boxOf(id);
@@ -363,15 +538,13 @@ function layerMenu(d, el, e) {
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
 
-  if (fillable(id)) {
-    const h = d.createElement('div');
-    h.className = 'ds-menu-head';
-    h.textContent = 'fill';
-    m.appendChild(h);
+  const canFill = !!(el.dataset.fill || el.dataset.shape || boxOf(id));
+  if (canFill) {
     fillRow(d, m, id);
-    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    if (!surface) {
+      const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    }
   }
-  const zs = allZ();
   const item = (label, fn, on = true) => {
     const b = d.createElement('button');
     b.textContent = label;
@@ -379,18 +552,21 @@ function layerMenu(d, el, e) {
     b.addEventListener('click', async () => { closeMenu(d); await fn(); });
     m.appendChild(b);
   };
-  const head = d.createElement('div');
-  head.className = 'ds-menu-head';
-  head.textContent = known ? `${id} · layer ${zOf(id)}` : `${id} · move it first`;
-  m.appendChild(head);
+  if (!surface) {
+    const zs = allZ();
+    const head = d.createElement('div');
+    head.className = 'ds-menu-head';
+    head.textContent = known ? `${id} · layer ${zOf(id)}` : `${id} · move it first`;
+    m.appendChild(head);
 
-  const bump = async delta => {
-    setZ(id, zOf(id) + delta); markDirty(); await render();
-  };
-  item('Bring to front', async () => { setZ(id, Math.max(...zs, 0) + 1); markDirty(); await render(); }, known);
-  item('Forward',        () => bump(1), known);
-  item('Backward',       () => bump(-1), known);
-  item('Send to back',   async () => { setZ(id, Math.min(...zs, 0) - 1); markDirty(); await render(); }, known);
+    const bump = async delta => {
+      setZ(id, zOf(id) + delta); markDirty(); await render();
+    };
+    item('Bring to front', async () => { setZ(id, Math.max(...zs, 0) + 1); markDirty(); await render(); }, known);
+    item('Forward',        () => bump(1), known);
+    item('Backward',       () => bump(-1), known);
+    item('Send to back',   async () => { setZ(id, Math.min(...zs, 0) - 1); markDirty(); await render(); }, known);
+  }
   if (layout.shapes.some(s => s.id === id)) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     item('Delete shape', async () => {
@@ -417,7 +593,9 @@ function layerMenu(d, el, e) {
 }
 
 function contextify(d) {
-  d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+  // data-fill alone (a page, a table row) opens the colour menu too — the
+  // querySelectorAll list is deduplicated, so a card matching twice binds once.
+  d.querySelectorAll('[data-el], [data-shape], [data-fill]').forEach(el => {
     el.addEventListener('contextmenu', e => {
       e.preventDefault();
       e.stopPropagation();
@@ -548,6 +726,11 @@ function fitCheck(d) {
   d.querySelectorAll('section.page').forEach((pg, i) => {
     const pr = pg.getBoundingClientRect();
     if (!pr.width) return;
+    // A narrow window squeezes .page below its print width (max-width:100%)
+    // and everything reflows taller. That layout says nothing about where the
+    // 11in cut falls on paper — measuring it would cry wolf on every page, and
+    // a check that cries wolf gets ignored. Say nothing rather than guess.
+    if (pg.offsetWidth < PAGE_W_IN * DPI * 0.98) return;
     const px = DPI * (pr.width / pg.offsetWidth || 1);
     let low = 0, who = '';
     pg.querySelectorAll('*').forEach(el => {
@@ -617,17 +800,48 @@ function reportFit(d) {
 const boxes = () => (layout.boxes = layout.boxes || []);
 const boxOf = id => boxes().find(b => b.id === (id || '').replace(/^text\./, ''));
 
+/** The page whose middle sits nearest the middle of the view. "Add" lands
+ *  there — nothing should ask you to type a page number at a thing you are
+ *  already looking at. */
+function visiblePage() {
+  const d = $('out').contentDocument;
+  if (!d || !d.defaultView) return 1;
+  const mid = d.defaultView.innerHeight / 2;
+  let best = 1, dist = Infinity;
+  [...d.querySelectorAll('section.page')].forEach((pg, i) => {
+    const r = pg.getBoundingClientRect();
+    const c = (r.top + r.bottom) / 2;
+    if (Math.abs(c - mid) < dist) { dist = Math.abs(c - mid); best = i + 1; }
+  });
+  return best;
+}
+
+/** One popover open at a time, anchored under its button; any click that is
+ *  not inside a popover (or on its trigger) closes them. */
+function togglePop(pop, anchor) {
+  const wasHidden = pop.hidden;
+  document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
+  if (!wasHidden) return;
+  pop.style.left = Math.max(8, Math.min(anchor.offsetLeft,
+    document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
+  pop.hidden = false;
+}
+addEventListener('mousedown', e => {
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape'))
+    document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
+});
+
 $('text').onclick = async () => {
-  const page = +(prompt(`Which page? (1–${$('out').contentDocument
-    .querySelectorAll('section.page').length})`, '3') || 0);
-  if (!page) return;
+  const page = visiblePage();
   pushHistory();
-  const id = 't' + (boxes().length + 1);
+  let n = 1;
+  while (boxes().some(b => b.id === 't' + n) || layout.shapes.some(s => s.id === 't' + n)) n++;
+  const id = 't' + n;
   boxes().push({ id, page, x: 1, y: 2, w: 3, z: 2,
                  md: 'New text. **Bold**, *italic* and [links](https://example.org) work.' });
   markDirty();
   await render();
-  $('stat').textContent = `text.${id} added to page ${page} — click it to write, drag to place`;
+  $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place, right-click for colour`;
 };
 
 /** Editing a box's words. Its text is in layout.json, not content.md, so it
@@ -767,10 +981,23 @@ function fillWeights(fam, want) {
   sel.value = want && ws.includes(+want) ? String(want) : '';
 }
 
+/** What the slot's type measures today, from the rendered page — so the size
+ *  stepper and the spacing sliders start from reality, not from zero. */
+function computedType(key) {
+  const el = $('out').contentDocument.querySelector(`[data-slot="${key}"]`);
+  if (!el) return { size: 16, leading: 1.45 };
+  const cs = el.ownerDocument.defaultView.getComputedStyle(el);
+  const size = parseFloat(cs.fontSize) || 16;
+  const lh = parseFloat(cs.lineHeight);
+  return { size, leading: lh ? +(lh / size).toFixed(2) : 1.45 };
+}
+
 function showType(key) {
   selected = key;
   const st = styleOf(key);
+  const real = computedType(key);
   $('ty-key').textContent = key;
+  $('ty-key').title = key;
   // text-align means nothing to SVG text — a curved label is centred on its
   // path by text-anchor, and display:inline-block is not a thing there either.
   // Hide the control rather than offer one that does nothing.
@@ -779,12 +1006,21 @@ function showType(key) {
   document.querySelectorAll('.ty-al').forEach(b => b.hidden = inSvg);
   $('ty-font').value = st.font || '';
   fillWeights(st.font, st.weight);
+  // The stepper shows the REAL size as a placeholder when none is set: what
+  // you would be stepping from, not a blank.
   $('ty-size').value = st.size ?? '';
+  $('ty-size').placeholder = real.size % 1 ? real.size.toFixed(1) : real.size;
   $('ty-track').value = st.tracking ?? '';
+  $('ty-track-r').value = st.tracking ?? 0;
   $('ty-lead').value = st.leading ?? '';
+  $('ty-lead-r').value = st.leading ?? real.leading;
   $('ty-case').value = st.case || 'none';
   $('ty-color').value = /^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#2f3e46';
-  $('ty-swatch').value = (st.color || '').toUpperCase();
+  const cur = (st.color || '').toUpperCase();
+  document.querySelectorAll('#ty-swgrid .sw[data-c]').forEach(s =>
+    s.classList.toggle('on', s.dataset.c === cur));
+  $('ty-Abar').style.background =
+    st.color || 'linear-gradient(90deg,#e66,#6b9e78,#66e)';
   $('ty-fx').value = (st.effect && st.effect.kind) || '';
   showFxParams(key);
   $('ty-i').classList.toggle('on', !!st.italic);
@@ -807,8 +1043,39 @@ function wireType() {
   live($('ty-track'), () => ({ tracking: $('ty-track').value === '' ? null : +$('ty-track').value }));
   live($('ty-lead'), () => ({ leading: $('ty-lead').value === '' ? null : +$('ty-lead').value }));
   live($('ty-color'), () => ({ color: $('ty-color').value }));
-  $('ty-swatch').addEventListener('change', async () => {
-    setStyle(selected, { color: $('ty-swatch').value || null });
+
+  // The stepper works from the size the page actually shows, so the first
+  // press on an untouched heading goes 26 -> 27, not blank -> 1.
+  const step = dir => async () => {
+    const st = styleOf(selected);
+    const cur = st.size ?? computedType(selected).size;
+    const next = Math.max(6, Math.min(200, Math.round((cur + dir) * 2) / 2));
+    setStyle(selected, { size: next });
+    markDirty(); await render(); showType(selected);
+  };
+  $('ty-down').addEventListener('click', step(-1));
+  $('ty-up').addEventListener('click', step(1));
+
+  // Sliders mirror their number fields; drag paints live, release commits.
+  const slider = (rid, nid, prop) => {
+    const r = $(rid), n = $(nid);
+    r.addEventListener('input', () => {
+      n.value = r.value;
+      setStyle(selected, { [prop]: +r.value });
+      paintText(selected);
+    });
+    r.addEventListener('change', async () => {
+      markDirty(); await render(); showType(selected);
+    });
+  };
+  slider('ty-track-r', 'ty-track', 'tracking');
+  slider('ty-lead-r', 'ty-lead', 'leading');
+
+  $('ty-colorbtn').addEventListener('click', () => togglePop($('ty-colorpop'), $('ty-colorbtn')));
+  $('ty-spacebtn').addEventListener('click', () => togglePop($('ty-spacepop'), $('ty-spacebtn')));
+  $('ty-colordefault').addEventListener('click', async () => {
+    $('ty-colorpop').hidden = true;
+    setStyle(selected, { color: null });
     markDirty(); await render(); showType(selected);
   });
 
@@ -1186,21 +1453,23 @@ function markDirty() {
   $('save').classList.toggle('dirty', dirty);
 }
 
-$('shape').onclick = async () => {
-  const kind = prompt('Shape: rect, ellipse or line', 'rect');
-  if (!kind || !['rect', 'ellipse', 'line'].includes(kind)) return;
-  const page = +(prompt('Which page? (1–12)', '3') || 0);
-  if (!page) return;
-  const fill = prompt('Fill colour (or "none")', '#E8EDE6') || 'none';
+$('shape').onclick = () => togglePop($('shapepop'), $('shape'));
+document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('click', async () => {
+  $('shapepop').hidden = true;
+  const kind = b.dataset.k;
+  const page = visiblePage();
   pushHistory();
-  const id = 's' + (layout.shapes.length + 1) + '-' + kind;
-  layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: 1, fill,
+  let n = layout.shapes.length + 1;
+  while (layout.shapes.some(s => s.id === `s${n}-${kind}`)) n++;
+  const id = `s${n}-${kind}`;
+  layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: kind === 'line' ? 0 : 1,
+                       fill: kind === 'line' ? 'none' : '#E8EDE6',
                        stroke: kind === 'line' ? '#52796F' : 'none',
                        sw: 0.02, z: -1 });
   markDirty();
   await render();
-  $('stat').textContent = `${id} added to page ${page} — drag it into place`;
-};
+  $('stat').textContent = `${id} on page ${page} — drag to place, right-click to recolour`;
+}));
 
 addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
@@ -1245,8 +1514,25 @@ async function boot() {
     'import json\nfrom docsync.layout import FONTS\njson.dumps(FONTS)'));
   fxParams = JSON.parse(py.runPython(
     'import json\nfrom docsync.layout import EFFECT_PARAMS\njson.dumps(EFFECT_PARAMS)'));
-  $('ty-swatch').innerHTML = '<option value="">colour…</option>'
-    + (M.palette || []).map(c => `<option value="${c}">${c}</option>`).join('');
+  // The text-colour popover: the report's own palette first, then the wheel.
+  const grid = $('ty-swgrid');
+  (M.palette || []).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'sw';
+    b.dataset.c = c.toUpperCase();
+    b.style.background = c;
+    b.title = c;
+    b.addEventListener('click', async () => {
+      setStyle(selected, { color: c });
+      markDirty(); await render(); showType(selected);
+    });
+    grid.appendChild(b);
+  });
+  const cust = document.createElement('button');
+  cust.className = 'sw custom';
+  cust.title = 'Custom colour…';
+  cust.addEventListener('click', () => $('ty-color').click());
+  grid.appendChild(cust);
   $('ty-fx').innerHTML = '<option value="">no effect</option>'
     + Object.keys(fxParams).map(k => `<option value="${k}">${k}</option>`).join('');
   $('ty-font').innerHTML = '<option value="">font</option>'
@@ -1388,6 +1674,10 @@ function wire() {
     .ds-sw { width:20px; height:20px; padding:0; border:1px solid rgba(0,0,0,.18);
              border-radius:4px; cursor:pointer; }
     .ds-sw:hover { outline:2px solid #2F3E46; outline-offset:1px; }
+    .ds-sw.on { position:relative; }
+    .ds-sw.on::after { content:"✓"; position:absolute; inset:0; display:grid;
+             place-items:center; font:700 12px system-ui; color:#fff;
+             text-shadow:0 0 3px rgba(0,0,0,.85); }
     .ds-sw-custom { width:20px; height:20px; padding:0; border:1px dashed #8B9A90;
                     border-radius:4px; background:none; cursor:pointer; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }

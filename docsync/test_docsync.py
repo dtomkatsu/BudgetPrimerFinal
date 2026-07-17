@@ -9,6 +9,7 @@ whether a push is safe.
 
     python3 docsync/test_docsync.py
 """
+import os
 import sys
 from pathlib import Path
 
@@ -510,6 +511,56 @@ check("a box's style is validated like any other",
       "not a font this report can load")
 
 # ------------------------------------------------------------------ fills
+# attr() merges extra declarations into the position style: an element with two
+# style attributes silently keeps only the first, so a recoloured-and-moved
+# callout must come out as ONE attribute carrying both.
+both = _layout({"positions": {"c.o": {"x": 1, "y": 2}}})
+check("attr merges a computed background into the move",
+      both.attr("c.o", "background:#2F3E46"),
+      'style="position:absolute;left:1in;top:2in;z-index:1;background:#2F3E46"')
+check_eq("extra alone still emits a style", empty.attr("c.o", "background:#2F3E46"),
+         ' style="background:#2F3E46"')
+check_eq("no move, no extra, no attribute", empty.attr("c.o"), "")
+
+# The generic fill hooks: outside edit mode an unfilled surface must emit
+# NOTHING (the published bytes cannot move), and the editor's data-fill hook
+# exists only while editing — like data-el.
+check_eq("fill_attr is silent when unfilled", empty.fill_attr("page.3"), "")
+check_eq("fill_tag is silent outside edit mode", empty.fill_tag("card.a"), "")
+pg = _layout({"fill": {"page.3": "#E8EDE6"}})
+check_eq("a filled page carries its background",
+         pg.fill_attr("page.3"), ' style="background:#E8EDE6"')
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    check_eq("edit mode stamps the right-click hook",
+             empty.fill_tag("card.a"), ' data-fill="card.a"')
+    check_eq("edit mode stamps hook and background together",
+             pg.fill_attr("page.3"), ' data-fill="page.3" style="background:#E8EDE6"')
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
+check("a shape colour that is not a colour is caught",
+      _layout_error({"shapes": [{"id": "a", "page": 1, "kind": "rect",
+                                 "x": 0, "y": 0, "w": 1, "h": 1, "fill": "sage"}]}),
+      "not a hex colour")
+check_eq("'none' stays a legal shape fill",
+         _layout({"shapes": [{"id": "a", "page": 1, "kind": "rect", "x": 0, "y": 0,
+                              "w": 1, "h": 1, "fill": "none"}]}).layer(1).count('fill="none"'), 1)
+
+# A text box may carry a panel colour; only then does it grow padding, so a
+# plain box's words sit exactly where they were put.
+bfill = _layout({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3,
+                            "md": "note", "fill": "#D6E0D2"}]})
+check("a filled text box paints and pads", bfill.text_boxes(3),
+      "background:#D6E0D2;padding:.08in .12in")
+bplain = _layout({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3, "md": "note"}]})
+check_eq("an unfilled text box grows no padding",
+         "padding" in bplain.text_boxes(3), False)
+check("a box colour that is not a colour is caught",
+      _layout_error({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3,
+                                "md": "note", "fill": "teal"}]}),
+      "not a hex colour")
+
 filled = _layout({"fill": {"card.a": "#2F3E46"}})
 check_eq("a fill overrides the designed colour", filled.fill("card.a", "#6B9E78"), "#2F3E46")
 check_eq("an unfilled element keeps the colour the report chose",

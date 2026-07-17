@@ -334,6 +334,11 @@ class Layout:
                 raise LayoutError(f"{where}: 'page' must be a page number")
             for k in ("x", "y", "w", "h"):
                 _num(s.get(k), f"{where}.{k}")
+            # These land verbatim inside SVG attributes: a malformed value
+            # does not error, it renders an invisible shape.
+            for k in ("fill", "stroke"):
+                if s.get(k) not in (None, "none"):
+                    _hex(s[k], f"{where}.{k}")
             _z(s)          # a bad layer must fail at load, not mid-render
         for el, p in self.positions.items():
             if "z" in p and not isinstance(p["z"], int):
@@ -363,6 +368,8 @@ class Layout:
                 raise LayoutError(f"{where}: has no text — 'md' is empty")
             if "z" in b and not isinstance(b["z"], int):
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
+            if b.get("fill"):
+                _hex(b["fill"], f"{where}.fill")
             if b.get("style"):
                 _check_text(b["style"], f"{where}.style")
 
@@ -381,19 +388,23 @@ class Layout:
         s += f';z-index:{int(p.get("z", 1))}'
         return s
 
-    def attr(self, el_id: str) -> str:
+    def attr(self, el_id: str, extra: str = "") -> str:
         """Attributes for an element with no style of its own.
 
         data-el is stamped only while editing, so the published build carries no
         editing scaffolding; the style appears only when the element has
-        actually been moved.
+        actually been moved. `extra` is for declarations the call site computed
+        (a recoloured callout's background) — merged here because an element
+        with two style attributes silently keeps only the first.
         """
         bits = []
         if os.environ.get("DOCSYNC_EDIT"):
             bits.append(f'data-el="{el_id}"')
         p = self.positions.get(el_id)
-        if p:
-            bits.append(f'style="{self._style(p)}"')
+        css = self._style(p) if p else ""
+        both = ";".join(x for x in (css, extra) if x)
+        if both:
+            bits.append(f'style="{both}"')
         return (" " + " ".join(bits)) if bits else ""
 
     def spacer(self, el_id: str) -> str:
@@ -503,6 +514,29 @@ class Layout:
     def refilled(self, el_id: str) -> bool:
         return el_id in self.fills
 
+    def fill_tag(self, el_id: str) -> str:
+        """The editor's right-click hook for recolourable surfaces.
+
+        The editor must not carry a list of what is fillable — that would be
+        report knowledge inside a generic tool, and the first new report would
+        prove it wrong. The renderer stamps data-fill on exactly the elements
+        whose colour it actually consults, so the page itself is the contract.
+        Edit mode only, like data-el.
+        """
+        return f' data-fill="{el_id}"' if os.environ.get("DOCSYNC_EDIT") else ""
+
+    def fill_attr(self, el_id: str) -> str:
+        """fill_tag plus the background itself, for surfaces whose colour lives
+        in CSS rather than in an inline style the renderer already writes (a
+        page section). Emits nothing when unfilled outside edit mode, so the
+        published bytes cannot move."""
+        bits = []
+        if os.environ.get("DOCSYNC_EDIT"):
+            bits.append(f'data-fill="{el_id}"')
+        if self.refilled(el_id):
+            bits.append(f'style="background:{self.fills[el_id]}"')
+        return (" " + " ".join(bits)) if bits else ""
+
     # ---- free-floating text ---------------------------------------------
 
     def text_boxes(self, page: int) -> str:
@@ -524,6 +558,11 @@ class Layout:
         for b in mine:
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
+            if b.get("fill"):
+                # A background needs breathing room or the words sit on its
+                # edge; padding only when filled, so a plain box's text keeps
+                # sitting exactly where it was put.
+                css += f';background:{b["fill"]};padding:.08in .12in;border-radius:8px'
             style = text_css(b.get("style") or {})
             tag = f' data-el="text.{b["id"]}"' if os.environ.get("DOCSYNC_EDIT") else ""
             out.append(f'<div class="ds-textbox"{tag} '

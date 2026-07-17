@@ -120,18 +120,24 @@ a { color: var(--dark); }
 .card li { font-weight: 600; margin: 4px 0; }
 .card li i { font-weight: 400; }
 
-/* table 1 */
+/* table 1 — header/total colours read through vars so a layout.json recolour
+   (set inline on the table by the renderer, with re-decided text contrast)
+   reaches every cell and the FY2026 twin at once. Unset, the fallbacks are
+   the designed colours. */
 .t1 { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.t1 th { background: var(--dark); color: #fff; font-weight: 600; padding: 9px 6px; }
+.t1 th { background: var(--th-bg, var(--dark)); color: var(--th-tc, #fff); font-weight: 600; padding: 9px 6px; }
 .t1 td { border: 1px solid #A7C0B8; padding: 9px 6px; text-align: center; }
 .t1 td:first-child { width: 1.55in; }
-.t1 tr.total td { background: var(--sage-light); font-weight: 700; }
+.t1 tr.total td { background: var(--tot-bg, var(--sage-light)); color: var(--tot-tc, inherit); font-weight: 700; }
 
 /* callout */
 .callout { background: var(--dark); color: #fff; border-radius: 18px;
            padding: 18px 24px; margin: 6px 0 18px; }
 .callout h4 { margin-bottom: 8px; }
 .callout p { font-size: 14px; }
+/* Recoloured pale by the editor: the renderer re-runs its luminance test and
+   flips this class on, exactly as .card.light does. */
+.callout.onlight { color: var(--ink); }
 
 /* obligated-costs expandable (web only) */
 .obligated { margin: -8px 0 18px; }
@@ -323,9 +329,9 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
          color: #fff; }
   .card a.fn:hover, .callout a.fn:hover, .branch-card a.fn:hover {
          background: #fff; color: var(--forest); }
-  .card.light a.fn, .branch-card.onlight a.fn { background: var(--dark);
-         color: #fff; }
-  .card.light a.fn:hover, .branch-card.onlight a.fn:hover {
+  .card.light a.fn, .branch-card.onlight a.fn, .callout.onlight a.fn {
+         background: var(--dark); color: #fff; }
+  .card.light a.fn:hover, .branch-card.onlight a.fn:hover, .callout.onlight a.fn:hover {
          background: var(--forest); color: #fff; }
 }
 @media print { a.fn { color: inherit; text-decoration: none; } }

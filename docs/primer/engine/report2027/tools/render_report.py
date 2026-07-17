@@ -594,10 +594,27 @@ def card(title, bullets, bg, light=None, key=""):
     ul = C.ul_attr(key) if key else ""
     override = L.style(el_id, "") if el_id else ""
     style = f"background:{bg}" + (f";{override}" if override else "")
-    tag = L.tag(el_id) if el_id else ""
+    tag = (L.tag(el_id) + L.fill_tag(el_id)) if el_id else ""
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
             f'<h4>{title}</h4><ul{ul}>{lis}</ul></div>')
+
+def callout_open(key):
+    """The opening tag of a callout, honouring a recolour.
+
+    Same contract as card(): the CSS paints it dark with white text, so a new
+    colour must bring its own contrast decision — the class flips to onlight
+    when the luminance test says so, and the footnote pills ride that class.
+    Unfilled, this emits exactly the literal it replaced.
+    """
+    cid = f"callout.{key}"
+    cls, bg = "callout", ""
+    if L.refilled(cid):
+        c = L.fill(cid)
+        cls = "callout onlight" if is_light_bg(c) else "callout"
+        bg = f"background:{c}"
+    return f'{L.spacer(cid)} <div class="{cls}"{L.attr(cid, bg)}{L.fill_tag(cid)}>'
+
 
 def endnote_link(n, txt, url):
     return f'<li id="en{n}">{txt} <a href="{url}">{url}</a></li>'
@@ -611,8 +628,20 @@ def table1_for(year):
     def tot(c):
         return c["op"] + c["cip"] + c["one"] + c["emerg"]
     hidden = "" if year == 2027 else " hidden"
-    return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}>
-<thead><tr><th></th><th class="lk" data-dept="__all"{C.slot_attr("table1.header.executive")}>{C("table1.header.executive")}</th><th{C.slot_attr("table1.header.judiciary")}>{C("table1.header.judiciary")}</th>
+    # Recolours ride CSS variables on the table: the header is five cells and
+    # the table has an FY2026 twin, so painting cells directly would mean
+    # keeping ten of them in step. primer.css reads the vars with the designed
+    # colours as fallback; text colour re-decides from the new luminance.
+    t1 = []
+    if L.refilled("table1.head"):
+        c = L.fill("table1.head")
+        t1.append(f"--th-bg:{c};--th-tc:{INK if is_light_bg(c) else '#fff'}")
+    if L.refilled("table1.total"):
+        c = L.fill("table1.total")
+        t1.append(f"--tot-bg:{c};--tot-tc:{INK if is_light_bg(c) else '#fff'}")
+    t1s = f' style="{";".join(t1)}"' if t1 else ""
+    return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}{t1s}>
+<thead><tr{L.fill_tag("table1.head")}><th></th><th class="lk" data-dept="__all"{C.slot_attr("table1.header.executive")}>{C("table1.header.executive")}</th><th{C.slot_attr("table1.header.judiciary")}>{C("table1.header.judiciary")}</th>
 <th{C.slot_attr("table1.header.legislature")}>{C("table1.header.legislature")}</th><th{C.slot_attr("table1.header.oha")}>{C("table1.header.oha")}</th></tr></thead>
 <tbody>
 <tr><td>Operating Budget</td><td>{words(e['op'])}</td><td>{words(j['op'])}</td>
@@ -623,7 +652,7 @@ def table1_for(year):
 <td>{words(l['one'])}</td><td>{words(o['one'])}</td></tr>
 <tr><td>Emergency Appropriations</td><td>{words(e['emerg'])}</td><td>{words(j['emerg'])}</td>
 <td>{words(l['emerg'])}</td><td>{words(o['emerg'])}</td></tr>
-<tr class="total"><td>Total</td>
+<tr class="total"{L.fill_tag("table1.total")}><td>Total</td>
 <td>{words(tot(e))}</td><td>{words(tot(j))}</td>
 <td>{words(tot(l))}</td><td>{words(tot(o))}</td></tr>
 </tbody></table>"""
@@ -638,7 +667,7 @@ pages = []
 
 # -- page 1: cover
 pages.append(f"""
-<section class="page cover">
+<section class="page cover"{L.fill_attr(f"page.1")}>
  {L.layer(1)}{L.text_boxes(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
@@ -651,7 +680,7 @@ pages.append(f"""
 
 # -- page 2: about / TOC
 pages.append(f"""
-<section class="page toc-page">
+<section class="page toc-page"{L.fill_attr(f"page.2")}>
  <div class="toc-head">
   <div class="logo-lockup light"><img class="logo-img" src="assets/appleseed-logo-white.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
@@ -686,11 +715,11 @@ branch_cards = [
 bc = "".join(
     f'<div class="branch"><img src="assets/{img}" alt="{esc(C.text(f"basics.branch.{k}.title"))}">'
     f'<div class="branch-card{" onlight" if is_light_bg(L.fill(f"branch.{k}", bg)) else ""}"'
-    f'{L.tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
+    f'{L.tag(f"branch.{k}")}{L.fill_tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
     f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
     for t, bg, img, lt, bl, k in branch_cards)
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.3")}>
  <h1>{C.t("basics.h1")}</h1>
  {C.html("basics.p1")}
  {C.html("basics.p2")}
@@ -700,7 +729,7 @@ pages.append(f"""
 
 # -- page 4: budget process
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.4")}>
  <h2 class="sub">{C.t("process.h2")}</h2>
  {C.html("process.p1")}
  <p class="figcap"><b>Figure 1.</b> {C.t("process.fig1.caption")}</p>
@@ -713,7 +742,7 @@ pages.append(f"""
 
 # -- page 5: how money is spent
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.5")}>
  <h1>{C.t("spent.h1")}</h1>
  {C.html("spent.p1")}
  {C.html("spent.p2")}
@@ -731,7 +760,7 @@ pages.append(f"""
 
 # -- page 6: figure 2
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.6")}>
  <h2 class="sub">{C.t("categories.h2")}</h2>
  <h3 class="sub2">{C.t("categories.h3")}</h3>
  <p class="figcap"><b>Figure 2.</b> {C.t("categories.fig2.caption")} {fy_picker("fig2")}
@@ -750,8 +779,8 @@ pages.append(f"""
 
 # -- page 7: obligated costs + fig 3
 pages.append(f"""
-<section class="page">
-{L.spacer("callout.obligated")} <div class="callout"{L.attr("callout.obligated")}>
+<section class="page"{L.fill_attr(f"page.7")}>
+{callout_open("obligated")}
   <h4>{C.t("obligated.title")}</h4>
   {C.html("obligated.p1")}
   {C.html("obligated.p2")}
@@ -776,7 +805,7 @@ pages.append(f"""
 
 # -- page 8: photo + one-time/emergency
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.8")}>
  {L.spacer("onetime.photo")}<img class="photo"{L.attr("onetime.photo")} src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
  {C.html("onetime.photo.caption", "photocap")}
  <h3 class="sub2">{C.t("onetime.h3")}</h3>
@@ -789,7 +818,7 @@ pages.append(f"""
 
 # -- page 9: funding the budget
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.9")}>
  <h1>{C.t("funding.h1")}</h1>
  <p class="figcap"><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
@@ -804,7 +833,7 @@ pages.append(f"""
 
 # -- page 10: taxes
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.10")}>
  <h2 class="sub">{C.t("taxes.h2")}</h2>
  <p class="figcap"><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
@@ -818,12 +847,12 @@ pages.append(f"""
 
 # -- page 11: who pays
 pages.append(f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.11")}>
  <h3 class="sub2">{C.t("whopays.h3")}</h3>
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
-{L.spacer("callout.whopays")} <div class="callout"{L.attr("callout.whopays")}>
+{callout_open("whopays")}
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
@@ -868,7 +897,7 @@ def linkify_footnotes(markup):
     return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
 
 body += f"""
-<section class="page">
+<section class="page"{L.fill_attr(f"page.12")}>
  <h1>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{en}</ol>
  {L.layer(12)}{L.text_boxes(12)}<div class="folio">12 • BUDGET PRIMER</div>
