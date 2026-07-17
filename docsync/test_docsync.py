@@ -149,6 +149,31 @@ check_eq("state with both fields is initialised",
 check_eq("state with only a hash is not initialised",
          State(content_hash="a").initialised, False)
 
+
+# The state hash is the last thing BOTH sides agreed on, and every "did this
+# side move?" is measured from it. A pull that writes the doc's content without
+# recording a new sync point leaves the hash pointing at an older common
+# ancestor — so the next repo edit reads as "both sides moved" and the engine
+# invents a conflict nobody caused. Live-tested: pull, then edit the repo, must
+# be repo-ahead. This models that arithmetic.
+def _status(state_h, doc_h, local_h):
+    doc_moved, repo_moved = doc_h != state_h, local_h != state_h
+    if doc_h == local_h:
+        return "in-sync"
+    if doc_moved and repo_moved:
+        return "conflict"
+    return "doc-ahead" if doc_moved else "repo-ahead"
+
+
+check_eq("after a recorded pull, a repo edit is repo-ahead (not a conflict)",
+         _status(state_h="H1", doc_h="H1", local_h="H2"), "repo-ahead")
+check_eq("an UNrecorded pull turns the next repo edit into a false conflict",
+         _status(state_h="H0", doc_h="H1", local_h="H2"), "conflict")
+check_eq("a doc edit against a recorded state is doc-ahead",
+         _status(state_h="H1", doc_h="H2", local_h="H1"), "doc-ahead")
+check_eq("genuinely divergent sides are still a conflict",
+         _status(state_h="H1", doc_h="H2", local_h="H3"), "conflict")
+
 # ------------------------------------------------------------------- setup
 
 # Setup fails in a handful of ways and every one of them used to arrive as a

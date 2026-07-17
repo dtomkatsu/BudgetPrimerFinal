@@ -110,6 +110,18 @@ def render_build(b: Binding) -> None:
         raise ContentError(f"{b.id}: build failed\n{r.stdout[-2000:]}{r.stderr[-2000:]}")
 
 
+def record(b: Binding, content: str, tok: str) -> None:
+    """Mark both sides as agreeing on `content` right now.
+
+    A sync point, wherever it came from: the hash is what the doc and the repo
+    last agreed on, and every later 'did this side move?' is measured from it.
+    """
+    st.save(b.state_file, st.State(
+        content_hash=st.content_hash(content),
+        doc_modified=fetch.fetch_modified_time(b.doc, tok),
+        synced_at=dt.datetime.now(dt.timezone.utc).isoformat()))
+
+
 def do_pull(b: Binding, tok: str | None, write: bool, show_diff: bool) -> bool:
     md = doc_content(b, tok)
     print(f"  {validate(b, md)}")
@@ -117,6 +129,10 @@ def do_pull(b: Binding, tok: str | None, write: bool, show_diff: bool) -> bool:
     old = local_content(b)
     if md == old:
         print("  already matches the doc")
+        # The sides agree, so this is a sync point even though nothing moved —
+        # recording it keeps a stale hash from inventing a conflict later.
+        if tok and st.content_hash(md) != st.load(b.state_file).content_hash:
+            record(b, md, tok)
         return False
     if show_diff:
         sys.stdout.writelines(difflib.unified_diff(
@@ -131,6 +147,13 @@ def do_pull(b: Binding, tok: str | None, write: bool, show_diff: bool) -> bool:
         b.target.write_text(fragment.inject(page, fragment.to_html(md), b.anchor))
     render_build(b)
     print(f"  wrote {b.content.relative_to(b.content.parent.parent.parent)}")
+    # A pull IS a sync point: both sides now hold `md`. Without this the next
+    # repo edit reads as "both sides moved" and reports a conflict nobody caused.
+    if tok:
+        record(b, md, tok)
+    else:
+        print("  note: no credentials, so the sync point was not recorded — "
+              "run `status` with a key to re-establish it")
     return True
 
 
@@ -144,10 +167,7 @@ def do_push(b: Binding, tok: str, force: bool) -> Status:
         status, why = status_of(b, tok)
         if status is Status.IN_SYNC:
             print("  doc already matches the repo")
-            st.save(b.state_file, st.State(
-                content_hash=st.content_hash(local),
-                doc_modified=fetch.fetch_modified_time(b.doc, tok),
-                synced_at=dt.datetime.now(dt.timezone.utc).isoformat()))
+            record(b, local, tok)
             return status
         if status is Status.CONFLICT:
             print(f"  CONFLICT — {why}; not touching either side")
@@ -160,10 +180,7 @@ def do_push(b: Binding, tok: str, force: bool) -> Status:
                   "(the doc's current contents are replaced)")
 
     fetch.replace_doc(b.doc, local, tok)
-    st.save(b.state_file, st.State(
-        content_hash=st.content_hash(local),
-        doc_modified=fetch.fetch_modified_time(b.doc, tok),
-        synced_at=dt.datetime.now(dt.timezone.utc).isoformat()))
+    record(b, local, tok)
     print("  doc updated from the repo")
     return Status.IN_SYNC
 
