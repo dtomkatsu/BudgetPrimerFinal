@@ -34,6 +34,10 @@ jobs:
           cp -r docs/css _site/
           cp -r docs/js _site/
           cp -r docs/pages _site/
+          # The primer report + its in-browser draft editor. Leaving this out
+          # does not fail the build — it silently 404s /primer/ on the live
+          # site whenever this workflow deploys after the legacy branch build.
+          cp -r docs/primer _site/
           cp .nojekyll _site/
       
       - name: Upload artifact
