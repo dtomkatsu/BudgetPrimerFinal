@@ -10,6 +10,7 @@
 set -euo pipefail
 
 PROJECT="${1:-docsync-$(whoami | tr -cd 'a-z0-9')}"
+SHARE_WITH="${SHARE_WITH:-}"   # Google account to share the docs folder with
 SA="docsync"
 KEY="$(mktemp -t docsync-key-XXXXXX.json)"
 trap 'rm -f "$KEY"' EXIT
@@ -27,7 +28,8 @@ gcloud projects describe "$PROJECT" >/dev/null 2>&1 \
 gcloud config set project "$PROJECT" >/dev/null
 
 echo "==> enabling Docs + Drive APIs"
-gcloud services enable docs.googleapis.com drive.googleapis.com
+gcloud services enable docs.googleapis.com drive.googleapis.com \
+  iamcredentials.googleapis.com
 
 echo "==> service account: $SA"
 EMAIL="$SA@$PROJECT.iam.gserviceaccount.com"
@@ -40,6 +42,14 @@ echo "==> minting a key and storing it as a GitHub secret"
 gcloud iam service-accounts keys create "$KEY" --iam-account="$EMAIL"
 gh secret set GOOGLE_SERVICE_ACCOUNT_KEY < "$KEY"
 
+echo "==> allowing yourself to impersonate the account"
+# Creating the folder as the service account needs a token for it, and being
+# its creator does not grant that. IAM takes a minute to propagate, so a first
+# run may still fall through to the manual path below.
+gcloud iam service-accounts add-iam-policy-binding "$EMAIL" \
+  --member="user:$(gcloud config get-value account 2>/dev/null)" \
+  --role="roles/iam.serviceAccountTokenCreator" --quiet >/dev/null 2>&1 || true
+
 echo "==> creating a Drive folder and sharing it with you"
 # One folder shared with the service account once is what removes per-doc
 # sharing forever: every doc created inside it is reachable already.
@@ -51,7 +61,13 @@ if [ -n "$TOKEN" ]; then
     -d '{"name":"docsync","mimeType":"application/vnd.google-apps.folder"}' \
     | python3 -c 'import sys,json; print(json.load(sys.stdin).get("id",""))')
 fi
-ME="$(git config user.email || true)"
+# git's user.email is often a GitHub noreply alias, which is not a Google
+# account and cannot be shared with. Prefer the logged-in gcloud identity, and
+# let --share-with override.
+ME="${SHARE_WITH:-$(gcloud config get-value account 2>/dev/null)}"
+case "$ME" in
+  *noreply*|"") ME="" ;;
+esac
 if [ -n "$FOLDER" ] && [ -n "$ME" ]; then
   curl -sS -X POST \
     "https://www.googleapis.com/drive/v3/files/$FOLDER/permissions?sendNotificationEmail=false" \

@@ -37,10 +37,22 @@ def doc_id_of(s: str) -> str:
 
 
 def owner_email() -> str:
+    """Who to share a new doc back to.
+
+    Not git's user.email — that is usually a GitHub noreply alias, which is not
+    a Google account and cannot be granted access. docsync.yml's `share_with`
+    wins; otherwise ask gcloud who is logged in.
+    """
     import subprocess                                          # noqa: PLC0415
-    r = subprocess.run(["git", "config", "user.email"],
-                       capture_output=True, text=True, cwd=ROOT)
-    return r.stdout.strip()
+    import yaml                                                # noqa: PLC0415
+
+    data = yaml.safe_load(REGISTRY.read_text()) or {}
+    if (who := (data.get("share_with") or "").strip()):
+        return who
+    r = subprocess.run(["gcloud", "config", "get-value", "account"],
+                       capture_output=True, text=True)
+    who = r.stdout.strip()
+    return "" if not who or "noreply" in who else who
 
 
 def folder_id() -> str | None:

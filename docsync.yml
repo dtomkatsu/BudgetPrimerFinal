@@ -26,7 +26,12 @@
 # any further per-doc sharing — that is what makes `docsync bind` a single
 # command instead of a console visit. Get the id from the folder's URL:
 # drive.google.com/drive/folders/<THIS>.  ./docsync/setup.sh prints it.
-folder: ""
+folder: "1enj9NxWJlxIOlyvSPuSgXzw1nxE7EU7T"
+
+# Google account that new docs are shared back to, and that edits them. Not
+# git's user.email — that is usually a GitHub noreply alias, which is not a
+# Google account. Defaults to whoever gcloud is logged in as.
+share_with: "devin@hibudget.org"
 
 bindings:
   - id: budget-primer
