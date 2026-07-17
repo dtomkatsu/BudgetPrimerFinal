@@ -560,16 +560,27 @@ def fy_pie_swap(fig_id, slices27, slices26, **kw):
 
 # ---------- page shells ----------
 def card(title, bullets, bg, light=None, key=""):
-    # Not positionable, deliberately: cards sit in flex rows, so pulling one out
-    # to absolute makes its siblings redistribute no matter what space is
-    # reserved. Moving a card out of its row is not a tweak, it is breaking the
-    # grid — resize the row's design here instead.
+    """One tile. The bullets' key names it: it is already unique per card, and a
+    second name for the same thing is a second thing to keep in step.
+
+    The card rows are CSS grid, so a moved card leaves a cell its neighbours
+    slide into. The spacer holds that cell — an empty grid item auto-places
+    into it and the column width comes from the track, so no measurement is
+    involved. The override merges into the tile's own style attribute; two
+    style attributes would silently drop one.
+    """
     if light is None:                       # auto: dark text on light tiles
         light = is_light_bg(bg)
     cls = "card light" if light else "card"
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     ul = C.ul_attr(key) if key else ""
-    return f'<div class="{cls}" style="background:{bg}"><h4>{title}</h4><ul{ul}>{lis}</ul></div>'
+    el_id = f"card.{key}" if key else ""
+    override = L.style(el_id, "") if el_id else ""
+    style = f"background:{bg}" + (f";{override}" if override else "")
+    tag = L.tag(el_id) if el_id else ""
+    return (f'{L.spacer(el_id) if el_id else ""}'
+            f'<div class="{cls}"{tag} style="{style}">'
+            f'<h4>{title}</h4><ul{ul}>{lis}</ul></div>')
 
 def endnote_link(n, txt, url):
     return f'<li id="en{n}">{txt} <a href="{url}">{url}</a></li>'

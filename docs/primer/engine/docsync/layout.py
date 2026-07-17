@@ -144,6 +144,12 @@ class Layout:
         return (f'<div class="ds-spacer" style="height:{p["reserve"]}in"'
                 f' aria-hidden="true"></div>')
 
+    def tag(self, el_id: str) -> str:
+        """Just the data-el hook, for elements that already carry a style of
+        their own and must merge the override into it rather than grow a second
+        style attribute."""
+        return f' data-el="{el_id}"' if os.environ.get("DOCSYNC_EDIT") else ""
+
     def style(self, el_id: str, default: str = "") -> str:
         """For elements the renderer already positions itself (the lifecycle
         callouts): the override wins, otherwise the computed placement stands."""

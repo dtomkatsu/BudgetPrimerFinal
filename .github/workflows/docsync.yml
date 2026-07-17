@@ -23,6 +23,9 @@ on:
     branches: [ main ]
     paths:
       - "**/content.md"
+      # layout.json is authored too — the editor commits it. Without this a
+      # move saved from the editor sat in git and never reached the site.
+      - "**/layout.json"
       # The editor's engine is a build artifact containing a copy of
       # content.md; without this every engine rebuild fired a pointless sync.
       - "!docs/**"
