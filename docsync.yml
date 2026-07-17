@@ -1,0 +1,42 @@
+# Google Doc <-> report bindings.
+#
+# Each entry pairs one doc with one committed file. The doc is where prose is
+# written; the file is what the build reads. `python3 -m docsync.sync status`
+# reports drift; the docsync workflow syncs both ways on a schedule.
+#
+# Adding a report to the sync is an entry here — not new code. To bind a new
+# doc: share it with the service account as Editor (see docsync/SETUP.md), add
+# an entry, then `python3 -m docsync.sync push --id <id>` once to initialise.
+#
+#   id       kebab-case, unique; names the state file docsync/.state/<id>.json
+#   doc      the Google Doc id (the /d/<THIS>/edit part of its URL)
+#   mode     slots    — doc fills named [[key]] slots; the renderer owns layout
+#            fragment — the whole doc becomes HTML between anchor comments
+#   content  the committed file the doc syncs to
+#   build    shell command to rebuild after a pull (run from the repo root)
+#   outputs  extra paths a pull may change, so CI knows to commit them
+#   target   fragment mode only: the page to inject into
+#   anchor   fragment mode only: <!-- NAME:start --> / <!-- NAME:end -->
+#            (default: docsync)
+#   pr       true to open a pull request instead of committing to main;
+#            use for anything with outside editors
+
+bindings:
+  - id: budget-primer
+    doc: 1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU
+    mode: slots
+    content: report2027/content.md
+    build: make -C report2027 html && cp report2027/web/index.html docs/primer/
+    outputs:
+      - report2027/web/index.html
+      - docs/primer/index.html
+
+  # Example — a simple page whose prose lives entirely in a doc. Binding one
+  # takes minutes: add <!-- docsync:start --> / <!-- docsync:end --> where the
+  # content belongs, then add an entry like this.
+  #
+  # - id: snap-timeline
+  #   doc: <doc-id>
+  #   mode: fragment
+  #   content: snap-timeline/content.md
+  #   target: snap-timeline/index.html

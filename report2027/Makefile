@@ -5,17 +5,20 @@ all: data html pdf embed
 
 validate:
 	python3 tools/build_data.py --validate
-	python3 tools/test_pull_doc.py
-	python3 tools/pull_doc.py --check
+	cd .. && python3 docsync/test_docsync.py
+	cd .. && python3 -m docsync.sync check --id budget-primer
 
 # Prose lives in the Google Doc; content.md is the committed snapshot the build
 # reads. `pull-doc` refreshes it (refuses to write if the doc is malformed), so
 # every prose change lands as a reviewable git diff before it ships.
 pull-doc:
-	python3 tools/pull_doc.py
+	cd .. && python3 -m docsync.sync pull --id budget-primer
 
 doc-diff:
-	python3 tools/pull_doc.py --diff
+	cd .. && python3 -m docsync.sync check --id budget-primer --diff
+
+doc-status:
+	cd .. && python3 -m docsync.sync status --id budget-primer
 
 data:
 	python3 tools/build_data.py
@@ -37,4 +40,4 @@ embed: html
 preview: html
 	open web/index.html
 
-.PHONY: all validate data html pdf embed preview pull-doc doc-diff
+.PHONY: doc-status all validate data html pdf embed preview pull-doc doc-diff

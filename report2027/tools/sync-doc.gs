@@ -1,52 +1,44 @@
 /**
- * Budget Primer — Google Doc <-> report sync.
+ * Budget Primer — optional in-doc convenience menu.
  *
- * SETUP (once)
- * ------------
+ * THIS IS NOT THE SYNC ENGINE. docsync (GitHub Actions, see docsync/SETUP.md)
+ * is the engine of record: it syncs every binding in docsync.yml both ways on
+ * a schedule, under a service account, whether or not anyone is at a laptop.
+ *
+ * This script is a nicety for someone editing the doc who wants an immediate
+ * nudge instead of waiting for the next scheduled run, plus the marker
+ * cosmetics the engine has no way to apply (Drive's Markdown import cannot
+ * style individual paragraphs).
+ *
+ * Because it runs as YOU and not the service account, its safety check reads
+ * PropertiesService, which CI cannot see. Two mechanisms tracking the same
+ * thing can disagree, so prefer the engine and treat this as a shortcut:
+ *
+ *   Update from report (safe)  — same conflict rules, applied client-side
+ *   Tidy [[key]] markers       — re-dim markers after editing resets them
+ *   Force replace              — discard doc edits; the engine's --force
+ *
+ * SETUP (only if you want the menu)
+ * --------------------------------
  * 1. Open the doc -> Extensions -> Apps Script.
- * 2. Delete the placeholder code, paste this whole file, and Save.
- * 3. In the left sidebar hit "+" next to Services, add "Drive API", click Add.
- *    (Used to replace the doc body by importing Markdown — Google converts it
- *    to real headings/bold/links/lists for us.)
- * 4. Reload the doc. A "Budget Primer" menu appears.
- * 5. First run asks you to authorise — it is your own script acting as you.
+ * 2. Paste this whole file and Save.
+ * 3. Sidebar "+" next to Services -> add "Drive API" -> Add.
+ * 4. Reload the doc; a "Budget Primer" menu appears.
  *
- * THE TWO DIRECTIONS
- * ------------------
- * doc -> report : edit the doc, then run `make pull-doc` in the repo. It
- *   fetches this doc, validates it, and refuses to write if anything is
- *   malformed. Review the git diff, `make html`, push.
- *
- * report -> doc : when prose changes on the code side (content.md pushed to
- *   GitHub), run Budget Primer -> "Update from report (safe)". It refreshes
- *   the doc ONLY when that cannot lose anything:
- *     - if the doc has no edits since the last sync, it updates silently;
- *     - if the doc was edited but its content already matches the report
- *       (your edits were pulled and republished), it just records the sync;
- *     - if the doc has edits the report does not have, it STOPS and tells
- *       you to run `make pull-doc` first (or use Force replace to discard).
- *   "Enable hourly auto-sync" runs the same safe check on a timer, so pushed
- *   changes appear in the doc within the hour with no clicking at all.
- *
- * ADDING A NEW SECTION FROM THE DOC (no code changes)
- * ---------------------------------------------------
- * Add a line  [[extra.<page>.<your-slug>]]  followed by your content —
- * headings (Heading 2/3), paragraphs and "- " bullets all work. It renders
- * at the end of that page. Valid <page> names:
- *   basics, process, spent, categories, cip, onetime, funding, taxes, whopays
- *
- * RULES THAT KEEP THE BUILD WORKING
- * ---------------------------------
- * * Keep every existing [[key]] marker exactly as-is (they render small and
- *   grey). Renaming or deleting one fails the build loudly — it never
- *   silently drops text. The real headings are what you edit against.
+ * EDITING RULES (these are what the build enforces, engine or not)
+ * ---------------------------------------------------------------
+ * * Keep every [[key]] marker exactly as-is. Renaming or deleting one fails
+ *   the build loudly — it never silently drops text.
  * * A slot can hold more than one paragraph: leave a blank line between them.
- * * Footnote refs are stable ids like [^act99]; the report numbers them
- *   automatically. Every [^id] must have a matching entry under [[sources]].
- * * Figures, Table 1 and all dollar amounts are generated from the budget
- *   data — they are not in this doc and cannot be edited here.
- * * The published HTML is generated; never hand-edit it. Prose lives here
- *   (or in content.md), layout lives in the renderer.
+ * * To add a whole new subsection, use an overflow slot:
+ *     [[extra.<page>.<your-slug>]]
+ *   where <page> is one of: basics, process, spent, categories, cip, onetime,
+ *   funding, taxes, whopays. Headings, paragraphs and "- " bullets all work,
+ *   and it renders at the end of that page with no code change.
+ * * Footnote refs are stable ids like [^act99]; the report numbers them.
+ *   Every [^id] needs an entry under [[sources]].
+ * * Figures, Table 1 and all dollar amounts come from the budget data — they
+ *   are not in this doc and cannot be edited here.
  */
 
 var CONTENT_URL =

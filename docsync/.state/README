@@ -1,0 +1,2 @@
+# Sync state per binding, committed so any machine (laptop or CI) can tell
+# whether a doc moved since the last sync. Written by docsync.sync.

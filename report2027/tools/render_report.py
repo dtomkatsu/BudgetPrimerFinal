@@ -11,8 +11,8 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from content import Content, ContentError          # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from docsync.content import Content, ContentError  # noqa: E402
 
 HERE = Path(__file__).resolve().parent.parent
 # Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
