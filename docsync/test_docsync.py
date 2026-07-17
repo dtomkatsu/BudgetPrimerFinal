@@ -715,6 +715,20 @@ check_eq("the pale tile the renderer hand-judges really is light", _is_light("#C
 check_eq("recoloured to charcoal it is not — so its text must reverse",
          _is_light("#2F3E46"), False)
 
+
+def _is_light_a(hexc):                                # 8-digit, composited over white
+    h = hexc.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    if len(h) == 8:
+        a = int(h[6:8], 16) / 255
+        r, g, b = (v * a + 255 * (1 - a) for v in (r, g, b))
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 130
+
+
+check_eq("an opaque charcoal fill reads dark", _is_light_a("#2F3E46FF"), False)
+check_eq("the same charcoal at 25% shows the page and reads light",
+         _is_light_a("#2F3E4640"), True)
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

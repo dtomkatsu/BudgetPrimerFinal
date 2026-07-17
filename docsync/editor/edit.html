@@ -173,6 +173,13 @@
         text-shadow:0 0 3px rgba(0,0,0,.85); }
   .sw.custom { border:1px dashed #8B9A90;
         background:conic-gradient(#e66,#ea3,#6b9e78,#39c,#96e,#e66); }
+  /* eyedropper + in-use colours, shared with the fill menu via colorExtras */
+  #ty-color-extras .ds-swatches { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  #ty-color-extras .ds-sw { width:26px; height:26px; border:1px solid rgba(0,0,0,.16);
+        border-radius:6px; cursor:pointer; padding:0; }
+  #ty-color-extras .ds-sw:hover { outline:2px solid var(--ink); outline-offset:1px; }
+  #ty-color-extras .ds-sw-eye { display:grid; place-items:center; font-size:14px;
+        background:#fff; color:var(--ink); }
   .sw-default { margin-top:9px; width:100%; font:12.5px system-ui; padding:5px 0;
         border:1px solid #C9D6CD; border-radius:7px; background:#fff;
         color:var(--ink); cursor:pointer; }
@@ -293,6 +300,7 @@
   <div class="pop" id="ty-colorpop" hidden>
     <p class="pop-h">Text colour</p>
     <div class="swgrid" id="ty-swgrid"></div>
+    <div id="ty-color-extras"></div>
     <button class="sw-default" id="ty-colordefault">Report's own colour</button>
   </div>
   <div class="pop" id="ty-spacepop" hidden>
@@ -595,6 +603,52 @@ function fillTargets(id) {
   };
 }
 
+// The screen already holds colours worth reusing — every fill, stroke, box and
+// text colour in layout.json. Offering them saves eyedropping your own work.
+function colorsInUse() {
+  const set = new Set();
+  const add = c => { if (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c)) set.add(c.toUpperCase()); };
+  Object.values(layout.fill || {}).forEach(add);
+  (layout.shapes || []).forEach(s => { add(s.fill); add(s.stroke); });
+  (layout.boxes || []).forEach(b => add(b.fill));
+  Object.values(layout.text || {}).forEach(t => { add(t.color); if (t.effect) { add(t.effect.color); add(t.effect.shadow); } });
+  return [...set].slice(0, 12);
+}
+
+const hasEyeDropper = () => typeof window.EyeDropper === 'function';
+async function eyedrop(onPick) {
+  if (!hasEyeDropper()) { $('stat').textContent = 'the eyedropper needs a Chromium browser'; return; }
+  try { const r = await new window.EyeDropper().open(); onPick(r.sRGBHex); }
+  catch (e) { /* the user pressed Esc */ }
+}
+
+/** An eyedropper button and the current in-use colours, shared by every colour
+ *  surface. `onPick(hex)` applies a chosen colour. */
+function colorExtras(d, host, current, onPick) {
+  const inUse = colorsInUse().filter(c => c.slice(0, 7) !== (current || '').slice(0, 7));
+  if (hasEyeDropper() || inUse.length) {
+    const row = d.createElement('div');
+    row.className = 'ds-swatches';
+    if (hasEyeDropper()) {
+      const eye = d.createElement('button');
+      eye.className = 'ds-sw ds-sw-eye';
+      eye.title = 'Pick a colour from anywhere on screen';
+      eye.textContent = '⦿';
+      eye.addEventListener('click', () => eyedrop(onPick));
+      row.appendChild(eye);
+    }
+    inUse.forEach(c => {
+      const b = d.createElement('button');
+      b.className = 'ds-sw';
+      b.style.background = c;
+      b.title = c + ' — in use';
+      b.addEventListener('click', () => onPick(c));
+      row.appendChild(b);
+    });
+    host.appendChild(row);
+  }
+}
+
 function fillRow(d, m, id) {
   const t = fillTargets(id);
   const h = d.createElement('div');
@@ -604,6 +658,7 @@ function fillRow(d, m, id) {
   const row = d.createElement('div');
   row.className = 'ds-swatches';
   const current = (t.get() || '').toUpperCase();
+  const rgb6 = current.slice(0, 7);
   const paint = async c => {
     pushHistory();
     t.set(c);
@@ -613,7 +668,7 @@ function fillRow(d, m, id) {
   };
   (M.palette || []).forEach(c => {
     const b = d.createElement('button');
-    b.className = 'ds-sw' + (c.toUpperCase() === current ? ' on' : '');
+    b.className = 'ds-sw' + (c.toUpperCase() === rgb6 ? ' on' : '');
     b.style.background = c;
     b.title = c;
     b.addEventListener('click', () => paint(c));
@@ -623,10 +678,27 @@ function fillRow(d, m, id) {
   custom.type = 'color';
   custom.className = 'ds-sw-custom';
   custom.title = 'Custom colour';
-  custom.value = /^#[0-9A-F]{6}$/.test(current) ? current : '#6b9e78';
-  custom.addEventListener('change', () => paint(custom.value));
+  custom.value = /^#[0-9A-F]{6}/.test(current) ? rgb6 : '#6b9e78';
+  custom.addEventListener('change', () => paint(custom.value + alphaHex()));
   row.appendChild(custom);
   m.appendChild(row);
+  colorExtras(d, m, current, c => paint(c + alphaHex()));
+  // Opacity, appended as the 8th/9th hex digits — is_light_bg composites it
+  // over white, so a translucent tile still gets a readable text colour.
+  let alpha = current.length >= 9 ? parseInt(current.slice(7, 9), 16) / 255 : 1;
+  const alphaHex = () => alpha >= 0.999 ? '' :
+    Math.round(alpha * 255).toString(16).padStart(2, '0').toUpperCase();
+  const arow = d.createElement('label');
+  arow.className = 'ds-menu-slider';
+  arow.textContent = 'opacity';
+  const ain = d.createElement('input');
+  ain.type = 'range'; ain.min = '0.1'; ain.max = '1'; ain.step = '0.05'; ain.value = alpha;
+  ain.addEventListener('change', () => {
+    alpha = +ain.value;
+    if (rgb6.length === 7) paint(rgb6 + alphaHex());
+  });
+  arow.appendChild(ain);
+  if (rgb6.length === 7) m.appendChild(arow);
   if (t.resettable) {
     const b = d.createElement('button');
     b.textContent = t.resetLabel;
@@ -1610,7 +1682,17 @@ function wireType() {
   slider('ty-track-r', 'ty-track', 'tracking');
   slider('ty-lead-r', 'ty-lead', 'leading');
 
-  $('ty-colorbtn').addEventListener('click', () => togglePop($('ty-colorpop'), $('ty-colorbtn')));
+  $('ty-colorbtn').addEventListener('click', () => {
+    // Rebuild the eyedropper + in-use row each open: the colours in play change.
+    const host = $('ty-color-extras');
+    host.innerHTML = '';
+    colorExtras(document, host, (styleOf(selected).color || ''), async c => {
+      $('ty-colorpop').hidden = true;
+      setStyle(selected, { color: c });
+      markDirty(); await render(); showType(selected);
+    });
+    togglePop($('ty-colorpop'), $('ty-colorbtn'));
+  });
   $('ty-spacebtn').addEventListener('click', () => togglePop($('ty-spacepop'), $('ty-spacebtn')));
   $('ty-colordefault').addEventListener('click', async () => {
     $('ty-colorpop').hidden = true;
@@ -2909,6 +2991,8 @@ function wire() {
     .ds-sw { width:20px; height:20px; padding:0; border:1px solid rgba(0,0,0,.18);
              border-radius:4px; cursor:pointer; }
     .ds-sw:hover { outline:2px solid #2F3E46; outline-offset:1px; }
+    .ds-sw-eye { display:grid; place-items:center; font-size:13px; color:#2F3E46;
+             background:#fff; }
     .ds-sw.on { position:relative; }
     .ds-sw.on::after { content:"✓"; position:absolute; inset:0; display:grid;
              place-items:center; font:700 12px system-ui; color:#fff;

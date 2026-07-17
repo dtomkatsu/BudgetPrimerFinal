@@ -106,9 +106,21 @@ SERIES = {"operating": SAGE, "capital": SAGE_MID, "one_time": DARK, "emergency":
 def is_light_bg(hexc):
     """True when a fill is light enough to need dark (not white) text. The brand's
     Muted Teal / Ash Grey tiles read best with charcoal text; only Deep Teal,
-    Dark Slate, and Charcoal Blue take reversed (white) text."""
+    Dark Slate, and Charcoal Blue take reversed (white) text.
+
+    An 8-digit fill carries alpha: a half-transparent dark tile shows the white
+    page through it and reads light, so the colour is composited over white
+    before the luminance test — otherwise the text reverses to white on what
+    looks like a pale tile. Fills mostly sit on the white page; over a darker
+    element the composite is approximate, which is the honest limit of deciding
+    contrast without knowing every layer beneath."""
     h = hexc.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    if len(h) == 8:
+        a = int(h[6:8], 16) / 255
+        r, g, b = (v * a + 255 * (1 - a) for v in (r, g, b))
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 130
 
 # ---------- formatting ----------
