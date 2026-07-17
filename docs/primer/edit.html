@@ -196,6 +196,26 @@
         border-radius:7px; cursor:pointer; }
   .pop .shp:hover { background:var(--sage); color:#fff; }
   .pop .shp svg { display:block; }
+  /* the layers panel: this page's objects, top of the stack first */
+  #layerspop { min-width:230px; max-height:340px; overflow-y:auto; }
+  .lrow { display:flex; align-items:center; gap:8px; padding:6px 8px; margin:2px 0;
+        border:1px solid transparent; border-radius:7px; font:12.5px system-ui;
+        color:var(--ink); cursor:grab; }
+  .lrow:hover { border-color:var(--sage); background:#F2F6F3; }
+  .lrow.sel { border-color:var(--sage); background:#E7F0EA; }
+  .lrow.drag-over { border-top:2px solid var(--sage); }
+  .lrow-kind { width:22px; text-align:center; font:600 10px ui-monospace,monospace;
+        color:#7A8E92; flex:none; }
+  .lrow-id { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+        font-family:ui-monospace,monospace; font-size:11px; }
+  .lrow-lock { flex:none; font-size:11px; opacity:.6; }
+  .ldivider { display:flex; align-items:center; gap:8px; margin:6px 0;
+        font:600 10px system-ui; letter-spacing:.6px; text-transform:uppercase;
+        color:#9AACA4; }
+  .ldivider::before, .ldivider::after { content:""; flex:1; height:1px;
+        background:#DDE7E0; }
+  .ldivider.drag-over { color:var(--sage); }
+  .lempty { font:12px system-ui; color:#8B9A90; padding:6px 4px; }
   /* zoom: a quiet segmented control at the far end of the bar */
   #zoom { display:inline-flex; margin-left:2px; }
   #zoom button { border-radius:0; margin-left:-1px; min-width:34px; padding:5px 7px; }
@@ -239,6 +259,14 @@
       stroke-width="1.3"><rect x="1.5" y="1.5" width="11" height="11" rx="1"/>
       <path d="M1.5 4.5h2M1.5 7h3M1.5 9.5h2M4.5 1.5v2M7 1.5v3M9.5 1.5v2"
         stroke-linecap="round"/></svg></button>
+  <button id="layers" title="Layers — this page's objects in stacking order; drag to restack">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.3" stroke-linejoin="round"><path d="M7 1.8L12.6 4.6 7 7.4 1.4 4.6z"/>
+      <path d="M1.4 7.2L7 10l5.6-2.8M1.4 9.8L7 12.6l5.6-2.8"/></svg></button>
+  <div class="pop" id="layerspop" hidden>
+    <p class="pop-h" id="layers-title">Layers</p>
+    <div id="layers-list"></div>
+  </div>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save</button>
   <div class="pop" id="shapepop" hidden>
@@ -352,6 +380,16 @@
       <path d="M2 1.5h10M2 12.5h10M4.5 7h5"/></svg></button>
   </span>
   <span class="ty-sep"></span>
+  <span class="ty-seg" title="Layer">
+    <button id="ar-front" title="Bring to front (⌘⌥])"><svg width="14" height="14"
+      viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"
+      stroke-linejoin="round"><rect x="4" y="1.5" width="8.5" height="8.5" rx="1"
+      fill="currentColor" fill-opacity=".35"/><path d="M1.5 5.5v6a1 1 0 0 0 1 1h6"/></svg></button>
+    <button id="ar-back" title="Send to back (⌘⌥[)"><svg width="14" height="14"
+      viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"
+      stroke-linejoin="round"><rect x="1.5" y="4" width="8.5" height="8.5" rx="1"
+      fill="currentColor" fill-opacity=".35"/><path d="M5.5 1.5h6a1 1 0 0 1 1 1v6"/></svg></button>
+  </span>
   <button id="ar-dup" title="Duplicate (⌘D) — shapes and text boxes">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
@@ -733,12 +771,6 @@ const setZ = (id, z) => {
   else return false;
   return true;
 };
-const allZ = () => [
-  ...Object.keys(layout.positions).map(zOf),
-  ...layout.shapes.map(s => zOf(s.id)),
-  ...boxes().map(b => zOf('text.' + b.id)),
-];
-
 function closeMenu(d) {
   d.querySelectorAll('.ds-menu').forEach(m => m.remove());
 }
@@ -772,19 +804,29 @@ function layerMenu(d, el, e) {
     m.appendChild(b);
   };
   if (!surface) {
-    const zs = allZ();
     const head = d.createElement('div');
     head.className = 'ds-menu-head';
-    head.textContent = known ? `${id} · layer ${zOf(id)}` : `${id} · move it first`;
+    head.textContent = `${id} · layer ${zOf(id)}`;
     m.appendChild(head);
 
-    const bump = async delta => {
-      setZ(id, zOf(id) + delta); markDirty(); await render();
+    // Layering an untouched designed element pins it into positions{} first —
+    // z-index means nothing to a thing still in the flow, and "send this
+    // behind" IS a placement decision. Front/back scan THIS page's stack;
+    // another page's z ceiling is not this page's business.
+    const pg2 = el.closest('section.page') || d.querySelector('section.page');
+    const zSet = async z => {
+      pushHistory();
+      if (!known) ensureStore(d, el);
+      setZ(id, z);
+      markDirty();
+      await render();
     };
-    item('Bring to front', async () => { setZ(id, Math.max(...zs, 0) + 1); markDirty(); await render(); }, known);
-    item('Forward',        () => bump(1), known);
-    item('Backward',       () => bump(-1), known);
-    item('Send to back',   async () => { setZ(id, Math.min(...zs, 0) - 1); markDirty(); await render(); }, known);
+    const zsPage = () => [...pg2.querySelectorAll('[data-el], [data-shape]')]
+      .map(x => zOf(idOf(x)));
+    item('Bring to front', () => zSet(Math.max(...zsPage(), 0) + 1));
+    item('Forward',        () => zSet(zOf(id) + 1));
+    item('Backward',       () => zSet(zOf(id) - 1));
+    item('Send to back',   () => zSet(Math.min(...zsPage(), 0) - 1));
     item(isLocked(id) ? 'Unlock' : 'Lock', () => {
       pushHistory();
       layout.locked = isLocked(id) ? lockedList().filter(x => x !== id)
@@ -1453,7 +1495,7 @@ function togglePop(pop, anchor) {
   pop.hidden = false;
 }
 addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape'))
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape, #layers'))
     document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
 });
 
@@ -1783,6 +1825,7 @@ function paintSel(d) {
     showHandles(d, page, els[0]);
   }
   arrangeBar(d);
+  if (!$('layerspop').hidden) setTimeout(layersRender, 0);   // highlight tracks selection
 }
 const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
 const clearSel = d => { selIds.clear(); paintSel(d); };
@@ -2093,6 +2136,9 @@ function keysFor(d) {
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
       e.preventDefault(); duplicateSel(d); return;
+    }
+    if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) {
+      e.preventDefault(); layerStep(d, e.key === ']' ? 1 : -1, e.altKey); return;
     }
     if (!selIds.size) return;
     if (e.key === 'Escape') { clearSel(d); return; }
@@ -2416,6 +2462,147 @@ $('guides').addEventListener('click', () => {
   $('stat').textContent = guidesOn
     ? 'guides on — drag from a ruler to add one' : 'guides off';
 });
+
+// ----------------------------------------------------------------- layers
+// Canva's layers panel, scoped to the page in view: every FLOATING object —
+// shapes, text boxes, pinned elements — top of the stack first, around a fixed
+// "page content" divider that is the report's own flow (the designed prose is
+// the mid-plane, not an object). Drag rows to restack; on drop every object
+// gets a fresh unique z — above the divider 1..n counting up from it, below
+// -1..-m counting down — so no two objects ever tie and the order you see is
+// exactly the order that renders.
+function pageEl(d) {
+  const pid = visiblePageId();
+  return d.querySelector(`section[data-page="${CSS.escape(String(pid))}"]`)
+      || d.querySelector('section.page');
+}
+
+function layerItems(d, pg) {
+  return [...pg.querySelectorAll('[data-el], [data-shape]')]
+    .map((el, dom) => ({ el, dom, id: idOf(el) }))
+    .filter(o => layout.shapes.some(s => s.id === o.id) || boxOf(o.id)
+              || layout.positions[o.id])
+    .map(o => ({ ...o, z: zOf(o.id) }))
+    .sort((a, b) => (b.z - a.z) || (b.dom - a.dom));      // top first
+}
+
+function kindOf(id, el) {
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) return sh.kind === 'line' ? '─' : sh.kind === 'ellipse' ? '◯'
+        : sh.kind === 'triangle' ? '△' : sh.kind === 'arrow' ? '➔' : '▭';
+  if (boxOf(id)) return 'T';
+  if (el.tagName === 'IMG' || el.classList.contains('ds-cropw')
+      || el.querySelector('img')) return 'img';
+  return '▣';
+}
+
+function layersRender() {
+  const d = $('out').contentDocument;
+  const host = $('layers-list');
+  if (!d || !d.querySelector('section.page')) return;
+  const pg = pageEl(d);
+  const pid = visiblePageId();
+  $('layers-title').textContent =
+    `Layers — page ${pageOrder().indexOf(pid) + 1 || '?'}`;
+  host.innerHTML = '';
+  const items = layerItems(d, pg);
+  const above = items.filter(o => o.z > 0);
+  const below = items.filter(o => o.z <= 0);
+  const row = o => {
+    const r = document.createElement('div');
+    r.className = 'lrow' + (selIds.has(o.id) ? ' sel' : '');
+    r.draggable = true;
+    r.dataset.id = o.id;
+    r.innerHTML = `<span class="lrow-kind">${kindOf(o.id, o.el)}</span>`
+      + `<span class="lrow-id">${o.id}</span>`
+      + (isLocked(o.id) ? '<span class="lrow-lock">🔒</span>' : '');
+    r.addEventListener('click', () => {
+      const el = d.querySelector(`[data-el="${CSS.escape(o.id)}"], `
+        + `[data-shape="${CSS.escape(o.id)}"]`);
+      if (!el) return;
+      setSel(d, [o.id]);
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      layersRender();
+    });
+    r.addEventListener('dragstart', e =>
+      e.dataTransfer.setData('text/plain', o.id));
+    dropTarget(r);
+    return r;
+  };
+  const dropTarget = r => {
+    r.addEventListener('dragover', e => { e.preventDefault(); r.classList.add('drag-over'); });
+    r.addEventListener('dragleave', () => r.classList.remove('drag-over'));
+    r.addEventListener('drop', async e => {
+      e.preventDefault();
+      r.classList.remove('drag-over');
+      const from = e.dataTransfer.getData('text/plain');
+      if (!from || from === r.dataset.id) return;
+      const seq = [...host.children].map(x => x.dataset.id || '__content__');
+      const fromAt = seq.indexOf(from);
+      seq.splice(fromAt, 1);
+      const toAt = seq.indexOf(r.dataset.id || '__content__');
+      seq.splice(toAt, 0, from);            // drop ABOVE the row it landed on
+      await applyLayerOrder(d, seq);
+    });
+  };
+  if (!items.length) {
+    const e = document.createElement('div');
+    e.className = 'lempty';
+    e.textContent = 'Nothing floats on this page yet — shapes, text boxes and moved elements appear here.';
+    host.appendChild(e);
+    return;
+  }
+  above.forEach(o => host.appendChild(row(o)));
+  const div = document.createElement('div');
+  div.className = 'ldivider';
+  div.textContent = 'page content';
+  dropTarget(div);
+  host.appendChild(div);
+  below.forEach(o => host.appendChild(row(o)));
+}
+
+async function applyLayerOrder(d, seq) {
+  pushHistory();
+  const di = seq.indexOf('__content__');
+  const above = seq.slice(0, di), below = seq.slice(di + 1);
+  above.forEach((id, i) => setZ(id, above.length - i));
+  below.forEach((id, i) => setZ(id, -(i + 1)));
+  markDirty();
+  await render();
+  layersRender();
+}
+
+/** Step the selection through the stack: ⌘] forward, ⌘[ backward, ⌥ for all
+ *  the way. An unpinned designed element is pinned first — same rule as the
+ *  menu, layering is placement. */
+async function layerStep(d, dir, extreme) {
+  const els = selEls(d).filter(el => !isLocked(idOf(el)));
+  if (!els.length) return;
+  pushHistory();
+  els.forEach(el => {
+    const id = idOf(el);
+    if (!layout.shapes.some(s => s.id === id) && !boxOf(id)
+        && !layout.positions[id]) ensureStore(d, el);
+    const pg = el.closest('section.page') || d.querySelector('section.page');
+    const zs = [...pg.querySelectorAll('[data-el], [data-shape]')]
+      .map(x => zOf(idOf(x)));
+    setZ(id, extreme ? (dir > 0 ? Math.max(...zs, 0) + 1 : Math.min(...zs, 0) - 1)
+                     : zOf(id) + dir);
+  });
+  markDirty();
+  await render();
+  $('stat').textContent = extreme
+    ? (dir > 0 ? 'brought to front' : 'sent to back')
+    : (dir > 0 ? 'brought forward' : 'sent backward');
+}
+
+$('layers').addEventListener('click', () => {
+  const pop = $('layerspop');
+  if (pop.hidden) layersRender();
+  togglePop(pop, $('layers'));
+});
+$('ar-front').addEventListener('click', () => layerStep($('out').contentDocument, 1, true));
+$('ar-back').addEventListener('click', () => layerStep($('out').contentDocument, -1, true));
 
 $('ar-dup').addEventListener('click', () => duplicateSel($('out').contentDocument));
 $('ar-del').addEventListener('click', () => deleteSel($('out').contentDocument));
@@ -2900,6 +3087,10 @@ addEventListener('keydown', e => {
     e.preventDefault();
     duplicateSel($('out').contentDocument);
   }
+  if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) {
+    e.preventDefault();
+    layerStep($('out').contentDocument, e.key === ']' ? 1 : -1, e.altKey);
+  }
   if (e.key === 'Escape' && selIds.size) clearSel($('out').contentDocument);
 });
 
@@ -3029,6 +3220,9 @@ function wire() {
   if (meta) { try { designedPages = JSON.parse(meta.textContent); } catch (e) {} }
   railRender();
   drawGuideLayer(d);           // guides are editor-drawn, so redraw each render
+  // Deferred a tick: wire() runs before the scroll restore, and the panel
+  // keys on the page in VIEW — rebuilt too early it shows the cover's stack.
+  if (!$('layerspop').hidden) setTimeout(layersRender, 0);
   // Empty page is the marquee's surface; a travel-less marquee is click-away.
   // But "empty" is the DOM's opinion, not the eye's: a transparent container
   // above a text box, or prose above a z:-1 shape, swallows the mousedown for
