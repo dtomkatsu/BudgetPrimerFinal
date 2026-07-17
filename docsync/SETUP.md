@@ -1,5 +1,11 @@
 # docsync setup
 
+> **Already set up for this repo** (2026-07-16). Project `docsync-dtomkatsu`,
+> service account `docsync@docsync-dtomkatsu.iam.gserviceaccount.com`, docs
+> folder [1enj9NxW…](https://drive.google.com/drive/folders/1enj9NxWJlxIOlyvSPuSgXzw1nxE7EU7T).
+> Nothing below needs doing again here — it is the guide for the next repo, and
+> even then only the key needs sharing across, not a new account.
+
 The engine runs in GitHub Actions, so it needs a Google identity that isn't
 tied to anyone's browser session: a **service account**, whose key lives in a
 GitHub secret.
