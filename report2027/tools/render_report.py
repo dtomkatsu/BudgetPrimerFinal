@@ -369,7 +369,7 @@ def fig2_svg(rows, attrs=""):
 # month ring make that span explicit rather than leaving it to proximity.
 LIFECYCLE_SPANS = [
     # key, label, first month, last month, text, side  (label/text from content.md)
-    (k, C.text(f"process.lifecycle.{k}.label"), m0, m1,
+    (k, C.t(f"process.lifecycle.{k}.label"), m0, m1,
      C(f"process.lifecycle.{k}.text"), side)
     for k, m0, m1, side in [
         ("dec", 11, 11, "top"), ("jan", 0, 3, "right"), ("may", 4, 4, "right"),
@@ -552,12 +552,13 @@ def fy_pie_swap(fig_id, slices27, slices26, **kw):
             + pie(slices26, attrs=f' data-fig="{fig_id}" data-fy="2026" hidden', **kw))
 
 # ---------- page shells ----------
-def card(title, bullets, bg, light=None):
+def card(title, bullets, bg, light=None, key=""):
     if light is None:                       # auto: dark text on light tiles
         light = is_light_bg(bg)
     cls = "card light" if light else "card"
     lis = "".join(f"<li>{b}</li>" for b in bullets)
-    return f'<div class="{cls}" style="background:{bg}"><h4>{title}</h4><ul>{lis}</ul></div>'
+    ul = C.ul_attr(key) if key else ""
+    return f'<div class="{cls}" style="background:{bg}"><h4>{title}</h4><ul{ul}>{lis}</ul></div>'
 
 def endnote_link(n, txt, url):
     return f'<li id="en{n}">{txt} <a href="{url}">{url}</a></li>'
@@ -616,11 +617,11 @@ pages.append(f"""
   <div class="logo-lockup light"><img class="logo-img" src="assets/appleseed-logo-white.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
-  <p class="toc-author">{C.text("toc.author")}</p>
+  <p class="toc-author">{C.t("toc.author")}</p>
  </div>
  {C.html("toc.mission1", "mission")}
  {C.html("toc.mission2", "mission")}
- <h2 class="toc-title">{C.text("toc.title")}</h2>
+ <h2 class="toc-title">{C.t("toc.title")}</h2>
  <div class="toc-list">
   <div><span>Budget Basics</span><span>3</span></div>
   <div><span>How Money Is Spent</span><span>5</span></div>
@@ -633,7 +634,9 @@ pages.append(f"""
 
 # -- page 3: budget basics
 branch_cards = [
-    (C.text(f"basics.branch.{k}.title"), bg, img, lt, C.list(f"basics.branch.{k}.bullets"))
+    # the key rides along: the <ul> and the img's alt both need it, and alt
+    # cannot take the tagged span C.t() returns in edit mode
+    (C.t(f"basics.branch.{k}.title"), bg, img, lt, C.list(f"basics.branch.{k}.bullets"), k)
     for k, bg, img, lt in [
         ("legislature", DARK, "branch-0.jpg", True),
         ("judiciary", SAGE_MID, "branch-1.jpg", False),
@@ -642,13 +645,13 @@ branch_cards = [
     ]
 ]
 bc = "".join(
-    f'<div class="branch"><img src="assets/{img}" alt="{t}">'
+    f'<div class="branch"><img src="assets/{img}" alt="{esc(C.text(f"basics.branch.{k}.title"))}">'
     f'<div class="branch-card{" onlight" if is_light_bg(bg) else ""}" style="background:{bg}">'
-    f'<h4>{t}</h4><ul>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
-    for t, bg, img, lt, bl in branch_cards)
+    f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
+    for t, bg, img, lt, bl, k in branch_cards)
 pages.append(f"""
 <section class="page">
- <h1>{C.text("basics.h1")}</h1>
+ <h1>{C.t("basics.h1")}</h1>
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
@@ -658,9 +661,9 @@ pages.append(f"""
 # -- page 4: budget process
 pages.append(f"""
 <section class="page">
- <h2 class="sub">{C.text("process.h2")}</h2>
+ <h2 class="sub">{C.t("process.h2")}</h2>
  {C.html("process.p1")}
- <p class="figcap"><b>Figure 1.</b> {C.text("process.fig1.caption")}</p>
+ <p class="figcap"><b>Figure 1.</b> {C.t("process.fig1.caption")}</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
   {lifecycle_callouts()}
@@ -671,16 +674,16 @@ pages.append(f"""
 # -- page 5: how money is spent
 pages.append(f"""
 <section class="page">
- <h1>{C.text("spent.h1")}</h1>
+ <h1>{C.t("spent.h1")}</h1>
  {C.html("spent.p1")}
  {C.html("spent.p2")}
  <div class="cards3">
-  {card(C.text("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK)}
-  {card(C.text("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID)}
-  {card(esc(C.text("spent.cards.onetime.title")), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True)}
+  {card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK, key="spent.cards.operating.bullets")}
+  {card(C.t("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID, key="spent.cards.capital.bullets")}
+  {card(C.t("spent.cards.onetime.title", esc=True), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True, key="spent.cards.onetime.bullets")}
  </div>
  {C.html("spent.p3")}
- <p class="figcap"><b>Table 1.</b> {C.text("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
+ <p class="figcap"><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
 {C.extras("spent")} <div class="folio r">BUDGET PRIMER • 5</div>
@@ -689,16 +692,16 @@ pages.append(f"""
 # -- page 6: figure 2
 pages.append(f"""
 <section class="page">
- <h2 class="sub">{C.text("categories.h2")}</h2>
- <h3 class="sub2">{C.text("categories.h3")}</h3>
- <p class="figcap"><b>Figure 2.</b> {C.text("categories.fig2.caption")} {fy_picker("fig2")}
- <span class="noprint figcap-hint">{esc(C.text("categories.fig2.hint"))}</span></p>
+ <h2 class="sub">{C.t("categories.h2")}</h2>
+ <h3 class="sub2">{C.t("categories.h3")}</h3>
+ <p class="figcap"><b>Figure 2.</b> {C.t("categories.fig2.caption")} {fy_picker("fig2")}
+ <span class="noprint figcap-hint">{C.t("categories.fig2.hint", esc=True)}</span></p>
  {fig2_chart_for(2027)}
  {fig2_chart_for(2026)}
- {legend([(C.text("categories.legend.operating"), SAGE), (C.text("categories.legend.capital"), SAGE_MID),
-          (C.text("categories.legend.onetime"), DARK), (C.text("categories.legend.emergency"), DARKEST)])}
- <div class="explore noprint">{C.text("categories.explore")}
-  <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.text("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
+ {legend([(C.t("categories.legend.operating"), SAGE), (C.t("categories.legend.capital"), SAGE_MID),
+          (C.t("categories.legend.onetime"), DARK), (C.t("categories.legend.emergency"), DARKEST)])}
+ <div class="explore noprint">{C.t("categories.explore")}
+  <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
 {C.extras("categories")} <div class="folio">6 • BUDGET PRIMER</div>
 </section>""")
@@ -707,22 +710,22 @@ pages.append(f"""
 pages.append(f"""
 <section class="page">
  <div class="callout">
-  <h4>{C.text("obligated.title")}</h4>
+  <h4>{C.t("obligated.title")}</h4>
   {C.html("obligated.p1")}
   {C.html("obligated.p2")}
  </div>
  <details class="obligated noprint">
-  <summary>{C.text("obligated.summary")}</summary>
+  <summary>{C.t("obligated.summary")}</summary>
   <div class="obligated-panel">
    <p class="figcap"><b>{C("obligated.panel.caption").split("[^")[0].strip()}</b>{"[^" + C("obligated.panel.caption").split("[^")[1]}<span class="noprint">
-   {C.text("obligated.panel.hint")}</span></p>
+   {C.t("obligated.panel.hint")}</span></p>
    {fig_obligated()}
    {legend([(n, c) for n, _k, c in OBLIG_BANDS])}
    <p class="obligated-note">{C("obligated.panel.note").format(oblig_first=f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}", oblig_last=f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}")}</p>
   </div>
  </details>
- <h3 class="sub2">{C.text("cip.h3")}</h3>
- <p class="figcap"><b>Figure 3.</b> {C.text("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
+ <h3 class="sub2">{C.t("cip.h3")}</h3>
+ <p class="figcap"><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
  <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
@@ -734,10 +737,10 @@ pages.append(f"""
 <section class="page">
  <img class="photo" src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
  {C.html("onetime.photo.caption", "photocap")}
- <h3 class="sub2">{C.text("onetime.h3")}</h3>
+ <h3 class="sub2">{C.t("onetime.h3")}</h3>
  <div class="cards2">
-  {card(C.text("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK)}
-  {card(C.text("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST)}
+  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
+  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
  </div>
 {C.extras("onetime")} <div class="folio">8 • BUDGET PRIMER</div>
 </section>""")
@@ -745,14 +748,14 @@ pages.append(f"""
 # -- page 9: funding the budget
 pages.append(f"""
 <section class="page">
- <h1>{C.text("funding.h1")}</h1>
- <p class="figcap"><b>Figure 4.</b> {C.text("funding.fig4.caption")} {fy_picker("fig4")} {C.text("funding.fig4.caption.suffix")}</p>
+ <h1>{C.t("funding.h1")}</h1>
+ <p class="figcap"><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend(list(zip(FIG4_ORDER, FIG3_COLORS)))}</div>
  {C.html("funding.p1")}
  <div class="cards3">
-  {card(C.text("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK)}
-  {card(C.text("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID)}
-  {card(C.text("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True)}
+  {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets")}
+  {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
+  {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
  </div>
 {C.extras("funding")} <div class="folio r">BUDGET PRIMER • 9</div>
 </section>""")
@@ -760,13 +763,13 @@ pages.append(f"""
 # -- page 10: taxes
 pages.append(f"""
 <section class="page">
- <h2 class="sub">{C.text("taxes.h2")}</h2>
- <p class="figcap"><b>Figure 5.</b> {C.text("taxes.fig5.caption")} {fy_picker("fig5")} {C.text("taxes.fig5.caption.suffix")}</p>
+ <h2 class="sub">{C.t("taxes.h2")}</h2>
+ <p class="figcap"><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(n, c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
-  {card(C.text("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK)}
-  {card(C.text("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID)}
-  {card(C.text("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True)}
+  {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets")}
+  {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}
+  {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets")}
  </div>
 {C.extras("taxes")} <div class="folio">10 • BUDGET PRIMER</div>
 </section>""")
@@ -774,12 +777,12 @@ pages.append(f"""
 # -- page 11: who pays
 pages.append(f"""
 <section class="page">
- <h3 class="sub2">{C.text("whopays.h3")}</h3>
+ <h3 class="sub2">{C.t("whopays.h3")}</h3>
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
  <div class="callout">
-  <h4>{C.text("whopays.callout.title")}</h4>
+  <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
@@ -824,7 +827,7 @@ def linkify_footnotes(markup):
 
 body += f"""
 <section class="page">
- <h1>{C.text("endnotes.h1")}</h1>
+ <h1>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{en}</ol>
  <div class="folio">12 • BUDGET PRIMER</div>
 </section>"""

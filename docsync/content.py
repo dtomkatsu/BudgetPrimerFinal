@@ -211,6 +211,25 @@ class Content:
         """Raw single-line value (titles, labels) with no Markdown conversion."""
         return " ".join(l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip())
 
+    def t(self, key: str, esc: bool = False) -> str:
+        """text(), but tagged for the editor when DOCSYNC_EDIT is set.
+
+        Headings, card titles and captions are single strings the templates drop
+        straight into markup, so there is no element to hang data-slot on — this
+        supplies one. Outside edit mode it returns exactly what text() does, so
+        the published HTML is untouched.
+
+        Not usable inside an attribute or SVG <text>, where a span is invalid;
+        those call sites stay on text().
+        """
+        v = self.text(key)
+        if esc:
+            v = v.replace("&", "&amp;").replace("<", "&lt;")
+        if not os.environ.get("DOCSYNC_EDIT"):
+            return v
+        safe = v if esc else v.replace("&", "&amp;").replace("<", "&lt;")
+        return f'<span data-slot="{key}" data-inline="1">{safe}</span>'
+
     def html(self, key: str, cls: str | None = None) -> str:
         """Slot -> one or more <p> elements (multi-paragraph slots supported).
 
@@ -224,6 +243,10 @@ class Content:
 
     def list(self, key: str) -> list[str]:
         return bullets(self.raw(key))
+
+    def ul_attr(self, key: str) -> str:
+        """data-slot for a <ul> the caller builds itself, in edit mode only."""
+        return f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
 
     def lines(self, key: str) -> list[str]:
         return [l.strip() for l in _unhead(self.raw(key)).splitlines() if l.strip()]

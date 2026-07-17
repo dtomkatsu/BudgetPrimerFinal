@@ -130,7 +130,9 @@ function wire() {
     .ds-edit { width:100%; box-sizing:border-box; font:inherit; line-height:1.5;
                padding:8px 10px; border:2px solid #6B9E78; border-radius:4px;
                background:#fff; resize:vertical; }
-    .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }`;
+    .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }
+    .ds-inline { display:inline-block; width:auto; min-width:8ch; padding:1px 5px;
+                 font:inherit; color:inherit; line-height:inherit; vertical-align:baseline; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -147,26 +149,35 @@ function edit(d, key) {
   if (!blocks.length || editing) return;
   editing = true;
 
-  const ta = d.createElement('textarea');
-  ta.className = 'ds-edit';
+  const inline = blocks[0].dataset.inline === '1';
+  const ta = d.createElement(inline ? 'input' : 'textarea');
+  if (inline) ta.type = 'text';
+  ta.className = inline ? 'ds-edit ds-inline' : 'ds-edit';
   ta.value = readSlot(key);
-  const hint = d.createElement('p');
-  hint.className = 'ds-hint';
-  hint.textContent = `${key} — **bold**, *italic*, [text](url). Blank line = new paragraph. `
-                   + `Click away to render, Esc to cancel.`;
+
+  let hint = null;
+  if (!inline) {
+    hint = d.createElement('p');
+    hint.className = 'ds-hint';
+    hint.textContent = `${key} — **bold**, *italic*, [text](url). Blank line = new paragraph. `
+                     + `Click away to render, Esc to cancel.`;
+  }
 
   blocks[0].replaceWith(ta);
-  ta.after(hint);
+  if (hint) ta.after(hint);
   blocks.slice(1).forEach(b => b.remove());
   // Size to the text only once layout has settled: measured any earlier the
   // box is still zero-width, so the content "wraps" into thousands of pixels.
-  const fit = () => {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
-  };
-  requestAnimationFrame(fit);
-  ta.addEventListener('input', fit);
+  if (!inline) {
+    const fit = () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
+    };
+    requestAnimationFrame(fit);
+    ta.addEventListener('input', fit);
+  }
   ta.focus();
+  ta.select?.();
 
   const finish = async (keep) => {
     if (ta.dataset.done) return;
@@ -183,6 +194,7 @@ function edit(d, key) {
   ta.addEventListener('blur', () => finish(true));
   ta.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
   });
 }
 
