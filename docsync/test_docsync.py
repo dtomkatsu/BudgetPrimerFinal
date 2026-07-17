@@ -173,16 +173,32 @@ def _fetch_error(fn):
     return "no error raised"
 
 
-check("a non-JSON key is reported as such, not as a parser crash",
-      _fetch_error(lambda: access_token("not json at all")),
-      "not valid JSON")
-check("a malformed private key is a FetchError, not a raw ValueError",
-      _fetch_error(lambda: access_token(
-          '{"client_email": "d@p.iam.gserviceaccount.com", "type": "service_account",'
-          ' "token_uri": "https://oauth2.googleapis.com/token",'
-          ' "private_key": "-----BEGIN PRIVATE KEY-----\\nbogus\\n'
-          '-----END PRIVATE KEY-----\\n"}')),
-      "ValueError")
+try:
+    from google.auth.transport.requests import Request        # noqa: F401
+    from google.oauth2 import service_account                  # noqa: F401
+    HAVE_AUTH = True
+except ImportError:
+    HAVE_AUTH = False
+
+if HAVE_AUTH:
+    check("a non-JSON key is reported as such, not as a parser crash",
+          _fetch_error(lambda: access_token("not json at all")),
+          "not valid JSON")
+    check("a malformed private key is a FetchError, not a raw ValueError",
+          _fetch_error(lambda: access_token(
+              '{"client_email": "d@p.iam.gserviceaccount.com", "type": "service_account",'
+              ' "token_uri": "https://oauth2.googleapis.com/token",'
+              ' "private_key": "-----BEGIN PRIVATE KEY-----\\nbogus\\n'
+              '-----END PRIVATE KEY-----\\n"}')),
+          "ValueError")
+else:
+    # pull-only use needs no credentials, so google-auth is genuinely optional.
+    # Say the checks were skipped rather than failing or pretending they ran.
+    print("note: google-auth/requests absent — skipped 2 key-handling checks "
+          "(pip install google-auth requests to run them)")
+    check("a missing dependency names itself",
+          _fetch_error(lambda: access_token("{}")),
+          "pip install google-auth requests")
 
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))

@@ -132,9 +132,11 @@ def access_token(service_account_json: str) -> str:
         from google.oauth2 import service_account            # noqa: PLC0415
         from google.auth.transport.requests import Request   # noqa: PLC0415
     except ImportError as e:
+        # google-auth does not pull in requests, which its request transport
+        # needs — installing only google-auth looks fine until it doesn't.
         raise FetchError(
-            "google-auth is required for authenticated access:\n"
-            "  pip install google-auth") from e
+            f"a dependency for authenticated access is missing ({e.name}):\n"
+            "  pip install google-auth requests") from e
 
     # A bad key surfaces as ValueError from a PEM parser several layers down;
     # callers only know FetchError, and a stack trace is not a diagnosis.

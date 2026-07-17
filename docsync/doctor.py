@@ -51,10 +51,13 @@ def main() -> int:
     line(OK, f"service account: {sa}")
 
     try:
-        import google.auth                                     # noqa: F401,PLC0415
-    except ImportError:
-        line(BAD, "google-auth is not installed",
-             "pip install google-auth pyyaml")
+        # Check the real import chain: google-auth does not pull in requests,
+        # so `import google.auth` succeeding proves nothing.
+        from google.auth.transport.requests import Request      # noqa: F401,PLC0415
+        from google.oauth2 import service_account               # noqa: F401,PLC0415
+    except ImportError as e:
+        line(BAD, f"a dependency is missing ({e.name})",
+             "pip install google-auth requests pyyaml")
         return 1
 
     try:

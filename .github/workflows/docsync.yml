@@ -53,7 +53,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install --quiet pyyaml google-auth
+        run: pip install --quiet pyyaml google-auth requests
 
       - name: Self-test the round-trip rules
         run: python3 docsync/test_docsync.py
