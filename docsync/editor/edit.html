@@ -3382,6 +3382,67 @@ async function boot() {
     x.classList.toggle('on', x.dataset.z === zoomChoice));
   $('guides').classList.toggle('on', guidesOn);
   await render();
+  await detectLocal();          // local live server? then Save writes to disk
+}
+
+// ---------------------------------------------------------------- live mode
+// Served by tools/serve.py, the editor is LOCAL-FIRST: the files on disk are
+// the truth. Save writes them and pushes (git, not the GitHub API), and a live
+// stream tells us when the files changed underneath us — because you asked
+// Claude to edit them. We adopt that change and keep whatever you were editing,
+// as long as the two are different files. Same file, both edited: you choose.
+let local = false;
+
+async function detectLocal() {
+  try {
+    const r = await fetch('/__ping', { cache: 'no-store' });
+    local = r.ok;
+  } catch (e) { local = false; }
+  if (!local) return;
+  $('title').textContent = M.id + ' · live';
+  $('stat').textContent = 'live — edits here and from Claude land in the same files';
+  // Re-fetch source + layout whenever the server rebuilds, and fold in the
+  // side that changed on disk.
+  try {
+    const es = new EventSource('/__events');
+    es.onmessage = async ev => {
+      let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
+      if (d.error) { $('stat').textContent = 'build failed on disk — see the terminal'; return; }
+      await pullFromDisk();
+    };
+  } catch (e) { /* no EventSource: Save still works, just no auto-refresh */ }
+}
+
+/** Adopt a change Claude (or your text editor) made on disk. Prose and layout
+ *  are separate files, so a change to one is folded in while your unsaved edits
+ *  to the OTHER stay put. Only a genuine same-file overlap asks you to choose. */
+async function pullFromDisk() {
+  if (editing) return;                 // never yank the textarea out mid-edit
+  let freshSrc = original, freshLayout = layoutOrig;
+  try {
+    [freshSrc, freshLayout] = await Promise.all([
+      get('engine/' + M.content),
+      M.layout ? get('engine/' + M.layout) : Promise.resolve('{}'),
+    ]);
+  } catch (e) { return; }
+  let took = false, clash = false;
+  if (freshSrc !== original) {
+    if (source === original) { source = original = freshSrc; took = true; }
+    else clash = true;
+  }
+  if (M.layout && freshLayout !== layoutOrig) {
+    const mineChanged = JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
+    if (!mineChanged) { layoutOrig = freshLayout; layout = JSON.parse(freshLayout || '{}');
+      layout.positions = layout.positions || {}; layout.shapes = layout.shapes || []; took = true; }
+    else clash = true;
+  }
+  if (took) { markDirty(); await render(); $('stat').textContent = 'updated from disk'; }
+  if (clash) {
+    $('stat').textContent = 'Claude changed the same thing you have unsaved — '
+      + 'Discard to take the disk version, or Save to keep yours';
+    $('stat').style.color = '#F2B8A8';
+    setTimeout(() => { $('stat').style.color = ''; }, 6000);
+  }
 }
 
 async function render() {
@@ -3812,13 +3873,40 @@ $('save').onclick = async () => {
     if (!confirm(`${pages.length} page${pages.length > 1 ? 's' : ''} will be cut off in the `
                + `printed PDF (${pages.join(', ')}).\n\nSave anyway?`)) return;
   }
+  const layoutText = JSON.stringify(layout, null, 2) + '\n';
+
+  // Live mode: write the files on disk through the local server and let git
+  // push them. No token in the browser — your own git credentials do it.
+  if (local) {
+    $('save').disabled = true;
+    $('stat').textContent = 'saving to disk and pushing…';
+    try {
+      const r = await fetch('/__save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: source !== original ? source : null,
+          layout: (M.layout && layoutText !== layoutOrig) ? layoutText : null,
+        }),
+      });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'save failed');
+      original = source; layoutOrig = layoutText; dirty = false;
+      $('revert').disabled = true;
+      $('save').classList.remove('dirty');
+      $('stat').textContent = j.message || 'saved';
+    } catch (e) {
+      $('stat').textContent = 'save failed: ' + e.message;
+      $('save').disabled = false;
+    }
+    return;
+  }
+
   if (!await askToken()) return;
   $('save').disabled = true;
   $('stat').textContent = 'saving…';
   try {
     // Prose and layout are separate files, so a text edit and a move are
     // separate commits — each reviewable on its own.
-    const layoutText = JSON.stringify(layout, null, 2) + '\n';
     const writes = [];
     if (source !== original)
       writes.push([M.content, source, `${M.id}: edit prose from the draft editor`]);
@@ -3839,7 +3927,7 @@ $('save').onclick = async () => {
     original = source; layoutOrig = layoutText; dirty = false;
     $('revert').disabled = true;
     $('save').classList.remove('dirty');
-    $('stat').textContent = 'saved — the site rebuilds and the doc updates in ~2 min';
+    $('stat').textContent = 'saved — the site rebuilds in ~90s';
   } catch (e) {
     // "Resource not accessible" means the token is valid but was minted
     // without write access — the default. Say the fix, not the status code.

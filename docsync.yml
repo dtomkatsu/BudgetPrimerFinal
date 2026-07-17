@@ -1,48 +1,22 @@
-# Google Doc <-> report bindings.
+# Report bindings — the registry the draft editor and the build read.
 #
-# Each entry pairs one doc with one committed file. The doc is where prose is
-# written; the file is what the build reads. `python3 -m docsync.sync status`
-# reports drift; the docsync workflow syncs both ways on a schedule.
+# Each entry pairs a committed source file with the report it feeds. This used
+# to sync to a Google Doc; that is gone. Prose is now edited directly in
+# content.md — by hand or through the draft editor — and the files on disk are
+# the single source of truth. The `editor:` block below is what lets one
+# generic editor serve any report.
 #
-# Adding a report to the sync is an entry here — not new code. To bind a new
-# doc: share it with the service account as Editor (see docsync/SETUP.md), add
-# an entry, then `python3 -m docsync.sync push --id <id>` once to initialise.
-#
-#   id       kebab-case, unique; names the state file docsync/.state/<id>.json
-#   doc      the Google Doc id (the /d/<THIS>/edit part of its URL)
-#   mode     slots    — doc fills named [[key]] slots; the renderer owns layout
-#            fragment — the whole doc becomes HTML between anchor comments
-#   content  the committed file the doc syncs to
-#   build    shell command to rebuild after a pull (run from the repo root)
-#   outputs  extra paths a pull may change, so CI knows to commit them
-#   target   fragment mode only: the page to inject into
-#   anchor   fragment mode only: <!-- NAME:start --> / <!-- NAME:end -->
-#            (default: docsync)
-#   pr       true to open a pull request instead of committing to main;
-#            use for anything with outside editors
-
-# Drive folder new docs are created in. Share this folder with the service
-# account as Editor ONCE and every doc created inside it is reachable without
-# any further per-doc sharing — that is what makes `docsync bind` a single
-# command instead of a console visit. Get the id from the folder's URL:
-# drive.google.com/drive/folders/<THIS>.  ./docsync/setup.sh prints it.
-folder: "1enj9NxWJlxIOlyvSPuSgXzw1nxE7EU7T"
-
-# Google account that new docs are shared back to, and that edits them. Not
-# git's user.email — that is usually a GitHub noreply alias, which is not a
-# Google account. Defaults to whoever gcloud is logged in as.
-share_with: "devin@hibudget.org"
+#   id       kebab-case, unique
+#   content  the committed source the report reads
+#   build    the one command that rebuilds and publishes (make pub)
+#   editor   what the draft editor needs to run this report in the browser
 
 bindings:
   - id: budget-primer
-    doc: 1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU
-    mode: slots
     content: report2027/content.md
-    # assets too: an image added from the editor lands in web/assets and
-    # would otherwise render as a broken link on the deployed copy
-    build: make -C report2027 editor && cp report2027/web/index.html docs/primer/
-      && cp report2027/web/primer.css docs/primer/
-      && mkdir -p docs/primer/assets && cp -R report2027/web/assets/. docs/primer/assets/
+    # The one build command, shared by the live server, the save endpoint and
+    # CI — so the deployed page is always exactly what a build produces.
+    build: make -C report2027 pub
     outputs:
       - report2027/web/index.html
       - docs/primer/index.html

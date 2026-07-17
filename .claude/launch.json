@@ -2,6 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "Budget Primer (live)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "report2027/tools/serve.py"
+      ],
+      "port": 8010
+    },
+    {
       "name": "docs",
       "runtimeExecutable": "python3",
       "runtimeArgs": [

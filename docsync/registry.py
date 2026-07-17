@@ -43,10 +43,10 @@ class Editor:
 @dataclass
 class Binding:
     id: str
-    doc: str
-    mode: str
-    content: Path              # the committed file the doc syncs to
-    build: str = ""            # shell command to rebuild after a pull
+    content: Path              # the committed source the report reads
+    doc: str = ""              # a Google Doc id, if this binding syncs to one
+    mode: str = "slots"        # slots | fragment (only meaningful with a doc)
+    build: str = ""            # shell command to rebuild after an edit
     target: Path | None = None  # fragment mode: page to inject into
     anchor: str = "docsync"    # fragment mode: <!-- docsync:start|end -->
     pr: bool = False           # open a PR instead of committing to main
@@ -90,7 +90,8 @@ def load_registry(path: Path = REGISTRY) -> list[Binding]:
             raise RegistryError(f"{where}: duplicate id '{bid}'")
         seen.add(bid)
 
-        mode = _require(b, "mode", where)
+        # Doc-only fields are optional now that a binding can be local-only.
+        mode = b.get("mode", "slots")
         if mode not in MODES:
             raise RegistryError(
                 f"{where}: mode '{mode}' must be one of {', '.join(MODES)}")
@@ -101,7 +102,7 @@ def load_registry(path: Path = REGISTRY) -> list[Binding]:
 
         out.append(Binding(
             id=bid,
-            doc=_require(b, "doc", where),
+            doc=b.get("doc", ""),
             mode=mode,
             content=ROOT / _require(b, "content", where),
             build=b.get("build", ""),

@@ -6,19 +6,6 @@ all: data html pdf embed
 validate:
 	python3 tools/build_data.py --validate
 	cd .. && python3 docsync/test_docsync.py
-	cd .. && python3 -m docsync.sync check --id budget-primer
-
-# Prose lives in the Google Doc; content.md is the committed snapshot the build
-# reads. `pull-doc` refreshes it (refuses to write if the doc is malformed), so
-# every prose change lands as a reviewable git diff before it ships.
-pull-doc:
-	cd .. && python3 -m docsync.sync pull --id budget-primer
-
-doc-diff:
-	cd .. && python3 -m docsync.sync check --id budget-primer --diff
-
-doc-status:
-	cd .. && python3 -m docsync.sync status --id budget-primer
 
 # The draft editor runs this report's own renderer in the browser. docsync
 # stages it — and everything it reads — next to the published page, driven by
@@ -26,6 +13,14 @@ doc-status:
 # so there is nothing to configure here.
 editor: render
 	cd .. && python3 -m docsync.stage --id budget-primer --repo dtomkatsu/BudgetPrimerFinal
+
+# Publish the built report + editor into docs/, which GitHub Pages serves. This
+# is the ONE build command — the local live server, the save endpoint, and CI
+# all run it, so the deployed page is always exactly what a build here produces.
+pub: editor
+	cp web/index.html ../docs/primer/
+	cp web/primer.css ../docs/primer/
+	mkdir -p ../docs/primer/assets && cp -R web/assets/. ../docs/primer/assets/
 
 data:
 	python3 tools/build_data.py
@@ -55,4 +50,10 @@ embed: html
 preview: html
 	open web/index.html
 
-.PHONY: render editor doc-status all validate data html pdf embed preview pull-doc doc-diff
+# The local live-editing loop: serve docs/, rebuild on every change to the
+# source (yours or Claude's), reload the browser in about a second, and push to
+# the cloud when you press Save. See tools/serve.py.
+live:
+	python3 tools/serve.py
+
+.PHONY: render editor pub live all validate data html pdf embed preview

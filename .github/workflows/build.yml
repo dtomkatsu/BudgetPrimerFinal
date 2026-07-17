@@ -1,0 +1,66 @@
+name: Build report
+
+# A backstop, not the main path. The local live server (make -C report2027 live)
+# rebuilds on every edit and the editor's Save pushes the built page, so main is
+# normally already current. But if source is committed WITHOUT a build — a
+# hand-edit to content.md, a change to the renderer — this rebuilds it and
+# commits the result, so the deployed page is never stale.
+#
+# No Google, no credentials, no schedule: prose lives in content.md now, and the
+# files on disk are the source of truth.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "report2027/content.md"
+      - "report2027/layout.json"
+      - "report2027/tools/**"
+      - "report2027/web/primer.css"
+      - "docsync/**"
+      - "docsync.yml"
+      # Skip when only build artifacts changed — that IS the build's output, and
+      # rebuilding it would loop.
+      - "!docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-report
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Self-test the engine
+        run: python3 docsync/test_docsync.py
+
+      - name: Rebuild and publish
+        run: make -C report2027 pub
+
+      - name: Commit if the build changed anything
+        run: |
+          git config user.name  "primer-build[bot]"
+          git config user.email "primer-build@users.noreply.github.com"
+          git add -A report2027/web docs/primer
+          if git diff --cached --quiet; then
+            echo "already current — nothing to commit"
+            exit 0
+          fi
+          git commit -m "primer: rebuild from the edited source"
+          git pull --rebase --autostash origin main || true
+          git push origin HEAD:main
