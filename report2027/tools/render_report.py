@@ -7,16 +7,21 @@ web/primer.js layers tooltips/hover on top for the interactive build.
 """
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from docsync.content import Content, ContentError  # noqa: E402
+from docsync.layout import Layout, LayoutError     # noqa: E402
 
 HERE = Path(__file__).resolve().parent.parent
 # Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
 C = Content(HERE / "content.md")
+# Position/shape overrides. Empty by default: the design below is the
+# default, and this only speaks where someone has moved something.
+L = Layout(HERE / "layout.json")
 DATA = json.loads((HERE / "data" / "report_data.json").read_text())
 BUD = DATA["budget"]
 RES = DATA["research"]
@@ -417,7 +422,9 @@ def lifecycle_callouts():
             # rather than centring the box on it — a centred box puts its visual
             # mass (and its bold month label) to the left of the bracket.
             style = f"left:{x - LC_EDGE_IN:.2f}in;top:{y:.2f}in"
-        out.append(f'<div class="lc lc-{side}" style="{style}">'
+        el = f"lc.{key}"
+        tag = f' data-el="{el}"' if os.environ.get("DOCSYNC_EDIT") else ""
+        out.append(f'<div class="lc lc-{side}"{tag} style="{L.style(el, style)}">'
                    f'<span class="lc-mo">{lab}</span>{txt}</div>')
     return "".join(out)
 
@@ -600,10 +607,10 @@ pages = []
 # -- page 1: cover
 pages.append(f"""
 <section class="page cover">
- <div class="ribbon r1"></div><div class="ribbon r2"></div>
+ {L.layer(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
-  <div class="logo-lockup"><img class="logo-img" src="assets/appleseed-logo.svg"
+  <div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <h1 class="cover-title">HAWAIʻI<br>BUDGET<br>PRIMER</h1>
   <div class="cover-year">FY2026–27</div>
@@ -629,7 +636,7 @@ pages.append(f"""
   <div><span>Endnotes</span><span>12</span></div>
  </div>
  <p class="copyright">{"<br>".join(esc(l) for l in C.lines("toc.copyright"))}</p>
- <div class="folio">2 • BUDGET PRIMER</div>
+ {L.layer(2)}<div class="folio">2 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 3: budget basics
@@ -655,7 +662,7 @@ pages.append(f"""
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
-{C.extras("basics")} <div class="folio r">BUDGET PRIMER • 3</div>
+{C.extras("basics")} {L.layer(3)}<div class="folio r">BUDGET PRIMER • 3</div>
 </section>""")
 
 # -- page 4: budget process
@@ -668,7 +675,7 @@ pages.append(f"""
   {fig1_lifecycle()}
   {lifecycle_callouts()}
  </div>
-{C.extras("process")} <div class="folio">4 • BUDGET PRIMER</div>
+{C.extras("process")} {L.layer(4)}<div class="folio">4 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 5: how money is spent
@@ -686,7 +693,7 @@ pages.append(f"""
  <p class="figcap"><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
-{C.extras("spent")} <div class="folio r">BUDGET PRIMER • 5</div>
+{C.extras("spent")} {L.layer(5)}<div class="folio r">BUDGET PRIMER • 5</div>
 </section>""")
 
 # -- page 6: figure 2
@@ -703,13 +710,13 @@ pages.append(f"""
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
-{C.extras("categories")} <div class="folio">6 • BUDGET PRIMER</div>
+{C.extras("categories")} {L.layer(6)}<div class="folio">6 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 7: obligated costs + fig 3
 pages.append(f"""
 <section class="page">
- <div class="callout">
+ <div class="callout"{L.attr("callout.obligated")}>
   <h4>{C.t("obligated.title")}</h4>
   {C.html("obligated.p1")}
   {C.html("obligated.p2")}
@@ -729,7 +736,7 @@ pages.append(f"""
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend(list(zip(FIG3_ORDER, FIG3_COLORS)))}</div>
  <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
-{C.extras("cip")} <div class="folio r">BUDGET PRIMER • 7</div>
+{C.extras("cip")} {L.layer(7)}<div class="folio r">BUDGET PRIMER • 7</div>
 </section>""")
 
 # -- page 8: photo + one-time/emergency
@@ -742,7 +749,7 @@ pages.append(f"""
   {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
   {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
  </div>
-{C.extras("onetime")} <div class="folio">8 • BUDGET PRIMER</div>
+{C.extras("onetime")} {L.layer(8)}<div class="folio">8 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 9: funding the budget
@@ -757,7 +764,7 @@ pages.append(f"""
   {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
   {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
  </div>
-{C.extras("funding")} <div class="folio r">BUDGET PRIMER • 9</div>
+{C.extras("funding")} {L.layer(9)}<div class="folio r">BUDGET PRIMER • 9</div>
 </section>""")
 
 # -- page 10: taxes
@@ -771,7 +778,7 @@ pages.append(f"""
   {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}
   {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets")}
  </div>
-{C.extras("taxes")} <div class="folio">10 • BUDGET PRIMER</div>
+{C.extras("taxes")} {L.layer(10)}<div class="folio">10 • BUDGET PRIMER</div>
 </section>""")
 
 # -- page 11: who pays
@@ -781,12 +788,12 @@ pages.append(f"""
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
- <div class="callout">
+ <div class="callout"{L.attr("callout.whopays")}>
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
-{C.extras("whopays")} <div class="folio r">BUDGET PRIMER • 11</div>
+{C.extras("whopays")} {L.layer(11)}<div class="folio r">BUDGET PRIMER • 11</div>
 </section>""")
 
 # -- page 12: endnotes ------------------------------------------------------
@@ -829,8 +836,13 @@ body += f"""
 <section class="page">
  <h1>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{en}</ol>
- <div class="folio">12 • BUDGET PRIMER</div>
+ {L.layer(12)}<div class="folio">12 • BUDGET PRIMER</div>
 </section>"""
+
+out_of_bounds = L.check_bounds()
+if out_of_bounds:
+    raise LayoutError("layout.json puts content off the page:\n  "
+                      + "\n  ".join(out_of_bounds))
 
 unused = C.unused_keys()
 if unused:

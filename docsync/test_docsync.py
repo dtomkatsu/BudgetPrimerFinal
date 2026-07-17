@@ -225,6 +225,79 @@ else:
           _fetch_error(lambda: access_token("{}")),
           "pip install google-auth requests")
 
+# ------------------------------------------------------------------ layout
+
+# Layout overrides exist so a box can be dragged without layout becoming a
+# blank canvas: the renderer's design is the default, data only overrides it.
+# With nothing overridden the published HTML must be untouched.
+import json, tempfile                                          # noqa: E402
+from docsync.layout import Layout, LayoutError                 # noqa: E402
+
+
+def _layout(d):
+    t = Path(tempfile.mktemp(suffix=".json"))
+    t.write_text(json.dumps(d))
+    try:
+        return Layout(t)
+    finally:
+        t.unlink(missing_ok=True)
+
+
+def _layout_error(d):
+    try:
+        _layout(d)
+    except LayoutError as e:
+        return str(e)
+    return "no error raised"
+
+
+empty = _layout({"positions": {}, "shapes": []})
+check_eq("an empty layout adds no attributes", empty.attr("x.y"), "")
+check_eq("an empty layout adds no shape layer", empty.layer(3), "")
+check_eq("an unmoved element keeps the renderer's own placement",
+         empty.style("lc.dec", "left:1in;top:2in"), "left:1in;top:2in")
+
+moved = _layout({"positions": {"c.o": {"x": 1.2, "y": 3.4, "w": 5.0}}, "shapes": []})
+check("a moved element is absolutely placed", moved.attr("c.o"),
+      'style="position:absolute;left:1.2in;top:3.4in;width:5.0in"')
+check_eq("an override beats the renderer's placement",
+         moved.style("c.o", "left:9in;top:9in"),
+         "position:absolute;left:1.2in;top:3.4in;width:5.0in")
+
+# .page is overflow:hidden, so content dragged off it does not look broken —
+# it is simply gone. Nothing else would catch that, so it must be loud.
+off = _layout({"positions": {"c.o": {"x": 7.9, "y": 2, "w": 5.0}}, "shapes": []})
+check("a box dragged past the right edge is caught",
+      " ".join(off.check_bounds()), "past the right edge")
+off2 = _layout({"positions": {"c.o": {"x": 12, "y": 2}}, "shapes": []})
+check("a box dragged clean off the page is caught",
+      " ".join(off2.check_bounds()), "off the 8.5x11.0in page")
+check_eq("content inside the page passes",
+         _layout({"positions": {"c.o": {"x": 1, "y": 1, "w": 3}}, "shapes": []}).check_bounds(), [])
+
+check("a shape needs a known kind",
+      _layout_error({"shapes": [{"id": "a", "page": 1, "kind": "blob",
+                                 "x": 0, "y": 0, "w": 1, "h": 1}]}),
+      "must be one of rect, ellipse, line")
+check("a shape needs an id",
+      _layout_error({"shapes": [{"page": 1, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1}]}),
+      "needs an 'id'")
+check("duplicate shape ids are caught",
+      _layout_error({"shapes": [{"id": "a", "page": 1, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1},
+                                {"id": "a", "page": 1, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1}]}),
+      "duplicate id 'a'")
+check("a non-numeric coordinate is caught",
+      _layout_error({"positions": {"c.o": {"x": "left", "y": 1}}}), "not a number")
+
+shaped = _layout({"shapes": [
+    {"id": "b", "page": 7, "kind": "rect", "x": 1, "y": 2, "w": 3, "h": 1, "fill": "#6B9E78"},
+    {"id": "f", "page": 7, "kind": "ellipse", "x": 1, "y": 2, "w": 1, "h": 1, "z": "front"}]})
+check_eq("shapes split into back and front layers", shaped.layer(7).count("shape-layer"), 2)
+check("back shapes sit behind the text", shaped.layer(7), "z-index:0")
+check("front shapes sit above it", shaped.layer(7), "z-index:3")
+check_eq("a page with no shapes gets no layer", shaped.layer(2), "")
+check("shapes never eat clicks", shaped.layer(7), "pointer-events:none")
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")
