@@ -379,6 +379,10 @@ class Layout:
         # is validated so a hand-edit cannot quietly disable the lock.
         self.locked = raw.get("locked") or []
         self.imgs = raw.get("img") or {}
+        # Ruler guides the editor snaps to, as {x:[in…], y:[in…]}. Editor-only,
+        # like `locked`: the renderer never emits a guide, so it cannot move a
+        # published byte — validated so a hand-edit cannot smuggle in junk.
+        self.guides = raw.get("guides") or {}
         # Page identity vs order. Designed pages are IDS (their born ordinals);
         # "pages" reorders, hides (by omission) and interleaves blank pages.
         # Everything page-keyed — shapes, boxes, fills, layers — stays keyed by
@@ -450,6 +454,19 @@ class Layout:
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
+        if self.guides:
+            if not isinstance(self.guides, dict):
+                raise LayoutError("guides: expected {x:[…], y:[…]}")
+            for axis, span in (("x", self.page_w), ("y", self.page_h)):
+                vals = self.guides.get(axis)
+                if vals is None:
+                    continue
+                if not isinstance(vals, list):
+                    raise LayoutError(f"guides.{axis}: expected a list of inches")
+                for v in vals:
+                    if not 0 <= _num(v, f"guides.{axis}") <= span:
+                        raise LayoutError(f"guides.{axis}: {v} is off the "
+                                          f"{span}in page")
         if self.pages:
             if not isinstance(self.pages, dict):
                 raise LayoutError("pages: expected an object with order/blanks")

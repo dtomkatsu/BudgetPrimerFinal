@@ -691,6 +691,17 @@ check("a lock list that is not ids is caught",
       _layout_error({"locked": [{"id": "x"}]}), "list of element ids")
 check_eq("no lock list means nothing locked", empty.locked, [])
 
+# Ruler guides are editor-only — the renderer never emits one, so an empty
+# guides block cannot move a byte, but a malformed one still fails at load.
+check_eq("guides load as inches", _layout({"guides": {"x": [1.2, 4.25], "y": [3.0]}}).guides,
+         {"x": [1.2, 4.25], "y": [3.0]})
+check("a guide off the page is caught",
+      _layout_error({"guides": {"x": [9.9]}}), "off the 8.5in page")
+check("a guide that is not a number is caught",
+      _layout_error({"guides": {"y": ["top"]}}), "not a number")
+check_eq("a guide never reaches the rendered page",
+         _layout({"guides": {"x": [1.2]}}).layer(3), "")
+
 filled = _layout({"fill": {"card.a": "#2F3E46"}})
 check_eq("a fill overrides the designed colour", filled.fill("card.a", "#6B9E78"), "#2F3E46")
 check_eq("an unfilled element keeps the colour the report chose",
