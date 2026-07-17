@@ -42,8 +42,8 @@
 <div id="bar">
   <b>DRAFT EDITOR</b>
   <span id="stat">loading the render engine…</span>
-  <button id="mode" title="Switch between editing text and moving things">Move mode</button>
-  <button id="shape" title="Add a shape to this page" hidden>+ Shape</button>
+  <button id="shape" title="Add a shape to this page">+ Shape</button>
+  <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
   <button id="save" disabled>Save</button>
   <button id="revert" disabled>Discard</button>
 </div>
@@ -73,7 +73,7 @@ const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
 let py = null, source = '', original = '', dirty = false, editing = false;
-let layout = null, layoutOrig = '', mode = 'text';   // text | move
+let layout = null, layoutOrig = '', scrollTopWas = 0;
 
 async function get(u) {
   // no-store: a query string alone does not reliably defeat the raw CDN,
@@ -182,8 +182,8 @@ function cite(d, ta, bar) {
 const ASSETS = 'report2027/web/assets/';
 const localImages = new Map();     // path -> data URL, for previewing pre-deploy
 
-function image(d, ta) {
-  const tok = askToken();
+async function image(d, ta) {
+  const tok = await askToken();
   if (!tok) return;
   const inp = d.createElement('input');
   inp.type = 'file';
@@ -233,37 +233,26 @@ function showLocalImages(d) {
   });
 }
 
-// ---------------------------------------------------------------- move mode
-// Text and drag cannot share a click, so they are modes. In move mode every
-// [data-el] and [data-shape] is draggable; a drop writes inches into
-// layout.json and re-renders through the real renderer, so what you see is
-// what the build produces — including it refusing to build if you drag
-// something off the page.
+// ------------------------------------------------------------------ moving
+// No modes. A box is draggable by its own chrome; the text inside it is not.
+// The target of the mousedown decides: land on a text slot and you are
+// editing, land on the box itself and you are moving it. The cursor says
+// which before you commit to a click.
+//
+// A drop does NOT re-render. The drag already moved the real element, so the
+// page on screen is already the answer, and re-rendering would freeze for a
+// second and throw away your scroll position for nothing. layout.json is
+// updated and the renderer catches up on the next render or on save — where
+// check_bounds still has the final word.
 const DPI = 96;                       // CSS px per inch
-const PAGE_W_IN = 8.5;                // must match docsync/layout.py
-
-function pageOf(el) {
-  const sec = el.closest('section.page');
-  const all = [...el.ownerDocument.querySelectorAll('section.page')];
-  return all.indexOf(sec) + 1;
-}
-
-function setMode(next) {
-  mode = next;
-  $('mode').textContent = mode === 'move' ? 'Text mode' : 'Move mode';
-  $('mode').style.background = mode === 'move' ? '#c2703a' : '';
-  $('shape').hidden = mode !== 'move';
-  $('stat').textContent = mode === 'move'
-    ? 'drag any box, logo or shape — arrows nudge, Delete removes a shape'
-    : 'click any text to edit it';
-  const d = $('out').contentDocument;
-  if (d) d.body.classList.toggle('ds-move', mode === 'move');
-}
+const PAGE_W_IN = 8.5, PAGE_H_IN = 11; // must match docsync/layout.py
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
     el.addEventListener('mousedown', e => {
-      if (mode !== 'move') return;
+      // Inside a text slot? That click belongs to the editor.
+      if (e.target.closest && e.target.closest('[data-slot]')) return;
+      if (editing) return;
       e.preventDefault();
       e.stopPropagation();
       startDrag(d, el, e);
@@ -279,51 +268,89 @@ function startDrag(d, el, e0) {
   const pr = page.getBoundingClientRect();
   // A hidden or unlaid-out pane reports every rect as zero, and the drag would
   // then write nonsense inches into layout.json. Refuse rather than corrupt.
-  if (!pr.width || !rect.width) {
-    $('stat').textContent = 'cannot move while the page has no layout — try again once it is visible';
+  if (!pr.width || (!rect.width && !shapeId)) {
+    $('stat').textContent = 'cannot move that yet — the page has no layout';
     return;
   }
-  // Where the box currently sits, in page inches — whether it was placed by
-  // the renderer or by a previous drag.
   const start = { x: (rect.left - pr.left) / DPI, y: (rect.top - pr.top) / DPI };
   const grab = { x: e0.clientX, y: e0.clientY };
-  el.style.outline = '2px solid #c2703a';
+  const wIn = rect.width / DPI, hIn = rect.height / DPI;
+  el.classList.add('ds-dragging');
+  d.body.classList.add('ds-grabbing');
+
+  const at = e => [
+    +(start.x + (e.clientX - grab.x) / DPI).toFixed(2),
+    +(start.y + (e.clientY - grab.y) / DPI).toFixed(2),
+  ];
 
   const move = e => {
-    const x = +(start.x + (e.clientX - grab.x) / DPI).toFixed(2);
-    const y = +(start.y + (e.clientY - grab.y) / DPI).toFixed(2);
+    const [x, y] = at(e);
     if (shapeId) {
       const sh = layout.shapes.find(s => s.id === shapeId);
-      if (sh) { sh.x = x; sh.y = y; }
-      el.ownerDocument.defaultView.requestAnimationFrame(() => paintShape(d, shapeId));
+      if (sh) { sh.x = x; sh.y = y; paintShape(d, shapeId); }
     } else {
       el.style.position = 'absolute';
       el.style.left = x + 'in';
       el.style.top = y + 'in';
     }
-    $('stat').textContent = `${id} → ${x}in, ${y}in`;
+    const off = shapeId
+      ? offPage(x, y, shapeSize(shapeId).w, shapeSize(shapeId).h)
+      : offPage(x, y, pinnedWidth(id, x, wIn), 0);
+    $('stat').textContent = off
+      ? `${id} → ${x}in, ${y}in — ${off} (the build will refuse this)`
+      : `${id} → ${x}in, ${y}in`;
+    $('stat').style.color = off ? '#ffb4a2' : '';
   };
-  const up = async e => {
+
+  const up = e => {
     d.removeEventListener('mousemove', move);
     d.removeEventListener('mouseup', up);
-    const x = +(start.x + (e.clientX - grab.x) / DPI).toFixed(2);
-    const y = +(start.y + (e.clientY - grab.y) / DPI).toFixed(2);
+    el.classList.remove('ds-dragging');
+    d.body.classList.remove('ds-grabbing');
+    const [x, y] = at(e);
     if (!shapeId) {
       const prev = layout.positions[id] || {};
       // Pinning the width keeps a flow box from shrink-to-fitting once it is
       // absolute. But some elements are wider than the page on purpose (the
-      // cover lockup is full-bleed, clipped by overflow:hidden) — pinning
-      // *that* width would shove it off the page and fail the build. Only pin
-      // a width that actually fits where the box now sits.
-      const wIn = +(rect.width / DPI).toFixed(2);
-      const w = prev.w ?? (x + wIn <= PAGE_W_IN ? wIn : undefined);
+      // cover lockup is full-bleed, clipped by overflow:hidden) — pinning that
+      // width would shove it off the page and fail the build.
+      const w = prev.w ?? (x + wIn <= PAGE_W_IN ? +wIn.toFixed(2) : undefined);
       layout.positions[id] = { ...prev, x, y, ...(w ? { w } : {}) };
     }
     markDirty();
-    await render();
+    // deliberately no render(): the element already moved, and a re-render
+    // would cost a freeze and your place on the page for no new information.
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
+}
+
+/**
+ * The width that will actually be written, which is what the build will judge.
+ * A box wider than the space it landed in gets no pinned width at all (the
+ * cover lockup is full-bleed on purpose), so warning about its overhang would
+ * be a lie — the build accepts it.
+ */
+function pinnedWidth(id, x, wIn) {
+  const prev = layout.positions[id] || {};
+  return prev.w ?? (x + wIn <= PAGE_W_IN ? wIn : 0);
+}
+
+function shapeSize(id) {
+  const sh = layout.shapes.find(s => s.id === id) || {};
+  return { w: +sh.w || 0, h: +sh.h || 0 };
+}
+
+/**
+ * Live feedback mirroring docsync/layout.py's check_bounds — and only it. If
+ * this says the build will refuse something, the build must actually refuse it,
+ * or the warning trains you to ignore it.
+ */
+function offPage(x, y, w, h) {
+  if (x < 0 || y < 0 || x > PAGE_W_IN || y > PAGE_H_IN) return 'off the page';
+  if (w && x + w > PAGE_W_IN + 0.01) return `${(x + w - PAGE_W_IN).toFixed(2)}in past the right edge`;
+  if (h && y + h > PAGE_H_IN + 0.01) return `${(y + h - PAGE_H_IN).toFixed(2)}in past the bottom edge`;
+  return '';
 }
 
 /** Live-move a shape without a full re-render, so dragging stays smooth. */
@@ -347,10 +374,24 @@ function markDirty() {
   $('save').classList.toggle('dirty', dirty);
 }
 
-$('mode').onclick = () => setMode(mode === 'move' ? 'text' : 'move');
+$('tok').onclick = async () => {
+  const cur = localStorage.getItem('docsync-pat');
+  if (cur) {
+    $('stat').textContent = 'checking the stored token…';
+    const bad = await verifyToken(cur);
+    if (!bad) {
+      $('stat').textContent = 'the stored token works — it can write to ' + REPO;
+      if (!confirm('The stored token works. Replace it anyway?')) return;
+    } else {
+      $('stat').textContent = 'stored token: ' + bad;
+      if (!confirm('That token cannot save:\n\n' + bad + '\n\nEnter a different one?')) return;
+    }
+  }
+  localStorage.removeItem('docsync-pat');
+  await askToken();
+};
 
 $('shape').onclick = async () => {
-  const d = $('out').contentDocument;
   const kind = prompt('Shape: rect, ellipse or line', 'rect');
   if (!kind || !['rect', 'ellipse', 'line'].includes(kind)) return;
   const page = +(prompt('Which page? (1–12)', '3') || 0);
@@ -408,9 +449,19 @@ open('/repo/report2027/web/index.html').read()
     $('stat').textContent = 'draft does not build';
     return;
   }
+  // Keep the reader's place. Assigning srcdoc reloads the iframe, which
+  // scrolls to the top — after every edit, on a twelve-page report, that alone
+  // made the thing miserable to use.
+  const prev = $('out').contentDocument;
+  const keep = prev && prev.scrollingElement ? prev.scrollingElement.scrollTop : scrollTopWas;
+  scrollTopWas = keep;
   // onload before srcdoc: assigning srcdoc starts the load, so wiring the
   // handler afterwards is a race the editor loses by silently going inert.
-  $('out').onload = wire;
+  $('out').onload = () => {
+    wire();
+    const se = $('out').contentDocument.scrollingElement;
+    if (se) se.scrollTop = scrollTopWas;
+  };
   $('out').srcdoc = html;
   $('stat').textContent = dirty ? 'unsaved changes' : 'click any paragraph to edit it';
 }
@@ -419,7 +470,6 @@ function wire() {
   const d = $('out').contentDocument;
   showLocalImages(d);
   dragify(d);
-  d.body.classList.toggle('ds-move', mode === 'move');
   const css = d.createElement('style');
   css.textContent = `
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
@@ -439,13 +489,17 @@ function wire() {
     .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
     .ds-cite { flex-basis:100%; margin-top:4px; }
     .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }
-    body.ds-move [data-slot] { cursor:default; }
-    body.ds-move [data-slot]:hover { background:none; outline-color:transparent; }
-    body.ds-move [data-el], body.ds-move [data-shape] {
-      cursor:grab; outline:1px dashed #95B7A2; outline-offset:2px; }
-    body.ds-move [data-el]:hover, body.ds-move [data-shape]:hover {
-      outline:2px solid #6B9E78; }
-    body.ds-move svg.shape-layer { pointer-events:auto; }`;
+    /* The cursor is the whole affordance: a box says "grab me", the text
+       inside it says "type in me". No mode to be in or forget you are in. */
+    [data-el], [data-shape] { cursor:grab; }
+    [data-el]:hover { outline:1px dashed #95B7A2; outline-offset:3px; }
+    [data-el] [data-slot] { cursor:text; }
+    [data-shape]:hover { outline:2px solid #6B9E78; }
+    svg.shape-layer { pointer-events:none; }
+    svg.shape-layer [data-shape] { pointer-events:auto; }
+    .ds-dragging { outline:2px solid #c2703a !important; opacity:.9; }
+    body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
+    body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -453,7 +507,7 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    el.addEventListener('click', () => { if (mode === 'text') edit(d, key); });
+    el.addEventListener('click', () => edit(d, key));
   });
 }
 
@@ -554,21 +608,58 @@ async function gh(path, opts = {}) {
   return r.json();
 }
 
-function askToken() {
-  let tok = localStorage.getItem('docsync-pat');
+/**
+ * Check a token before trusting it.
+ *
+ * The repo endpoint reports what THIS token may do, so "valid but read-only"
+ * is caught at the moment it is pasted rather than after an edit is composed.
+ */
+async function verifyToken(tok) {
+  let r;
+  try {
+    r = await fetch(`https://api.github.com/repos/${REPO}`, {
+      headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json' },
+    });
+  } catch (e) {
+    return 'could not reach GitHub: ' + e.message;
+  }
+  if (r.status === 401) return 'GitHub rejected that token (expired, or mistyped).';
+  if (r.status === 404)
+    return `that token cannot see ${REPO}. In the token's "Repository access", `
+         + 'select this repository.';
+  if (!r.ok) return `GitHub said ${r.status}.`;
+  const j = await r.json();
+  if (!j.permissions || !j.permissions.push)
+    return 'that token can read but not write. Open it at '
+         + 'github.com/settings/personal-access-tokens and set '
+         + 'Permissions -> Repository permissions -> Contents -> Read and write '
+         + '(Read-only is the default, and is what this looks like).';
+  return '';
+}
+
+async function askToken() {
+  const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
-  tok = prompt('Paste a GitHub fine-grained token\n\n' +
+  const entered = prompt('Paste a GitHub fine-grained token\n\n' +
     'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
     `Repository access: only ${REPO}\n` +
-    'Permissions: Contents -> Read and write   <- must be WRITE\n\n' +
+    'Permissions -> Repository permissions -> Contents: Read and WRITE\n' +
+    '(Contents defaults to no access; Read-only is not enough.)\n\n' +
     'Stored in this browser only.');
-  if (!tok) return null;
-  localStorage.setItem('docsync-pat', tok.trim());
-  return tok.trim();
+  if (!entered) return null;
+  $('stat').textContent = 'checking the token…';
+  const bad = await verifyToken(entered.trim());
+  if (bad) {
+    $('stat').textContent = 'token not usable: ' + bad;
+    return null;                       // not stored — a bad token helps nobody
+  }
+  localStorage.setItem('docsync-pat', entered.trim());
+  $('stat').textContent = 'token accepted';
+  return entered.trim();
 }
 
 $('save').onclick = async () => {
-  if (!askToken()) return;
+  if (!await askToken()) return;
   $('save').disabled = true;
   $('stat').textContent = 'saving…';
   try {
@@ -608,7 +699,10 @@ $('save').onclick = async () => {
       : m;
     $('stat').textContent = 'save failed: ' + why;
     $('save').disabled = false;
-    if (m.match(/401|403/)) localStorage.removeItem('docsync-pat');
+    // Only discard on 401 (the token itself is bad). A 403 means the token is
+    // fine but under-permissioned — discarding it just makes you paste the
+    // same token again and get the same 403, forever.
+    if (m.match(/401/)) localStorage.removeItem('docsync-pat');
   }
 };
 
