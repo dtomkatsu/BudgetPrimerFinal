@@ -322,152 +322,277 @@ function contextify(d) {
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
-// editing, land on the box itself and you are moving it. The cursor says
-// which before you commit to a click.
+// editing, land on the box itself and you are moving it.
 //
 // A drop does NOT re-render. The drag already moved the real element, so the
 // page on screen is already the answer, and re-rendering would freeze for a
 // second and throw away your scroll position for nothing. layout.json is
-// updated and the renderer catches up on the next render or on save — where
-// check_bounds still has the final word.
-const DPI = 96;                       // CSS px per inch
+// updated and the renderer catches up on the next render or on save.
+const DPI = 96;                        // CSS px per inch
 const PAGE_W_IN = 8.5, PAGE_H_IN = 11; // must match docsync/layout.py
+const MARGIN_IN = 0.62, TOP_IN = 0.75; // the text column primer.css sets
+const SNAP_IN = 0.06;                  // how close before it pulls into line
+const NUDGE_IN = 0.05, NUDGE_BIG_IN = 0.25;
+
+/**
+ * primer.css zooms .page to 125% on wide screens and the factor moves with the
+ * viewport. getBoundingClientRect reports zoomed pixels; CSS inches are
+ * unzoomed. Every conversion divides it back out — assuming 1 made a 7.26in box
+ * measure 9.08in and moved things a quarter further than the cursor.
+ */
+const zoomOf = page => (page.getBoundingClientRect().width / page.offsetWidth) || 1;
+
+const inchBox = (el, page) => {
+  const r = el.getBoundingClientRect(), pr = page.getBoundingClientRect();
+  const px = DPI * zoomOf(page);
+  return { x: (r.left - pr.left) / px, y: (r.top - pr.top) / px,
+           w: r.width / px, h: r.height / px };
+};
+
+/**
+ * Lines worth snapping to: the page's own geometry, and the edges and centres
+ * of everything else on the page. Alignment you can feel is the difference
+ * between arranging and fiddling.
+ */
+function snapLines(d, page, moving) {
+  const xs = [0, MARGIN_IN, PAGE_W_IN / 2, PAGE_W_IN - MARGIN_IN, PAGE_W_IN];
+  const ys = [0, TOP_IN, PAGE_H_IN / 2, PAGE_H_IN - 0.9, PAGE_H_IN];
+  page.querySelectorAll('[data-el], [data-shape], h1, h2.sub, .card, .branch, .photo')
+      .forEach(el => {
+    if (el === moving || moving.contains(el) || el.contains(moving)) return;
+    const b = inchBox(el, page);
+    if (b.w < 0.1 || b.h < 0.1) return;
+    xs.push(b.x, b.x + b.w / 2, b.x + b.w);
+    ys.push(b.y, b.y + b.h / 2, b.y + b.h);
+  });
+  return { xs, ys };
+}
+
+/** Nearest line within the threshold, given the three edges we align on. */
+function snapAxis(lines, lo, size) {
+  let best = null;
+  for (const probe of [[lo, 0], [lo + size / 2, size / 2], [lo + size, size]]) {
+    for (const line of lines) {
+      const d = Math.abs(probe[0] - line);
+      if (d <= SNAP_IN && (!best || d < best.d)) best = { d, at: line - probe[1], line };
+    }
+  }
+  return best;
+}
+
+function showGuides(d, page, vx, hy) {
+  d.querySelectorAll('.ds-guide').forEach(g => g.remove());
+  const add = (cls, style) => {
+    const g = d.createElement('div');
+    g.className = 'ds-guide ' + cls;
+    g.style.cssText = style;
+    page.appendChild(g);
+  };
+  if (vx !== null) add('v', `left:${vx}in;top:0;height:${PAGE_H_IN}in`);
+  if (hy !== null) add('h', `top:${hy}in;left:0;width:${PAGE_W_IN}in`);
+}
+
+const clearGuides = d => d.querySelectorAll('.ds-guide').forEach(g => g.remove());
+
+// ---- history: every move is undoable, or it is not safe to experiment ----
+const past = [], future = [];
+const snapshot = () => JSON.stringify({ source, layout });
+function pushHistory() {
+  past.push(snapshot());
+  if (past.length > 60) past.shift();
+  future.length = 0;
+}
+async function restore(json) {
+  const st = JSON.parse(json);
+  source = st.source;
+  layout = st.layout;
+  markDirty();
+  await render();
+}
+async function undo() {
+  if (!past.length) { $('stat').textContent = 'nothing to undo'; return; }
+  future.push(snapshot());
+  await restore(past.pop());
+  $('stat').textContent = 'undone';
+}
+async function redo() {
+  if (!future.length) { $('stat').textContent = 'nothing to redo'; return; }
+  past.push(snapshot());
+  await restore(future.pop());
+  $('stat').textContent = 'redone';
+}
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    // Reachable without a mouse: focus it, Space to pick up, arrows to move.
+    el.setAttribute('tabindex', '0');
     el.addEventListener('mousedown', e => {
-      // Inside a text slot? That click belongs to the editor.
       if (e.target.closest && e.target.closest('[data-slot]')) return;
       if (editing) return;
       e.preventDefault();
       e.stopPropagation();
       startDrag(d, el, e);
     });
+    el.addEventListener('keydown', e => keyDrag(d, el, e));
   });
 }
 
-function startDrag(d, el, e0) {
+/** Shared by pointer and keyboard: place the element, snapping as it goes. */
+function placer(d, el, page) {
   const shapeId = el.dataset.shape;
   const id = shapeId || el.dataset.el;
-  const rect = el.getBoundingClientRect();
-  const page = el.closest('section.page') || el.ownerDocument.querySelector('section.page');
-  const pr = page.getBoundingClientRect();
-  // A hidden or unlaid-out pane reports every rect as zero, and the drag would
-  // then write nonsense inches into layout.json. Refuse rather than corrupt.
-  if (!pr.width || (!rect.width && !shapeId)) {
-    $('stat').textContent = 'cannot move that yet — the page has no layout';
-    return;
-  }
-  // primer.css zooms .page to 125% on wide screens for readability, and the
-  // factor moves with the viewport. getBoundingClientRect reports zoomed pixels
-  // while CSS inches are unzoomed, so every px->in conversion has to divide it
-  // back out. Missing this made a 7.26in box measure 9.08in on an 8.5in page,
-  // sized the spacer 25% too tall, and moved things a quarter further than the
-  // cursor did. Measure it; never assume 1.
-  const zoom = pr.width / page.offsetWidth || 1;
-  const PX_IN = DPI * zoom;
-  const start = { x: (rect.left - pr.left) / PX_IN, y: (rect.top - pr.top) / PX_IN };
-  const grab = { x: e0.clientX, y: e0.clientY };
-  const wIn = rect.width / PX_IN, hIn = rect.height / PX_IN;
-  // Was it holding a place in the flow? If so its height must stay reserved
-  // once it goes absolute, or everything below it jumps up to fill the gap.
-  // Measured before the drag makes it absolute — after, it always reads
-  // 'absolute' and the answer would be a lie.
+  // Measure the box, but trust a position we already recorded over a fresh
+  // reading of it: rects carry rounding, and the lift's scale nudges them. Take
+  // the measurement as truth and picking a box up without moving it walks it a
+  // few hundredths of an inch — every time.
+  const measured = inchBox(el, page);
+  const stored = shapeId ? layout.shapes.find(s => s.id === shapeId)
+                         : layout.positions[id];
+  const box = stored && stored.x !== undefined
+    ? { ...measured, x: +stored.x, y: +stored.y }
+    : measured;
   const heldFlow = !shapeId &&
     d.defaultView.getComputedStyle(el).position === 'static';
   let spacer = null;
 
-  // Going absolute drops the element out of the flow, and everything below it
+  // Going absolute drops the element out of the flow and everything below it
   // rushes up into the gap. The renderer reserves that height on the next
-  // build — but a drop no longer triggers one, so the gap has to be held here,
-  // in the same frame the element leaves the flow, or the page lurches under
-  // the cursor.
+  // build, but a drop no longer triggers one — so the gap is held here, in the
+  // same frame the element leaves the flow, or the page lurches under you.
   const holdPlace = () => {
     if (!heldFlow || spacer) return;
     spacer = d.createElement('div');
-    spacer.className = 'ds-spacer';
-    spacer.style.height = hIn.toFixed(2) + 'in';
+    spacer.className = 'ds-spacer ds-ghost';
+    spacer.style.height = box.h.toFixed(2) + 'in';
     spacer.setAttribute('aria-hidden', 'true');
     el.parentNode.insertBefore(spacer, el);
   };
-  el.classList.add('ds-dragging');
-  d.body.classList.add('ds-grabbing');
 
-  const at = e => [
-    +(start.x + (e.clientX - grab.x) / PX_IN).toFixed(2),
-    +(start.y + (e.clientY - grab.y) / PX_IN).toFixed(2),
-  ];
+  const lines = snapLines(d, page, el);
 
-  const move = e => {
-    const [x, y] = at(e);
+  const put = (x, y, snap = true) => {
+    let vx = null, hy = null;
+    if (snap) {
+      const sx = snapAxis(lines.xs, x, box.w);
+      const sy = snapAxis(lines.ys, y, box.h);
+      if (sx) { x = +sx.at.toFixed(3); vx = sx.line; }
+      if (sy) { y = +sy.at.toFixed(3); hy = sy.line; }
+    }
+    // Clamp inside the page: .page is overflow:hidden, so "off the edge" is
+    // not bleed, it is gone. Better to refuse the pixel than fail the build.
+    x = Math.min(Math.max(x, 0), PAGE_W_IN - Math.min(box.w, PAGE_W_IN));
+    y = Math.min(Math.max(y, 0), PAGE_H_IN - Math.min(box.h, PAGE_H_IN));
     if (shapeId) {
       const sh = layout.shapes.find(s => s.id === shapeId);
-      if (sh) { sh.x = x; sh.y = y; paintShape(d, shapeId); }
+      if (sh) { sh.x = +x.toFixed(2); sh.y = +y.toFixed(2); paintShape(d, shapeId); }
     } else {
-      holdPlace();                       // same frame as leaving the flow
+      holdPlace();
       el.style.position = 'absolute';
-      el.style.left = x + 'in';
-      el.style.top = y + 'in';
+      el.style.left = x.toFixed(2) + 'in';
+      el.style.top = y.toFixed(2) + 'in';
     }
-    const off = shapeId
-      ? offPage(x, y, shapeSize(shapeId).w, shapeSize(shapeId).h)
-      : offPage(x, y, pinnedWidth(id, x, wIn), 0);
-    $('stat').textContent = off
-      ? `${id} → ${x}in, ${y}in — ${off} (the build will refuse this)`
-      : `${id} → ${x}in, ${y}in`;
-    $('stat').style.color = off ? '#ffb4a2' : '';
+    showGuides(d, page, vx, hy);
+    $('stat').textContent = `${id} → ${x.toFixed(2)}in, ${y.toFixed(2)}in`
+                          + (vx !== null || hy !== null ? '  · aligned' : '');
+    return { x, y };
   };
 
-  const up = e => {
-    d.removeEventListener('mousemove', move);
-    d.removeEventListener('mouseup', up);
-    el.classList.remove('ds-dragging');
-    d.body.classList.remove('ds-grabbing');
-    const [x, y] = at(e);
+  const commit = ({ x, y }) => {
     if (!shapeId) {
       const prev = layout.positions[id] || {};
-      // Pinning the width keeps a flow box from shrink-to-fitting once it is
-      // absolute. But some elements are wider than the page on purpose (the
-      // cover lockup is full-bleed, clipped by overflow:hidden) — pinning that
-      // width would shove it off the page and fail the build.
-      const w = prev.w ?? (x + wIn <= PAGE_W_IN ? +wIn.toFixed(2) : undefined);
-      const h = prev.h ?? (heldFlow ? +hIn.toFixed(2) : undefined);
-      layout.positions[id] = { ...prev, x, y, ...(w ? { w } : {}), ...(h ? { h } : {}) };
+      const w = prev.w ?? (x + box.w <= PAGE_W_IN ? +box.w.toFixed(2) : undefined);
+      const h = prev.h ?? (heldFlow ? +box.h.toFixed(2) : undefined);
+      layout.positions[id] = { ...prev, x: +x.toFixed(2), y: +y.toFixed(2),
+                              ...(w ? { w } : {}), ...(h ? { h } : {}) };
     }
+    clearGuides(d);
+    if (spacer) spacer.classList.remove('ds-ghost');
     markDirty();
-    // deliberately no render(): the element already moved, and a re-render
-    // would cost a freeze and your place on the page for no new information.
+  };
+
+  return { id, box, put, commit };
+}
+
+function startDrag(d, el, e0) {
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  const pr = page.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
+  // A hidden or unlaid-out pane reports every rect as zero, and the drag would
+  // then write nonsense inches into layout.json. Refuse rather than corrupt.
+  if (!pr.width || (!rect.width && !el.dataset.shape)) {
+    $('stat').textContent = 'cannot move that yet — the page has no layout';
+    return;
+  }
+  pushHistory();
+  const P = placer(d, el, page);
+  const px = DPI * zoomOf(page);
+  const grab = { x: e0.clientX, y: e0.clientY };
+  const start = { x: P.box.x, y: P.box.y };
+  let at = { ...start };
+
+  el.classList.add('ds-lifted');
+  d.body.classList.add('ds-grabbing');
+
+  // Applied straight from the event, not via requestAnimationFrame. Browsers
+  // already coalesce mousemove to the frame rate, the snap lines are computed
+  // once at pick-up, and put() only writes a couple of styles — so rAF would
+  // buy nothing and cost a frame of lag. It also stops firing in a hidden
+  // document, which turns a drag into a silent no-op.
+  const move = e => {
+    at = P.put(start.x + (e.clientX - grab.x) / px,
+               start.y + (e.clientY - grab.y) / px);
+  };
+  const up = () => {
+    d.removeEventListener('mousemove', move);
+    d.removeEventListener('mouseup', up);
+    el.classList.remove('ds-lifted');
+    el.classList.add('ds-settling');       // ~120ms ease into the snapped spot
+    d.defaultView.setTimeout(() => el.classList.remove('ds-settling'), 160);
+    d.body.classList.remove('ds-grabbing');
+    P.commit(at);
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
 }
 
-/**
- * The width that will actually be written, which is what the build will judge.
- * A box wider than the space it landed in gets no pinned width at all (the
- * cover lockup is full-bleed on purpose), so warning about its overhang would
- * be a lie — the build accepts it.
- */
-function pinnedWidth(id, x, wIn) {
-  const prev = layout.positions[id] || {};
-  return prev.w ?? (x + wIn <= PAGE_W_IN ? wIn : 0);
-}
+/** Keyboard drag: focus, Space to pick up, arrows to move, Space to drop. */
+const held = new WeakMap();
+function keyDrag(d, el, e) {
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  const picked = held.get(el);
 
-function shapeSize(id) {
-  const sh = layout.shapes.find(s => s.id === id) || {};
-  return { w: +sh.w || 0, h: +sh.h || 0 };
-}
-
-/**
- * Live feedback mirroring docsync/layout.py's check_bounds — and only it. If
- * this says the build will refuse something, the build must actually refuse it,
- * or the warning trains you to ignore it.
- */
-function offPage(x, y, w, h) {
-  if (x < 0 || y < 0 || x > PAGE_W_IN || y > PAGE_H_IN) return 'off the page';
-  if (w && x + w > PAGE_W_IN + 0.01) return `${(x + w - PAGE_W_IN).toFixed(2)}in past the right edge`;
-  if (h && y + h > PAGE_H_IN + 0.01) return `${(y + h - PAGE_H_IN).toFixed(2)}in past the bottom edge`;
-  return '';
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    if (!picked) {
+      pushHistory();
+      const P = placer(d, el, page);
+      held.set(el, { P, at: { x: P.box.x, y: P.box.y } });
+      el.classList.add('ds-lifted');
+      $('stat').textContent = `${P.id} picked up — arrows to move, Space to drop, Esc to cancel`;
+    } else {
+      picked.P.commit(picked.at);
+      el.classList.remove('ds-lifted');
+      held.delete(el);
+      $('stat').textContent = 'dropped';
+    }
+    return;
+  }
+  if (!picked) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    el.classList.remove('ds-lifted');
+    held.delete(el);
+    clearGuides(d);
+    undo();                                  // put it back where it was
+    return;
+  }
+  const step = e.shiftKey ? NUDGE_BIG_IN : NUDGE_IN;
+  const d4 = { ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+               ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+  if (!d4) return;
+  e.preventDefault();
+  // Arrows are a deliberate placement, so they do not snap out from under you.
+  picked.at = picked.P.put(picked.at.x + d4[0], picked.at.y + d4[1], false);
 }
 
 /** Live-move a shape without a full re-render, so dragging stays smooth. */
@@ -491,37 +616,28 @@ function markDirty() {
   $('save').classList.toggle('dirty', dirty);
 }
 
-$('tok').onclick = async () => {
-  const cur = localStorage.getItem('docsync-pat');
-  if (cur) {
-    $('stat').textContent = 'checking the stored token…';
-    const bad = await verifyToken(cur);
-    if (!bad) {
-      $('stat').textContent = 'the stored token works — it can write to ' + REPO;
-      if (!confirm('The stored token works. Replace it anyway?')) return;
-    } else {
-      $('stat').textContent = 'stored token: ' + bad;
-      if (!confirm('That token cannot save:\n\n' + bad + '\n\nEnter a different one?')) return;
-    }
-  }
-  localStorage.removeItem('docsync-pat');
-  await askToken();
-};
-
 $('shape').onclick = async () => {
   const kind = prompt('Shape: rect, ellipse or line', 'rect');
   if (!kind || !['rect', 'ellipse', 'line'].includes(kind)) return;
   const page = +(prompt('Which page? (1–12)', '3') || 0);
   if (!page) return;
   const fill = prompt('Fill colour (or "none")', '#E8EDE6') || 'none';
+  pushHistory();
   const id = 's' + (layout.shapes.length + 1) + '-' + kind;
   layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: 1, fill,
                        stroke: kind === 'line' ? '#52796F' : 'none',
-                       sw: 0.02, z: 'back' });
+                       sw: 0.02, z: -1 });
   markDirty();
   await render();
   $('stat').textContent = `${id} added to page ${page} — drag it into place`;
 };
+
+addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    e.shiftKey ? redo() : undo();
+  }
+});
 
 async function boot() {
   const urls = Object.keys(FILES);
@@ -615,8 +731,25 @@ function wire() {
     [data-shape]:hover { outline:2px solid #6B9E78; }
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
-    .ds-dragging { outline:2px solid #c2703a !important; opacity:.9; }
+    /* Lifted: it should read as picked up off the page, not just outlined —
+       elevation and a hair of scale do that faster than any border. */
+    .ds-lifted { box-shadow:0 12px 32px rgba(47,62,70,.28) !important;
+                 transform:scale(1.015); opacity:.96; z-index:9999 !important;
+                 outline:2px solid #6B9E78 !important; outline-offset:2px; }
+    /* Settling: land, don't teleport. Short enough to feel like physics. */
+    .ds-settling { transition:left .13s cubic-bezier(.2,.8,.3,1),
+                              top .13s cubic-bezier(.2,.8,.3,1); }
+    [data-el], [data-shape] { transition:box-shadow .12s, transform .12s; }
+    [data-el]:focus-visible { outline:2px solid #6B9E78; outline-offset:3px; }
+    /* The ghost says where it came from while it is in the air. */
     .ds-spacer { pointer-events:none; }
+    .ds-ghost { outline:1px dashed #B9C9BE; outline-offset:-2px;
+                background:repeating-linear-gradient(45deg,
+                  rgba(107,158,120,.06) 0 6px, transparent 6px 12px); }
+    /* Alignment guides: thin, hot, and gone the moment you let go. */
+    .ds-guide { position:absolute; z-index:9998; pointer-events:none; }
+    .ds-guide.v { width:1px; background:#E8776B; box-shadow:0 0 0 .5px rgba(232,119,107,.35); }
+    .ds-guide.h { height:1px; background:#E8776B; box-shadow:0 0 0 .5px rgba(232,119,107,.35); }
     .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
                border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
                min-width:190px; font:12px system-ui; }
