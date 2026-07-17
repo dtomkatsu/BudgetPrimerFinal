@@ -72,6 +72,60 @@ def replace_doc(doc_id: str, markdown: str, token: str) -> None:
                          f"{e.read().decode('utf-8', 'replace')[:400]}") from e
 
 
+def _post(url: str, body: dict, token: str, method: str = "POST") -> dict:
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"), method=method,
+        headers={"Authorization": f"Bearer {token}",
+                 "Content-Type": "application/json"})
+    try:
+        return json.loads(urllib.request.urlopen(req, timeout=60).read() or b"{}")
+    except urllib.error.HTTPError as e:
+        raise FetchError(f"HTTP {e.code} {method} {url}: "
+                         f"{e.read().decode('utf-8', 'replace')[:400]}") from e
+
+
+def create_doc(title: str, token: str, folder: str | None = None) -> str:
+    """A new empty Doc, owned by the service account.
+
+    Created inside `folder` when given: a folder the human shared with the
+    service account once means every doc made here is reachable without any
+    further per-doc sharing, which is the whole point.
+    """
+    body: dict = {"name": title,
+                  "mimeType": "application/vnd.google-apps.document"}
+    if folder:
+        body["parents"] = [folder]
+    url = "https://www.googleapis.com/drive/v3/files?fields=id&supportsAllDrives=true"
+    return _post(url, body, token)["id"]
+
+
+def share(doc_id: str, email: str, token: str, role: str = "writer") -> None:
+    """Grant a human access to a doc the service account owns. Notification
+    email is suppressed — this fires on every bind and is not news."""
+    url = (f"https://www.googleapis.com/drive/v3/files/{doc_id}/permissions"
+           "?sendNotificationEmail=false&supportsAllDrives=true")
+    _post(url, {"type": "user", "role": role, "emailAddress": email}, token)
+
+
+def can_access(doc_id: str, token: str) -> tuple[bool, str]:
+    """Whether the service account can see a doc — the check that turns
+    'permission denied' into 'share it with this address'."""
+    try:
+        fetch_modified_time(doc_id, token)
+        return True, ""
+    except FetchError as e:
+        return False, str(e)
+
+
+def service_account_email(service_account_json: str) -> str:
+    """The key's identity, or "" if the key is unreadable — callers use this to
+    tell the user who to share a doc with, and must not die doing it."""
+    try:
+        return json.loads(service_account_json).get("client_email", "")
+    except (json.JSONDecodeError, AttributeError):
+        return ""
+
+
 def access_token(service_account_json: str) -> str:
     """Mint an access token from a service-account key (JWT bearer grant)."""
     try:
@@ -82,8 +136,16 @@ def access_token(service_account_json: str) -> str:
             "google-auth is required for authenticated access:\n"
             "  pip install google-auth") from e
 
-    info = json.loads(service_account_json)
-    creds = service_account.Credentials.from_service_account_info(
-        info, scopes=list(SCOPES))
-    creds.refresh(Request())
+    # A bad key surfaces as ValueError from a PEM parser several layers down;
+    # callers only know FetchError, and a stack trace is not a diagnosis.
+    try:
+        info = json.loads(service_account_json)
+    except json.JSONDecodeError as e:
+        raise FetchError(f"the key is not valid JSON: {e}") from e
+    try:
+        creds = service_account.Credentials.from_service_account_info(
+            info, scopes=list(SCOPES))
+        creds.refresh(Request())
+    except Exception as e:
+        raise FetchError(f"{type(e).__name__}: {e}") from e
     return creds.token

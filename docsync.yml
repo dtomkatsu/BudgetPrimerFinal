@@ -21,6 +21,13 @@
 #   pr       true to open a pull request instead of committing to main;
 #            use for anything with outside editors
 
+# Drive folder new docs are created in. Share this folder with the service
+# account as Editor ONCE and every doc created inside it is reachable without
+# any further per-doc sharing — that is what makes `docsync bind` a single
+# command instead of a console visit. Get the id from the folder's URL:
+# drive.google.com/drive/folders/<THIS>.  ./docsync/setup.sh prints it.
+folder: ""
+
 bindings:
   - id: budget-primer
     doc: 1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU

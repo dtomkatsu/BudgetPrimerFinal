@@ -40,24 +40,63 @@ echo "==> minting a key and storing it as a GitHub secret"
 gcloud iam service-accounts keys create "$KEY" --iam-account="$EMAIL"
 gh secret set GOOGLE_SERVICE_ACCOUNT_KEY < "$KEY"
 
+echo "==> creating a Drive folder and sharing it with you"
+# One folder shared with the service account once is what removes per-doc
+# sharing forever: every doc created inside it is reachable already.
+TOKEN="$(gcloud auth print-access-token --impersonate-service-account="$EMAIL" 2>/dev/null || true)"
+FOLDER=""
+if [ -n "$TOKEN" ]; then
+  FOLDER=$(curl -sS -X POST "https://www.googleapis.com/drive/v3/files?fields=id" \
+    -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d '{"name":"docsync","mimeType":"application/vnd.google-apps.folder"}' \
+    | python3 -c 'import sys,json; print(json.load(sys.stdin).get("id",""))')
+fi
+ME="$(git config user.email || true)"
+if [ -n "$FOLDER" ] && [ -n "$ME" ]; then
+  curl -sS -X POST \
+    "https://www.googleapis.com/drive/v3/files/$FOLDER/permissions?sendNotificationEmail=false" \
+    -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d "{\"type\":\"user\",\"role\":\"writer\",\"emailAddress\":\"$ME\"}" >/dev/null
+  echo "    folder $FOLDER shared with $ME"
+fi
+
 cat <<EOF
 
-Done. The key is in the GitHub secret and the local copy is shredded.
+Done. The key is in the GitHub secret; the local copy is shredded.
 
-Two steps remain that only you can do:
+  service account:  $EMAIL
+EOF
 
-  1. Share each doc in docsync.yml with this address, as Editor:
+if [ -n "$FOLDER" ]; then
+  cat <<EOF
+  docs folder:      https://drive.google.com/drive/folders/$FOLDER
 
-         $EMAIL
+Add this to docsync.yml, then every new doc is one command:
 
-     (Share -> paste -> Editor -> uncheck "Notify people".)
+  folder: "$FOLDER"
 
-  2. Initialise each binding — this REPLACES the doc with the repo's content,
-     so copy anything you want to keep first:
+  python3 -m docsync.bind <id> --title "..." --mode fragment --target <page.html>
 
-         export GOOGLE_SERVICE_ACCOUNT_KEY="\$(gcloud iam service-accounts keys create /dev/stdout --iam-account=$EMAIL)"
-         python3 -m docsync.sync push --id budget-primer
-         git add docsync/.state && git commit -m "docsync: initialise" && git push
+Check anything with:  python3 -m docsync.doctor
+EOF
+else
+  cat <<EOF
 
-After that the workflow runs every 15 minutes on its own.
+Could not create the docs folder automatically (impersonation unavailable).
+Do it once by hand instead:
+
+  1. Make a folder in your Drive named "docsync".
+  2. Share it with $EMAIL as Editor.
+  3. Put its id (from the URL) in docsync.yml as: folder: "<id>"
+
+Then check with:  python3 -m docsync.doctor
+EOF
+fi
+
+cat <<EOF
+
+For a doc that already exists, share it with $EMAIL as Editor, then:
+
+  python3 -m docsync.bind <id> --doc <url>
+
 EOF

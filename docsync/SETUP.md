@@ -1,87 +1,104 @@
 # docsync setup
 
-The sync engine runs in GitHub Actions, so it needs Google credentials that
-don't depend on anyone's browser session. That means a **service account**: a
-robot Google identity whose key lives in a GitHub secret. This is the one part
-nobody can automate away — it needs a human with access to the Google account.
+The engine runs in GitHub Actions, so it needs a Google identity that isn't
+tied to anyone's browser session: a **service account**, whose key lives in a
+GitHub secret.
 
-Everything else is already in the repo: `docsync.yml` (the bindings),
-`.github/workflows/docsync.yml` (the engine), and `docsync/` (the code).
+The important thing about the cost below: **it is once, ever — not per repo and
+not per doc.** One service account serves every repo you own. One shared folder
+removes per-doc sharing forever. After that, binding a new doc is one command.
 
-## One-time, ~15 minutes
-
-`docsync/setup.sh` does steps 1–4 for you if you have `gcloud` and `gh`
-installed and are logged into both. Otherwise, by hand:
-
-**1. Create a project and service account** — <https://console.cloud.google.com>
-
-Any project works; a dedicated one keeps quotas clean. Create a service
-account (e.g. `docsync`), and note the email it gets:
-`docsync@<project>.iam.gserviceaccount.com`.
-
-No IAM roles are needed. The service account reaches docs only because you
-share them with it in step 4 — exactly like sharing with a person.
-
-**2. Enable the two APIs** — Google Docs API and Google Drive API.
-
-**3. Create a JSON key** and store it as a GitHub secret:
-
-```sh
-gh secret set GOOGLE_SERVICE_ACCOUNT_KEY < key.json
-rm key.json          # the secret is the only copy that should exist
+```
+once ever ........  ./docsync/setup.sh          (~2 min, needs gcloud + gh)
+per new doc ......  python3 -m docsync.bind <id> --title "..."
+anything wrong ...  python3 -m docsync.doctor
 ```
 
-**4. Share every bound doc with the service-account email as Editor.**
-
-Open each doc in `docsync.yml`, hit Share, paste the service-account email,
-set Editor, uncheck "Notify people". Editor is required: docsync pushes to the
-doc, not just reads it.
-
-**5. Initialise each binding** — one push per binding, which replaces the doc's
-contents with the repo's and records the sync state:
+## Once, ever
 
 ```sh
-export GOOGLE_SERVICE_ACCOUNT_KEY="$(cat key.json)"
-python3 -m docsync.sync push --id budget-primer
-git add docsync/.state && git commit -m "docsync: initialise budget-primer" && git push
+./docsync/setup.sh
 ```
 
-This overwrites the doc. Make a copy first if it holds anything you want.
+It creates a GCP project, enables the Docs and Drive APIs, makes a service
+account, mints a key, stores it as the `GOOGLE_SERVICE_ACCOUNT_KEY` secret,
+creates a Drive folder for synced docs, and shares that folder back to you. It
+prints the folder id — put it in `docsync.yml` as `folder:` and you're done.
 
-After that the workflow takes over: a doc edit reaches the site within ~15
-minutes, and a prose change pushed to `main` reaches the doc on the next run.
+No IAM roles are granted. The service account can only reach docs you put in
+that folder (or share with it by hand) — its blast radius is exactly what you
+hand it, the same as sharing with a person.
+
+To reuse the same account in **another repo**, don't re-run setup: just make
+the key available there. An organisation-level secret covers every repo at
+once, or `gh secret set GOOGLE_SERVICE_ACCOUNT_KEY -R owner/other-repo < key.json`.
+
+### If you'd rather do it by hand
+
+1. <https://console.cloud.google.com> — new project; enable **Google Docs API**
+   and **Google Drive API**; create a service account; create a JSON key.
+2. `gh secret set GOOGLE_SERVICE_ACCOUNT_KEY < key.json` then `rm key.json`.
+3. Make a Drive folder, share it with the service-account email as **Editor**,
+   and put its id (from the folder URL) in `docsync.yml` as `folder:`.
+
+## Per new doc
+
+```sh
+python3 -m docsync.bind snap-timeline --title "SNAP Timeline" \
+    --mode fragment --target snap-timeline/index.html
+```
+
+This creates the doc in the shared folder, shares it back to you, seeds a
+content file, adds the registry entry, and initialises the sync state. There is
+no sharing step: the service account made the doc, so it already has access.
+
+For a doc that **already exists**, you must share it yourself first — the
+service account cannot grant itself access to something it doesn't own. Run
+`python3 -m docsync.doctor` to get the address, share as Editor, then:
+
+```sh
+python3 -m docsync.bind budget-primer --doc <url> --mode slots \
+    --content report2027/content.md
+```
+
+Commit `docsync.yml` and `docsync/.state/<id>.json` afterwards.
 
 ## Day to day
 
 ```sh
-make -C report2027 doc-status    # has anything drifted?
-make -C report2027 doc-diff      # what would a pull change?
-make -C report2027 pull-doc      # doc -> repo, then rebuild
+python3 -m docsync.doctor         # what's set up, what isn't, what to do
+make -C report2027 doc-status     # has anything drifted?
+make -C report2027 doc-diff       # what would a pull change?
+make -C report2027 pull-doc       # doc -> repo, then rebuild
 ```
 
-`pull` needs no credentials as long as the doc is link-shared — the Markdown
-export endpoint is readable without them. `push` and `status` always need the
-key, because only Drive can report when the doc last changed.
+`pull` needs no credentials while a doc is link-shared — the Markdown export
+endpoint is readable without them. `push` and `status` always need the key,
+because only Drive reports when a doc last changed.
 
 ## What the engine will not do
 
-* **Overwrite doc edits that were never pulled.** A push checks the doc's
-  content hash and modified time against the last sync. If the doc moved and
-  the repo moved, it stops and opens a `docsync-conflict` issue. Resolve by
-  choosing a side: `make -C report2027 pull-doc` (doc wins) or
+* **Overwrite doc edits that were never pulled.** A push compares the doc's
+  content hash and modified time to the last sync. If both sides moved, it
+  stops and opens a `docsync-conflict` issue. Resolve by choosing a side:
+  `make -C report2027 pull-doc` (doc wins) or
   `python3 -m docsync.sync push --id <id> --force` (repo wins).
-* **Commit prose that would break the build.** A pull parses the doc exactly
-  as the renderer will — every `[[key]]` present, every `[^id]` backed by a
-  source — and writes nothing if it fails.
+* **Commit prose that would break the build.** A pull parses the doc exactly as
+  the renderer will — every `[[key]]` present, every `[^id]` backed by a source
+  — and writes nothing if that fails.
 * **Preserve what Docs cannot represent.** Images, complex tables and layout
-  don't round-trip. Prose, headings, bold/italic, links and lists do. The
-  tests in `docsync/test_docsync.py` pin every quirk found so far.
+  don't round-trip; prose, headings, bold/italic, links and lists do.
+  `docsync/test_docsync.py` pins every quirk found so far, so a change in
+  Google's exporter fails there first.
 
-## Adding a report
+## Modes
 
-Add an entry to `docsync.yml`, share the doc with the service account, and run
-one `push` to initialise. For a page that just wants a doc's prose, use
-`fragment` mode and drop two comments where the content belongs:
+**slots** — the doc fills named `[[key]]` slots and the renderer owns layout.
+Right for art-directed reports. New prose sections need no code: add
+`[[extra.<page>.<slug>]]`.
+
+**fragment** — the whole doc becomes HTML between two comments in a page. Right
+for anything that just wants a doc's prose:
 
 ```html
 <!-- docsync:start -->

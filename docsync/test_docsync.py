@@ -15,6 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from docsync.content import ContentError                  # noqa: E402
+from docsync.fetch import (FetchError, access_token,      # noqa: E402
+                           service_account_email)
 from docsync.fragment import extract, inject, to_html     # noqa: E402
 from docsync.normalise import leading_comment, normalise  # noqa: E402
 from docsync.state import State, content_hash            # noqa: E402
@@ -146,6 +148,41 @@ check_eq("state with both fields is initialised",
 # skip the conflict check and overwrite doc edits.
 check_eq("state with only a hash is not initialised",
          State(content_hash="a").initialised, False)
+
+# ------------------------------------------------------------------- setup
+
+# Setup fails in a handful of ways and every one of them used to arrive as a
+# stack trace from several libraries down. A bad key must always produce a
+# sentence someone can act on.
+check_eq("a key that is not JSON yields no identity, rather than raising",
+         service_account_email("oops-i-pasted-the-wrong-thing"), "")
+check_eq("a key without client_email yields no identity",
+         service_account_email('{"private_key": "x"}'), "")
+check_eq("a real-shaped key yields its identity",
+         service_account_email('{"client_email": "docsync@p.iam.gserviceaccount.com"}'),
+         "docsync@p.iam.gserviceaccount.com")
+
+
+def _fetch_error(fn):
+    try:
+        fn()
+    except FetchError as e:
+        return str(e)
+    except Exception as e:                                    # noqa: BLE001
+        return f"WRONG TYPE {type(e).__name__}: {e}"
+    return "no error raised"
+
+
+check("a non-JSON key is reported as such, not as a parser crash",
+      _fetch_error(lambda: access_token("not json at all")),
+      "not valid JSON")
+check("a malformed private key is a FetchError, not a raw ValueError",
+      _fetch_error(lambda: access_token(
+          '{"client_email": "d@p.iam.gserviceaccount.com", "type": "service_account",'
+          ' "token_uri": "https://oauth2.googleapis.com/token",'
+          ' "private_key": "-----BEGIN PRIVATE KEY-----\\nbogus\\n'
+          '-----END PRIVATE KEY-----\\n"}')),
+      "ValueError")
 
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
