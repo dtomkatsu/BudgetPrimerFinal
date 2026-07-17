@@ -137,7 +137,15 @@ jobs:
             echo "nothing to commit"
             exit 0
           fi
-          git commit -m "docsync: ${{ steps.what.outputs.action }} from the bound doc
+          # Name the commit for what it contains. A push-triggered run mostly
+          # rebuilds the report; calling that "push from the bound doc" made
+          # every rebuild look like a Doc sync in the log.
+          if [ "${{ steps.what.outputs.action }}" = "pull" ]; then
+            msg="docsync: pull from the bound doc"
+          else
+            msg="docsync: rebuild from the edited source"
+          fi
+          git commit -m "$msg
 
           $(head -c 1500 sync.log)"
           # A scheduled pull races with human pushes; rebase rather than fail.
