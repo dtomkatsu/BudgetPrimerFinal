@@ -33,7 +33,7 @@ Copyright © 2026 Hawaiʻi Appleseed Center for Law & Economic Justice. All righ
 733 Bishop Street, Suite 1180, Honolulu, HI 96813
 
 [[basics.h1]]
-# BUDGET BASICS
+# BUDGET BASICS 
 
 [[basics.p1]]
 **THE INVESTMENTS** that Hawaiʻi's government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage budget and policy decisions that improve the lives of Hawaiʻi's people.
