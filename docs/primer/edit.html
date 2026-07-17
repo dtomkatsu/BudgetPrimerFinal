@@ -2725,8 +2725,13 @@ function dragify(d) {
     // Reachable without a mouse: focus it, Space to pick up, arrows to move.
     el.setAttribute('tabindex', '0');
     el.addEventListener('mousedown', e => {
-      if (e.target.closest && e.target.closest('[data-slot]')) return;
       if (editing || e.button !== 0) return;
+      // A movable object grabs from ANYWHERE on itself — including over its own
+      // words. A callout is nearly all text; the old rule "a click on text
+      // never moves" left it with no grab handle at all. Editing the words is
+      // now a double-click (bound on each slot below), Canva's own split. Real
+      // controls inside still work: a link, the year picker.
+      if (e.target.closest('a, button, input, select, textarea, summary')) return;
       e.preventDefault();
       e.stopPropagation();
       const id = idOf(el);
@@ -2898,38 +2903,43 @@ function startDrag(d, el, e0) {
     $('stat').textContent = 'the page is squeezed below print width — use Fit zoom to move things';
     return;
   }
-  pushHistory();
   // Dragging a selected element moves every selected element on this page;
   // anything locked stays put. A fresh element drags alone.
   let members = selIds.size > 1 && selIds.has(idOf(el))
     ? selEls(d).filter(m => (m.closest('section.page')) === page && !isLocked(idOf(m)))
     : [el];
   if (!members.length) members = [el];
-  let cloned = false;
-  if (e0.altKey) {
-    const copies = altClone(d, members, page);
-    if (copies) {
-      members = copies;
-      cloned = true;
-      setSel(d, copies.map(idOf));
-    }
-  }
-  const Ps = members.map(m => placer(d, m, page));
   const px = DPI * zoomOf(page);
   const grab = { x: e0.clientX, y: e0.clientY };
-  const starts = Ps.map(P => ({ x: P.box.x, y: P.box.y }));
-  // The group's snap box, and each member's offset within it.
-  const group = { x: Math.min(...starts.map(s => s.x)),
-                  y: Math.min(...starts.map(s => s.y)) };
-  group.w = Math.max(...Ps.map((P, i) => starts[i].x + P.box.w)) - group.x;
-  group.h = Math.max(...Ps.map((P, i) => starts[i].y + P.box.h)) - group.y;
-  const glines = members.length > 1 ? snapLines(d, page, members) : null;
-  let at = starts.map(s => ({ ...s }));
-  let moved = false;
+  // Everything below waits for the FIRST real movement. A mousedown that never
+  // travels — an ordinary click — must select and nothing else: no history
+  // entry, no lift, no commit. And a real mouse jitters a pixel or two on the
+  // way up, well past an inch-scale threshold, so the dead zone is measured in
+  // SCREEN pixels (a Canva-style ~4px) rather than inches. Below it, the click
+  // stays a click; the logo neither scales nor jumps.
+  const DEAD_PX = 4;
+  let started = false, cloned = false;
+  let Ps, starts, group, glines, at;
 
-  members.forEach(m => m.classList.add('ds-lifted'));
-  d.body.classList.add('ds-grabbing');
-  hideHandles(d);
+  const begin = () => {
+    started = true;
+    pushHistory();
+    if (e0.altKey) {
+      const copies = altClone(d, members, page);
+      if (copies) { members = copies; cloned = true; setSel(d, copies.map(idOf)); }
+    }
+    Ps = members.map(m => placer(d, m, page));
+    starts = Ps.map(P => ({ x: P.box.x, y: P.box.y }));
+    group = { x: Math.min(...starts.map(s => s.x)),
+              y: Math.min(...starts.map(s => s.y)) };
+    group.w = Math.max(...Ps.map((P, i) => starts[i].x + P.box.w)) - group.x;
+    group.h = Math.max(...Ps.map((P, i) => starts[i].y + P.box.h)) - group.y;
+    glines = members.length > 1 ? snapLines(d, page, members) : null;
+    at = starts.map(s => ({ ...s }));
+    members.forEach(m => m.classList.add('ds-lifted'));
+    d.body.classList.add('ds-grabbing');
+    hideHandles(d);
+  };
 
   // Applied straight from the event, not via requestAnimationFrame. Browsers
   // already coalesce mousemove to the frame rate, the snap lines are computed
@@ -2937,8 +2947,12 @@ function startDrag(d, el, e0) {
   // buy nothing and cost a frame of lag. It also stops firing in a hidden
   // document, which turns a drag into a silent no-op.
   const move = e => {
+    if (!started) {
+      if (Math.abs(e.clientX - grab.x) < DEAD_PX
+          && Math.abs(e.clientY - grab.y) < DEAD_PX) return;
+      begin();
+    }
     const dx = (e.clientX - grab.x) / px, dy = (e.clientY - grab.y) / px;
-    if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) moved = true;
     if (members.length === 1) {
       at[0] = Ps[0].put(starts[0].x + dx, starts[0].y + dy);
       return;
@@ -2959,6 +2973,9 @@ function startDrag(d, el, e0) {
   const up = async () => {
     d.removeEventListener('mousemove', move);
     d.removeEventListener('mouseup', up);
+    // Never crossed the dead zone — it was a click, and the selection made on
+    // mousedown is all it meant. Nothing to lift, settle, commit or undo.
+    if (!started) { clearGuides(d); paintSel(d); return; }
     members.forEach(m => {
       m.classList.remove('ds-lifted');
       m.classList.add('ds-settling');      // ~120ms ease into the snapped spot
@@ -2966,9 +2983,6 @@ function startDrag(d, el, e0) {
     d.defaultView.setTimeout(() =>
       members.forEach(m => m.classList.remove('ds-settling')), 160);
     d.body.classList.remove('ds-grabbing');
-    // A click that never travelled is a selection, not a move — committing it
-    // would write a position override that changes nothing and dirty the file.
-    if (!moved && !cloned) { past.pop(); clearGuides(d); paintSel(d); return; }
     Ps.forEach((P, i) => P.commit(at[i]));
     if (cloned) await render();            // clones need real, wired nodes
     else paintSel(d);
@@ -3286,11 +3300,14 @@ function wire() {
     .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
     .ds-cite { flex-basis:100%; margin-top:4px; }
     .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }
-    /* The cursor is the whole affordance: a box says "grab me", the text
-       inside it says "type in me". No mode to be in or forget you are in. */
+    /* The cursor is the whole affordance. A movable object grabs; its own
+       words grab too, because a single click moves the object and a double
+       click opens the words. Only a STANDALONE slot — the body prose, not
+       inside any object — shows the text caret for its single-click edit. */
     [data-el], [data-shape] { cursor:grab; }
     [data-el]:hover { outline:1px dashed #95B7A2; outline-offset:3px; }
-    [data-el] [data-slot] { cursor:text; }
+    [data-el] [data-slot] { cursor:grab; }
+    [data-slot] { cursor:text; }
     [data-shape]:hover { outline:2px solid #6B9E78; }
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
@@ -3406,7 +3423,18 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    el.addEventListener('click', () => { showType(key); edit(d, key); });
+    // A slot inside a movable object (a callout's title, a card's bullets)
+    // edits on DOUBLE-click — single-click belongs to moving the object it
+    // sits in. A standalone slot (the body prose) keeps its single click, the
+    // report's primary "click any paragraph to edit it" gesture.
+    if (el.closest('[data-el]')) {
+      el.addEventListener('dblclick', e => {
+        e.preventDefault(); e.stopPropagation();
+        showType(key); edit(d, key);
+      });
+    } else {
+      el.addEventListener('click', () => { showType(key); edit(d, key); });
+    }
   });
 }
 
