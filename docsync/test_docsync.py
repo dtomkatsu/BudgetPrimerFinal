@@ -475,6 +475,40 @@ check_eq("a bold label in the prose renders as the surgery used to",
          paragraph("**General-fund obligated costs, FY2018–FY2027 ($Billions).**[^exec-biennium]"),
          "<b>General-fund obligated costs, FY2018–FY2027 ($Billions).</b>[^exec-biennium]")
 
+# ------------------------------------------------------------- text boxes
+boxed = _layout({"boxes": [{"id": "t1", "page": 3, "x": 1.2, "y": 4, "w": 3, "z": 2,
+                            "md": "**Note:** a pull quote",
+                            "style": {"size": 13}}]})
+check("a box is absolutely placed on its page", boxed.text_boxes(3), "left:1.2in;top:4in")
+check_eq("a box only appears on its own page", boxed.text_boxes(4), "")
+check("a box renders its markdown", boxed.text_boxes(3), "<b>Note:</b>")
+check("a box takes the same styles as a slot", boxed.text_boxes(3), "font-size:13px")
+# Same reason a text slot has no height: pin one and it either clips its words
+# or leaves a hole the moment they change. Its bottom is the fit check's job.
+check_eq("a box pins no height", "height:" in boxed.text_boxes(3), False)
+check_eq("no boxes means no markup at all", _layout({}).text_boxes(3), "")
+
+check("a box needs an id",
+      _layout_error({"boxes": [{"page": 1, "x": 1, "y": 1, "w": 2, "md": "x"}]}),
+      "needs an 'id'")
+check("an empty box is caught — it would render as nothing",
+      _layout_error({"boxes": [{"id": "a", "page": 1, "x": 1, "y": 1, "w": 2, "md": " "}]}),
+      "has no text")
+# The editor resolves an id to a thing by searching shapes then boxes, so a
+# collision makes the right-click menu act on whichever it finds first.
+check("a box id may not collide with a shape id",
+      _layout_error({"shapes": [{"id": "d", "page": 1, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1}],
+                     "boxes": [{"id": "d", "page": 1, "x": 1, "y": 1, "w": 2, "md": "x"}]}),
+      "duplicate id 'd' — already a shape")
+check("a box dragged off the side is caught",
+      " ".join(_layout({"boxes": [{"id": "w", "page": 1, "x": 7, "y": 1, "w": 4,
+                                   "md": "x"}]}).check_bounds()),
+      "past the right edge")
+check("a box's style is validated like any other",
+      _layout_error({"boxes": [{"id": "b", "page": 1, "x": 1, "y": 1, "w": 2, "md": "x",
+                                "style": {"font": "Comic Papyrus"}}]}),
+      "not a font this report can load")
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

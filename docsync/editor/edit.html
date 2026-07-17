@@ -66,6 +66,7 @@
   <span id="title" class="ds-id"></span>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
+  <button id="text" title="Add a text box to a page">+ Text</button>
   <button id="shape" title="Add a shape to this page">+ Shape</button>
   <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
   <button id="save" disabled>Save</button>
@@ -284,11 +285,15 @@ function showLocalImages(d) {
 const zOf = id => {
   const sh = layout.shapes.find(s => s.id === id);
   if (sh) return typeof sh.z === 'number' ? sh.z : (sh.z === 'front' ? 2 : -1);
+  const b = boxOf(id);
+  if (b) return b.z ?? 2;
   return layout.positions[id]?.z ?? 1;
 };
 const setZ = (id, z) => {
   const sh = layout.shapes.find(s => s.id === id);
+  const b = boxOf(id);
   if (sh) sh.z = z;
+  else if (b) b.z = z;
   else if (layout.positions[id]) layout.positions[id].z = z;
   else return false;
   return true;
@@ -296,6 +301,7 @@ const setZ = (id, z) => {
 const allZ = () => [
   ...Object.keys(layout.positions).map(zOf),
   ...layout.shapes.map(s => zOf(s.id)),
+  ...boxes().map(b => zOf('text.' + b.id)),
 ];
 
 function closeMenu(d) {
@@ -307,7 +313,7 @@ function layerMenu(d, el, e) {
   const id = el.dataset.shape || el.dataset.el;
   // Only a moved element has a layer to change: an untouched one is still
   // wherever the design put it, and z-index would not apply to it anyway.
-  const known = layout.shapes.some(s => s.id === id) || !!layout.positions[id];
+  const known = layout.shapes.some(s => s.id === id) || !!layout.positions[id] || !!boxOf(id);
   const m = d.createElement('div');
   m.className = 'ds-menu';
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
@@ -337,6 +343,14 @@ function layerMenu(d, el, e) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     item('Delete shape', async () => {
       layout.shapes = layout.shapes.filter(s => s.id !== id);
+      markDirty(); await render();
+    });
+  }
+  if (boxOf(id)) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    item('Delete text box', async () => {
+      pushHistory();
+      layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, ''));
       markDirty(); await render();
     });
   }
@@ -538,6 +552,64 @@ function reportFit(d) {
   $('fit').textContent = `⚠ ${pages.length} page${pages.length > 1 ? 's' : ''} cut in print: `
                        + pages.join(', ');
   $('fit').title = bad.map(b => `page ${b.page}: ${b.who} is ${b.over}in past the cut`).join('\n');
+}
+
+// -------------------------------------------------------------- text boxes
+// A slot says what the report always says; a box is a note someone put on one
+// page. That is why it lives in layout.json — and the price is real and worth
+// stating plainly: it never reaches the bound Google Doc, so an editor working
+// there will never see it.
+//
+// A box carries data-el="text.<id>", so drag, resize, snap, layers, right-click
+// and undo all work on it already. Almost none of this is new machinery.
+const boxes = () => (layout.boxes = layout.boxes || []);
+const boxOf = id => boxes().find(b => b.id === (id || '').replace(/^text\./, ''));
+
+$('text').onclick = async () => {
+  const page = +(prompt(`Which page? (1–${$('out').contentDocument
+    .querySelectorAll('section.page').length})`, '3') || 0);
+  if (!page) return;
+  pushHistory();
+  const id = 't' + (boxes().length + 1);
+  boxes().push({ id, page, x: 1, y: 2, w: 3, z: 2,
+                 md: 'New text. **Bold**, *italic* and [links](https://example.org) work.' });
+  markDirty();
+  await render();
+  $('stat').textContent = `text.${id} added to page ${page} — click it to write, drag to place`;
+};
+
+/** Editing a box's words. Its text is in layout.json, not content.md, so it
+ *  cannot go through readSlot/writeSlot — but it is the same textarea, the same
+ *  markdown, and the same blur-commits rule. */
+function editBox(d, el) {
+  if (editing) return;
+  const b = boxOf(el.dataset.el);
+  if (!b) return;
+  editing = true;
+  pushHistory();
+  const ta = d.createElement('textarea');
+  ta.className = 'ds-edit';
+  ta.value = b.md;
+  const tools = d.createElement('p');
+  tools.className = 'ds-hint';
+  tools.textContent = `text.${b.id} — markdown; blank line = new paragraph. `
+                    + `Not in the Google Doc. Click away to render, Esc to cancel.`;
+  el.replaceWith(ta);
+  ta.after(tools);
+  requestAnimationFrame(() => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
+  });
+  ta.focus();
+  const finish = async keep => {
+    if (ta.dataset.done) return;
+    ta.dataset.done = '1';
+    editing = false;
+    if (keep && ta.value.trim() && ta.value !== b.md) { b.md = ta.value.trim(); markDirty(); }
+    await render();
+  };
+  ta.addEventListener('blur', () => finish(true));
+  ta.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); finish(false); } });
 }
 
 // ----------------------------------------------------------------- effects
@@ -841,6 +913,11 @@ function dragify(d) {
       e.stopPropagation();
       startDrag(d, el, e);
     });
+    // A text box has no [data-slot] inside it — its words live in layout.json —
+    // so it needs its own way in. Double-click, since a single click is the
+    // drag it shares with every other placed thing.
+    if ((el.dataset.el || '').startsWith('text.'))
+      el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
     el.addEventListener('keydown', e => keyDrag(d, el, e));
     const page = el.closest('section.page') || d.querySelector('section.page');
     el.addEventListener('mouseenter', () => { if (!editing) showHandles(d, page, el); });
@@ -856,13 +933,14 @@ function dragify(d) {
 function placer(d, el, page) {
   const shapeId = el.dataset.shape;
   const id = shapeId || el.dataset.el;
+  const bx = boxOf(id);              // a text box keeps its own x/y/w
   // Measure the box, but trust a position we already recorded over a fresh
   // reading of it: rects carry rounding, and the lift's scale nudges them. Take
   // the measurement as truth and picking a box up without moving it walks it a
   // few hundredths of an inch — every time.
   const measured = inchBox(el, page);
   const stored = shapeId ? layout.shapes.find(s => s.id === shapeId)
-                         : layout.positions[id];
+                         : (bx || layout.positions[id]);
   const box = stored && stored.x !== undefined
     ? { ...measured, x: +stored.x, y: +stored.y }
     : measured;
@@ -911,6 +989,10 @@ function placer(d, el, page) {
     if (shapeId) {
       const sh = layout.shapes.find(s => s.id === shapeId);
       if (sh) { sh.x = +x.toFixed(2); sh.y = +y.toFixed(2); paintShape(d, shapeId); }
+    } else if (bx) {
+      bx.x = +x.toFixed(2); bx.y = +y.toFixed(2);
+      el.style.left = x.toFixed(2) + 'in';
+      el.style.top = y.toFixed(2) + 'in';
     } else {
       holdPlace();
       el.style.position = 'absolute';
@@ -926,6 +1008,7 @@ function placer(d, el, page) {
   };
 
   const commit = ({ x, y }) => {
+    if (bx) { clearGuides(d); markDirty(); return; }   // already written above
     if (!shapeId) {
       const prev = layout.positions[id] || {};
       const w = pinW();

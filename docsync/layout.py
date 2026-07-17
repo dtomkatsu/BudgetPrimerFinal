@@ -28,6 +28,12 @@ import os
 import re
 from pathlib import Path
 
+# One direction only: content.py imports nothing from this package (it takes its
+# styler duck-typed), so there is no cycle. A text box is a markdown block that
+# happens to be positioned — block_html already renders exactly that for the
+# overflow slots, and a second renderer for the same thing would drift.
+from .content import block_html
+
 # Letter portrait, because that is what the Budget Primer is. Any report with a
 # different page passes its own size in — this is a default, not a law. It is
 # the only thing in this package that ever knew about one particular report.
@@ -302,6 +308,7 @@ class Layout:
         self.positions = raw.get("positions") or {}
         self.shapes = raw.get("shapes") or []
         self.text = raw.get("text") or {}
+        self.boxes = raw.get("boxes") or []
         self._validate()
 
     def _validate(self):
@@ -334,6 +341,27 @@ class Layout:
             if not isinstance(st, dict):
                 raise LayoutError(f"text '{key}': expected a style object")
             _check_text(st, f"text '{key}'")
+        for i, b in enumerate(self.boxes):
+            where = f"box #{i + 1}"
+            bid = b.get("id")
+            if not bid:
+                raise LayoutError(f"{where}: needs an 'id'")
+            # One namespace with shapes: the editor resolves an id to a thing by
+            # searching both, so a collision makes the right-click menu act on
+            # whichever it happens to find first.
+            if bid in seen:
+                raise LayoutError(f"{where}: duplicate id '{bid}' — already a shape")
+            seen.add(bid)
+            if not isinstance(b.get("page"), int):
+                raise LayoutError(f"{where}: 'page' must be a page number")
+            for k in ("x", "y", "w"):
+                _num(b.get(k), f"{where}.{k}")
+            if not str(b.get("md", "")).strip():
+                raise LayoutError(f"{where}: has no text — 'md' is empty")
+            if "z" in b and not isinstance(b["z"], int):
+                raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
+            if b.get("style"):
+                _check_text(b["style"], f"{where}.style")
 
     # ---- positions -------------------------------------------------------
 
@@ -455,6 +483,37 @@ class Layout:
         return ('<link href="https://fonts.googleapis.com/css2?'
                 + "&".join(parts) + '&display=swap" rel="stylesheet">')
 
+    # ---- free-floating text ---------------------------------------------
+
+    def text_boxes(self, page: int) -> str:
+        """Text that belongs to the layout rather than to the prose.
+
+        A slot says what the report always says; a box is a note someone put on
+        one page. That is why it lives here and not in content.md — and the
+        price of that is real: it never reaches the bound Google Doc, so an
+        editor working there will never see it.
+
+        No height, deliberately: the same reason a text slot has none. A box
+        with a pinned height either clips its words or leaves a hole the moment
+        they change. Its bottom is the fit check's problem.
+        """
+        mine = [b for b in self.boxes if b.get("page") == page]
+        if not mine:
+            return ""
+        out = []
+        for b in mine:
+            css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
+                   f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
+            style = text_css(b.get("style") or {})
+            tag = f' data-el="text.{b["id"]}"' if os.environ.get("DOCSYNC_EDIT") else ""
+            out.append(f'<div class="ds-textbox"{tag} '
+                       f'style="{css}{";" + style if style else ""}">'
+                       f'{block_html(b["md"])}</div>')
+        return "".join(out)
+
+    def box(self, box_id: str) -> dict | None:
+        return next((b for b in self.boxes if b.get("id") == box_id), None)
+
     # ---- shapes ----------------------------------------------------------
 
     def layer(self, page: int) -> str:
@@ -510,6 +569,13 @@ class Layout:
             if p.get("h") and y + float(p["h"]) > self.page_h + 0.01:
                 bad.append(f"'{el}' is {p['h']}in tall at y={y}in — "
                            f"{y + float(p['h']) - self.page_h:.2f}in past the bottom edge")
+        for b in self.boxes:
+            x, y, w = (float(b[k]) for k in ("x", "y", "w"))
+            if x < 0 or y < 0 or x > self.page_w or y > self.page_h:
+                bad.append(f"text box '{b['id']}' sits off page {b['page']}")
+            elif x + w > self.page_w + 0.01:
+                bad.append(f"text box '{b['id']}' is {w}in wide at x={x}in — "
+                           f"{x + w - self.page_w:.2f}in past the right edge")
         for s in self.shapes:
             x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
             if x < 0 or y < 0 or x + w > self.page_w + 0.01 or y + h > self.page_h + 0.01:
