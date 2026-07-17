@@ -284,12 +284,27 @@ class Content:
         DOCSYNC_EDIT stamps the slot name on each paragraph so the draft editor
         can map a click back to the text that produced it. Off by default: the
         published HTML carries no editing scaffolding.
+
+        A prose block is also a MOVABLE unit — one wrapper for the whole slot,
+        so a two-paragraph slot travels together. The wrapper exists only when
+        it means something: in edit mode (the editor's handle) or once the slot
+        has actually been moved (the committed position). Unmoved and
+        published, the bytes are exactly the bare paragraphs they always were.
+        The editor treats a wrapper nested inside another movable (a callout's
+        own paragraphs) as part of that object, not as a second one.
         """
         attr = f' class="{cls}"' if cls else ""
         slot = f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
         style = self._style(key)
-        return "".join(f"<p{attr}{slot}{style}>{h}</p>"
+        body = "".join(f"<p{attr}{slot}{style}>{h}</p>"
                        for h in paragraphs(self.raw(key)))
+        if self._styles and hasattr(self._styles, "attr"):
+            el_id = f"para.{key}"
+            pos = self._styles.attr(el_id)
+            spacer = self._styles.spacer(el_id)
+            if pos or spacer:
+                return f"{spacer}<div{pos}>{body}</div>"
+        return body
 
     def list(self, key: str) -> list[str]:
         return bullets(self.raw(key))

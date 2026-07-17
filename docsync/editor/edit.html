@@ -1553,6 +1553,14 @@ function editBox(d, el) {
   if (!b) return;
   editing = true;
   pushHistory();
+  // The editor opens WHERE THE BOX IS. A bare textarea is static, and static
+  // means it flows to wherever the box's markup happens to sit in the DOM —
+  // on the cover that was the top of the page, nowhere near the words being
+  // edited. So the textarea rides an absolutely positioned wrapper at the
+  // box's own inches, above everything while it is open.
+  const wrap = d.createElement('div');
+  wrap.style.cssText = `position:absolute;left:${b.x}in;top:${b.y}in;`
+    + `width:${Math.max(b.w, 1.8)}in;z-index:20000`;
   const ta = d.createElement('textarea');
   ta.className = 'ds-edit';
   ta.value = b.md;
@@ -1560,8 +1568,8 @@ function editBox(d, el) {
   tools.className = 'ds-hint';
   tools.textContent = `text.${b.id} — markdown; blank line = new paragraph. `
                     + `Not in the Google Doc. Click away to render, Esc to cancel.`;
-  el.replaceWith(ta);
-  ta.after(tools);
+  wrap.append(ta, tools);
+  el.replaceWith(wrap);
   requestAnimationFrame(() => {
     ta.style.height = 'auto';
     ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
@@ -2123,6 +2131,8 @@ function hitPlaced(d, pg, e) {
   const x = (e.clientX - pr.left) / px, y = (e.clientY - pr.top) / px;
   let best = null, bestZ = -Infinity;
   pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    // Nested movables belong to their outer object — same rule as dragify.
+    if (el.parentElement && el.parentElement.closest('[data-el]')) return;
     const b = inchBox(el, pg);
     if (!b.w && !b.h) return;
     if (x < b.x || x > b.x + b.w || y < b.y || y > b.y + b.h) return;
@@ -2766,6 +2776,10 @@ async function redo() {
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    // A movable nested inside another movable — a callout's own paragraphs —
+    // is part of that object, not a second one; the outer element owns every
+    // gesture. Binding the inner one would let a drag pull a callout apart.
+    if (el.parentElement && el.parentElement.closest('[data-el]')) return;
     // Reachable without a mouse: focus it, Space to pick up, arrows to move.
     el.setAttribute('tabindex', '0');
     el.addEventListener('mousedown', e => {
@@ -3262,7 +3276,8 @@ open('/repo/' + OUT).read()
     if (se) se.scrollTop = scrollTopWas;
   };
   $('out').srcdoc = html;
-  $('stat').textContent = dirty ? 'unsaved changes' : 'click any paragraph to edit it';
+  $('stat').textContent = dirty ? 'unsaved changes'
+                                : 'click selects and drags · double-click edits text';
 }
 
 function wire() {
@@ -3467,10 +3482,11 @@ function wire() {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
-    // A slot inside a movable object (a callout's title, a card's bullets)
-    // edits on DOUBLE-click — single-click belongs to moving the object it
-    // sits in. A standalone slot (the body prose) keeps its single click, the
-    // report's primary "click any paragraph to edit it" gesture.
+    // A slot inside a movable object — a callout's title, a card's bullets,
+    // and now the body prose too (each paragraph block is a movable unit) —
+    // edits on DOUBLE-click; single-click belongs to selecting and moving the
+    // object it sits in. Only a slot outside any object (a heading's span, a
+    // caption) keeps the single-click edit.
     if (el.closest('[data-el]')) {
       el.addEventListener('dblclick', e => {
         e.preventDefault(); e.stopPropagation();

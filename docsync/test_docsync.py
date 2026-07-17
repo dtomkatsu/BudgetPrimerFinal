@@ -420,6 +420,23 @@ check("a styled t() becomes a span, and only then", one.t("a.b"), '<span style="
 check_eq("text() is never wrapped — it lands in alt= and SVG, where a span is invalid",
          one.text("a.b"), "Text.")
 
+# A prose block is a movable unit: moved, the whole slot travels in one
+# wrapper. Unmoved and published, the bytes are the bare paragraphs above —
+# already proven by "an unstyled paragraph is the paragraph it always was".
+moved_para = _content(_layout({"positions": {"para.a.b": {"x": 1, "y": 2, "w": 4,
+                                                          "reserve": 0.5}}}))
+check("a moved prose block travels in one positioned wrapper",
+      moved_para.html("a.b"),
+      '<div style="position:absolute;left:1in;top:2in;width:4in;z-index:1"><p>Text.</p></div>')
+check("its vacated flow space stays held", moved_para.html("a.b"),
+      '<div class="ds-spacer" style="height:0.5in"')
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    check("in edit mode the wrapper is the editor's drag handle",
+          _content(nostyle).html("a.b"), '<div data-el="para.a.b"><p')
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
 # data-slot <=> styleable: the editor never offers a control that does nothing,
 # and a style aimed at a slot the renderer builds into a string fails loudly.
 c = _content(nostyle)
