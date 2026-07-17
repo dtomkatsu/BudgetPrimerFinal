@@ -24,14 +24,21 @@ doc-status:
 # stages it — and everything it reads — next to the published page, driven by
 # the editor: block in docsync.yml. Nothing about the editor is primer-specific,
 # so there is nothing to configure here.
-editor: html
+editor: render
 	cd .. && python3 -m docsync.stage --id budget-primer --repo dtomkatsu/BudgetPrimerFinal
 
 data:
 	python3 tools/build_data.py
 
-html: data
+# Rendering and rebuilding the data are different jobs. build_data.py parses
+# source PDFs and needs PyMuPDF; the numbers it produces are committed and do
+# not change because someone edited a sentence. Keeping `render` free of it lets
+# CI regenerate the report from an edit without installing a PDF toolchain to
+# recompute figures that did not move.
+render:
 	python3 tools/render_report.py
+
+html: data render
 
 pdf: html
 	@mkdir -p dist
@@ -48,4 +55,4 @@ embed: html
 preview: html
 	open web/index.html
 
-.PHONY: editor doc-status all validate data html pdf embed preview pull-doc doc-diff
+.PHONY: render editor doc-status all validate data html pdf embed preview pull-doc doc-diff
