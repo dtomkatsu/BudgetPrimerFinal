@@ -3393,31 +3393,58 @@ async function boot() {
 // as long as the two are different files. Same file, both edited: you choose.
 let local = false;
 
+let liveVer = -1;
+
 async function detectLocal() {
   try {
     const r = await fetch('/__ping', { cache: 'no-store' });
     local = r.ok;
+    if (r.ok) { try { liveVer = (await r.json()).v; } catch (e) {} }
   } catch (e) { local = false; }
   if (!local) return;
   $('title').textContent = M.id + ' · live';
   $('stat').textContent = 'live — edits here and from Claude land in the same files';
-  // Re-fetch source + layout whenever the server rebuilds, and fold in the
-  // side that changed on disk.
+  // Adopt a rebuild the moment the version moves. Two ways see it, because one
+  // failing silently is exactly the bug this had: the event stream is instant
+  // when the browser keeps it open, and a 1.5s poll catches it when the stream
+  // drops (a proxy, a sleep, a browser that stalls EventSource). Both funnel
+  // through onBump, which acts ONLY on a real version change, so they never
+  // double-fire.
+  const onBump = async (v, err) => {
+    if (err) { $('stat').textContent = 'build failed on disk — see the terminal'; return; }
+    if (v === liveVer) return;
+    liveVer = v;
+    await pullFromDisk();
+  };
   try {
     const es = new EventSource('/__events');
-    es.onmessage = async ev => {
+    es.onmessage = ev => {
       let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
-      if (d.error) { $('stat').textContent = 'build failed on disk — see the terminal'; return; }
-      await pullFromDisk();
+      onBump(d.v, d.error);
     };
-  } catch (e) { /* no EventSource: Save still works, just no auto-refresh */ }
+  } catch (e) { /* no EventSource: the poll below still works */ }
+  setInterval(async () => {
+    try {
+      const d = await (await fetch('/__ping', { cache: 'no-store' })).json();
+      onBump(d.v);
+    } catch (e) { /* server stopped; leave the last render up */ }
+  }, 1500);
 }
+
+let pulling = false;
 
 /** Adopt a change Claude (or your text editor) made on disk. Prose and layout
  *  are separate files, so a change to one is folded in while your unsaved edits
  *  to the OTHER stay put. Only a genuine same-file overlap asks you to choose. */
 async function pullFromDisk() {
-  if (editing) return;                 // never yank the textarea out mid-edit
+  if (editing || pulling) return;      // never yank the textarea out mid-edit,
+  pulling = true;                      // and never let two pulls race a render
+  try {
+    await _pull();
+  } finally { pulling = false; }
+}
+
+async function _pull() {
   let freshSrc = original, freshLayout = layoutOrig;
   try {
     [freshSrc, freshLayout] = await Promise.all([
@@ -3575,7 +3602,12 @@ function wire() {
     [data-el]:hover { outline:1px dashed #95B7A2; outline-offset:3px; }
     [data-el] [data-slot] { cursor:grab; }
     [data-slot] { cursor:text; }
-    [data-shape]:hover { outline:2px solid #6B9E78; }
+    /* A glow, NOT an outline: outline on an SVG child paints around the whole
+       page-sized <svg> viewport in some browsers — a big green box swallowing
+       the page — not the shape. The selected state below already knew this;
+       the hover state did not. Only when unselected, so the two never stack. */
+    svg.shape-layer [data-shape]:hover:not(.ds-sel) {
+       filter:drop-shadow(0 0 .015in #6B9E78); }
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
     /* Selected: a steady ring. Distinct from hover's dashed suggestion and

@@ -123,6 +123,11 @@ RELOAD_JS = """
 
 
 class Handler(SimpleHTTPRequestHandler):
+    # HTTP/1.1, so the event stream stays a persistent connection. Under the
+    # 1.0 default a browser treats the SSE response as a finished short reply
+    # and never receives another event — which looked like "I had to reload".
+    protocol_version = "HTTP/1.1"
+
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(DOCS), **k)
 
