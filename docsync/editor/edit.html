@@ -58,6 +58,8 @@
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
   #save.dirty:hover { background:#A85E2F; }
+  /* Below the bars: the page rail and the canvas, side by side. */
+  #work { flex:1; min-height:0; display:flex; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
      whole iframe is SCALED to the pane, never reflowed. A narrow pane would
      otherwise fire the report's mobile media queries, and a drag would record
@@ -65,6 +67,34 @@
   #stage { flex:1; min-height:0; overflow:auto; position:relative; background:#EDF1EE; }
   #out { border:0; display:block; width:1200px; height:100%;
          transform-origin:0 0; background:#EDF1EE; }
+  /* Page rail: numbered chips down the left, drag to reorder, eye to hide. */
+  #rail { width:118px; flex:none; overflow-y:auto; background:var(--chrome);
+          border-right:1px solid var(--line); padding:10px 8px; }
+  #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
+          color:var(--dim); padding:2px 4px 8px; }
+  .chip { position:relative; display:flex; align-items:center; gap:7px; margin:0 0 7px;
+          padding:7px 8px; border:1px solid var(--ctl-line); border-radius:8px;
+          background:var(--ctl); color:var(--txt); cursor:pointer; font:12px system-ui;
+          transition:border-color .12s, opacity .12s; }
+  .chip:hover { border-color:var(--sage); }
+  .chip.on { border-color:var(--sage); background:#4B5B68; }
+  .chip.hidden-pg { opacity:.4; }
+  .chip.blank { border-style:dashed; }
+  .chip.drag-over { border-color:var(--sage); border-top-width:3px; }
+  .chip-n { font:700 12px ui-monospace,monospace; min-width:20px; }
+  .chip-lab { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          font-size:11px; color:var(--dim); }
+  .chip-x { border:0; background:none; color:var(--dim); cursor:pointer; font-size:14px;
+          padding:0 2px; line-height:1; }
+  .chip-x:hover { color:#F2B8A8; }
+  .chip-eye { border:0; background:none; cursor:pointer; padding:0 2px; opacity:.7;
+          font-size:12px; }
+  .chip-eye:hover { opacity:1; }
+  #rail-add { display:flex; align-items:center; justify-content:center; gap:6px;
+          width:100%; margin-top:2px; padding:8px; border:1px dashed var(--ctl-line);
+          border-radius:8px; background:none; color:var(--dim); cursor:pointer;
+          font:12px system-ui; }
+  #rail-add:hover { border-color:var(--sage); color:var(--txt); }
 
   /* -- contextual rows: type (text selected) and arrange (elements selected) */
   #type, #arrange { position:relative; display:flex; gap:6px; align-items:center;
@@ -327,7 +357,16 @@
   <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
   <span class="ar-lab" id="ar-hint"></span>
 </div>
-<div id="stage"><iframe id="out" title="editable draft"></iframe></div>
+<div id="work">
+  <div id="rail" hidden>
+    <div id="rail-head">Pages</div>
+    <div id="rail-list"></div>
+    <button id="rail-add" title="Insert a blank page after the one in view">
+      <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor"
+        stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>Page</button>
+  </div>
+  <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
@@ -1317,22 +1356,6 @@ function reportFit(d) {
 const boxes = () => (layout.boxes = layout.boxes || []);
 const boxOf = id => boxes().find(b => b.id === (id || '').replace(/^text\./, ''));
 
-/** The page whose middle sits nearest the middle of the view. "Add" lands
- *  there — nothing should ask you to type a page number at a thing you are
- *  already looking at. */
-function visiblePage() {
-  const d = $('out').contentDocument;
-  if (!d || !d.defaultView) return 1;
-  const mid = d.defaultView.innerHeight / 2;
-  let best = 1, dist = Infinity;
-  [...d.querySelectorAll('section.page')].forEach((pg, i) => {
-    const r = pg.getBoundingClientRect();
-    const c = (r.top + r.bottom) / 2;
-    if (Math.abs(c - mid) < dist) { dist = Math.abs(c - mid); best = i + 1; }
-  });
-  return best;
-}
-
 /** One popover open at a time, anchored under its button; any click that is
  *  not inside a popover (or on its trigger) closes them. */
 function togglePop(pop, anchor) {
@@ -1349,7 +1372,7 @@ addEventListener('mousedown', e => {
 });
 
 $('text').onclick = async () => {
-  const page = visiblePage();
+  const page = visiblePageId();
   pushHistory();
   const id = freeBoxId();
   boxes().push({ id, page, x: 1, y: 2, w: 3, z: 2,
@@ -1968,6 +1991,160 @@ function keysFor(d) {
   });
 }
 
+// ------------------------------------------------------------------- pages
+// The rail is the page-order editor. layout.pages holds order + blanks and IS
+// the truth; the renderer stamps every designed page's identity and hands over
+// a metadata list of all of them (labels, and the ones currently hidden). So
+// the rail = the order, drawn from what the report says exists.
+let designedPages = [];                  // [{id, label}] from ds-pagemeta
+
+function pageOrder() {
+  // Default: every designed page in identity order. An explicit order may hide
+  // (by omission) and interleave blanks.
+  if (layout.pages && layout.pages.order && layout.pages.order.length)
+    return layout.pages.order.slice();
+  return designedPages.map(p => p.id);
+}
+function pageBlanks() { return (layout.pages && layout.pages.blanks) || []; }
+
+function writeOrder(order, blanks) {
+  const dflt = designedPages.map(p => p.id);
+  const isDefault = !blanks.length
+    && order.length === dflt.length && order.every((v, i) => v === dflt[i]);
+  if (isDefault) {                        // no override = byte-identical build
+    if (layout.pages) delete layout.pages;
+  } else {
+    layout.pages = { order };
+    if (blanks.length) layout.pages.blanks = blanks;
+  }
+  markDirty();
+}
+
+function railRender() {
+  const list = $('rail-list');
+  if (!designedPages.length) { $('rail').hidden = true; return; }
+  $('rail').hidden = false;
+  list.innerHTML = '';
+  const order = pageOrder();
+  const labelOf = id => (designedPages.find(p => p.id === id) || {}).label;
+  const hidden = designedPages.filter(p => !order.includes(p.id));
+  order.forEach((pid, i) => list.appendChild(chip(pid, i + 1, labelOf(pid), false)));
+  if (hidden.length) {
+    const sep = document.createElement('div');
+    sep.id = 'rail-head'; sep.textContent = 'Hidden';
+    list.appendChild(sep);
+    hidden.forEach(p => list.appendChild(chip(p.id, null, p.label, true)));
+  }
+}
+
+function chip(pid, pos, label, isHidden) {
+  const isBlank = typeof pid === 'string';
+  const c = document.createElement('div');
+  c.className = 'chip' + (isBlank ? ' blank' : '') + (isHidden ? ' hidden-pg' : '');
+  c.dataset.pid = pid;
+  c.draggable = !isHidden;
+  c.innerHTML = `<span class="chip-n">${isHidden ? '—' : pos}</span>`
+    + `<span class="chip-lab">${isBlank ? 'blank page' : (label || 'page ' + pid)}</span>`;
+  // Show/hide (designed only) or delete (blank).
+  if (isBlank) {
+    const x = document.createElement('button');
+    x.className = 'chip-x'; x.textContent = '×'; x.title = 'Delete this blank page';
+    x.addEventListener('click', async e => {
+      e.stopPropagation();
+      pushHistory();
+      const blanks = pageBlanks().filter(b => b.id !== pid);
+      writeOrder(pageOrder().filter(p => p !== pid), blanks);
+      await render();
+    });
+    c.appendChild(x);
+  } else {
+    const eye = document.createElement('button');
+    eye.className = 'chip-eye';
+    eye.textContent = isHidden ? '𐄂' : '👁';
+    eye.title = isHidden ? 'Show this page' : 'Hide this page from the report';
+    eye.addEventListener('click', async e => {
+      e.stopPropagation();
+      pushHistory();
+      let order = pageOrder();
+      if (isHidden) {
+        // Re-show at its designed position among the visible pages.
+        const target = pid;
+        order = order.slice();
+        const after = designedPages.filter(p => p.id < target).map(p => p.id);
+        let at = 0;
+        for (let k = 0; k < order.length; k++) if (after.includes(order[k])) at = k + 1;
+        order.splice(at, 0, target);
+      } else {
+        if (order.length <= 1) { $('stat').textContent = 'a report needs at least one page'; return; }
+        order = order.filter(p => p !== pid);
+      }
+      writeOrder(order, pageBlanks());
+      await render();
+    });
+    c.appendChild(eye);
+  }
+  // Click a visible chip to scroll to it; the rail is navigation too.
+  if (!isHidden) c.addEventListener('click', () => {
+    const d = $('out').contentDocument;
+    const sec = d.querySelector(`section[data-page="${CSS.escape(String(pid))}"]`);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    list.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+  });
+  // Drag to reorder.
+  if (!isHidden) {
+    c.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(pid)); });
+    c.addEventListener('dragover', e => { e.preventDefault(); c.classList.add('drag-over'); });
+    c.addEventListener('dragleave', () => c.classList.remove('drag-over'));
+    c.addEventListener('drop', async e => {
+      e.preventDefault();
+      c.classList.remove('drag-over');
+      const from = e.dataTransfer.getData('text/plain');
+      const fromPid = /^\d+$/.test(from) ? +from : from;
+      if (fromPid === pid) return;
+      pushHistory();
+      let order = pageOrder().filter(p => p !== fromPid);
+      const at = order.indexOf(pid);
+      order.splice(at, 0, fromPid);
+      writeOrder(order, pageBlanks());
+      await render();
+    });
+  }
+  return c;
+}
+
+$('rail-add').addEventListener('click', async () => {
+  pushHistory();
+  const order = pageOrder();
+  const inView = visiblePageId();
+  let n = 1;
+  const blanks = pageBlanks();
+  while (blanks.some(b => b.id === 'p' + n)) n++;
+  const bid = 'p' + n;
+  const at = order.indexOf(inView);
+  order.splice(at >= 0 ? at + 1 : order.length, 0, bid);
+  writeOrder(order, [...blanks, { id: bid }]);
+  await render();
+  $('stat').textContent = `blank page added — drag boxes, shapes and images onto it`;
+});
+
+/** The identity of the page whose middle is nearest the viewport middle. */
+function visiblePageId() {
+  const d = $('out').contentDocument;
+  if (!d) return pageOrder()[0];
+  const mid = d.defaultView.innerHeight / 2;
+  let best = pageOrder()[0], dist = Infinity;
+  d.querySelectorAll('section[data-page]').forEach(pg => {
+    const r = pg.getBoundingClientRect();
+    const dd = Math.abs((r.top + r.bottom) / 2 - mid);
+    if (dd < dist) {
+      dist = dd;
+      const pid = pg.dataset.page;
+      best = /^\d+$/.test(pid) ? +pid : pid;
+    }
+  });
+  return best;
+}
+
 // ------------------------------------------------------------------- zoom
 // The iframe is a fixed desktop-width viewport (so the report's own media
 // queries see a desktop, always) and the CANVAS is scaled — Canva's model.
@@ -2465,7 +2642,7 @@ $('shape').onclick = () => togglePop($('shapepop'), $('shape'));
 document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('click', async () => {
   $('shapepop').hidden = true;
   const kind = b.dataset.k;
-  const page = visiblePage();
+  const page = visiblePageId();
   pushHistory();
   const id = freeShapeId(kind);
   layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: kind === 'line' ? 0 : 1,
@@ -2613,6 +2790,9 @@ function wire() {
   applyZoom();
   reportFit(d);
   paintSel(d);                 // the selection is ids, so it survives a render
+  const meta = d.getElementById('ds-pagemeta');
+  if (meta) { try { designedPages = JSON.parse(meta.textContent); } catch (e) {} }
+  railRender();
   // Empty page is the marquee's surface; a travel-less marquee is click-away.
   d.querySelectorAll('section.page').forEach(pg => {
     pg.addEventListener('mousedown', e => {

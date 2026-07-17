@@ -253,6 +253,16 @@ def _layout_error(d):
     return "no error raised"
 
 
+def _layout_error_at(fn):
+    """For failures that fire at render, not load — page_order needs the page
+    count, which only the renderer knows."""
+    try:
+        fn()
+    except LayoutError as e:
+        return str(e)
+    return "no error raised"
+
+
 empty = _layout({"positions": {}, "shapes": []})
 check_eq("an empty layout adds no attributes", empty.attr("x.y"), "")
 check_eq("an empty layout adds no shape layer", empty.layer(3), "")
@@ -648,6 +658,30 @@ check("a crop missing its geometry is caught",
       _layout_error({"img": {"p": {"crop": {"imgW": 5}}}}), "needs imgW, dx and dy")
 check("a negative filter is caught",
       _layout_error({"img": {"p": {"filter": {"sat": -1}}}}), "cannot be negative")
+
+# --------------------------------------------------------------- page order
+# The load-bearing case: no override means the identity order, so the report
+# builds byte for byte as before.
+check_eq("no page override is the identity order",
+         empty.page_order(12), list(range(1, 13)))
+reordered = _layout({"pages": {"blanks": [{"id": "b1"}],
+                               "order": [1, 2, "b1", 3, 5, 12]}})
+check_eq("order interleaves blanks and hides by omission",
+         reordered.page_order(12), [1, 2, "b1", 3, 5, 12])
+check_eq("blanks are named", reordered.blank_ids(), ["b1"])
+check("a designed page beyond the report is caught at render",
+      _layout_error_at(lambda: _layout({"pages": {"order": [1, 2, 99]}}).page_order(12)),
+      "pages 1–12, not 99")
+check("an order naming an undeclared blank is caught",
+      _layout_error({"pages": {"order": [1, "ghost"]}}),
+      "not a blank this file declares")
+check("a duplicate page in the order is caught",
+      _layout_error({"pages": {"order": [1, 2, 2]}}), "appears twice")
+check("a shape may live on a blank page",
+      _layout({"pages": {"blanks": [{"id": "b1"}]},
+               "shapes": [{"id": "s", "page": "b1", "kind": "rect",
+                           "x": 1, "y": 1, "w": 1, "h": 1}]}).layer("b1"),
+      "shape-layer")
 
 # The lock list is an editor affordance the renderer never reads — but a
 # malformed one must still fail at load, not quietly stop locking anything.

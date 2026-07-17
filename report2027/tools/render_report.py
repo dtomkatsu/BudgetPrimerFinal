@@ -684,6 +684,57 @@ def table1_for(year):
 EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
                "onetime", "funding", "taxes", "whopays"]
 
+# ---------- page order ----------
+# Pages are built by IDENTITY (their born ordinals 1–12) and assembled in the
+# order layout.json asks for — default 1..12, so an empty override reproduces
+# the report byte for byte. Everything page-keyed (shapes, text boxes, fills)
+# stays keyed by identity, so reordering a page carries its own work with it.
+#
+# The folio and the TOC print a page's POSITION, not its identity — move a page
+# and its number follows. The markup lives here, not in docsync, because "•
+# BUDGET PRIMER" and the left/right alternation are this report's, not the
+# engine's; docsync only computes the order.
+DESIGNED_PAGES = 12
+PAGE_ORDER = L.page_order(DESIGNED_PAGES)
+PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
+
+# The editor's page rail needs the full set of designed pages and their names —
+# including any currently hidden, which are absent from the rendered DOM. The
+# renderer teaches it the same way it teaches everything else: a stamp emitted
+# only in edit mode, so the published bytes never carry it. Labels are this
+# report's business, hence here and not in docsync.
+PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process",
+               5: "How Money Is Spent", 6: "Spending Categories",
+               7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
+               9: "Funding the Budget", 10: "Taxes", 11: "Who Pays", 12: "Endnotes"}
+
+def stamp_page(html, pid):
+    """Tag a section with its identity, edit mode only (like data-el)."""
+    if not os.environ.get("DOCSYNC_EDIT"):
+        return html
+    return html.replace('<section class="page', f'<section data-page="{pid}" class="page', 1)
+
+def folio(pid):
+    """The page's footer, numbered by its position. Empty for a hidden page:
+    its f-string is still built, but it is never assembled."""
+    n = PAGE_POS.get(pid)
+    if n is None:
+        return ""
+    if n % 2 == 0:
+        return f'<div class="folio">{n} • BUDGET PRIMER</div>'
+    return f'<div class="folio r">BUDGET PRIMER • {n}</div>'
+
+def pageno(pid):
+    """A page's printed number for the table of contents. A dash if it was
+    hidden — better an honest gap than a number pointing nowhere."""
+    return PAGE_POS.get(pid, "—")
+
+def blank_page(bid):
+    """An empty page a blank id names — a surface for boxes, shapes and images.
+    It only exists when the id appears in the order, so byte-identity holds."""
+    return (f'\n<section class="page ds-blank">\n '
+            f'{L.layer(bid)}{L.text_boxes(bid)}{folio(bid)}\n</section>')
+
 pages = []
 
 # -- page 1: cover
@@ -712,13 +763,13 @@ pages.append(f"""
  {C.html("toc.mission2", "mission")}
  <h2 class="toc-title">{C.t("toc.title")}</h2>
  <div class="toc-list">
-  <div><span>Budget Basics</span><span>3</span></div>
-  <div><span>How Money Is Spent</span><span>5</span></div>
-  <div><span>Funding the Budget</span><span>9</span></div>
-  <div><span>Endnotes</span><span>12</span></div>
+  <div><span>Budget Basics</span><span>{pageno(3)}</span></div>
+  <div><span>How Money Is Spent</span><span>{pageno(5)}</span></div>
+  <div><span>Funding the Budget</span><span>{pageno(9)}</span></div>
+  <div><span>Endnotes</span><span>{pageno(12)}</span></div>
  </div>
  <p class="copyright">{"<br>".join(esc(l) for l in C.lines("toc.copyright"))}</p>
- {L.layer(2)}{L.text_boxes(2)}<div class="folio">2 • BUDGET PRIMER</div>
+ {L.layer(2)}{L.text_boxes(2)}{folio(2)}
 </section>""")
 
 # -- page 3: budget basics
@@ -745,7 +796,7 @@ pages.append(f"""
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
-{C.extras("basics")} {L.layer(3)}{L.text_boxes(3)}<div class="folio r">BUDGET PRIMER • 3</div>
+{C.extras("basics")} {L.layer(3)}{L.text_boxes(3)}{folio(3)}
 </section>""")
 
 # -- page 4: budget process
@@ -758,7 +809,7 @@ pages.append(f"""
   {fig1_lifecycle()}
   {lifecycle_callouts()}
  </div>
-{C.extras("process")} {L.layer(4)}{L.text_boxes(4)}<div class="folio">4 • BUDGET PRIMER</div>
+{C.extras("process")} {L.layer(4)}{L.text_boxes(4)}{folio(4)}
 </section>""")
 
 # -- page 5: how money is spent
@@ -776,7 +827,7 @@ pages.append(f"""
  <p class="figcap"><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
-{C.extras("spent")} {L.layer(5)}{L.text_boxes(5)}<div class="folio r">BUDGET PRIMER • 5</div>
+{C.extras("spent")} {L.layer(5)}{L.text_boxes(5)}{folio(5)}
 </section>""")
 
 # -- page 6: figure 2
@@ -795,7 +846,7 @@ pages.append(f"""
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
-{C.extras("categories")} {L.layer(6)}{L.text_boxes(6)}<div class="folio">6 • BUDGET PRIMER</div>
+{C.extras("categories")} {L.layer(6)}{L.text_boxes(6)}{folio(6)}
 </section>""")
 
 # -- page 7: obligated costs + fig 3
@@ -821,7 +872,7 @@ pages.append(f"""
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
-{C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}<div class="folio r">BUDGET PRIMER • 7</div>
+{C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}{folio(7)}
 </section>""")
 
 # -- page 8: photo + one-time/emergency
@@ -834,7 +885,7 @@ pages.append(f"""
   {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
   {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
  </div>
-{C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}<div class="folio">8 • BUDGET PRIMER</div>
+{C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{folio(8)}
 </section>""")
 
 # -- page 9: funding the budget
@@ -849,7 +900,7 @@ pages.append(f"""
   {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
   {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
  </div>
-{C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}<div class="folio r">BUDGET PRIMER • 9</div>
+{C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{folio(9)}
 </section>""")
 
 # -- page 10: taxes
@@ -863,7 +914,7 @@ pages.append(f"""
   {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}
   {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets")}
  </div>
-{C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}<div class="folio">10 • BUDGET PRIMER</div>
+{C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{folio(10)}
 </section>""")
 
 # -- page 11: who pays
@@ -878,20 +929,43 @@ pages.append(f"""
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
-{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}<div class="folio r">BUDGET PRIMER • 11</div>
+{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{folio(11)}
 </section>""")
 
 # -- page 12: endnotes ------------------------------------------------------
 # Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
-# assembled body FIRST so numbering follows document order, then build the
+# assembled body FIRST so numbering follows the page ORDER, then build the
 # endnotes page from the order that produced.
-body = C.fn.resolve("".join(pages))
+#
+# The endnotes list is a product of resolving the very body it sits in, so page
+# 12 is assembled as a shell holding a placeholder, the whole ordered body is
+# resolved, and the placeholder is filled with the numbered list afterwards.
+ENDNOTES_SLOT = "<!--ds-endnotes-->"
+by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..11
+by_id[12] = f"""
+<section class="page"{L.fill_attr("page.12")}>
+ <h1>{C.t("endnotes.h1")}</h1>
+ <ol class="endnotes">{ENDNOTES_SLOT}</ol>
+ {L.layer(12)}{L.text_boxes(12)}{folio(12)}
+</section>"""
+for _bid in L.blank_ids():
+    by_id[_bid] = blank_page(_bid)
+
+body = C.fn.resolve("".join(stamp_page(by_id[pid], pid) for pid in PAGE_ORDER))
 
 missing_src = C.fn.unused()
 if missing_src:
+    srcs = ", ".join(f"[{s}]" for s in missing_src)
+    hidden = [p for p in range(1, DESIGNED_PAGES + 1) if p not in PAGE_POS]
+    if hidden:
+        # The common cause once pages can be hidden: the page that cited these
+        # sources is no longer in the report. Name it, and the fix.
+        names = ", ".join(f"{PAGE_LABELS[p]} (page {p})" for p in hidden)
+        raise ContentError(
+            f"hiding {names} left these sources with nothing citing them: {srcs}. "
+            f"Show that page again, or remove the sources from the doc.")
     raise ContentError(
-        "content.md declares sources never cited in the prose: "
-        + ", ".join(f"[{s}]" for s in missing_src))
+        "content.md declares sources never cited in the prose: " + srcs)
 
 en = "".join(endnote_link(i + 1, t, u) for i, (t, u) in enumerate(C.fn.endnotes()))
 notes = C.fn.endnotes()
@@ -917,12 +991,19 @@ def linkify_footnotes(markup):
         return "<sup>" + "&thinsp;".join(out) + "</sup>"
     return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
 
-body += f"""
-<section class="page"{L.fill_attr(f"page.12")}>
- <h1>{C.t("endnotes.h1")}</h1>
- <ol class="endnotes">{en}</ol>
- {L.layer(12)}{L.text_boxes(12)}<div class="folio">12 • BUDGET PRIMER</div>
-</section>"""
+# The endnotes page was assembled as a shell holding a placeholder; fill it now
+# that the numbering it depends on exists. `en` carries no footnote markers, so
+# this substitution is safe after resolve.
+body = body.replace(ENDNOTES_SLOT, en)
+
+# Teach the editor's rail every designed page and its name (edit mode only, so
+# the published bytes are untouched). Hidden pages are absent from the DOM; this
+# is how the rail still lists them.
+if os.environ.get("DOCSYNC_EDIT"):
+    body += ('<script type="application/json" id="ds-pagemeta">'
+             + json.dumps([{"id": i, "label": PAGE_LABELS[i]}
+                           for i in range(1, DESIGNED_PAGES + 1)])
+             + "</script>")
 
 # A few slots are built into a string before they reach the page (a caption the
 # renderer slices, a label inside SVG). A style on those does nothing at all,

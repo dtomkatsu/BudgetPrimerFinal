@@ -379,6 +379,11 @@ class Layout:
         # is validated so a hand-edit cannot quietly disable the lock.
         self.locked = raw.get("locked") or []
         self.imgs = raw.get("img") or {}
+        # Page identity vs order. Designed pages are IDS (their born ordinals);
+        # "pages" reorders, hides (by omission) and interleaves blank pages.
+        # Everything page-keyed — shapes, boxes, fills, layers — stays keyed by
+        # identity, so reordering never re-homes anyone's work.
+        self.pages = raw.get("pages") or {}
         self._validate()
 
     def _validate(self):
@@ -406,8 +411,8 @@ class Layout:
             if s.get("kind") not in KINDS:
                 raise LayoutError(
                     f"{where}: kind {s.get('kind')!r} must be one of {', '.join(KINDS)}")
-            if not isinstance(s.get("page"), int):
-                raise LayoutError(f"{where}: 'page' must be a page number")
+            if not isinstance(s.get("page"), (int, str)) or isinstance(s.get("page"), bool):
+                raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
             for k in ("x", "y", "w", "h"):
                 _num(s.get(k), f"{where}.{k}")
             # These land verbatim inside SVG attributes: a malformed value
@@ -445,6 +450,33 @@ class Layout:
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
+        if self.pages:
+            if not isinstance(self.pages, dict):
+                raise LayoutError("pages: expected an object with order/blanks")
+            blanks = self.pages.get("blanks") or []
+            bids = set()
+            for i, b in enumerate(blanks):
+                if not isinstance(b, dict) or not isinstance(b.get("id"), str) \
+                        or not b["id"]:
+                    raise LayoutError(f"pages.blanks #{i + 1}: needs a string id")
+                if b["id"] in bids:
+                    raise LayoutError(f"pages.blanks: duplicate id '{b['id']}'")
+                bids.add(b["id"])
+            order = self.pages.get("order")
+            if order is not None:
+                if not isinstance(order, list) or not order:
+                    raise LayoutError("pages.order: expected a non-empty list")
+                seen_o = set()
+                for pid in order:
+                    if isinstance(pid, bool) or not isinstance(pid, (int, str)):
+                        raise LayoutError(f"pages.order: {pid!r} is neither a "
+                                          f"designed page number nor a blank id")
+                    if isinstance(pid, str) and pid not in bids:
+                        raise LayoutError(f"pages.order: '{pid}' is not a blank "
+                                          f"this file declares")
+                    if pid in seen_o:
+                        raise LayoutError(f"pages.order: '{pid}' appears twice")
+                    seen_o.add(pid)
         for el, g in self.imgs.items():
             where = f"img '{el}'"
             if not isinstance(g, dict):
@@ -481,8 +513,8 @@ class Layout:
             if bid in seen:
                 raise LayoutError(f"{where}: duplicate id '{bid}' — already a shape")
             seen.add(bid)
-            if not isinstance(b.get("page"), int):
-                raise LayoutError(f"{where}: 'page' must be a page number")
+            if not isinstance(b.get("page"), (int, str)) or isinstance(b.get("page"), bool):
+                raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
             for k in ("x", "y", "w"):
                 _num(b.get(k), f"{where}.{k}")
             if not str(b.get("md", "")).strip():
@@ -652,6 +684,27 @@ class Layout:
 
     def refilled(self, el_id: str) -> bool:
         return el_id in self.fills
+
+    # ---- pages -----------------------------------------------------------
+
+    def page_order(self, designed: int) -> list:
+        """The final page sequence: designed ids and blank ids, in order.
+
+        With no override this is 1..designed exactly — the byte-identity case.
+        A designed number outside the report is refused here, at render, where
+        the count is finally known.
+        """
+        order = self.pages.get("order")
+        if not order:
+            return list(range(1, designed + 1))
+        for pid in order:
+            if isinstance(pid, int) and not 1 <= pid <= designed:
+                raise LayoutError(f"pages.order: this report has pages "
+                                  f"1–{designed}, not {pid}")
+        return list(order)
+
+    def blank_ids(self) -> list:
+        return [b["id"] for b in (self.pages.get("blanks") or [])]
 
     def fill_tag(self, el_id: str) -> str:
         """The editor's right-click hook for recolourable surfaces.
