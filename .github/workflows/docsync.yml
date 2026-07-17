@@ -58,8 +58,24 @@ jobs:
       - name: Self-test the round-trip rules
         run: python3 docsync/test_docsync.py
 
+      # Until the secret exists the engine cannot do anything, but that is
+      # "not set up yet", not a failure — a red X on every push would train
+      # everyone to ignore this workflow. Say so once and stop.
+      - name: Check credentials
+        id: creds
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_KEY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=docsync is not set up::GOOGLE_SERVICE_ACCOUNT_KEY is not set, so no sync ran. See docsync/SETUP.md."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Resolve action
         id: what
+        if: steps.creds.outputs.ready == 'true'
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "action=push" >> "$GITHUB_OUTPUT"
@@ -76,6 +92,7 @@ jobs:
 
       - name: Sync
         id: sync
+        if: steps.creds.outputs.ready == 'true'
         env:
           GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
         run: |
@@ -90,7 +107,9 @@ jobs:
           exit $code
 
       - name: Commit what changed
-        if: steps.what.outputs.action == 'pull' || steps.what.outputs.action == 'push'
+        if: >-
+          steps.creds.outputs.ready == 'true' &&
+          (steps.what.outputs.action == 'pull' || steps.what.outputs.action == 'push')
         run: |
           git config user.name  "docsync[bot]"
           git config user.email "docsync@users.noreply.github.com"
