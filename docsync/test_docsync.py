@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from docsync.content import ContentError                  # noqa: E402
 from docsync.fetch import (FetchError, access_token,      # noqa: E402
                            service_account_email)
+from docsync.content import paragraph                     # noqa: E402
 from docsync.fragment import extract, inject, to_html     # noqa: E402
 from docsync.normalise import leading_comment, normalise  # noqa: E402
 from docsync.state import State, content_hash            # noqa: E402
@@ -466,6 +467,13 @@ check("an effect colour that is not a colour is caught",
       _layout_error({"text": {"a": {"effect": {"kind": "neon", "color": "hotpink"}}}}),
       "not a hex colour")
 check_eq("no effect means no effect CSS", "text-shadow" in text_css({"size": 12}), False)
+
+# The caption used to be sliced at "[^" by the renderer to bold its label.
+# Markdown already says "this is bold", so the prose says it and the surgery is
+# gone — but only if paragraph() produces exactly what the split did.
+check_eq("a bold label in the prose renders as the surgery used to",
+         paragraph("**General-fund obligated costs, FY2018–FY2027 ($Billions).**[^exec-biennium]"),
+         "<b>General-fund obligated costs, FY2018–FY2027 ($Billions).</b>[^exec-biennium]")
 
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))

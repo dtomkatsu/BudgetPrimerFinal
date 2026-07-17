@@ -475,10 +475,14 @@ def fig1_lifecycle(size=560):
 
     # Arc spans are sized to the label that rides on them: at pr the arc length
     # must exceed the rendered text width, or textPath silently truncates.
-    phases = [(esc(C.text("process.ring.legislative")), 0, 150, DARK),
-              (esc(C.text("process.ring.planning")), 150, 258, SAGE_LIGHT),
-              (esc(C.text("process.ring.prep")), 258, 360, MINT)]
-    for i, (name, a0, a1, col) in enumerate(phases):
+    # The key rides along so the label can carry its own slot. A span cannot
+    # live in SVG — which is why these were the one kind of text the editor
+    # could never touch — but <text> takes a style attribute perfectly well.
+    phases = [("process.ring.legislative", 0, 150, DARK),
+              ("process.ring.planning", 150, 258, SAGE_LIGHT),
+              ("process.ring.prep", 258, 360, MINT)]
+    for i, (key, a0, a1, col) in enumerate(phases):
+        name = esc(C.text(key))
         out.append(f'<path d="{arc_path(cx, cy, 72, 116, a0 + 1, a1 - 1)}" fill="{col}"/>')
         pr = 100
         # curved phase label
@@ -491,7 +495,8 @@ def fig1_lifecycle(size=560):
              else f"M{p0[0]:.0f},{p0[1]:.0f} A{pr},{pr} 0 {large} 1 {p1[0]:.0f},{p1[1]:.0f}")
         tc = INK if is_light_bg(col) else "#fff"
         out.append(f'<defs><path id="ph{i}" d="{d}"/></defs>'
-                   f'<text class="ph" fill="{tc}"><textPath href="#ph{i}" startOffset="50%" '
+                   f'<text class="ph" fill="{tc}"{C.slot_attr(key)}>'
+                   f'<textPath href="#ph{i}" startOffset="50%" '
                    f'text-anchor="middle">{name}</textPath></text>')
     out.append("</svg>")
     return "".join(out)
@@ -600,8 +605,8 @@ def table1_for(year):
         return c["op"] + c["cip"] + c["one"] + c["emerg"]
     hidden = "" if year == 2027 else " hidden"
     return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}>
-<thead><tr><th></th><th class="lk" data-dept="__all">{C("table1.header.executive")}</th><th>{C("table1.header.judiciary")}</th>
-<th>{C("table1.header.legislature")}</th><th>{C("table1.header.oha")}</th></tr></thead>
+<thead><tr><th></th><th class="lk" data-dept="__all"{C.slot_attr("table1.header.executive")}>{C("table1.header.executive")}</th><th{C.slot_attr("table1.header.judiciary")}>{C("table1.header.judiciary")}</th>
+<th{C.slot_attr("table1.header.legislature")}>{C("table1.header.legislature")}</th><th{C.slot_attr("table1.header.oha")}>{C("table1.header.oha")}</th></tr></thead>
 <tbody>
 <tr><td>Operating Budget</td><td>{words(e['op'])}</td><td>{words(j['op'])}</td>
 <td>{words(l['op'])}</td><td>{words(o['op'])}</td></tr>
@@ -746,7 +751,7 @@ pages.append(f"""
  <details class="obligated noprint">
   <summary>{C.t("obligated.summary")}</summary>
   <div class="obligated-panel">
-   <p class="figcap"><b>{C("obligated.panel.caption").split("[^")[0].strip()}</b>{"[^" + C("obligated.panel.caption").split("[^")[1]}<span class="noprint">
+   <p class="figcap"{C.slot_attr("obligated.panel.caption")}>{C("obligated.panel.caption")}<span class="noprint">
    {C.t("obligated.panel.hint")}</span></p>
    {fig_obligated()}
    {legend([(esc(n), c) for n, _k, c in OBLIG_BANDS])}
@@ -756,8 +761,8 @@ pages.append(f"""
  <h3 class="sub2">{C.t("cip.h3")}</h3>
  <p class="figcap"><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
- <p data-fig="fig3" data-fy="2027">{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
- <p data-fig="fig3" data-fy="2026" hidden>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
+ <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
+ <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
 {C.extras("cip")} {L.layer(7)}<div class="folio r">BUDGET PRIMER • 7</div>
 </section>""")
 

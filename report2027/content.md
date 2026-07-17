@@ -208,7 +208,7 @@ Except for Medicaid expenses, which are included in the budget for the Departmen
 View Obligated Costs
 
 [[obligated.panel.caption]]
-General-fund obligated costs, FY2018–FY2027 ($Billions).[^exec-biennium]
+**General-fund obligated costs, FY2018–FY2027 ($Billions).**[^exec-biennium]
 
 [[obligated.panel.hint]]
 Hover a year for the breakdown.

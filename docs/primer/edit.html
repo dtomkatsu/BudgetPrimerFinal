@@ -647,6 +647,12 @@ function showType(key) {
   selected = key;
   const st = styleOf(key);
   $('ty-key').textContent = key;
+  // text-align means nothing to SVG text — a curved label is centred on its
+  // path by text-anchor, and display:inline-block is not a thing there either.
+  // Hide the control rather than offer one that does nothing.
+  const el = $('out').contentDocument.querySelector(`[data-slot="${key}"]`);
+  const inSvg = !!(el && el.closest('svg'));
+  document.querySelectorAll('.ty-al').forEach(b => b.hidden = inSvg);
   $('ty-font').value = st.font || '';
   fillWeights(st.font, st.weight);
   $('ty-size').value = st.size ?? '';
