@@ -26,6 +26,9 @@ import json
 import os
 from pathlib import Path
 
+# Letter portrait, because that is what the Budget Primer is. Any report with a
+# different page passes its own size in — this is a default, not a law. It is
+# the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
 KINDS = ("rect", "ellipse", "line")
 
@@ -56,8 +59,9 @@ def _num(v, where: str) -> float:
 
 
 class Layout:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, page: tuple[float, float] = (PAGE_W_IN, PAGE_H_IN)):
         self.path = path
+        self.page_w, self.page_h = page
         raw = {}
         if path.exists():
             try:
@@ -175,8 +179,8 @@ class Layout:
     def _svg(self, shapes: list, z: int) -> str:
         body = "".join(self._shape(s) for s in shapes)
         return (f'<svg class="shape-layer" style="position:absolute;left:0;top:0;'
-                f'width:{PAGE_W_IN}in;height:{PAGE_H_IN}in;pointer-events:none;'
-                f'z-index:{z}" viewBox="0 0 {PAGE_W_IN} {PAGE_H_IN}">{body}</svg>')
+                f'width:{self.page_w}in;height:{self.page_h}in;pointer-events:none;'
+                f'z-index:{z}" viewBox="0 0 {self.page_w} {self.page_h}">{body}</svg>')
 
     def _shape(self, s: dict) -> str:
         x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
@@ -205,17 +209,17 @@ class Layout:
         bad = []
         for el, p in self.positions.items():
             x, y = float(p["x"]), float(p["y"])
-            if not (0 <= x <= PAGE_W_IN) or not (0 <= y <= PAGE_H_IN):
+            if not (0 <= x <= self.page_w) or not (0 <= y <= self.page_h):
                 bad.append(f"'{el}' sits at {x}in,{y}in — off the "
-                           f"{PAGE_W_IN}x{PAGE_H_IN}in page")
-            if p.get("w") and x + float(p["w"]) > PAGE_W_IN + 0.01:
+                           f"{self.page_w}x{self.page_h}in page")
+            if p.get("w") and x + float(p["w"]) > self.page_w + 0.01:
                 bad.append(f"'{el}' is {p['w']}in wide at x={x}in — "
-                           f"{x + float(p['w']) - PAGE_W_IN:.2f}in past the right edge")
-            if p.get("h") and y + float(p["h"]) > PAGE_H_IN + 0.01:
+                           f"{x + float(p['w']) - self.page_w:.2f}in past the right edge")
+            if p.get("h") and y + float(p["h"]) > self.page_h + 0.01:
                 bad.append(f"'{el}' is {p['h']}in tall at y={y}in — "
-                           f"{y + float(p['h']) - PAGE_H_IN:.2f}in past the bottom edge")
+                           f"{y + float(p['h']) - self.page_h:.2f}in past the bottom edge")
         for s in self.shapes:
             x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
-            if x < 0 or y < 0 or x + w > PAGE_W_IN + 0.01 or y + h > PAGE_H_IN + 0.01:
+            if x < 0 or y < 0 or x + w > self.page_w + 0.01 or y + h > self.page_h + 0.01:
                 bad.append(f"shape '{s['id']}' extends past page {s['page']}")
         return bad

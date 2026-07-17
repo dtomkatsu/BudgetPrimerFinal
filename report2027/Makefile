@@ -20,18 +20,12 @@ doc-diff:
 doc-status:
 	cd .. && python3 -m docsync.sync status --id budget-primer
 
-# The draft editor runs the real renderer in the browser. Serving its code
-# from raw.githubusercontent meant the CDN could hand out a stale renderer for
-# minutes after a push — a silently wrong page that looked fine. Copy what it
-# needs next to the page instead: same origin, deployed atomically with it.
-E := ../docs/primer/engine
+# The draft editor runs this report's own renderer in the browser. docsync
+# stages it — and everything it reads — next to the published page, driven by
+# the editor: block in docsync.yml. Nothing about the editor is primer-specific,
+# so there is nothing to configure here.
 editor: html
-	@mkdir -p $(E)/docsync $(E)/report2027/tools $(E)/report2027/data $(E)/report2027/manual
-	cp ../docsync/content.py ../docsync/normalise.py ../docsync/layout.py $(E)/docsync/
-	cp tools/render_report.py $(E)/report2027/tools/
-	cp content.md layout.json $(E)/report2027/
-	cp data/report_data.json $(E)/report2027/data/
-	cp manual/obligated_costs.json $(E)/report2027/manual/
+	cd .. && python3 -m docsync.stage --id budget-primer --repo dtomkatsu/BudgetPrimerFinal
 
 data:
 	python3 tools/build_data.py
@@ -40,6 +34,7 @@ html: data
 	python3 tools/render_report.py
 
 pdf: html
+	@mkdir -p dist
 	"$(CHROME)" --headless=new --disable-gpu --no-sandbox --no-first-run \
 	  --user-data-dir=$(PROFILE) --virtual-time-budget=12000 \
 	  --no-pdf-header-footer \

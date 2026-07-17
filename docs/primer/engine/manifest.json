@@ -1,0 +1,29 @@
+{
+  "id": "budget-primer",
+  "repo": "dtomkatsu/BudgetPrimerFinal",
+  "files": {
+    "engine/docsync/content.py": "docsync/content.py",
+    "engine/docsync/normalise.py": "docsync/normalise.py",
+    "engine/docsync/layout.py": "docsync/layout.py",
+    "engine/report2027/tools/render_report.py": "report2027/tools/render_report.py",
+    "engine/report2027/content.md": "report2027/content.md",
+    "engine/report2027/layout.json": "report2027/layout.json",
+    "engine/report2027/data/report_data.json": "report2027/data/report_data.json",
+    "engine/report2027/manual/obligated_costs.json": "report2027/manual/obligated_costs.json",
+    "engine/docs/js/departments_act175_fy2027.json": "docs/js/departments_act175_fy2027.json",
+    "engine/docs/js/historical_trends.json": "docs/js/historical_trends.json"
+  },
+  "render": "report2027/tools/render_report.py",
+  "content": "report2027/content.md",
+  "layout": "report2027/layout.json",
+  "out": "report2027/web/index.html",
+  "assets": "report2027/web/assets",
+  "page": {
+    "w": 8.5,
+    "h": 11.0
+  },
+  "margins": {
+    "side": 0.62,
+    "top": 0.75
+  }
+}

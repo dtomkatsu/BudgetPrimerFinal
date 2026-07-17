@@ -5,6 +5,7 @@
     python3 -m docsync.sync pull [--id X]       # doc -> repo (validated)
     python3 -m docsync.sync push [--id X]       # repo -> doc (conflict-checked)
     python3 -m docsync.sync check [--id X]      # validate the doc, write nothing
+    python3 -m docsync.sync build [--id X]      # re-run the report's build
 
 `pull` is safe by construction: a doc that does not satisfy the report is never
 written. `push` is safe by conflict check: a doc holding edits that are not in
@@ -188,7 +189,7 @@ def do_push(b: Binding, tok: str, force: bool) -> Status:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=["status", "pull", "push", "check"])
+    ap.add_argument("action", choices=["status", "pull", "push", "check", "build"])
     ap.add_argument("--id", help="only this binding (default: all)")
     ap.add_argument("--diff", action="store_true", help="show pending changes")
     ap.add_argument("--force", action="store_true",
@@ -201,7 +202,7 @@ def main() -> int:
         print(f"registry error: {e}", file=sys.stderr)
         return 2
 
-    tok = token()
+    tok = token() if args.action != "build" else None
     if args.action == "push" and not tok:
         print("push needs GOOGLE_SERVICE_ACCOUNT_KEY — see docsync/SETUP.md",
               file=sys.stderr)
@@ -211,7 +212,15 @@ def main() -> int:
     for b in bindings:
         print(f"\n{b}  <- doc {b.doc[:12]}…")
         try:
-            if args.action in ("status",):
+            if args.action == "build":
+                # Rebuilding is not syncing: someone editing content.md or
+                # layout.json needs the site regenerated, and that has nothing
+                # to do with the Google Doc. Conflating them meant every save
+                # from the editor pushed prose to the doc and never rebuilt the
+                # page — so nothing an editor did ever reached the report.
+                render_build(b)
+                print("  built")
+            elif args.action in ("status",):
                 status, why = status_of(b, tok)
                 print(f"  {status.value}{' — ' + why if why else ''}")
                 if status is Status.CONFLICT:

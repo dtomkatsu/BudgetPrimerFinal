@@ -101,6 +101,14 @@ jobs:
             echo "id=" >> "$GITHUB_OUTPUT"
           fi
 
+      # A push means someone changed the prose or the layout — usually from the
+      # draft editor. That has to regenerate the report; syncing it to the Doc
+      # is a separate concern. Without this the editor could commit all day and
+      # the published page never moved.
+      - name: Rebuild the report
+        if: steps.what.outputs.action == 'push'
+        run: python3 -m docsync.sync build ${{ steps.what.outputs.id }}
+
       - name: Sync
         id: sync
         if: steps.creds.outputs.ready == 'true'

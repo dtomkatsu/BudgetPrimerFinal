@@ -46,6 +46,22 @@ bindings:
     outputs:
       - report2027/web/index.html
       - docs/primer/index.html
+    # What the draft editor needs to run THIS report in the browser. Naming it
+    # here is what lets one editor serve any report: the editor reads the
+    # manifest staged beside it and knows nothing about the primer.
+    editor:
+      dir: docs/primer               # published dir; editor + engine staged here
+      render: report2027/tools/render_report.py
+      out: report2027/web/index.html
+      layout: report2027/layout.json
+      assets: report2027/web/assets
+      page: [8.5, 11]                # inches
+      margins: [0.62, 0.75]          # side, top — the text column, for snapping
+      engine:                        # everything else the renderer reads
+        - report2027/data/report_data.json
+        - report2027/manual/obligated_costs.json
+        - docs/js/departments_act175_fy2027.json
+        - docs/js/historical_trends.json
 
   # Example — a simple page whose prose lives entirely in a doc. Binding one
   # takes minutes: add <!-- docsync:start --> / <!-- docsync:end --> where the

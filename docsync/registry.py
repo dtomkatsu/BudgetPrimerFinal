@@ -21,6 +21,25 @@ class RegistryError(RuntimeError):
 
 
 @dataclass
+class Editor:
+    """What the draft editor needs to run a report in the browser.
+
+    The editor runs the report's OWN renderer via Pyodide, so it has to be told
+    which renderer, what that renderer reads, and the shape of a page. Naming
+    those here is what keeps one editor able to serve any report instead of one
+    editor per report.
+    """
+    render: Path                      # the renderer's entry point
+    engine: list[Path]                # everything else the renderer reads
+    out: Path                         # where the renderer writes its HTML
+    dir: Path                         # published dir; the editor is staged here
+    page: tuple[float, float] = (8.5, 11.0)     # inches, w x h
+    margins: tuple[float, float] = (0.62, 0.75)  # side, top — snap lines
+    assets: Path | None = None        # uploaded images land here
+    layout: Path | None = None        # the overrides file, if the report has one
+
+
+@dataclass
 class Binding:
     id: str
     doc: str
@@ -31,6 +50,7 @@ class Binding:
     anchor: str = "docsync"    # fragment mode: <!-- docsync:start|end -->
     pr: bool = False           # open a PR instead of committing to main
     outputs: list[str] = field(default_factory=list)  # extra paths to commit
+    editor: Editor | None = None       # None: this binding has no draft editor
 
     @property
     def state_file(self) -> Path:
@@ -88,8 +108,28 @@ def load_registry(path: Path = REGISTRY) -> list[Binding]:
             anchor=b.get("anchor", "docsync"),
             pr=bool(b.get("pr", False)),
             outputs=list(b.get("outputs") or []),
+            editor=_editor(b.get("editor"), where),
         ))
     return out
+
+
+def _editor(e: dict | None, where: str) -> Editor | None:
+    if not e:
+        return None
+    page = e.get("page") or [8.5, 11.0]
+    margins = e.get("margins") or [0.62, 0.75]
+    if len(page) != 2 or len(margins) != 2:
+        raise RegistryError(f"{where}: editor 'page' and 'margins' are two numbers each")
+    return Editor(
+        render=ROOT / _require(e, "render", where + " editor"),
+        engine=[ROOT / f for f in (e.get("engine") or [])],
+        out=ROOT / _require(e, "out", where + " editor"),
+        dir=ROOT / _require(e, "dir", where + " editor"),
+        page=(float(page[0]), float(page[1])),
+        margins=(float(margins[0]), float(margins[1])),
+        assets=ROOT / e["assets"] if e.get("assets") else None,
+        layout=ROOT / e["layout"] if e.get("layout") else None,
+    )
 
 
 def get(binding_id: str, path: Path = REGISTRY) -> Binding:
