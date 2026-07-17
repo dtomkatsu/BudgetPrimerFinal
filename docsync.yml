@@ -55,6 +55,10 @@ bindings:
       out: report2027/web/index.html
       layout: report2027/layout.json
       assets: report2027/web/assets
+      # The report's own colours, offered before anything custom. These are the
+      # palette constants in render_report.py — Muted Teal through Charcoal.
+      palette: ["#6B9E78", "#95B7A2", "#CAD2C5", "#E8EDE6", "#D6E0D2",
+                "#52796F", "#354F52", "#2F3E46", "#FFFFFF"]
       page: [8.5, 11]                # inches
       margins: [0.62, 0.75]          # side, top — the text column, for snapping
       engine:                        # everything else the renderer reads

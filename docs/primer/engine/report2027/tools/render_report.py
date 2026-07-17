@@ -579,12 +579,19 @@ def card(title, bullets, bg, light=None, key=""):
     involved. The override merges into the tile's own style attribute; two
     style attributes would silently drop one.
     """
+    el_id = f"card.{key}" if key else ""
+    if el_id and L.refilled(el_id):
+        bg = L.fill(el_id)
+        # A caller passing light=True judged the colour it chose. Recolour the
+        # tile and that judgment is about a colour that is no longer there —
+        # keeping it puts charcoal text on a dark tile, or white on a pale one.
+        # The luminance test must run again, on the colour actually being used.
+        light = None
     if light is None:                       # auto: dark text on light tiles
         light = is_light_bg(bg)
     cls = "card light" if light else "card"
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     ul = C.ul_attr(key) if key else ""
-    el_id = f"card.{key}" if key else ""
     override = L.style(el_id, "") if el_id else ""
     style = f"background:{bg}" + (f";{override}" if override else "")
     tag = L.tag(el_id) if el_id else ""
@@ -678,7 +685,8 @@ branch_cards = [
 ]
 bc = "".join(
     f'<div class="branch"><img src="assets/{img}" alt="{esc(C.text(f"basics.branch.{k}.title"))}">'
-    f'<div class="branch-card{" onlight" if is_light_bg(bg) else ""}" style="background:{bg}">'
+    f'<div class="branch-card{" onlight" if is_light_bg(L.fill(f"branch.{k}", bg)) else ""}"'
+    f'{L.tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
     f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
     for t, bg, img, lt, bl, k in branch_cards)
 pages.append(f"""

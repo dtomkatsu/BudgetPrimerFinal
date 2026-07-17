@@ -36,6 +36,7 @@ class Editor:
     page: tuple[float, float] = (8.5, 11.0)     # inches, w x h
     margins: tuple[float, float] = (0.62, 0.75)  # side, top — snap lines
     assets: Path | None = None        # uploaded images land here
+    palette: list = None              # the report's own colours, offered first
     layout: Path | None = None        # the overrides file, if the report has one
 
 
@@ -128,6 +129,7 @@ def _editor(e: dict | None, where: str) -> Editor | None:
         page=(float(page[0]), float(page[1])),
         margins=(float(margins[0]), float(margins[1])),
         assets=ROOT / e["assets"] if e.get("assets") else None,
+        palette=list(e.get("palette") or []),
         layout=ROOT / e["layout"] if e.get("layout") else None,
     )
 

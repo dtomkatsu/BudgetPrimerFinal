@@ -309,6 +309,7 @@ class Layout:
         self.shapes = raw.get("shapes") or []
         self.text = raw.get("text") or {}
         self.boxes = raw.get("boxes") or []
+        self.fills = raw.get("fill") or {}
         self._validate()
 
     def _validate(self):
@@ -341,6 +342,8 @@ class Layout:
             if not isinstance(st, dict):
                 raise LayoutError(f"text '{key}': expected a style object")
             _check_text(st, f"text '{key}'")
+        for el, c in self.fills.items():
+            _hex(c, f"fill '{el}'")
         for i, b in enumerate(self.boxes):
             where = f"box #{i + 1}"
             bid = b.get("id")
@@ -482,6 +485,23 @@ class Layout:
                 parts.append(f"family={name}:wght@{';'.join(str(w) for w in roman)}")
         return ('<link href="https://fonts.googleapis.com/css2?'
                 + "&".join(parts) + '&display=swap" rel="stylesheet">')
+
+    # ---- fills -----------------------------------------------------------
+
+    def fill(self, el_id: str, default: str = "") -> str:
+        """The colour an element should actually be painted.
+
+        This has to be answered in Python, not patched onto the DOM afterwards,
+        and that is not a preference. is_light_bg() reads a tile's luminance at
+        build time to decide whether its text is white or charcoal — and the
+        footnote pills ride the same class. Recolour a tile in the browser and
+        that decision does not re-run: you get white text on a pale tile, which
+        is not "wrong colour", it is invisible.
+        """
+        return self.fills.get(el_id) or default
+
+    def refilled(self, el_id: str) -> bool:
+        return el_id in self.fills
 
     # ---- free-floating text ---------------------------------------------
 

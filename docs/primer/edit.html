@@ -89,7 +89,8 @@
     <option value="none">Aa</option><option value="upper">AA</option>
     <option value="lower">aa</option><option value="title">Aa Bb</option>
   </select>
-  <input id="ty-color" type="color" title="Text colour">
+  <select id="ty-swatch" title="Text colour from the report's palette"></select>
+  <input id="ty-color" type="color" title="Custom text colour">
   <label class="ty-num" title="Letter spacing (px)">A|A<input id="ty-track" type="number" step="0.1" min="-5" max="20"></label>
   <label class="ty-num" title="Line height">≡<input id="ty-lead" type="number" step="0.05" min="0.6" max="4"></label>
   <span class="ty-sep"></span>
@@ -278,6 +279,49 @@ function showLocalImages(d) {
   });
 }
 
+// ------------------------------------------------------------------ fills
+// Recolouring goes through the renderer, always. is_light_bg() decides white vs
+// charcoal text from a tile's luminance AT BUILD TIME, and the footnote pills
+// ride the same class — so painting a new colour onto the DOM would leave the
+// old contrast decision in place. That is not "slightly off": it is white text
+// on a pale tile. So: write the fill, re-render, let Python decide again.
+const fillable = id => /^(card|branch)\./.test(id || '');
+
+function fillRow(d, m, id) {
+  const row = d.createElement('div');
+  row.className = 'ds-swatches';
+  const paint = async c => {
+    pushHistory();
+    layout.fill = layout.fill || {};
+    if (c) layout.fill[id] = c; else delete layout.fill[id];
+    markDirty();
+    closeMenu(d);
+    await render();
+  };
+  (M.palette || []).forEach(c => {
+    const b = d.createElement('button');
+    b.className = 'ds-sw';
+    b.style.background = c;
+    b.title = c;
+    b.addEventListener('click', () => paint(c));
+    row.appendChild(b);
+  });
+  const custom = d.createElement('input');
+  custom.type = 'color';
+  custom.className = 'ds-sw-custom';
+  custom.title = 'Custom colour';
+  custom.value = (layout.fill && layout.fill[id]) || '#6b9e78';
+  custom.addEventListener('change', () => paint(custom.value));
+  row.appendChild(custom);
+  m.appendChild(row);
+  if (layout.fill && layout.fill[id]) {
+    const b = d.createElement('button');
+    b.textContent = 'Reset colour';
+    b.addEventListener('click', () => paint(null));
+    m.appendChild(b);
+  }
+}
+
 // ------------------------------------------------------------------ layers
 // z is a plain integer: below zero sits under the text, above it over the top.
 // Right-click is where "which thing is on top" has lived for thirty years, so
@@ -319,6 +363,14 @@ function layerMenu(d, el, e) {
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
 
+  if (fillable(id)) {
+    const h = d.createElement('div');
+    h.className = 'ds-menu-head';
+    h.textContent = 'fill';
+    m.appendChild(h);
+    fillRow(d, m, id);
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+  }
   const zs = allZ();
   const item = (label, fn, on = true) => {
     const b = d.createElement('button');
@@ -732,6 +784,7 @@ function showType(key) {
   $('ty-lead').value = st.leading ?? '';
   $('ty-case').value = st.case || 'none';
   $('ty-color').value = /^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#2f3e46';
+  $('ty-swatch').value = (st.color || '').toUpperCase();
   $('ty-fx').value = (st.effect && st.effect.kind) || '';
   showFxParams(key);
   $('ty-i').classList.toggle('on', !!st.italic);
@@ -754,6 +807,10 @@ function wireType() {
   live($('ty-track'), () => ({ tracking: $('ty-track').value === '' ? null : +$('ty-track').value }));
   live($('ty-lead'), () => ({ leading: $('ty-lead').value === '' ? null : +$('ty-lead').value }));
   live($('ty-color'), () => ({ color: $('ty-color').value }));
+  $('ty-swatch').addEventListener('change', async () => {
+    setStyle(selected, { color: $('ty-swatch').value || null });
+    markDirty(); await render(); showType(selected);
+  });
 
   $('ty-font').addEventListener('change', async () => {
     const fam = $('ty-font').value || null;
@@ -1188,6 +1245,8 @@ async function boot() {
     'import json\nfrom docsync.layout import FONTS\njson.dumps(FONTS)'));
   fxParams = JSON.parse(py.runPython(
     'import json\nfrom docsync.layout import EFFECT_PARAMS\njson.dumps(EFFECT_PARAMS)'));
+  $('ty-swatch').innerHTML = '<option value="">colour…</option>'
+    + (M.palette || []).map(c => `<option value="${c}">${c}</option>`).join('');
   $('ty-fx').innerHTML = '<option value="">no effect</option>'
     + Object.keys(fxParams).map(k => `<option value="${k}">${k}</option>`).join('');
   $('ty-font').innerHTML = '<option value="">font</option>'
@@ -1325,6 +1384,12 @@ function wire() {
                       color:#2F3E46; }
     .ds-menu button:hover:not(:disabled) { background:#6B9E78; color:#fff; }
     .ds-menu button:disabled { color:#B4BFB7; cursor:default; }
+    .ds-swatches { display:flex; flex-wrap:wrap; gap:4px; padding:2px 8px 6px; }
+    .ds-sw { width:20px; height:20px; padding:0; border:1px solid rgba(0,0,0,.18);
+             border-radius:4px; cursor:pointer; }
+    .ds-sw:hover { outline:2px solid #2F3E46; outline-offset:1px; }
+    .ds-sw-custom { width:20px; height:20px; padding:0; border:1px dashed #8B9A90;
+                    border-radius:4px; background:none; cursor:pointer; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
     body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
   d.head.appendChild(css);

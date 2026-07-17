@@ -67,6 +67,7 @@ def manifest(b: Binding) -> dict:
         "assets": rel(e.assets) if e.assets else None,
         "page": {"w": e.page[0], "h": e.page[1]},
         "margins": {"side": e.margins[0], "top": e.margins[1]},
+        "palette": e.palette or [],
     }
 
 

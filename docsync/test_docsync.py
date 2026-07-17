@@ -509,6 +509,31 @@ check("a box's style is validated like any other",
                                 "style": {"font": "Comic Papyrus"}}]}),
       "not a font this report can load")
 
+# ------------------------------------------------------------------ fills
+filled = _layout({"fill": {"card.a": "#2F3E46"}})
+check_eq("a fill overrides the designed colour", filled.fill("card.a", "#6B9E78"), "#2F3E46")
+check_eq("an unfilled element keeps the colour the report chose",
+         filled.fill("card.b", "#6B9E78"), "#6B9E78")
+check_eq("refilled() knows which is which", (filled.refilled("card.a"), filled.refilled("card.b")),
+         (True, False))
+check("a fill that is not a colour is caught",
+      _layout_error({"fill": {"card.a": "burnt sienna"}}), "not a hex colour")
+
+# The reason colour cannot be painted onto the DOM: is_light_bg() picks white or
+# charcoal text from a tile's luminance AT BUILD TIME, and the footnote pills
+# ride the same class. One card is hand-judged light=True by the renderer — a
+# judgment about the colour it chose. Recolour it and that judgment is about a
+# colour that is no longer there.
+def _is_light(hexc):                                  # mirrors render_report.py
+    h = hexc.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 130
+
+
+check_eq("the pale tile the renderer hand-judges really is light", _is_light("#CAD2C5"), True)
+check_eq("recoloured to charcoal it is not — so its text must reverse",
+         _is_light("#2F3E46"), False)
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")
