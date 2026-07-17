@@ -48,6 +48,8 @@ function onOpen() {
   DocumentApp.getUi()
     .createMenu('Budget Primer')
     .addItem('Update from report (safe)', 'updateFromReport')
+    .addItem('Enable instant sync (doc edits -> site in ~2 min)', 'enableInstantSync')
+    .addItem('Disable instant sync', 'disableInstantSync')
     .addItem('Preview report content (no changes)', 'previewReportContent')
     .addSeparator()
     .addItem('Enable hourly auto-sync', 'enableAutoSync')
@@ -311,4 +313,88 @@ function tidyKeyMarkers() {
   var n = dimKeyMarkers_();
   DocumentApp.getUi().alert('Tidied', n + ' markers dimmed.',
                             DocumentApp.getUi().ButtonSet.OK);
+}
+
+// ---------------------------------------------------------------------------
+// instant sync: doc edit -> repository_dispatch -> the docsync workflow pulls
+// ---------------------------------------------------------------------------
+// onChange fires constantly while someone types, and firing CI per keystroke
+// would be noise. Debounce instead: each change (re)arms a one-shot trigger
+// ~60s out, so the dispatch fires once, one quiet minute after the last edit.
+
+var GH_REPO = 'dtomkatsu/BudgetPrimerFinal';
+
+function enableInstantSync() {
+  var ui = DocumentApp.getUi();
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('GH_TOKEN')) {
+    var r = ui.prompt('GitHub token needed once',
+      'Paste a fine-grained personal access token for ' + GH_REPO + '\n' +
+      '(github.com -> Settings -> Developer settings -> Fine-grained tokens;\n' +
+      'Only this repository; Permissions: Contents -> Read and write).\n\n' +
+      'It is stored in this script\'s properties, visible only to you.',
+      ui.ButtonSet.OK_CANCEL);
+    if (r.getSelectedButton() !== ui.Button.OK || !r.getResponseText().trim()) return;
+    props.setProperty('GH_TOKEN', r.getResponseText().trim());
+  }
+  removeTriggers_('onDocChange');
+  ScriptApp.newTrigger('onDocChange')
+    .forDocument(DocumentApp.getActiveDocument().getId())
+    .onChange().create();
+  ui.alert('Instant sync on',
+    'Edits now reach the site ~2 minutes after you stop typing.\n' +
+    '(One quiet minute, then the sync workflow runs.)', ui.ButtonSet.OK);
+}
+
+function disableInstantSync() {
+  var n = removeTriggers_('onDocChange') + removeTriggers_('firePull_');
+  DocumentApp.getUi().alert('Instant sync off',
+    n ? 'Triggers removed.' : 'It was not on.',
+    DocumentApp.getUi().ButtonSet.OK);
+}
+
+function onDocChange() {
+  removeTriggers_('firePull_');                       // re-arm: still typing
+  ScriptApp.newTrigger('firePull_').timeBased().after(60 * 1000).create();
+}
+
+function firePull_() {
+  removeTriggers_('firePull_');
+  var token = PropertiesService.getScriptProperties().getProperty('GH_TOKEN');
+  if (!token) return;
+  UrlFetchApp.fetch('https://api.github.com/repos/' + GH_REPO + '/dispatches', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + token,
+               Accept: 'application/vnd.github+json' },
+    payload: JSON.stringify({ event_type: 'docsync-pull' }),
+    muteHttpExceptions: true,
+  });
+}
+
+function removeTriggers_(handler) {
+  var n = 0;
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === handler) { ScriptApp.deleteTrigger(t); n++; }
+  });
+  return n;
+}
+
+// ---------------------------------------------------------------------------
+// live preview feed: GET this script's /exec URL -> the doc as Markdown
+// ---------------------------------------------------------------------------
+// The preview page renders the report in-browser from the doc's CURRENT text.
+// It cannot read the export endpoint directly (no CORS), so this tiny web app
+// is the doc's CORS-friendly window. Deploy once: Deploy -> New deployment ->
+// Web app -> execute as Me, access "Anyone" -> copy the /exec URL into the
+// preview page's settings. Serving text only; the doc is link-visible anyway.
+
+function doGet() {
+  // Web-app requests have no "active" document, so the id is pinned here.
+  var docId = '1wOwrX6ISoTvYEp7Ut7HIOmng8PHkp_HEZ9veWihu4TU';
+  var res = UrlFetchApp.fetch(
+    'https://docs.google.com/document/d/' + docId + '/export?format=markdown',
+    { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } });
+  return ContentService.createTextOutput(res.getContentText())
+                       .setMimeType(ContentService.MimeType.TEXT);
 }

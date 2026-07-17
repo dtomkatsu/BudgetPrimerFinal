@@ -15,6 +15,10 @@ name: Doc sync
 on:
   schedule:
     - cron: "*/15 * * * *"
+  # The doc's Apps Script fires this after ~a minute of editing quiet, so a
+  # doc edit reaches the site in ~2 min instead of waiting for the cron.
+  repository_dispatch:
+    types: [docsync-pull]
   push:
     branches: [ main ]
     paths:
@@ -79,7 +83,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "action=push" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
+          elif [ "${{ github.event_name }}" = "schedule" ] || \
+               [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             echo "action=pull" >> "$GITHUB_OUTPUT"
           else
             echo "action=${{ inputs.action || 'status' }}" >> "$GITHUB_OUTPUT"
