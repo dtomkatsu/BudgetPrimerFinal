@@ -259,10 +259,10 @@ check_eq("an unmoved element keeps the renderer's own placement",
 
 moved = _layout({"positions": {"c.o": {"x": 1.2, "y": 3.4, "w": 5.0}}, "shapes": []})
 check("a moved element is absolutely placed", moved.attr("c.o"),
-      'style="position:absolute;left:1.2in;top:3.4in;width:5.0in"')
+      'style="position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1"')
 check_eq("an override beats the renderer's placement",
          moved.style("c.o", "left:9in;top:9in"),
-         "position:absolute;left:1.2in;top:3.4in;width:5.0in")
+         "position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1")
 
 # .page is overflow:hidden, so content dragged off it does not look broken —
 # it is simply gone. Nothing else would catch that, so it must be loud.
@@ -293,10 +293,34 @@ shaped = _layout({"shapes": [
     {"id": "b", "page": 7, "kind": "rect", "x": 1, "y": 2, "w": 3, "h": 1, "fill": "#6B9E78"},
     {"id": "f", "page": 7, "kind": "ellipse", "x": 1, "y": 2, "w": 1, "h": 1, "z": "front"}]})
 check_eq("shapes split into back and front layers", shaped.layer(7).count("shape-layer"), 2)
-check("back shapes sit behind the text", shaped.layer(7), "z-index:0")
-check("front shapes sit above it", shaped.layer(7), "z-index:3")
+check("back shapes sit behind the text", shaped.layer(7), "z-index:-1")
+check("front shapes sit above it", shaped.layer(7), "z-index:2")
 check_eq("a page with no shapes gets no layer", shaped.layer(2), "")
 check("shapes never eat clicks", shaped.layer(7), "pointer-events:none")
+
+# Positioning something absolutely takes it out of the flow and its neighbours
+# rush into the gap — move the logo, and the title beneath it jumps. A moved
+# element must keep holding the height it occupied.
+held = _layout({"positions": {"cover.logo": {"x": 1, "y": 2, "h": 1.09}}})
+check("a moved flow element reserves the height it vacated",
+      held.spacer("cover.logo"), 'style="height:1.09in"')
+# An element that was already absolute never held flow space, so reserving any
+# would push its neighbours DOWN — the same bug, mirrored.
+absolute = _layout({"positions": {"lc.dec": {"x": 3, "y": 4}}})
+check_eq("an already-absolute element reserves nothing",
+         absolute.spacer("lc.dec"), "")
+check_eq("an unmoved element reserves nothing", held.spacer("callout.whopays"), "")
+
+# z is an integer layer, and the old back/front words still parse.
+layered = _layout({"shapes": [
+    {"id": "old", "page": 2, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1, "z": "back"},
+    {"id": "new", "page": 2, "kind": "rect", "x": 0, "y": 0, "w": 1, "h": 1, "z": 4}]})
+check("the legacy 'back' word still means behind", layered.layer(2), "z-index:-1")
+check("an integer layer is honoured", layered.layer(2), "z-index:4")
+check("a nonsense layer is caught",
+      _layout_error({"shapes": [{"id": "x", "page": 1, "kind": "rect",
+                                 "x": 0, "y": 0, "w": 1, "h": 1, "z": "middle"}]}),
+      "not a layer number")
 
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))

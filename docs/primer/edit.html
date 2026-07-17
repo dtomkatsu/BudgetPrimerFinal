@@ -233,6 +233,92 @@ function showLocalImages(d) {
   });
 }
 
+// ------------------------------------------------------------------ layers
+// z is a plain integer: below zero sits under the text, above it over the top.
+// Right-click is where "which thing is on top" has lived for thirty years, so
+// it lives there here too.
+const zOf = id => {
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) return typeof sh.z === 'number' ? sh.z : (sh.z === 'front' ? 2 : -1);
+  return layout.positions[id]?.z ?? 1;
+};
+const setZ = (id, z) => {
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) sh.z = z;
+  else if (layout.positions[id]) layout.positions[id].z = z;
+  else return false;
+  return true;
+};
+const allZ = () => [
+  ...Object.keys(layout.positions).map(zOf),
+  ...layout.shapes.map(s => zOf(s.id)),
+];
+
+function closeMenu(d) {
+  d.querySelectorAll('.ds-menu').forEach(m => m.remove());
+}
+
+function layerMenu(d, el, e) {
+  closeMenu(d);
+  const id = el.dataset.shape || el.dataset.el;
+  // Only a moved element has a layer to change: an untouched one is still
+  // wherever the design put it, and z-index would not apply to it anyway.
+  const known = layout.shapes.some(s => s.id === id) || !!layout.positions[id];
+  const m = d.createElement('div');
+  m.className = 'ds-menu';
+  m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
+  m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
+
+  const zs = allZ();
+  const item = (label, fn, on = true) => {
+    const b = d.createElement('button');
+    b.textContent = label;
+    b.disabled = !on;
+    b.addEventListener('click', async () => { closeMenu(d); await fn(); });
+    m.appendChild(b);
+  };
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head';
+  head.textContent = known ? `${id} · layer ${zOf(id)}` : `${id} · move it first`;
+  m.appendChild(head);
+
+  const bump = async delta => {
+    setZ(id, zOf(id) + delta); markDirty(); await render();
+  };
+  item('Bring to front', async () => { setZ(id, Math.max(...zs, 0) + 1); markDirty(); await render(); }, known);
+  item('Forward',        () => bump(1), known);
+  item('Backward',       () => bump(-1), known);
+  item('Send to back',   async () => { setZ(id, Math.min(...zs, 0) - 1); markDirty(); await render(); }, known);
+  if (layout.shapes.some(s => s.id === id)) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    item('Delete shape', async () => {
+      layout.shapes = layout.shapes.filter(s => s.id !== id);
+      markDirty(); await render();
+    });
+  }
+  if (layout.positions[id]) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    item('Reset to its designed place', async () => {
+      delete layout.positions[id];
+      markDirty(); await render();
+    });
+  }
+  d.body.appendChild(m);
+}
+
+function contextify(d) {
+  d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      layerMenu(d, el, e);
+    });
+  });
+  d.addEventListener('mousedown', e => {
+    if (!e.target.closest || !e.target.closest('.ds-menu')) closeMenu(d);
+  });
+}
+
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
@@ -272,15 +358,44 @@ function startDrag(d, el, e0) {
     $('stat').textContent = 'cannot move that yet — the page has no layout';
     return;
   }
-  const start = { x: (rect.left - pr.left) / DPI, y: (rect.top - pr.top) / DPI };
+  // primer.css zooms .page to 125% on wide screens for readability, and the
+  // factor moves with the viewport. getBoundingClientRect reports zoomed pixels
+  // while CSS inches are unzoomed, so every px->in conversion has to divide it
+  // back out. Missing this made a 7.26in box measure 9.08in on an 8.5in page,
+  // sized the spacer 25% too tall, and moved things a quarter further than the
+  // cursor did. Measure it; never assume 1.
+  const zoom = pr.width / page.offsetWidth || 1;
+  const PX_IN = DPI * zoom;
+  const start = { x: (rect.left - pr.left) / PX_IN, y: (rect.top - pr.top) / PX_IN };
   const grab = { x: e0.clientX, y: e0.clientY };
-  const wIn = rect.width / DPI, hIn = rect.height / DPI;
+  const wIn = rect.width / PX_IN, hIn = rect.height / PX_IN;
+  // Was it holding a place in the flow? If so its height must stay reserved
+  // once it goes absolute, or everything below it jumps up to fill the gap.
+  // Measured before the drag makes it absolute — after, it always reads
+  // 'absolute' and the answer would be a lie.
+  const heldFlow = !shapeId &&
+    d.defaultView.getComputedStyle(el).position === 'static';
+  let spacer = null;
+
+  // Going absolute drops the element out of the flow, and everything below it
+  // rushes up into the gap. The renderer reserves that height on the next
+  // build — but a drop no longer triggers one, so the gap has to be held here,
+  // in the same frame the element leaves the flow, or the page lurches under
+  // the cursor.
+  const holdPlace = () => {
+    if (!heldFlow || spacer) return;
+    spacer = d.createElement('div');
+    spacer.className = 'ds-spacer';
+    spacer.style.height = hIn.toFixed(2) + 'in';
+    spacer.setAttribute('aria-hidden', 'true');
+    el.parentNode.insertBefore(spacer, el);
+  };
   el.classList.add('ds-dragging');
   d.body.classList.add('ds-grabbing');
 
   const at = e => [
-    +(start.x + (e.clientX - grab.x) / DPI).toFixed(2),
-    +(start.y + (e.clientY - grab.y) / DPI).toFixed(2),
+    +(start.x + (e.clientX - grab.x) / PX_IN).toFixed(2),
+    +(start.y + (e.clientY - grab.y) / PX_IN).toFixed(2),
   ];
 
   const move = e => {
@@ -289,6 +404,7 @@ function startDrag(d, el, e0) {
       const sh = layout.shapes.find(s => s.id === shapeId);
       if (sh) { sh.x = x; sh.y = y; paintShape(d, shapeId); }
     } else {
+      holdPlace();                       // same frame as leaving the flow
       el.style.position = 'absolute';
       el.style.left = x + 'in';
       el.style.top = y + 'in';
@@ -315,7 +431,8 @@ function startDrag(d, el, e0) {
       // cover lockup is full-bleed, clipped by overflow:hidden) — pinning that
       // width would shove it off the page and fail the build.
       const w = prev.w ?? (x + wIn <= PAGE_W_IN ? +wIn.toFixed(2) : undefined);
-      layout.positions[id] = { ...prev, x, y, ...(w ? { w } : {}) };
+      const h = prev.h ?? (heldFlow ? +hIn.toFixed(2) : undefined);
+      layout.positions[id] = { ...prev, x, y, ...(w ? { w } : {}), ...(h ? { h } : {}) };
     }
     markDirty();
     // deliberately no render(): the element already moved, and a re-render
@@ -470,6 +587,7 @@ function wire() {
   const d = $('out').contentDocument;
   showLocalImages(d);
   dragify(d);
+  contextify(d);
   const css = d.createElement('style');
   css.textContent = `
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
@@ -498,6 +616,17 @@ function wire() {
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
     .ds-dragging { outline:2px solid #c2703a !important; opacity:.9; }
+    .ds-spacer { pointer-events:none; }
+    .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
+               border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
+               min-width:190px; font:12px system-ui; }
+    .ds-menu-head { font:10px ui-monospace,monospace; color:#8B9A90; padding:4px 8px 6px; }
+    .ds-menu-sep { height:1px; background:#E4EBE6; margin:4px 0; }
+    .ds-menu button { display:block; width:100%; text-align:left; border:0; background:none;
+                      padding:5px 8px; border-radius:4px; cursor:pointer; font:12px system-ui;
+                      color:#2F3E46; }
+    .ds-menu button:hover:not(:disabled) { background:#6B9E78; color:#fff; }
+    .ds-menu button:disabled { color:#B4BFB7; cursor:default; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
     body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
   d.head.appendChild(css);

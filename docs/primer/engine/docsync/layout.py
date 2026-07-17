@@ -33,6 +33,20 @@ class LayoutError(RuntimeError):
     """Raised when an override could not produce a sane page."""
 
 
+def _z(s: dict) -> int:
+    """Layer of a shape. Accepts the old back/front words so existing files
+    keep working, but everything speaks integers now."""
+    z = s.get("z", -1)
+    if z == "back":
+        return -1
+    if z == "front":
+        return 2
+    try:
+        return int(z)
+    except (TypeError, ValueError):
+        raise LayoutError(f"shape '{s.get('id')}': z {z!r} is not a layer number")
+
+
 def _num(v, where: str) -> float:
     try:
         return float(v)
@@ -75,6 +89,10 @@ class Layout:
                 raise LayoutError(f"{where}: 'page' must be a page number")
             for k in ("x", "y", "w", "h"):
                 _num(s.get(k), f"{where}.{k}")
+            _z(s)          # a bad layer must fail at load, not mid-render
+        for el, p in self.positions.items():
+            if "z" in p and not isinstance(p["z"], int):
+                raise LayoutError(f"position '{el}': z {p['z']!r} is not a layer number")
 
     # ---- positions -------------------------------------------------------
 
@@ -82,8 +100,8 @@ class Layout:
         s = f'position:absolute;left:{p["x"]}in;top:{p["y"]}in'
         if p.get("w"):
             s += f';width:{p["w"]}in'
-        if p.get("z") is not None:
-            s += f';z-index:{p["z"]}'
+        # z is an integer layer: below 0 sits under the text, above 0 over it.
+        s += f';z-index:{int(p.get("z", 1))}'
         return s
 
     def attr(self, el_id: str) -> str:
@@ -101,6 +119,24 @@ class Layout:
             bits.append(f'style="{self._style(p)}"')
         return (" " + " ".join(bits)) if bits else ""
 
+    def spacer(self, el_id: str) -> str:
+        """Hold the place of an element that has been moved away.
+
+        Positioning something absolutely takes it out of the flow, so whatever
+        followed it slides up into the gap — move the logo and the title beneath
+        it jumps. That is never what someone dragging one thing means to do, so
+        the vacated height stays reserved and its neighbours stay put.
+
+        'h' is only recorded for elements that were in the flow to begin with;
+        an element that was already absolute (a lifecycle callout) reserves
+        nothing, because it never occupied flow space.
+        """
+        p = self.positions.get(el_id)
+        if not p or not p.get("h"):
+            return ""
+        return (f'<div class="ds-spacer" style="height:{p["h"]}in"'
+                f' aria-hidden="true"></div>')
+
     def style(self, el_id: str, default: str = "") -> str:
         """For elements the renderer already positions itself (the lifecycle
         callouts): the override wins, otherwise the computed placement stands."""
@@ -113,14 +149,15 @@ class Layout:
     # ---- shapes ----------------------------------------------------------
 
     def layer(self, page: int) -> str:
-        """Shapes for one page, as an SVG overlay. Empty when there are none,
-        so a report without shapes renders exactly as before."""
+        """Shapes for one page, grouped into one SVG per layer. Empty when there
+        are none, so a report without shapes renders exactly as before."""
         mine = [s for s in self.shapes if s.get("page") == page]
         if not mine:
             return ""
-        back = [s for s in mine if s.get("z", "back") == "back"]
-        front = [s for s in mine if s.get("z", "back") != "back"]
-        return "".join(self._svg(g, z) for g, z in ((back, 0), (front, 3)) if g)
+        by_z: dict[int, list] = {}
+        for s in mine:
+            by_z.setdefault(_z(s), []).append(s)
+        return "".join(self._svg(by_z[z], z) for z in sorted(by_z))
 
     def _svg(self, shapes: list, z: int) -> str:
         body = "".join(self._shape(s) for s in shapes)

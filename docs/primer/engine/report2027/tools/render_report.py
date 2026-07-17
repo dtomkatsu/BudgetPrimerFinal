@@ -610,7 +610,7 @@ pages.append(f"""
  {L.layer(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
-  <div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
+  {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <h1 class="cover-title">HAWAIʻI<br>BUDGET<br>PRIMER</h1>
   <div class="cover-year">FY2026–27</div>
@@ -716,7 +716,7 @@ pages.append(f"""
 # -- page 7: obligated costs + fig 3
 pages.append(f"""
 <section class="page">
- <div class="callout"{L.attr("callout.obligated")}>
+{L.spacer("callout.obligated")} <div class="callout"{L.attr("callout.obligated")}>
   <h4>{C.t("obligated.title")}</h4>
   {C.html("obligated.p1")}
   {C.html("obligated.p2")}
@@ -788,7 +788,7 @@ pages.append(f"""
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
- <div class="callout"{L.attr("callout.whopays")}>
+{L.spacer("callout.whopays")} <div class="callout"{L.attr("callout.whopays")}>
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
