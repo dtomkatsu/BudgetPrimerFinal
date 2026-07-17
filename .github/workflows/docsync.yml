@@ -23,6 +23,9 @@ on:
     branches: [ main ]
     paths:
       - "**/content.md"
+      # The editor's engine is a build artifact containing a copy of
+      # content.md; without this every engine rebuild fired a pointless sync.
+      - "!docs/**"
       - "docsync.yml"
   workflow_dispatch:
     inputs:
