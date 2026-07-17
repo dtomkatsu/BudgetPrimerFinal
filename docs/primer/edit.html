@@ -97,10 +97,19 @@
           font:12px system-ui; }
   #rail-add:hover { border-color:var(--sage); color:var(--txt); }
 
-  /* -- contextual rows: type (text selected) and arrange (elements selected) */
-  #type, #arrange { position:relative; display:flex; gap:6px; align-items:center;
-          flex-wrap:wrap; padding:7px 14px; background:var(--chrome2);
+  /* -- the context row: ONE fixed-height slot that holds either the type
+     toolbar (text) or the arrange strip (elements), and never collapses.
+     It used to appear and disappear with the selection, which resized the
+     whole flex column — the canvas visibly "jumped up" on every select, by
+     a full 100px when the strip wrapped. Fixed height, no wrap, horizontal
+     scroll if a row runs long: the chrome never moves again. */
+  #context { height:46px; flex:none; background:var(--chrome2);
           border-bottom:1px solid var(--line); }
+  #type, #arrange { display:flex; gap:6px; align-items:center;
+          flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
+          padding:0 14px; height:100%; box-sizing:border-box;
+          background:var(--chrome2); scrollbar-width:thin; }
+  #type > *, #arrange > * { flex:none; }
   /* display:flex would silently beat the hidden attribute's display:none */
   #type[hidden], #arrange[hidden] { display:none; }
   #type select, #type input[type=number], #arrange input[type=number] {
@@ -159,8 +168,11 @@
   .ty-step input { border-radius:0 !important; margin:0 -1px; position:relative;
                    z-index:1; text-align:center; }
   .ty-step input::-webkit-inner-spin-button { display:none; }
-  /* popovers: colour panel, spacing panel, shape picker */
-  .pop { position:absolute; z-index:1000; top:calc(100% - 4px); background:#fff;
+  /* popovers: colour panel, spacing panel, shape picker. FIXED, not absolute:
+     they live inside the fixed-height context row, whose overflow would clip
+     an absolutely positioned panel; fixed coordinates (set from the anchor by
+     togglePop) escape any container. */
+  .pop { position:fixed; z-index:1000; background:#fff;
          color:var(--ink); border:1px solid #C9D6CD; border-radius:10px;
          box-shadow:0 10px 32px rgba(20,30,35,.35); padding:12px; min-width:190px; }
   .pop-h { font:600 11px system-ui; letter-spacing:.7px; text-transform:uppercase;
@@ -288,6 +300,7 @@
       d="M1.5 5.8h6.5V3.2l5.5 4.3-5.5 4.3V9.2H1.5z"/></svg>Arrow</button>
   </div>
 </div>
+<div id="context">
 <div id="type" hidden>
   <span class="ty-key" id="ty-key"></span>
   <span class="ty-sep"></span>
@@ -419,6 +432,7 @@
   <label class="ar-pos" title="Scale, percent" id="ar-swrap">⤢<input id="ar-scale" type="number" step="1" min="20" max="500"></label>
   <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
   <span class="ar-lab" id="ar-hint"></span>
+</div>
 </div>
 <div id="work">
   <div id="rail" hidden>
@@ -1147,11 +1161,13 @@ function contextify(d) {
 const MIN_IN = 0.4;
 
 function handlesFor(el) {
-  if (el.dataset.shape) return ['e', 's', 'se'];
-  // A graphic scales uniformly — one corner is the honest handle for that,
-  // aspect locked. Text reflows on width alone, so it keeps its east edge.
-  if (isGraphic(el)) return ['se'];
-  return ['e'];
+  // Shapes resize from every edge and corner. Graphics scale uniformly, so
+  // their handles are the four corners (each drives the one scale factor).
+  // Text reflows on width alone — no height to drag — so it gets both
+  // horizontal edges, east and west.
+  if (el.dataset.shape) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+  if (isGraphic(el)) return ['ne', 'nw', 'se', 'sw'];
+  return ['e', 'w'];
 }
 
 function showHandles(d, page, el) {
@@ -1182,7 +1198,8 @@ function showHandles(d, page, el) {
   page.appendChild(ov);
 }
 
-const hideHandles = d => d.querySelectorAll('.ds-handles').forEach(h => h.remove());
+const hideHandles = d => d.querySelectorAll('.ds-handles, .ds-mini')
+  .forEach(h => h.remove());       // the mini bar rides the handles' lifecycle
 
 function startResize(d, el, e0, dir) {
   const page = el.closest('section.page') || d.querySelector('section.page');
@@ -1206,9 +1223,14 @@ function startResize(d, el, e0, dir) {
   const apply = e => {
     const dx = (e.clientX - grab.x) / px, dy = (e.clientY - grab.y) / px;
     if (graphic) {
-      // Uniform, aspect-locked: the corner's dominant travel drives one factor.
-      const fx = (b.w + dx) / b.w, fy = (b.h + dy) / b.h;
-      const factor = Math.abs(dx) > Math.abs(dy) ? fx : fy;
+      // Uniform, aspect-locked: whichever axis travelled further drives the
+      // one factor. Each corner grows outward from itself — a NW drag up-left
+      // enlarges just like a SE drag down-right.
+      const fx = dir.includes('w') ? (b.w - dx) / b.w
+               : dir.includes('e') ? (b.w + dx) / b.w : 1;
+      const fy = dir.includes('n') ? (b.h - dy) / b.h
+               : dir.includes('s') ? (b.h + dy) / b.h : 1;
+      const factor = Math.abs(fx - 1) > Math.abs(fy - 1) ? fx : fy;
       const scale = Math.max(0.2, Math.min(5, +(baseScale * factor).toFixed(3)));
       const st = storeOf(id);
       if (Math.abs(scale - 1) < 0.005) delete st.scale; else st.scale = scale;
@@ -1217,27 +1239,43 @@ function startResize(d, el, e0, dir) {
       $('stat').textContent = `${id} → ${Math.round(scale * 100)}%`;
       return { scale };
     }
-    let w = b.w, h = b.h;
-    if (dir.includes('e')) w = Math.max(MIN_IN, b.w + dx);
-    if (dir.includes('s')) h = Math.max(MIN_IN, b.h + dy);
+    // Any edge, any corner: a west or north handle moves the origin as it
+    // resizes, keeping the opposite edge fixed — which is what dragging that
+    // side means. Clamped so the minimum wins over the moved edge.
+    let x = b.x, y = b.y, w = b.w, h = b.h;
+    if (dir.includes('e')) w = b.w + dx;
+    if (dir.includes('w')) w = b.w - dx;
+    if (dir.includes('s')) h = b.h + dy;
+    if (dir.includes('n')) h = b.h - dy;
+    w = Math.max(MIN_IN, w);
+    h = Math.max(MIN_IN, h);
+    if (dir.includes('w')) x = b.x + b.w - w;   // opposite (east) edge stays put
+    if (dir.includes('n')) y = b.y + b.h - h;   // opposite (south) edge stays put
     // Never let a resize push content off the page — same rule as the drag.
-    w = Math.min(w, PAGE_W_IN - b.x);
-    h = Math.min(h, PAGE_H_IN - b.y);
+    if (x < 0) { w += x; x = 0; }
+    if (y < 0) { h += y; y = 0; }
+    w = Math.min(w, PAGE_W_IN - x);
+    h = Math.min(h, PAGE_H_IN - y);
+    const vertical = dir.includes('s') || dir.includes('n');
     if (shapeId) {
       const sh = layout.shapes.find(s => s.id === shapeId);
-      if (sh) { sh.w = +w.toFixed(2); sh.h = +h.toFixed(2); paintShape(d, shapeId); }
+      if (sh) {
+        sh.x = +x.toFixed(2); sh.y = +y.toFixed(2);
+        sh.w = +w.toFixed(2); sh.h = +h.toFixed(2);
+        paintShape(d, shapeId);
+      }
     } else {
-      P.put(b.x, b.y, false);             // pin it in place, holding its flow slot
+      P.put(x, y, false);                 // pin it in place, holding its flow slot
       el.style.width = w.toFixed(2) + 'in';
-      if (dir.includes('s')) el.style.height = h.toFixed(2) + 'in';
+      if (vertical) el.style.height = h.toFixed(2) + 'in';
     }
     showHandles(d, page, el);
     $('stat').textContent = `${id} → ${w.toFixed(2)}in wide`
-                          + (dir.includes('s') ? ` × ${h.toFixed(2)}in` : '');
-    return { w, h };
+                          + (vertical ? ` × ${h.toFixed(2)}in` : '');
+    return { x, y, w, h };
   };
 
-  let size = { w: b.w, h: b.h };
+  let size = { x: b.x, y: b.y, w: b.w, h: b.h };
   const move = e => { size = apply(e); };
   const up = () => {
     d.removeEventListener('mousemove', move);
@@ -1247,14 +1285,22 @@ function startResize(d, el, e0, dir) {
     if (graphic) {
       markDirty();                        // the scale is already on the store
     } else if (!shapeId) {
-      P.commit({ x: b.x, y: b.y });
-      const p = layout.positions[id];
-      p.w = +size.w.toFixed(2);
-      if (dir.includes('s')) p.h = +size.h.toFixed(2);
+      P.commit({ x: size.x, y: size.y });
+      // A text box's geometry lives in boxes[], not positions{} — writing to
+      // the wrong store used to throw here and the width never persisted.
+      const bx2 = boxOf(id);
+      if (bx2) {
+        bx2.w = +size.w.toFixed(2);
+        markDirty();
+      } else {
+        const p = layout.positions[id];
+        p.w = +size.w.toFixed(2);
+        if (dir.includes('s') || dir.includes('n')) p.h = +size.h.toFixed(2);
+      }
     } else {
       markDirty();
     }
-    showHandles(d, page, el);
+    paintSel(d);                          // ring + handles + mini follow the new box
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
@@ -1561,9 +1607,13 @@ function togglePop(pop, anchor) {
   const wasHidden = pop.hidden;
   document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
   if (!wasHidden) return;
-  pop.style.left = Math.max(8, Math.min(anchor.offsetLeft,
-    document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
+  // Fixed coordinates from the anchor's on-screen rect — the pop lives inside
+  // a fixed-height row whose overflow would clip an absolute panel.
+  const r = anchor.getBoundingClientRect();
   pop.hidden = false;
+  pop.style.top = (r.bottom + 6) + 'px';
+  pop.style.left = Math.max(8, Math.min(r.left,
+    document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
 addEventListener('mousedown', e => {
   if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape, #layers'))
@@ -1774,6 +1824,7 @@ function showType(key) {
   document.querySelectorAll('.ty-al').forEach(b =>
     b.classList.toggle('on', b.dataset.a === st.align));
   $('type').hidden = false;
+  $('arrange').hidden = true;            // the fixed row holds one toolbar at a time
 }
 
 /** input -> paint (fast, local). change -> commit and re-render, because the
@@ -1913,21 +1964,91 @@ const selGroups = () => {
 function paintSel(d) {
   d.querySelectorAll('.ds-sel, .ds-grouped').forEach(el =>
     el.classList.remove('ds-sel', 'ds-grouped'));
+  d.querySelectorAll('.ds-selbox').forEach(el => el.remove());
   hideHandles(d);
   const els = selEls(d);
-  els.forEach(el => el.classList.add('ds-sel'));
   // A selection that is exactly one whole group reads as a group: a lighter
-  // shared outline, so it looks like one object rather than N loose ones.
+  // dashed ring, so it looks like one object rather than N loose ones.
   const gs = selGroups();
-  if (gs.length === 1 && gs[0].length === selIds.size
-      && gs[0].every(id => selIds.has(id)))
-    els.forEach(el => el.classList.add('ds-grouped'));
+  const wholeGroup = gs.length === 1 && gs[0].length === selIds.size
+    && gs[0].every(id => selIds.has(id));
+  els.forEach(el => {
+    // A CSS outline on an SVG child paints around the whole page-sized <svg>
+    // viewport, not the shape — so shapes get a plain OVERLAY ring drawn at
+    // their box instead of a class. HTML elements keep the class.
+    if (el.dataset.shape) {
+      const page = el.closest('section.page') || d.querySelector('section.page');
+      const b = inchBox(el, page);
+      const ring = d.createElement('div');
+      ring.className = 'ds-selbox' + (wholeGroup ? ' grouped' : '');
+      ring.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
+      page.appendChild(ring);
+    } else {
+      el.classList.add(wholeGroup ? 'ds-grouped' : 'ds-sel');
+    }
+  });
   if (els.length === 1 && !isLocked(idOf(els[0]))) {
     const page = els[0].closest('section.page') || d.querySelector('section.page');
     showHandles(d, page, els[0]);
   }
+  showMini(d, els);
   arrangeBar(d);
   if (!$('layerspop').hidden) setTimeout(layersRender, 0);   // highlight tracks selection
+}
+
+// ------------------------------------------------------------ mini toolbar
+// Canva's floating strip beside the selection: duplicate, lock, delete, and a
+// "…" that opens the full context menu (fill, opacity, layers, effects) — the
+// same one right-click opens. Drawn in the page overlay, so it never touches
+// the chrome's layout.
+function showMini(d, els) {
+  d.querySelectorAll('.ds-mini').forEach(m => m.remove());
+  if (!els.length || editing) return;
+  const page = els[0].closest('section.page') || d.querySelector('section.page');
+  const mine = els.filter(el => (el.closest('section.page')) === page);
+  if (!mine.length) return;
+  let x1 = 1e9, y1 = 1e9, x2 = -1e9;
+  mine.forEach(el => {
+    const b = inchBox(el, page);
+    x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y); x2 = Math.max(x2, b.x + b.w);
+  });
+  const bar = d.createElement('div');
+  bar.className = 'ds-mini';
+  const above = y1 > 0.55;
+  bar.style.cssText = `left:${((x1 + x2) / 2).toFixed(3)}in;`
+    + `top:${(above ? y1 - 0.46 : y1 + 0.12).toFixed(3)}in`;
+  bar.addEventListener('mousedown', e => { e.preventDefault(); e.stopPropagation(); });
+
+  const allLocked = [...selIds].every(isLocked);
+  const btn = (title, svg, fn, disabled = false) => {
+    const b = d.createElement('button');
+    b.title = title;
+    b.innerHTML = svg;
+    b.disabled = disabled;
+    b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+    bar.appendChild(b);
+    return b;
+  };
+  btn('Duplicate (⌘D)',
+    '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/><path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg>',
+    () => duplicateSel(d),
+    ![...selIds].every(id => layout.shapes.some(s => s.id === id) || boxOf(id)));
+  const lockB = btn(allLocked ? 'Unlock' : 'Lock',
+    '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="6" width="9" height="6" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>',
+    () => toggleLockSel(d));
+  if (allLocked) lockB.classList.add('on');
+  btn('Delete (⌫)',
+    '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg>',
+    () => deleteSel(d), allLocked);
+  if (mine.length === 1) {
+    btn('More — fill, opacity, layer, effects…',
+      '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><circle cx="2.5" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="11.5" cy="7" r="1.3"/></svg>',
+      () => {
+        const r = bar.getBoundingClientRect();
+        layerMenu(d, mine[0], { clientX: r.left, clientY: r.bottom + 6 });
+      });
+  }
+  page.appendChild(bar);
 }
 const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
 const clearSel = d => { selIds.clear(); paintSel(d); };
@@ -1953,18 +2074,26 @@ function selectClick(d, id, e) {
 
 function arrangeBar(d) {
   const n = selIds.size;
-  $('arrange').hidden = n === 0;
-  if (!n) return;
-  const wholeGroup = selGroups().length === 1 && selGroups()[0].length === n
+  // The strip is ALWAYS present (disabled when nothing is selected) and the
+  // row it lives in is fixed-height — appearing and disappearing with the
+  // selection is what made the canvas jump on every click.
+  $('arrange').hidden = false;
+  if (n) $('type').hidden = true;        // the row holds one toolbar at a time
+  const wholeGroup = n > 0 && selGroups().length === 1 && selGroups()[0].length === n
     && selGroups()[0].every(id => selIds.has(id));
-  $('ar-count').textContent = wholeGroup ? `group of ${n}`
+  $('ar-count').textContent = !n ? '—'
+    : wholeGroup ? `group of ${n}`
     : n === 1 ? [...selIds][0] : `${n} selected`;
+  document.querySelectorAll('.ar-al').forEach(b => { b.disabled = !n; });
+  $('ar-front').disabled = $('ar-back').disabled = !n;
+  $('ar-del').disabled = !n || [...selIds].every(isLocked);
   $('ar-dh').disabled = $('ar-dv').disabled = n < 3;
-  $('ar-dup').disabled = ![...selIds].every(id =>
+  $('ar-dup').disabled = !n || ![...selIds].every(id =>
     layout.shapes.some(s => s.id === id) || boxOf(id));
   $('ar-group').disabled = !canGroup();
   $('ar-ungroup').disabled = !canUngroup();
-  const locked = [...selIds].every(isLocked);
+  $('ar-lock').disabled = !n;
+  const locked = n > 0 && [...selIds].every(isLocked);
   $('ar-lock').classList.toggle('on', locked);
   $('ar-lock').title = locked ? 'Unlock' : 'Lock — a locked element cannot be dragged';
   // The numbers panel: one element, typed placement in inches.
@@ -3612,27 +3741,33 @@ function wire() {
     [data-el]:hover { outline:1px dashed #95B7A2; outline-offset:3px; }
     [data-el] [data-slot] { cursor:grab; }
     [data-slot] { cursor:text; }
-    /* A glow, NOT an outline: outline on an SVG child paints around the whole
-       page-sized <svg> viewport in some browsers — a big green box swallowing
-       the page — not the shape. The selected state below already knew this;
-       the hover state did not. Only when unselected, so the two never stack. */
-    svg.shape-layer [data-shape]:hover:not(.ds-sel) {
-       filter:drop-shadow(0 0 .015in #6B9E78); }
+    /* No hover glow on shapes — the grab cursor is the affordance, and any
+       outline/glow on an SVG child either boxes the whole viewport or reads
+       as noise. Selection draws its own exact overlay ring instead. */
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
     /* Selected: a steady ring. Distinct from hover's dashed suggestion and
        from lifted's elevation — three states, three silhouettes. */
     .ds-sel { outline:2px solid #6B9E78 !important; outline-offset:2px; }
-    /* outline is not a thing SVG children have; a glow rings a shape without
-       repainting the stroke it actually owns. The !important is REQUIRED — the
-       base rule above has one, and without a matching !important here that base
-       outline wins and paints a green box around the whole page-sized <svg>
-       viewport, the "larger square" around a selected shape. */
-    svg.shape-layer .ds-sel { outline:none !important;
-       filter:drop-shadow(0 0 .02in #6B9E78) drop-shadow(0 0 .01in #6B9E78); }
+    /* Selected shapes get an OVERLAY ring drawn at their box (paintSel) —
+       outline on an SVG child paints around the whole page-sized viewport,
+       and a glow was tried and rejected as noise. The overlay is exact. */
+    .ds-selbox { position:absolute; z-index:9995; pointer-events:none;
+       outline:2px solid #6B9E78; outline-offset:2px; }
+    .ds-selbox.grouped { outline:1.5px dashed #52796F; outline-offset:3px; }
     /* A whole group selected reads as one object: a softer, dashed shared ring
        instead of N hard outlines. */
     .ds-grouped { outline:1.5px dashed #52796F !important; outline-offset:3px; }
+    /* the floating mini toolbar: duplicate / lock / delete / more */
+    .ds-mini { position:absolute; z-index:9999; transform:translateX(-50%);
+       display:flex; gap:2px; background:#2F3E46; border-radius:8px;
+       padding:4px; box-shadow:0 6px 20px rgba(20,30,35,.35); }
+    .ds-mini button { display:grid; place-items:center; width:26px; height:26px;
+       border:0; border-radius:6px; background:none; color:#E8EDE6;
+       cursor:pointer; }
+    .ds-mini button:hover:not(:disabled) { background:#52796F; }
+    .ds-mini button.on { background:#6B9E78; }
+    .ds-mini button:disabled { opacity:.35; cursor:default; }
     .ds-marquee { position:absolute; z-index:9998; pointer-events:none;
        border:1.5px dashed #6B9E78; background:rgba(107,158,120,.08);
        border-radius:2px; }
@@ -3695,8 +3830,13 @@ function wire() {
             border:1.5px solid #6B9E78; border-radius:2px; }
     .ds-h:hover { background:#6B9E78; }
     .ds-h-e { right:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
+    .ds-h-w { left:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
     .ds-h-s { bottom:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
+    .ds-h-n { top:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
     .ds-h-se { right:-4px; bottom:-4px; width:9px; height:9px; cursor:nwse-resize; }
+    .ds-h-nw { left:-4px; top:-4px; width:9px; height:9px; cursor:nwse-resize; }
+    .ds-h-ne { right:-4px; top:-4px; width:9px; height:9px; cursor:nesw-resize; }
+    .ds-h-sw { left:-4px; bottom:-4px; width:9px; height:9px; cursor:nesw-resize; }
     /* the rotate grip hangs above the box on a short stem, Canva's own spot */
     .ds-rot { top:-20px; left:50%; width:11px; height:11px; margin-left:-6px;
               border-radius:50%; cursor:grab; }
