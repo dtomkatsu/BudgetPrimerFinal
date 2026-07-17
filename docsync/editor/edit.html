@@ -209,6 +209,12 @@
     <button class="shp" data-k="line"><svg width="15" height="15" viewBox="0 0 15 15"
       stroke="#52796F" stroke-width="1.6" stroke-linecap="round"><path
       d="M2 12.5L13 2.5"/></svg>Line</button>
+    <button class="shp" data-k="triangle"><svg width="15" height="15" viewBox="0 0 15 15"
+      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
+      d="M7.5 2.5L13 12.5H2z"/></svg>Triangle</button>
+    <button class="shp" data-k="arrow"><svg width="15" height="15" viewBox="0 0 15 15"
+      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
+      d="M1.5 5.8h6.5V3.2l5.5 4.3-5.5 4.3V9.2H1.5z"/></svg>Arrow</button>
   </div>
 </div>
 <div id="type" hidden>
@@ -685,6 +691,27 @@ function layerMenu(d, el, e) {
     orow.appendChild(oin);
     m.appendChild(orow);
   }
+  // One slider recipe for every styled number: history on grab, live paint
+  // while sliding, the renderer's word on release.
+  const slider = (label, min, max, step, val, live) => {
+    const w = d.createElement('label');
+    w.className = 'ds-menu-slider';
+    w.textContent = label;
+    const r = d.createElement('input');
+    r.type = 'range'; r.min = min; r.max = max; r.step = step; r.value = val;
+    r.addEventListener('pointerdown', () => pushHistory());
+    r.addEventListener('input', () => live(+r.value));
+    r.addEventListener('change', async () => { markDirty(); closeMenu(d); await render(); });
+    w.appendChild(r);
+    m.appendChild(w);
+  };
+  const menuHead = t => {
+    const h2 = d.createElement('div');
+    h2.className = 'ds-menu-head';
+    h2.textContent = t;
+    m.appendChild(h2);
+  };
+
   // Shadows belong to the things that own their whole silhouette — shapes and
   // text boxes. A designed card's edge is the design's business.
   const shOwner = layout.shapes.find(s => s.id === id) || boxOf(id);
@@ -697,37 +724,85 @@ function layerMenu(d, el, e) {
         markDirty(); await render();
       });
     } else {
-      const slide = (label, min, max, step, key) => {
-        const w = d.createElement('label');
-        w.className = 'ds-menu-slider';
-        w.textContent = label;
-        const r = d.createElement('input');
-        r.type = 'range'; r.min = min; r.max = max; r.step = step;
-        r.value = shOwner.shadow[key] ?? { offset: 0.05, blur: 0.08, alpha: 0.35,
-                                           direction: 135 }[key];
-        r.addEventListener('pointerdown', () => pushHistory());
-        r.addEventListener('input', () => {
-          shOwner.shadow[key] = +r.value;
-          paintShadow(d, el);
-        });
-        r.addEventListener('change', async () => {
-          markDirty(); closeMenu(d); await render();
-        });
-        w.appendChild(r);
-        m.appendChild(w);
-      };
-      const h2 = d.createElement('div');
-      h2.className = 'ds-menu-head';
-      h2.textContent = 'shadow';
-      m.appendChild(h2);
-      slide('offset', 0, 0.3, 0.01, 'offset');
-      slide('angle', 0, 360, 15, 'direction');
-      slide('blur', 0, 0.3, 0.01, 'blur');
-      slide('depth', 0, 1, 0.05, 'alpha');
+      menuHead('shadow');
+      const sdef = { offset: 0.05, blur: 0.08, alpha: 0.35, direction: 135 };
+      const sh = (key, v) => { shOwner.shadow[key] = v; paintShadow(d, el); };
+      slider('offset', 0, 0.3, 0.01, shOwner.shadow.offset ?? sdef.offset, v => sh('offset', v));
+      slider('angle', 0, 360, 15, shOwner.shadow.direction ?? sdef.direction, v => sh('direction', v));
+      slider('blur', 0, 0.3, 0.01, shOwner.shadow.blur ?? sdef.blur, v => sh('blur', v));
+      slider('depth', 0, 1, 0.05, shOwner.shadow.alpha ?? sdef.alpha, v => sh('alpha', v));
       item('Remove shadow', async () => {
         pushHistory();
         delete shOwner.shadow;
         markDirty(); await render();
+      });
+    }
+  }
+
+  // Shape styling: corners, border, dash, arrowheads — the schema the
+  // renderer already honours, finally reachable without hand-editing JSON.
+  const shp = layout.shapes.find(s => s.id === id);
+  if (shp) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    menuHead(shp.kind === 'line' ? 'line style' : 'border');
+    const node = () => d.querySelector(`[data-shape="${CSS.escape(id)}"]`);
+    if (shp.kind === 'rect') {
+      slider('corners', 0, 0.4, 0.01, shp.r || 0, v => {
+        if (v) shp.r = v; else delete shp.r;
+        node().setAttribute('rx', v || 0);
+      });
+    }
+    slider('weight', 0, 0.08, 0.005, shp.sw ?? 0.02, v => {
+      shp.sw = v;
+      node().setAttribute('stroke-width', v);
+    });
+    if (shp.kind !== 'line') {
+      // Border colour: the palette again, plus none — writing stroke, not fill.
+      const row = d.createElement('div');
+      row.className = 'ds-swatches';
+      const strokePaint = async c => {
+        pushHistory();
+        shp.stroke = c;
+        if (c !== 'none' && (shp.sw ?? 0) < 0.005) shp.sw = 0.02;
+        markDirty(); closeMenu(d); await render();
+      };
+      const none = d.createElement('button');
+      none.className = 'ds-sw';
+      none.style.cssText = 'background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M1 9L9 1%27 stroke=%27%23C0392B%27/%3E%3C/svg%3E")';
+      none.title = 'No border';
+      none.addEventListener('click', () => strokePaint('none'));
+      row.appendChild(none);
+      (M.palette || []).forEach(c => {
+        const b = d.createElement('button');
+        b.className = 'ds-sw' + (c.toUpperCase() === (shp.stroke || '').toUpperCase() ? ' on' : '');
+        b.style.background = c;
+        b.title = c;
+        b.addEventListener('click', () => strokePaint(c));
+        row.appendChild(b);
+      });
+      m.appendChild(row);
+    }
+    const presets = { solid: null, dashed: [0.08, 0.05], dotted: [0.02, 0.04] };
+    const cur = !shp.dash ? 'solid' : (shp.dash[0] <= 0.03 ? 'dotted' : 'dashed');
+    Object.keys(presets).forEach(k => {
+      if (k === cur) return;
+      item(k[0].toUpperCase() + k.slice(1) + (shp.kind === 'line' ? ' line' : ' border'),
+        async () => {
+          pushHistory();
+          if (presets[k]) shp.dash = presets[k]; else delete shp.dash;
+          markDirty(); await render();
+        });
+    });
+    if (shp.kind === 'line') {
+      const ends = ['none', 'end', 'both'];
+      const curE = shp.ends || 'none';
+      ends.filter(e2 => e2 !== curE).forEach(e2 => {
+        item({ none: 'Plain ends', end: 'Arrowhead', both: 'Arrows both ways' }[e2],
+          async () => {
+            pushHistory();
+            if (e2 === 'none') delete shp.ends; else shp.ends = e2;
+            markDirty(); await render();
+          });
       });
     }
   }
@@ -2160,6 +2235,17 @@ function keyDrag(d, el, e) {
   picked.at = picked.P.put(picked.at.x + d4[0], picked.at.y + d4[1], false);
 }
 
+// Mirrors of triangle_points/arrow_points in docsync/layout.py, for live drag
+// preview — a Pyodide call per mousemove is not a 60fps neighbour. Change the
+// Python, change these, or the preview will visibly disagree with the page.
+const trianglePts = (x, y, w, h) => [[x + w / 2, y], [x + w, y + h], [x, y + h]];
+const arrowPts = (x, y, w, h) => {
+  const xs = x + w * 0.62, hh = h / 2;
+  return [[x, y + h * 0.28], [xs, y + h * 0.28], [xs, y], [x + w, y + hh],
+          [xs, y + h], [xs, y + h * 0.72], [x, y + h * 0.72]];
+};
+const ptsAttr = pts => pts.map(p => p.map(v => +v.toFixed(4)).join(',')).join(' ');
+
 /** Live-paint a shape's full geometry without a re-render, so drags and
  *  resizes stay smooth. All of it, not just x/y: a resized rect that does not
  *  grow until the next render looks like a resize that did not take. */
@@ -2173,6 +2259,10 @@ function paintShape(d, id) {
   } else if (sh.kind === 'ellipse') {
     node.setAttribute('cx', sh.x + sh.w / 2); node.setAttribute('cy', sh.y + sh.h / 2);
     node.setAttribute('rx', sh.w / 2); node.setAttribute('ry', sh.h / 2);
+  } else if (sh.kind === 'triangle') {
+    node.setAttribute('points', ptsAttr(trianglePts(sh.x, sh.y, sh.w, sh.h)));
+  } else if (sh.kind === 'arrow') {
+    node.setAttribute('points', ptsAttr(arrowPts(sh.x, sh.y, sh.w, sh.h)));
   } else {
     node.setAttribute('x1', sh.x); node.setAttribute('y1', sh.y);
     node.setAttribute('x2', sh.x + sh.w); node.setAttribute('y2', sh.y + sh.h);

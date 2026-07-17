@@ -38,7 +38,8 @@ from .content import block_html
 # different page passes its own size in — this is a default, not a law. It is
 # the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
-KINDS = ("rect", "ellipse", "line")
+KINDS = ("rect", "ellipse", "line", "triangle", "arrow")
+LINE_ENDS = ("none", "start", "end", "both")
 
 # Fonts a report may ask for, with the weights Google will actually serve. An
 # allowlist, not free text: a typo'd family falls back to sans-serif in the PDF
@@ -270,6 +271,24 @@ def _check_text(st: dict, where: str) -> None:
                 _num(fx[k], f"{where}.effect.{k}")
 
 
+# Polygon kinds, as point lists inside the x/y/w/h frame every shape shares.
+# The editor mirrors these two functions in JavaScript for live drag preview
+# (a Pyodide call per mousemove is not a 60fps neighbour) — change one, change
+# both, or the preview will visibly disagree with the committed page.
+def triangle_points(x, y, w, h):
+    return [(x + w / 2, y), (x + w, y + h), (x, y + h)]
+
+
+def arrow_points(x, y, w, h):
+    xs, hh = x + w * 0.62, h / 2
+    return [(x, y + h * 0.28), (xs, y + h * 0.28), (xs, y),
+            (x + w, y + hh), (xs, y + h), (xs, y + h * 0.72), (x, y + h * 0.72)]
+
+
+def _pts(pts):
+    return " ".join(f"{round(px, 4):g},{round(py, 4):g}" for px, py in pts)
+
+
 class LayoutError(RuntimeError):
     """Raised when an override could not produce a sane page."""
 
@@ -398,6 +417,17 @@ class Layout:
                 _alpha(s["alpha"], f"{where}.alpha")
             if s.get("shadow") is not None:
                 _check_shadow(s["shadow"], f"{where}.shadow")
+            if s.get("r") is not None and _num(s["r"], f"{where}.r") < 0:
+                raise LayoutError(f"{where}: corner radius cannot be negative")
+            if s.get("dash") is not None:
+                d = s["dash"]
+                if not isinstance(d, list) or not 1 <= len(d) <= 2 or any(
+                        _num(v, f"{where}.dash") <= 0 for v in d):
+                    raise LayoutError(f"{where}: dash must be one or two positive "
+                                      f"lengths, like [0.08, 0.05]")
+            if s.get("ends") is not None and s["ends"] not in LINE_ENDS:
+                raise LayoutError(f"{where}: ends {s['ends']!r} must be one of "
+                                  f"{', '.join(LINE_ENDS)}")
             _z(s)          # a bad layer must fail at load, not mid-render
         for el, p in self.positions.items():
             if "z" in p and not isinstance(p["z"], int):
@@ -666,9 +696,22 @@ class Layout:
 
     def _svg(self, shapes: list, z: int) -> str:
         body = "".join(self._shape(s) for s in shapes)
+        defs = ""
+        if any(s.get("kind") == "line" and s.get("ends") not in (None, "none")
+               for s in shapes):
+            # One arrowhead marker per layer. markerUnits="strokeWidth" scales
+            # it with the line's weight; context-stroke paints it the line's
+            # own colour (Chrome renders both screen and PDF here). The id
+            # carries page and layer so two layers never fight over one def.
+            pg = shapes[0].get("page")
+            defs = (f'<defs><marker id="ds-arr-{pg}-{z}" viewBox="0 0 10 10" '
+                    f'refX="8" refY="5" markerUnits="strokeWidth" markerWidth="7" '
+                    f'markerHeight="7" orient="auto-start-reverse">'
+                    f'<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>'
+                    f'</marker></defs>')
         return (f'<svg class="shape-layer" style="position:absolute;left:0;top:0;'
                 f'width:{self.page_w}in;height:{self.page_h}in;pointer-events:none;'
-                f'z-index:{z}" viewBox="0 0 {self.page_w} {self.page_h}">{body}</svg>')
+                f'z-index:{z}" viewBox="0 0 {self.page_w} {self.page_h}">{defs}{body}</svg>')
 
     def _shape(self, s: dict) -> str:
         x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
@@ -688,12 +731,26 @@ class Layout:
             common += f' opacity="{s["alpha"]:g}"'
         if s.get("shadow"):
             common += f' style="{shape_shadow_css(s["shadow"])}"'
+        if s.get("dash"):
+            d = s["dash"]
+            common += f' stroke-dasharray="{" ".join(str(v) for v in d)}"'
         if s["kind"] == "rect":
             r = s.get("r", 0)
             return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" {common}/>'
         if s["kind"] == "ellipse":
             return (f'<ellipse cx="{x + w / 2}" cy="{y + h / 2}" rx="{w / 2}" '
                     f'ry="{h / 2}" {common}/>')
+        if s["kind"] == "triangle":
+            return (f'<polygon points="{_pts(triangle_points(x, y, w, h))}" {common}/>')
+        if s["kind"] == "arrow":
+            return (f'<polygon points="{_pts(arrow_points(x, y, w, h))}" {common}/>')
+        ends = s.get("ends")
+        if ends and ends != "none":
+            mk = f"ds-arr-{s.get('page')}-{_z(s)}"
+            if ends in ("start", "both"):
+                common += f' marker-start="url(#{mk})"'
+            if ends in ("end", "both"):
+                common += f' marker-end="url(#{mk})"'
         return f'<line x1="{x}" y1="{y}" x2="{x + w}" y2="{y + h}" {common}/>'
 
     # ---- guardrail -------------------------------------------------------

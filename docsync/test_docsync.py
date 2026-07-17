@@ -597,6 +597,34 @@ check_eq("shadow_css is inches and rgba",
                      "alpha": 0.4, "color": "#2F3E46"}),
          "0.1in -0.0in 0.05in rgba(47,62,70,0.4)")
 
+# ------------------------------------------------ shape styling & new kinds
+styled_sh = _layout({"shapes": [
+    {"id": "t", "page": 2, "kind": "triangle", "x": 1, "y": 1, "w": 2, "h": 1,
+     "fill": "#6B9E78"},
+    {"id": "a", "page": 2, "kind": "arrow", "x": 4, "y": 1, "w": 2, "h": 0.8,
+     "fill": "#52796F"},
+    {"id": "l", "page": 2, "kind": "line", "x": 1, "y": 3, "w": 3, "h": 0,
+     "stroke": "#2F3E46", "ends": "end", "dash": [0.08, 0.05]}]})
+lay2 = styled_sh.layer(2)
+check("a triangle is a polygon with its apex centred", lay2, 'points="2,1 3,2 1,2"')
+check("an arrow closes seven points", lay2, "5.24,1.224 5.24,1")
+check("a dashed line carries its dash", lay2, 'stroke-dasharray="0.08 0.05"')
+check("an ended line points its marker", lay2, 'marker-end="url(#ds-arr-2--1)"')
+check("the layer defines the arrowhead once", lay2, 'id="ds-arr-2--1"')
+check_eq("markers inherit the line's own colour", lay2.count('fill="context-stroke"'), 1)
+check("a dash that is not lengths is caught",
+      _layout_error({"shapes": [{"id": "l", "page": 1, "kind": "line", "x": 0,
+                                 "y": 0, "w": 1, "h": 0, "dash": [0]}]}),
+      "positive")
+check("unknown line ends are caught",
+      _layout_error({"shapes": [{"id": "l", "page": 1, "kind": "line", "x": 0,
+                                 "y": 0, "w": 1, "h": 0, "ends": "sideways"}]}),
+      "must be one of none, start, end, both")
+check("a negative corner radius is caught",
+      _layout_error({"shapes": [{"id": "r", "page": 1, "kind": "rect", "x": 0,
+                                 "y": 0, "w": 1, "h": 1, "r": -0.1}]}),
+      "cannot be negative")
+
 # The lock list is an editor affordance the renderer never reads — but a
 # malformed one must still fail at load, not quietly stop locking anything.
 check_eq("locked ids load", _layout({"locked": ["cover.logo", "s1-rect"]}).locked,
