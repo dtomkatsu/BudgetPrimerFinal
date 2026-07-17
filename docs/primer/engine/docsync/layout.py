@@ -374,10 +374,12 @@ class Layout:
         self.text = raw.get("text") or {}
         self.boxes = raw.get("boxes") or []
         self.fills = raw.get("fill") or {}
-        # Editor affordance only: ids the editor refuses to drag. The renderer
-        # never reads it, so it cannot move a byte of the published page — it
-        # is validated so a hand-edit cannot quietly disable the lock.
+        # Editor affordances only: ids the editor refuses to drag, and groups
+        # that select-and-move as one. The renderer reads neither, so they
+        # cannot move a byte of the published page — validated so a hand-edit
+        # cannot quietly disable a lock or dangle a group.
         self.locked = raw.get("locked") or []
+        self.groups = raw.get("groups") or []
         self.imgs = raw.get("img") or {}
         # Ruler guides the editor snaps to, as {x:[in…], y:[in…]}. Editor-only,
         # like `locked`: the renderer never emits a guide, so it cannot move a
@@ -456,6 +458,19 @@ class Layout:
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
+        if not isinstance(self.groups, list):
+            raise LayoutError("groups: expected a list of groups")
+        _grouped = set()
+        for i, g in enumerate(self.groups):
+            if not isinstance(g, list) or len(g) < 2 or any(
+                    not isinstance(m, str) or not m for m in g):
+                raise LayoutError(f"groups #{i + 1}: a group is two or more "
+                                  f"element ids")
+            for m in g:
+                if m in _grouped:
+                    raise LayoutError(f"groups: '{m}' is in two groups — an "
+                                      f"element belongs to at most one")
+                _grouped.add(m)
         if self.guides:
             if not isinstance(self.guides, dict):
                 raise LayoutError("guides: expected {x:[…], y:[…]}")

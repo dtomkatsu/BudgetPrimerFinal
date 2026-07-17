@@ -719,6 +719,18 @@ check("a lock list that is not ids is caught",
       _layout_error({"locked": [{"id": "x"}]}), "list of element ids")
 check_eq("no lock list means nothing locked", empty.locked, [])
 
+# Groups are an editor affordance too — select and move as one — and the
+# renderer never reads them, but a malformed one still fails at load.
+check_eq("groups load as lists of member ids",
+         _layout({"groups": [["a", "b"], ["c", "d", "e"]]}).groups,
+         [["a", "b"], ["c", "d", "e"]])
+check("a group of one is not a group",
+      _layout_error({"groups": [["solo"]]}), "two or more element ids")
+check("an element cannot be in two groups",
+      _layout_error({"groups": [["a", "b"], ["b", "c"]]}), "at most one")
+check_eq("a group never reaches the rendered page",
+         _layout({"groups": [["a", "b"]]}).layer(3), "")
+
 # Ruler guides are editor-only — the renderer never emits one, so an empty
 # guides block cannot move a byte, but a malformed one still fails at load.
 check_eq("guides load as inches", _layout({"guides": {"x": [1.2, 4.25], "y": [3.0]}}).guides,

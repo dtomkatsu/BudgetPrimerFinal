@@ -390,6 +390,16 @@
       stroke-linejoin="round"><rect x="1.5" y="4" width="8.5" height="8.5" rx="1"
       fill="currentColor" fill-opacity=".35"/><path d="M5.5 1.5h6a1 1 0 0 1 1 1v6"/></svg></button>
   </span>
+  <span class="ty-seg" title="Group / ungroup">
+    <button id="ar-group" title="Group (⌘G) — the selection moves as one">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+        stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
+        <rect x="7" y="7" width="5.5" height="5.5" rx="1" fill="currentColor" fill-opacity=".3"/></svg></button>
+    <button id="ar-ungroup" title="Ungroup (⌘⇧G)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+        stroke-width="1.3" stroke-dasharray="2 1.4"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
+        <rect x="7" y="7" width="5.5" height="5.5" rx="1"/></svg></button>
+  </span>
   <button id="ar-dup" title="Duplicate (⌘D) — shapes and text boxes">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
@@ -790,13 +800,6 @@ function layerMenu(d, el, e) {
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
 
-  const canFill = !!(el.dataset.fill || el.dataset.shape || boxOf(id));
-  if (canFill) {
-    fillRow(d, m, id);
-    if (!surface) {
-      const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
-    }
-  }
   const item = (label, fn, on = true) => {
     const b = d.createElement('button');
     b.textContent = label;
@@ -804,6 +807,41 @@ function layerMenu(d, el, e) {
     b.addEventListener('click', async () => { closeMenu(d); await fn(); });
     m.appendChild(b);
   };
+  // A locked element offers only its release — no fill, no layer, nothing. That
+  // is the whole point of locking it, so this comes before everything else.
+  if (!surface && isLocked(id)) {
+    const head = d.createElement('div');
+    head.className = 'ds-menu-head';
+    head.textContent = `${id} · locked`;
+    m.appendChild(head);
+    item('Unlock', () => {
+      pushHistory();
+      layout.locked = lockedList().filter(x => x !== id);
+      if (!layout.locked.length) delete layout.locked;
+      markDirty(); paintSel(d);
+    });
+    d.body.appendChild(m);
+    return;
+  }
+
+  const canFill = !!(el.dataset.fill || el.dataset.shape || boxOf(id));
+  if (canFill) {
+    fillRow(d, m, id);
+    if (!surface) {
+      const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    }
+  }
+  // Group / ungroup, when the right-click is part of a real multi-selection or
+  // lands on a grouped element. Right-clicking an unselected thing acts on it
+  // alone, so the group offer follows the current selection.
+  if (!surface) {
+    const inGroup = !!groupOf(id);
+    if (inGroup || (selIds.has(id) && selIds.size > 1)) {
+      if (inGroup) item('Ungroup', () => ungroupSel(d));
+      else item('Group', () => groupSel(d));
+      const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    }
+  }
   if (!surface) {
     const head = d.createElement('div');
     head.className = 'ds-menu-head';
@@ -1856,11 +1894,34 @@ const selEls = d => [...selIds].map(id =>
 const lockedList = () => (layout.locked = layout.locked || []);
 const isLocked = id => (layout.locked || []).includes(id);
 
+// Groups: a click on any member selects the WHOLE group, so it moves as one —
+// Canva's own model. Alt-click reaches through to the single member inside.
+// The renderer never reads groups; this is pure editor behaviour.
+const groupOf = id => (layout.groups || []).find(g => g.includes(id));
+function withGroups(ids) {
+  const out = new Set();
+  ids.forEach(id => (groupOf(id) || [id]).forEach(m => out.add(m)));
+  return [...out];
+}
+// Every distinct group touched by the current selection.
+const selGroups = () => {
+  const gs = new Set();
+  [...selIds].forEach(id => { const g = groupOf(id); if (g) gs.add(g); });
+  return [...gs];
+};
+
 function paintSel(d) {
-  d.querySelectorAll('.ds-sel').forEach(el => el.classList.remove('ds-sel'));
+  d.querySelectorAll('.ds-sel, .ds-grouped').forEach(el =>
+    el.classList.remove('ds-sel', 'ds-grouped'));
   hideHandles(d);
   const els = selEls(d);
   els.forEach(el => el.classList.add('ds-sel'));
+  // A selection that is exactly one whole group reads as a group: a lighter
+  // shared outline, so it looks like one object rather than N loose ones.
+  const gs = selGroups();
+  if (gs.length === 1 && gs[0].length === selIds.size
+      && gs[0].every(id => selIds.has(id)))
+    els.forEach(el => el.classList.add('ds-grouped'));
   if (els.length === 1 && !isLocked(idOf(els[0]))) {
     const page = els[0].closest('section.page') || d.querySelector('section.page');
     showHandles(d, page, els[0]);
@@ -1871,14 +1932,38 @@ function paintSel(d) {
 const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
 const clearSel = d => { selIds.clear(); paintSel(d); };
 
+/** The one place a mouse-selection is decided, so dragify and the hit-test
+ *  agree. Returns whether the element ends up selected (so a drag may follow).
+ *  A group selects whole; shift toggles it. To reach one member of a group,
+ *  click its row in the Layers panel — alt is the duplicate-drag modifier, so
+ *  it cannot also mean "drill in" without the two fighting. */
+function selectClick(d, id, e) {
+  const members = withGroups([id]);
+  if (e.shiftKey) {
+    const on = members.every(m => selIds.has(m));
+    members.forEach(m => on ? selIds.delete(m) : selIds.add(m));
+    paintSel(d);
+    return !on;
+  }
+  // Clicking inside the current selection keeps it (so the group/multi drags);
+  // clicking outside replaces it.
+  if (!members.every(m => selIds.has(m))) setSel(d, members);
+  return true;
+}
+
 function arrangeBar(d) {
   const n = selIds.size;
   $('arrange').hidden = n === 0;
   if (!n) return;
-  $('ar-count').textContent = n === 1 ? [...selIds][0] : `${n} selected`;
+  const wholeGroup = selGroups().length === 1 && selGroups()[0].length === n
+    && selGroups()[0].every(id => selIds.has(id));
+  $('ar-count').textContent = wholeGroup ? `group of ${n}`
+    : n === 1 ? [...selIds][0] : `${n} selected`;
   $('ar-dh').disabled = $('ar-dv').disabled = n < 3;
   $('ar-dup').disabled = ![...selIds].every(id =>
     layout.shapes.some(s => s.id === id) || boxOf(id));
+  $('ar-group').disabled = !canGroup();
+  $('ar-ungroup').disabled = !canUngroup();
   const locked = [...selIds].every(isLocked);
   $('ar-lock').classList.toggle('on', locked);
   $('ar-lock').title = locked ? 'Unlock' : 'Lock — a locked element cannot be dragged';
@@ -2033,19 +2118,31 @@ async function deleteSel(d) {
   if (!selIds.size) return;
   pushHistory();
   let touched = false;
+  const gone = [];
   [...selIds].filter(id => !isLocked(id)).forEach(id => {
     if (layout.shapes.some(s => s.id === id)) {
-      layout.shapes = layout.shapes.filter(s => s.id !== id); touched = true;
+      layout.shapes = layout.shapes.filter(s => s.id !== id); touched = true; gone.push(id);
     } else if (boxOf(id)) {
-      layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, '')); touched = true;
+      layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, '')); touched = true; gone.push(id);
     } else if (layout.positions[id]) {
       delete layout.positions[id]; touched = true;
     }
   });
+  forgetInGroups(gone);            // a group loses its deleted members
   selIds.clear();
   if (!touched) { past.pop(); return; }
   markDirty();
   await render();
+}
+
+/** Drop ids from any group and discard groups the removal empties below two. */
+function forgetInGroups(ids) {
+  if (!layout.groups || !ids.length) return;
+  const set = new Set(ids);
+  layout.groups = layout.groups
+    .map(g => g.filter(m => !set.has(m)))
+    .filter(g => g.length >= 2);
+  if (!layout.groups.length) delete layout.groups;
 }
 
 const freeBoxId = () => {
@@ -2082,8 +2179,16 @@ async function duplicateSel(d) {
   };
   if (!selIds.size) return;
   pushHistory();
+  const wasGroup = selGroups().length === 1 && selGroups()[0].length === selIds.size
+    && selGroups()[0].every(id => selIds.has(id));
   [...selIds].forEach(dup);
   if (!copies.length) { past.pop(); return; }
+  // Duplicating a whole group hands back a group — the copy stays together,
+  // as Canva's does.
+  if (wasGroup && copies.length > 1) {
+    layout.groups = layout.groups || [];
+    layout.groups.push(copies);
+  }
   setSel(d, copies);                       // the copies become the selection
   markDirty();
   await render();
@@ -2102,6 +2207,42 @@ function toggleLockSel(d) {
   paintSel(d);
   $('stat').textContent = locked ? 'unlocked' : 'locked — drag is off until unlocked';
 }
+
+// ------------------------------------------------------------------ groups
+// A group ties elements together so a click on one moves them all. It is a
+// list in layout.json and nothing more — the renderer never sees it. Grouping
+// pulls any members already in OTHER groups out of those first (an element
+// belongs to one group), and drops groups the merge empties.
+function groupSel(d) {
+  const ids = [...selIds];
+  if (ids.length < 2) return;
+  pushHistory();
+  const set = new Set(ids);
+  layout.groups = (layout.groups || [])
+    .map(g => g.filter(m => !set.has(m)))
+    .filter(g => g.length >= 2);
+  layout.groups.push(ids);
+  markDirty();
+  paintSel(d);
+  $('stat').textContent = `grouped ${ids.length} elements — they move as one`;
+}
+
+function ungroupSel(d) {
+  const gs = selGroups();
+  if (!gs.length) return;
+  pushHistory();
+  layout.groups = (layout.groups || []).filter(g => !gs.includes(g));
+  if (!layout.groups.length) delete layout.groups;
+  markDirty();
+  paintSel(d);
+  $('stat').textContent = 'ungrouped';
+}
+// Group when 2+ are selected and they are not already one whole group;
+// ungroup when the selection is (or holds) a group.
+const canGroup = () => selIds.size >= 2 &&
+  !(selGroups().length === 1 && selGroups()[0].length === selIds.size
+    && selGroups()[0].every(id => selIds.has(id)));
+const canUngroup = () => selGroups().length > 0;
 
 let lastNudge = 0;
 function nudgeSel(d, d4) {
@@ -2165,13 +2306,16 @@ function marquee(d, pg, e0) {
     if (!r || (r.w < 0.05 && r.h < 0.05)) { clearSel(d); return; }
     const hit = [];
     pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+      if (el.parentElement && el.parentElement.closest('[data-el]')) return;
       const b = inchBox(el, pg);
       if ((b.w || b.h) && b.x < r.x + r.w && b.x + b.w > r.x
           && b.y < r.y + r.h && b.y + b.h > r.y)
         hit.push(idOf(el));
     });
-    setSel(d, hit);
-    $('stat').textContent = hit.length ? `${hit.length} selected` : '';
+    // A group is all-or-nothing: touch one member, take them all.
+    const all = withGroups(hit);
+    setSel(d, all);
+    $('stat').textContent = all.length ? `${all.length} selected` : '';
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
@@ -2190,6 +2334,9 @@ function keysFor(d) {
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
       e.preventDefault(); duplicateSel(d); return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
+      e.preventDefault(); e.shiftKey ? ungroupSel(d) : groupSel(d); return;
     }
     if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) {
       e.preventDefault(); layerStep(d, e.key === ']' ? 1 : -1, e.altKey); return;
@@ -2661,6 +2808,8 @@ $('ar-back').addEventListener('click', () => layerStep($('out').contentDocument,
 $('ar-dup').addEventListener('click', () => duplicateSel($('out').contentDocument));
 $('ar-del').addEventListener('click', () => deleteSel($('out').contentDocument));
 $('ar-lock').addEventListener('click', () => toggleLockSel($('out').contentDocument));
+$('ar-group').addEventListener('click', () => groupSel($('out').contentDocument));
+$('ar-ungroup').addEventListener('click', () => ungroupSel($('out').contentDocument));
 $('ar-dh').addEventListener('click', () => distributeSel($('out').contentDocument, 'h'));
 $('ar-dv').addEventListener('click', () => distributeSel($('out').contentDocument, 'v'));
 document.querySelectorAll('.ar-al').forEach(b => b.addEventListener('click', () =>
@@ -2780,6 +2929,10 @@ function dragify(d) {
     // is part of that object, not a second one; the outer element owns every
     // gesture. Binding the inner one would let a drag pull a callout apart.
     if (el.parentElement && el.parentElement.closest('[data-el]')) return;
+    // A locked element wears its state: a padlock and a muted ring, and the
+    // grab cursor gives way. It still SELECTS (so it can be unlocked) but the
+    // drag refuses.
+    el.classList.toggle('ds-locked', isLocked(idOf(el)));
     // Reachable without a mouse: focus it, Space to pick up, arrows to move.
     el.setAttribute('tabindex', '0');
     el.addEventListener('mousedown', e => {
@@ -2793,18 +2946,13 @@ function dragify(d) {
       e.preventDefault();
       e.stopPropagation();
       const id = idOf(el);
-      // Shift toggles membership and nothing moves — building a selection
-      // should never scatter it.
-      if (e.shiftKey) {
-        selIds.has(id) ? selIds.delete(id) : selIds.add(id);
-        paintSel(d);
-        return;
-      }
-      // Clicking outside the selection replaces it; clicking inside keeps it,
-      // so the drag that follows moves the whole group.
-      if (!selIds.has(id)) setSel(d, [id]);
-      if (isLocked(id)) {
-        $('stat').textContent = `${id} is locked — unlock it to move it`;
+      // One place decides the selection — group expansion, shift, alt — so
+      // this and the hit-test can never disagree.
+      const selected = selectClick(d, id, e);
+      if (e.shiftKey || !selected) return;   // shift builds a set, nothing moves
+      // A drag moves the whole selection; if any of it is locked, none moves.
+      if ([...selIds].some(isLocked)) {
+        $('stat').textContent = `${[...selIds].filter(isLocked)[0]} is locked — unlock it to move it`;
         return;
       }
       startDrag(d, el, e);
@@ -3159,6 +3307,10 @@ addEventListener('keydown', e => {
     e.preventDefault();
     duplicateSel($('out').contentDocument);
   }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
+    e.preventDefault();
+    e.shiftKey ? ungroupSel($('out').contentDocument) : groupSel($('out').contentDocument);
+  }
   if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) {
     e.preventDefault();
     layerStep($('out').contentDocument, e.key === ']' ? 1 : -1, e.altKey);
@@ -3311,15 +3463,10 @@ function wire() {
       e.preventDefault();
       const hit = hitPlaced(d, pg, e);
       if (hit) {
-        const id = idOf(hit);
-        if (e.shiftKey) {
-          selIds.has(id) ? selIds.delete(id) : selIds.add(id);
-          paintSel(d);
-          return;
-        }
-        if (!selIds.has(id)) setSel(d, [id]);
-        if (isLocked(id)) {
-          $('stat').textContent = `${id} is locked — unlock it to move it`;
+        const selected = selectClick(d, idOf(hit), e);
+        if (e.shiftKey || !selected) return;
+        if ([...selIds].some(isLocked)) {
+          $('stat').textContent = `${[...selIds].filter(isLocked)[0]} is locked — unlock it to move it`;
           return;
         }
         startDrag(d, hit, e);
@@ -3377,9 +3524,19 @@ function wire() {
        repainting the stroke it actually owns */
     svg.shape-layer .ds-sel { outline:none;
        filter:drop-shadow(0 0 .02in #6B9E78) drop-shadow(0 0 .01in #6B9E78); }
+    /* A whole group selected reads as one object: a softer, dashed shared ring
+       instead of N hard outlines. */
+    .ds-grouped { outline:1.5px dashed #52796F !important; outline-offset:3px; }
     .ds-marquee { position:absolute; z-index:9998; pointer-events:none;
        border:1.5px dashed #6B9E78; background:rgba(107,158,120,.08);
        border-radius:2px; }
+    /* Locked: a steady muted ring so you can SEE what is fixed, and the grab
+       cursor gives way. Independent of how the element is positioned, so it is
+       safe on a still-in-flow designed element as much as a placed one. */
+    [data-el].ds-locked, [data-shape].ds-locked { cursor:default; }
+    [data-el].ds-locked:not(.ds-sel) {
+       outline:1px dashed rgba(120,134,128,.55); outline-offset:2px; }
+    .ds-locked.ds-sel { outline:2px solid #8A9691 !important; }
     /* Lifted: it should read as picked up off the page, not just outlined —
        elevation and a hair of scale do that faster than any border. */
     .ds-lifted { box-shadow:0 12px 32px rgba(47,62,70,.28) !important;
