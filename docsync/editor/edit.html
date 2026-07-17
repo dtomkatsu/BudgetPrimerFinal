@@ -1041,7 +1041,15 @@ function contextify(d) {
     el.addEventListener('contextmenu', e => {
       e.preventDefault();
       e.stopPropagation();
-      layerMenu(d, el, e);
+      // A right-click that reached the page SECTION may really mean a placed
+      // element the DOM hid from it (see hitPlaced) — that element's menu, not
+      // the page's. Table rows keep their own: a box UNDER a table is unseen.
+      let target = el;
+      if (el.tagName === 'SECTION') {
+        const hit = hitPlaced(d, el, e);
+        if (hit) target = hit;
+      }
+      layerMenu(d, target, e);
     });
   });
   d.addEventListener('mousedown', e => {
@@ -2015,6 +2023,26 @@ function nudgeSel(d, d4) {
   });
   clearGuides(d);
   paintSel(d);
+}
+
+/** The placed element under a point, topmost first — by GEOMETRY, not by DOM
+ *  hit-testing. The DOM lies here: a transparent container (the cover's inner
+ *  wrapper) or a paragraph above a z:-1 shape swallows the mousedown, and the
+ *  thing you can plainly SEE never hears it. Ties go to the later element,
+ *  which is the one painted on top. */
+function hitPlaced(d, pg, e) {
+  const px = DPI * zoomOf(pg);
+  const pr = pg.getBoundingClientRect();
+  const x = (e.clientX - pr.left) / px, y = (e.clientY - pr.top) / px;
+  let best = null, bestZ = -Infinity;
+  pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+    const b = inchBox(el, pg);
+    if (!b.w && !b.h) return;
+    if (x < b.x || x > b.x + b.w || y < b.y || y > b.y + b.h) return;
+    const z = zOf(idOf(el));
+    if (z >= bestZ) { bestZ = z; best = el; }
+  });
+  return best;
 }
 
 /** Rubber-band select: drag on empty page. A click that never travels is a
@@ -3002,13 +3030,47 @@ function wire() {
   railRender();
   drawGuideLayer(d);           // guides are editor-drawn, so redraw each render
   // Empty page is the marquee's surface; a travel-less marquee is click-away.
+  // But "empty" is the DOM's opinion, not the eye's: a transparent container
+  // above a text box, or prose above a z:-1 shape, swallows the mousedown for
+  // a thing you can plainly see. So before the marquee gets it, the click is
+  // hit-tested against the placed elements by geometry, and the topmost one
+  // under the point takes the gesture — select and drag, like any direct hit.
   d.querySelectorAll('section.page').forEach(pg => {
     pg.addEventListener('mousedown', e => {
       if (e.button !== 0 || editing) return;
       if (e.target.closest('[data-el], [data-shape], [data-slot], a, button, input, '
-        + 'select, textarea, summary, img, .ds-menu, .ds-handles, .ds-edit')) return;
+        + 'select, textarea, summary, img, .ds-menu, .ds-handles, .ds-edit, '
+        + '.ds-gd, .ds-rule')) return;
       e.preventDefault();
+      const hit = hitPlaced(d, pg, e);
+      if (hit) {
+        const id = idOf(hit);
+        if (e.shiftKey) {
+          selIds.has(id) ? selIds.delete(id) : selIds.add(id);
+          paintSel(d);
+          return;
+        }
+        if (!selIds.has(id)) setSel(d, [id]);
+        if (isLocked(id)) {
+          $('stat').textContent = `${id} is locked — unlock it to move it`;
+          return;
+        }
+        startDrag(d, hit, e);
+        return;
+      }
       marquee(d, pg, e);
+    });
+    // Double-click routes the same way: a covered text box still opens for
+    // writing, a covered image still opens its crop.
+    pg.addEventListener('dblclick', e => {
+      if (editing) return;
+      if (e.target.closest('[data-el], [data-shape], [data-slot], a, button, input, '
+        + 'select, textarea, .ds-edit')) return;
+      const hit = hitPlaced(d, pg, e);
+      if (!hit) return;
+      e.preventDefault();
+      if ((hit.dataset.el || '').startsWith('text.')) editBox(d, hit);
+      else if (hit.tagName === 'IMG' || hit.classList.contains('ds-cropw')) cropMode(d, hit);
     });
   });
   const css = d.createElement('style');
