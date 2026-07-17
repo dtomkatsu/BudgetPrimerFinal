@@ -73,9 +73,94 @@ async function get(u) {
 // content.md is [[key]] lines followed by their text. Reading and rewriting a
 // single slot is all the editor needs, so it works on the raw string and
 // leaves every byte it did not touch exactly as it was.
-const slotRe = k => new RegExp(`(^\\[\\[${k.replace(/\./g, '\\.')}\\]\\]\\n)([\\s\\S]*?)(?=\\n\\[\\[|$)`, 'm');
+//
+// No 'm' flag, deliberately: under it '$' means end-of-LINE, which ended every
+// slot at its first line. Multi-line slots — the sources list, a two-paragraph
+// block — would open truncated and save the rest into oblivion. Here '$' means
+// end of input, and the marker is anchored by hand.
+const rxEsc = k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const slotRe = k => new RegExp(`((?:^|\\n)\\[\\[${rxEsc(k)}\\]\\]\\n)([\\s\\S]*?)(?=\\n\\[\\[|$)`);
 const readSlot  = k => (source.match(slotRe(k)) || [,,''])[2].trim();
 const writeSlot = (k, v) => { source = source.replace(slotRe(k), (m, head) => head + v.trim() + '\n'); };
+
+/**
+ * Link and cite, acting on the open editor's selection.
+ *
+ * mousedown is cancelled on the whole bar: a click would otherwise blur the
+ * editor first, which commits and re-renders, so the button would act on an
+ * element that no longer exists.
+ */
+function buildTools(d, ta, key) {
+  const bar = d.createElement('div');
+  bar.className = 'ds-tools';
+  bar.addEventListener('mousedown', e => e.preventDefault());
+
+  const btn = (label, title, fn) => {
+    const b = d.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.title = title;
+    b.addEventListener('click', fn);
+    bar.appendChild(b);
+    return b;
+  };
+
+  btn('Link', 'Wrap the selection in a link (\u2318K)', () => link(d, ta));
+  btn('Cite', 'Insert a footnote reference', () => cite(d, ta, bar));
+  btn('Bold', 'Wrap the selection in **bold**', () => spliceAt(ta, '**', '**'));
+  btn('Italic', 'Wrap the selection in *italic*', () => spliceAt(ta, '*', '*'));
+
+  const note = d.createElement('span');
+  note.className = 'ds-tools-key';
+  note.textContent = key;
+  bar.appendChild(note);
+  return bar;
+}
+
+function link(d, ta) {
+  const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+  const url = d.defaultView.prompt('Link URL', 'https://');
+  if (!url) return;
+  if (sel) spliceAt(ta, '[', `](${url})`);
+  else spliceAt(ta, `[link text](${url})`);
+}
+
+/** Cite an existing source, or add one and cite it. */
+function cite(d, ta, bar) {
+  const old = bar.querySelector('.ds-cite');
+  if (old) { old.remove(); return; }
+
+  const panel = d.createElement('div');
+  panel.className = 'ds-cite';
+  const sel = d.createElement('select');
+  sel.innerHTML = '<option value="">— cite an existing source —</option>'
+    + sourceIds().map(id => `<option value="${id}">[${id}] ${
+        (sourceText(id) || '').slice(0, 60)}</option>`).join('')
+    + '<option value="__new">+ new source…</option>';
+  sel.addEventListener('mousedown', e => e.stopPropagation());  // let it open
+  sel.addEventListener('change', () => {
+    const v = sel.value;
+    if (!v) return;
+    if (v === '__new') {
+      const w = d.defaultView;
+      const id = (w.prompt('Short id for the source (e.g. act99, itep-whopays)') || '').trim();
+      if (!id) return;
+      if (sourceIds().includes(id)) { w.alert(`[${id}] already exists — pick it from the list.`); return; }
+      const text = (w.prompt('Citation text, e.g. "Act 99," State of Hawai\u02bbi, 2026.') || '').trim();
+      if (!text) return;
+      const url = (w.prompt('Source URL', 'https://') || '').trim();
+      if (!url) return;
+      addSource(id, text, url);
+      spliceAt(ta, `[^${id}]`);
+    } else {
+      spliceAt(ta, `[^${v}]`);
+    }
+    panel.remove();
+  });
+  panel.appendChild(sel);
+  bar.appendChild(panel);
+  sel.focus();
+}
 
 async function boot() {
   const [pyodide, ...files] = await Promise.all([loadPyodide(), ...FILES.map(f => get(RAW + f))]);
@@ -132,7 +217,15 @@ function wire() {
                background:#fff; resize:vertical; }
     .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }
     .ds-inline { display:inline-block; width:auto; min-width:8ch; padding:1px 5px;
-                 font:inherit; color:inherit; line-height:inherit; vertical-align:baseline; }`;
+                 font:inherit; color:inherit; line-height:inherit; vertical-align:baseline; }
+    .ds-tools { display:flex; gap:5px; align-items:center; flex-wrap:wrap;
+                margin:5px 0 0; font:11px system-ui; }
+    .ds-tools button { font:11px system-ui; padding:3px 9px; border:1px solid #B9C9BE;
+                       background:#fff; color:#2F3E46; border-radius:4px; cursor:pointer; }
+    .ds-tools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
+    .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
+    .ds-cite { flex-basis:100%; margin-top:4px; }
+    .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -144,7 +237,30 @@ function wire() {
   });
 }
 
+// The [[sources]] slot is the citation list: "[id]: text — url" per line. A
+// footnote is a [^id] ref in prose; the renderer numbers them by first
+// appearance, so inserting one never renumbers anything by hand.
+const sourceIds = () => [...readSlot('sources').matchAll(/^\[([^\]]+)\]:/gm)].map(m => m[1]);
+const sourceText = id => (readSlot('sources').match(
+  new RegExp(`^\\[${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]:\\s*(.*)$`, 'm')) || [,''])[1];
+
+function addSource(id, text, url) {
+  const line = `[${id}]: ${text} — ${url}`;
+  writeSlot('sources', readSlot('sources') + '\n' + line);
+}
+
+function spliceAt(el, before, after = '') {
+  const s = el.selectionStart ?? el.value.length;
+  const e = el.selectionEnd ?? el.value.length;
+  const sel = el.value.slice(s, e);
+  el.value = el.value.slice(0, s) + before + sel + after + el.value.slice(e);
+  const caret = s + before.length + sel.length + after.length;
+  el.setSelectionRange(caret, caret);
+  el.focus();
+}
+
 function edit(d, key) {
+
   const blocks = [...d.querySelectorAll(`[data-slot="${key}"]`)];
   if (!blocks.length || editing) return;
   editing = true;
@@ -163,8 +279,11 @@ function edit(d, key) {
                      + `Click away to render, Esc to cancel.`;
   }
 
+  const tools = buildTools(d, ta, key);
+
   blocks[0].replaceWith(ta);
-  if (hint) ta.after(hint);
+  ta.after(tools);
+  if (hint) tools.after(hint);
   blocks.slice(1).forEach(b => b.remove());
   // Size to the text only once layout has settled: measured any earlier the
   // box is still zero-width, so the content "wraps" into thousands of pixels.
@@ -183,6 +302,7 @@ function edit(d, key) {
     if (ta.dataset.done) return;
     ta.dataset.done = '1';
     editing = false;
+    tools.remove();
     if (keep && ta.value.trim() !== readSlot(key)) {
       writeSlot(key, ta.value);
       dirty = source !== original;
@@ -195,6 +315,7 @@ function edit(d, key) {
   ta.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, ta); }
   });
 }
 
