@@ -233,7 +233,7 @@ else:
 # blank canvas: the renderer's design is the default, data only overrides it.
 # With nothing overridden the published HTML must be untouched.
 import json, tempfile                                          # noqa: E402
-from docsync.layout import Layout, LayoutError                 # noqa: E402
+from docsync.layout import Layout, LayoutError, shadow_css     # noqa: E402
 
 
 def _layout(d):
@@ -560,6 +560,42 @@ check("a box colour that is not a colour is caught",
       _layout_error({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3,
                                 "md": "note", "fill": "teal"}]}),
       "not a hex colour")
+
+# ------------------------------------------------- rotation, opacity, shadow
+rotp = _layout({"positions": {"c.o": {"x": 1, "y": 2, "rot": 15, "alpha": 0.8}}})
+check("a rotated element turns in place", rotp.attr("c.o"), "transform:rotate(15deg)")
+check("a faded element carries its opacity", rotp.attr("c.o"), "opacity:0.8")
+rots = _layout({"shapes": [{"id": "a", "page": 1, "kind": "rect", "x": 1, "y": 1,
+                            "w": 2, "h": 1, "rot": 30, "alpha": 0.5,
+                            "shadow": {"offset": 0.05, "blur": 0.08}}]})
+check("a shape rotates about its own centre", rots.layer(1), 'transform="rotate(30 2.0 1.5)"')
+check("shape opacity is an attribute", rots.layer(1), 'opacity="0.5"')
+check("a shape shadow is a drop-shadow filter", rots.layer(1), "drop-shadow(")
+rotb = _layout({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3, "md": "hi",
+                           "rot": -10, "shadow": {"blur": 0.1, "alpha": 0.5}}]})
+check("a box shadow is box-shadow", rotb.text_boxes(3), "box-shadow:")
+check("a box rotates too", rotb.text_boxes(3), "rotate(-10deg)")
+check("an opacity above one is caught",
+      _layout_error({"positions": {"c.o": {"x": 1, "y": 2, "alpha": 1.5}}}),
+      "not a fraction")
+check("a shadow that is not an object is caught",
+      _layout_error({"boxes": [{"id": "t1", "page": 3, "x": 1, "y": 2, "w": 3,
+                                "md": "hi", "shadow": "big"}]}),
+      "expected a shadow object")
+
+# Rotation swings corners past edges the unrotated frame never reached: a
+# 4x1in shape at 45° stands ~1.77in proud of its own top edge.
+spin = _layout({"shapes": [{"id": "a", "page": 1, "kind": "rect",
+                            "x": 2, "y": 0.2, "w": 4, "h": 1, "rot": 45}]})
+check("a rotated shape is judged by its rotated box",
+      " ".join(spin.check_bounds()), "swings past")
+flat = _layout({"shapes": [{"id": "a", "page": 1, "kind": "rect",
+                            "x": 2, "y": 0.2, "w": 4, "h": 1}]})
+check_eq("unrotated, the same shape is fine", flat.check_bounds(), [])
+check_eq("shadow_css is inches and rgba",
+         shadow_css({"offset": 0.1, "direction": 90, "blur": 0.05,
+                     "alpha": 0.4, "color": "#2F3E46"}),
+         "0.1in -0.0in 0.05in rgba(47,62,70,0.4)")
 
 # The lock list is an editor affordance the renderer never reads — but a
 # malformed one must still fail at load, not quietly stop locking anything.

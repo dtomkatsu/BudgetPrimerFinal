@@ -166,8 +166,12 @@
   #zoom button.on { background:var(--sage); border-color:var(--sage); color:#fff;
         position:relative; z-index:1; }
   .ar-count { font:11.5px ui-monospace,monospace; color:var(--dim);
-        background:rgba(255,255,255,.07); padding:3px 9px; border-radius:99px; }
+        background:rgba(255,255,255,.07); padding:3px 9px; border-radius:99px;
+        max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .ar-lab { font:11px system-ui; color:var(--dim); margin-left:2px; }
+  .ar-pos { display:inline-flex; align-items:center; gap:4px;
+        font:11.5px system-ui; color:var(--dim); }
+  .ar-pos input { width:58px !important; }
 </style>
 </head>
 <body>
@@ -309,6 +313,12 @@
   <button id="ar-del" title="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
+  <span class="ty-sep" id="ar-possep"></span>
+  <label class="ar-pos" title="Left edge, inches">X<input id="ar-x" type="number" step="0.01"></label>
+  <label class="ar-pos" title="Top edge, inches">Y<input id="ar-y" type="number" step="0.01"></label>
+  <label class="ar-pos" title="Width, inches">W<input id="ar-w" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Height, inches" id="ar-hwrap">H<input id="ar-h" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
   <span class="ar-lab" id="ar-hint"></span>
 </div>
 <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
@@ -651,6 +661,75 @@ function layerMenu(d, el, e) {
       markDirty();
       paintSel(d);
     });
+    // Opacity, live while sliding, committed through the renderer on release.
+    const orow = d.createElement('label');
+    orow.className = 'ds-menu-slider';
+    orow.textContent = 'opacity';
+    const oin = d.createElement('input');
+    oin.type = 'range'; oin.min = '0.1'; oin.max = '1'; oin.step = '0.05';
+    oin.value = (storeOf(id) || {}).alpha ?? 1;
+    oin.addEventListener('pointerdown', () => pushHistory());
+    oin.addEventListener('input', () => {
+      const st = ensureStore(d, el);
+      const v = +oin.value;
+      if (v >= 0.999) delete st.alpha; else st.alpha = v;
+      if (el.dataset.shape) {
+        v >= 0.999 ? el.removeAttribute('opacity') : el.setAttribute('opacity', v);
+      } else {
+        el.style.opacity = v >= 0.999 ? '' : v;
+      }
+    });
+    oin.addEventListener('change', async () => {
+      markDirty(); closeMenu(d); await render();
+    });
+    orow.appendChild(oin);
+    m.appendChild(orow);
+  }
+  // Shadows belong to the things that own their whole silhouette — shapes and
+  // text boxes. A designed card's edge is the design's business.
+  const shOwner = layout.shapes.find(s => s.id === id) || boxOf(id);
+  if (shOwner) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    if (!shOwner.shadow) {
+      item('Add shadow', async () => {
+        pushHistory();
+        shOwner.shadow = { offset: 0.05, direction: 135, blur: 0.08, alpha: 0.35 };
+        markDirty(); await render();
+      });
+    } else {
+      const slide = (label, min, max, step, key) => {
+        const w = d.createElement('label');
+        w.className = 'ds-menu-slider';
+        w.textContent = label;
+        const r = d.createElement('input');
+        r.type = 'range'; r.min = min; r.max = max; r.step = step;
+        r.value = shOwner.shadow[key] ?? { offset: 0.05, blur: 0.08, alpha: 0.35,
+                                           direction: 135 }[key];
+        r.addEventListener('pointerdown', () => pushHistory());
+        r.addEventListener('input', () => {
+          shOwner.shadow[key] = +r.value;
+          paintShadow(d, el);
+        });
+        r.addEventListener('change', async () => {
+          markDirty(); closeMenu(d); await render();
+        });
+        w.appendChild(r);
+        m.appendChild(w);
+      };
+      const h2 = d.createElement('div');
+      h2.className = 'ds-menu-head';
+      h2.textContent = 'shadow';
+      m.appendChild(h2);
+      slide('offset', 0, 0.3, 0.01, 'offset');
+      slide('angle', 0, 360, 15, 'direction');
+      slide('blur', 0, 0.3, 0.01, 'blur');
+      slide('depth', 0, 1, 0.05, 'alpha');
+      item('Remove shadow', async () => {
+        pushHistory();
+        delete shOwner.shadow;
+        markDirty(); await render();
+      });
+    }
   }
   if (layout.shapes.some(s => s.id === id)) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
@@ -722,6 +801,14 @@ function showHandles(d, page, el) {
     });
     ov.appendChild(h);
   });
+  const rg = d.createElement('div');
+  rg.className = 'ds-h ds-rot';
+  rg.title = 'Drag to rotate — snaps to the compass, Shift for free angles';
+  rg.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    startRotate(d, el, e);
+  });
+  ov.appendChild(rg);
   ov.dataset.for = el.dataset.shape || el.dataset.el;
   page.appendChild(ov);
 }
@@ -782,6 +869,95 @@ function startResize(d, el, e0, dir) {
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
+}
+
+// ------------------------------------------------------------ rotate & style
+/** The store that carries an element's rot/alpha/shadow. Shapes and boxes
+ *  have their own objects; a designed element must be pinned into positions{}
+ *  first — rotating or fading a thing IS placing it. */
+function ensureStore(d, el) {
+  const id = idOf(el);
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) return sh;
+  const b = boxOf(id);
+  if (b) return b;
+  if (!layout.positions[id]) {
+    const page = el.closest('section.page') || d.querySelector('section.page');
+    const P = placer(d, el, page);
+    P.commit(P.put(P.box.x, P.box.y, false));
+  }
+  return layout.positions[id];
+}
+const storeOf = id => layout.shapes.find(s => s.id === id) || boxOf(id)
+                    || layout.positions[id];
+
+/** Paint a store's rotation onto the live node — the same declaration the
+ *  renderer will emit, so the drag and the committed page cannot disagree. */
+function paintRot(d, el) {
+  const id = idOf(el);
+  const st = storeOf(id) || {};
+  if (el.dataset.shape) {
+    const s = st;
+    if (st.rot) el.setAttribute('transform',
+      `rotate(${st.rot} ${+(s.x + s.w / 2).toFixed(4)} ${+(s.y + s.h / 2).toFixed(4)})`);
+    else el.removeAttribute('transform');
+  } else {
+    el.style.transform = st.rot ? `rotate(${st.rot}deg)` : '';
+  }
+}
+
+function startRotate(d, el, e0) {
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  pushHistory();
+  const st = ensureStore(d, el);
+  const id = idOf(el);
+  const b = inchBox(el, page);           // rotation preserves the centre
+  const pr = page.getBoundingClientRect();
+  const px = DPI * zoomOf(page);
+  const cx = pr.left + (b.x + b.w / 2) * px;
+  const cy = pr.top + (b.y + b.h / 2) * px;
+  const start = st.rot || 0;
+  const a0 = Math.atan2(e0.clientY - cy, e0.clientX - cx);
+  hideHandles(d);
+  const move = e => {
+    let deg = start + (Math.atan2(e.clientY - cy, e.clientX - cx) - a0) * 180 / Math.PI;
+    if (!e.shiftKey) {
+      const near = Math.round(deg / 45) * 45;   // the compass pulls
+      if (Math.abs(deg - near) < 6) deg = near;
+    }
+    deg = ((Math.round(deg * 10) / 10) % 360 + 360) % 360;
+    if (deg > 180) deg -= 360;
+    if (deg) st.rot = deg; else delete st.rot;
+    paintRot(d, el);
+    $('stat').textContent = `${id} → ${deg}°`;
+  };
+  const up = () => {
+    d.removeEventListener('mousemove', move);
+    d.removeEventListener('mouseup', up);
+    markDirty();
+    paintSel(d);
+  };
+  d.addEventListener('mousemove', move);
+  d.addEventListener('mouseup', up);
+}
+
+/** The CSS a shadow means, asked of the engine — same rule as cssFor: a
+ *  JavaScript twin of shadow_css would drift from it silently and forever. */
+function shadowCssFor(sh, forShape) {
+  py.globals.set('SH_JSON', JSON.stringify(sh || {}));
+  return py.runPython(
+    'import json\nfrom docsync.layout import shadow_css, shape_shadow_css\n'
+    + (forShape ? 'shape_shadow_css' : 'shadow_css') + '(json.loads(SH_JSON))');
+}
+
+function paintShadow(d, el) {
+  const st = storeOf(idOf(el)) || {};
+  if (el.dataset.shape) {
+    if (st.shadow) el.setAttribute('style', shadowCssFor(st.shadow, true));
+    else el.removeAttribute('style');
+  } else {
+    el.style.boxShadow = st.shadow ? shadowCssFor(st.shadow, false) : '';
+  }
 }
 
 // -------------------------------------------------------------------- fit
@@ -1231,12 +1407,12 @@ function paintSel(d) {
     const page = els[0].closest('section.page') || d.querySelector('section.page');
     showHandles(d, page, els[0]);
   }
-  arrangeBar();
+  arrangeBar(d);
 }
 const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
 const clearSel = d => { selIds.clear(); paintSel(d); };
 
-function arrangeBar() {
+function arrangeBar(d) {
   const n = selIds.size;
   $('arrange').hidden = n === 0;
   if (!n) return;
@@ -1247,7 +1423,63 @@ function arrangeBar() {
   const locked = [...selIds].every(isLocked);
   $('ar-lock').classList.toggle('on', locked);
   $('ar-lock').title = locked ? 'Unlock' : 'Lock — a locked element cannot be dragged';
+  // The numbers panel: one element, typed placement in inches.
+  const one = n === 1 && d ? selEls(d)[0] : null;
+  document.querySelectorAll('.ar-pos, #ar-possep').forEach(x => { x.hidden = !one; });
+  if (!one) return;
+  const page = one.closest('section.page') || d.querySelector('section.page');
+  const b = inchBox(one, page);
+  const st = storeOf(idOf(one)) || {};
+  $('ar-x').value = (st.x ?? b.x).toFixed(2);
+  $('ar-y').value = (st.y ?? b.y).toFixed(2);
+  $('ar-w').value = (st.w ?? b.w).toFixed(2);
+  const hasH = !!one.dataset.shape || st.h != null;
+  $('ar-hwrap').hidden = !hasH;
+  if (hasH) $('ar-h').value = (st.h ?? b.h).toFixed(2);
+  $('ar-rot').value = st.rot ?? 0;
 }
+
+/** Typed placement goes through the same placer a drag uses — one rule for
+ *  what a coordinate means, whichever finger set it. */
+const arField = (fid, apply) => $(fid).addEventListener('change', async () => {
+  const d = $('out').contentDocument;
+  const els = selEls(d);
+  if (els.length !== 1) return;
+  const el = els[0];
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  const v = parseFloat($(fid).value);
+  if (isNaN(v)) return;
+  pushHistory();
+  apply(d, el, page, v);
+  clearGuides(d);
+  markDirty();
+  paintSel(d);
+});
+arField('ar-x', (d, el, page, v) => {
+  const P = placer(d, el, page); P.commit(P.put(v, P.box.y, false));
+});
+arField('ar-y', (d, el, page, v) => {
+  const P = placer(d, el, page); P.commit(P.put(P.box.x, v, false));
+});
+arField('ar-w', (d, el, page, v) => {
+  const id = idOf(el);
+  const sh = layout.shapes.find(s => s.id === id);
+  const b = boxOf(id);
+  if (sh) { sh.w = v; paintShape(d, id); }
+  else if (b) { b.w = v; el.style.width = v + 'in'; }
+  else { ensureStore(d, el).w = v; el.style.width = v + 'in'; }
+});
+arField('ar-h', (d, el, page, v) => {
+  const id = idOf(el);
+  const sh = layout.shapes.find(s => s.id === id);
+  if (sh) { sh.h = v; paintShape(d, id); }
+  else { ensureStore(d, el).h = v; el.style.height = v + 'in'; }
+});
+arField('ar-rot', (d, el, page, v) => {
+  const st = ensureStore(d, el);
+  if (v) st.rot = v; else delete st.rot;
+  paintRot(d, el);
+});
 
 /** Members of the selection on one page — cross-page alignment has no
  *  meaning, so operations quietly act on the first element's page. */
@@ -1928,18 +2160,24 @@ function keyDrag(d, el, e) {
   picked.at = picked.P.put(picked.at.x + d4[0], picked.at.y + d4[1], false);
 }
 
-/** Live-move a shape without a full re-render, so dragging stays smooth. */
+/** Live-paint a shape's full geometry without a re-render, so drags and
+ *  resizes stay smooth. All of it, not just x/y: a resized rect that does not
+ *  grow until the next render looks like a resize that did not take. */
 function paintShape(d, id) {
   const sh = layout.shapes.find(s => s.id === id);
   const node = d.querySelector(`[data-shape="${id}"]`);
   if (!sh || !node) return;
-  if (sh.kind === 'rect') { node.setAttribute('x', sh.x); node.setAttribute('y', sh.y); }
-  else if (sh.kind === 'ellipse') {
+  if (sh.kind === 'rect') {
+    node.setAttribute('x', sh.x); node.setAttribute('y', sh.y);
+    node.setAttribute('width', sh.w); node.setAttribute('height', sh.h);
+  } else if (sh.kind === 'ellipse') {
     node.setAttribute('cx', sh.x + sh.w / 2); node.setAttribute('cy', sh.y + sh.h / 2);
+    node.setAttribute('rx', sh.w / 2); node.setAttribute('ry', sh.h / 2);
   } else {
     node.setAttribute('x1', sh.x); node.setAttribute('y1', sh.y);
     node.setAttribute('x2', sh.x + sh.w); node.setAttribute('y2', sh.y + sh.h);
   }
+  if (sh.rot) paintRot(d, node);         // the pivot moved with the box
 }
 
 function markDirty() {
@@ -2186,6 +2424,11 @@ function wire() {
     .ds-h-e { right:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
     .ds-h-s { bottom:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
     .ds-h-se { right:-4px; bottom:-4px; width:9px; height:9px; cursor:nwse-resize; }
+    /* the rotate grip hangs above the box on a short stem, Canva's own spot */
+    .ds-rot { top:-20px; left:50%; width:11px; height:11px; margin-left:-6px;
+              border-radius:50%; cursor:grab; }
+    .ds-rot::after { content:""; position:absolute; left:50%; top:100%; width:1px;
+              height:8px; background:#6B9E78; }
     body.ds-resizing, body.ds-resizing * { cursor:inherit !important; }
     .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
                border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
@@ -2197,6 +2440,9 @@ function wire() {
                       color:#2F3E46; }
     .ds-menu button:hover:not(:disabled) { background:#6B9E78; color:#fff; }
     .ds-menu button:disabled { color:#B4BFB7; cursor:default; }
+    .ds-menu-slider { display:flex; align-items:center; gap:7px; font:11px system-ui;
+             color:#5B6E66; padding:3px 8px; }
+    .ds-menu-slider input[type=range] { flex:1; accent-color:#6B9E78; min-width:110px; }
     .ds-swatches { display:flex; flex-wrap:wrap; gap:4px; padding:2px 8px 6px; }
     .ds-sw { width:20px; height:20px; padding:0; border:1px solid rgba(0,0,0,.18);
              border-radius:4px; cursor:pointer; }

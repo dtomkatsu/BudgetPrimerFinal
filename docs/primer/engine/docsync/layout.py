@@ -295,6 +295,51 @@ def _num(v, where: str) -> float:
         raise LayoutError(f"{where}: {v!r} is not a number")
 
 
+def _alpha(v, where: str) -> float:
+    a = _num(v, where)
+    if not 0 <= a <= 1:
+        raise LayoutError(f"{where}: {v} is not a fraction between 0 and 1")
+    return a
+
+
+def _check_shadow(sh, where: str) -> None:
+    if not isinstance(sh, dict):
+        raise LayoutError(f"{where}: expected a shadow object")
+    for k in ("offset", "direction", "blur"):
+        if sh.get(k) is not None:
+            _num(sh[k], f"{where}.{k}")
+    if sh.get("alpha") is not None:
+        _alpha(sh["alpha"], f"{where}.alpha")
+    if sh.get("color"):
+        _hex(sh["color"], f"{where}.color")
+
+
+def shadow_css(sh: dict) -> str:
+    """An element shadow -> its box-shadow value. Inches, not em: a box's
+    shadow belongs to the page's geometry, not to a font size it does not
+    have. Direction shares the clock convention every other angle here uses.
+    Module-level so the editor can preview a slider through the same code
+    that will render the committed page."""
+    dx, dy = _xy(sh.get("offset", 0.04), sh.get("direction", 135))
+    c = _rgba(sh.get("color", "#2F3E46"), sh.get("alpha", 0.35))
+    return f'{dx}in {dy}in {sh.get("blur", 0.06)}in {c}'
+
+
+def shape_shadow_css(sh: dict) -> str:
+    """The same shadow as a drop-shadow() filter, for SVG shapes — box-shadow
+    follows the box, and a shape is not its bounding box.
+
+    The units are the trap. The shape layer's viewBox is in INCHES (1 user
+    unit = 1in), and Chrome resolves CSS filter lengths on SVG children as
+    user units at 1px = 1 unit — so "0.06in" becomes 96 units: a
+    five-and-a-half-INCH blur that swallowed half a page in testing. The inch
+    values are therefore written with a px suffix, which lands them as the
+    inches they mean."""
+    dx, dy = _xy(sh.get("offset", 0.04), sh.get("direction", 135))
+    c = _rgba(sh.get("color", "#2F3E46"), sh.get("alpha", 0.35))
+    return f'filter:drop-shadow({dx}px {dy}px {sh.get("blur", 0.04)}px {c})'
+
+
 class Layout:
     def __init__(self, path: Path, page: tuple[float, float] = (PAGE_W_IN, PAGE_H_IN)):
         self.path = path
@@ -322,6 +367,10 @@ class Layout:
                 if k not in p:
                     raise LayoutError(f"position '{el}' has no '{k}'")
                 _num(p[k], f"position '{el}'.{k}")
+            if p.get("rot") is not None:
+                _num(p["rot"], f"position '{el}'.rot")
+            if p.get("alpha") is not None:
+                _alpha(p["alpha"], f"position '{el}'.alpha")
         seen = set()
         for i, s in enumerate(self.shapes):
             where = f"shape #{i + 1}"
@@ -343,6 +392,12 @@ class Layout:
             for k in ("fill", "stroke"):
                 if s.get(k) not in (None, "none"):
                     _hex(s[k], f"{where}.{k}")
+            if s.get("rot") is not None:
+                _num(s["rot"], f"{where}.rot")
+            if s.get("alpha") is not None:
+                _alpha(s["alpha"], f"{where}.alpha")
+            if s.get("shadow") is not None:
+                _check_shadow(s["shadow"], f"{where}.shadow")
             _z(s)          # a bad layer must fail at load, not mid-render
         for el, p in self.positions.items():
             if "z" in p and not isinstance(p["z"], int):
@@ -377,6 +432,12 @@ class Layout:
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
             if b.get("fill"):
                 _hex(b["fill"], f"{where}.fill")
+            if b.get("rot") is not None:
+                _num(b["rot"], f"{where}.rot")
+            if b.get("alpha") is not None:
+                _alpha(b["alpha"], f"{where}.alpha")
+            if b.get("shadow") is not None:
+                _check_shadow(b["shadow"], f"{where}.shadow")
             if b.get("style"):
                 _check_text(b["style"], f"{where}.style")
 
@@ -393,6 +454,10 @@ class Layout:
             s += f';height:{p["h"]}in'
         # z is an integer layer: below 0 sits under the text, above 0 over it.
         s += f';z-index:{int(p.get("z", 1))}'
+        if p.get("rot"):
+            s += f';transform:rotate({p["rot"]}deg)'
+        if p.get("alpha") is not None:
+            s += f';opacity:{p["alpha"]:g}'
         return s
 
     def attr(self, el_id: str, extra: str = "") -> str:
@@ -570,6 +635,12 @@ class Layout:
                 # edge; padding only when filled, so a plain box's text keeps
                 # sitting exactly where it was put.
                 css += f';background:{b["fill"]};padding:.08in .12in;border-radius:8px'
+            if b.get("rot"):
+                css += f';transform:rotate({b["rot"]}deg)'
+            if b.get("alpha") is not None:
+                css += f';opacity:{b["alpha"]:g}'
+            if b.get("shadow"):
+                css += f';box-shadow:{shadow_css(b["shadow"])}'
             style = text_css(b.get("style") or {})
             tag = f' data-el="text.{b["id"]}"' if os.environ.get("DOCSYNC_EDIT") else ""
             out.append(f'<div class="ds-textbox"{tag} '
@@ -606,6 +677,17 @@ class Layout:
         sw = s.get("sw", 0.02)
         common = (f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}" '
                   f'data-shape="{s["id"]}"')
+        # Rotation turns about the shape's own centre; the viewBox is in
+        # inches, so the pivot is plain geometry. Opacity and shadow ride the
+        # same node — a wrapping <g> would put a second element between the
+        # editor's data-shape lookups and the thing they mean.
+        if s.get("rot"):
+            common += (f' transform="rotate({s["rot"]} '
+                       f'{round(x + w / 2, 4)} {round(y + h / 2, 4)})"')
+        if s.get("alpha") is not None:
+            common += f' opacity="{s["alpha"]:g}"'
+        if s.get("shadow"):
+            common += f' style="{shape_shadow_css(s["shadow"])}"'
         if s["kind"] == "rect":
             r = s.get("r", 0)
             return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" {common}/>'
@@ -622,7 +704,19 @@ class Layout:
         `.page` is `overflow: hidden`, so a bad drag does not look broken — the
         content is simply gone. Nothing else would catch that, which is exactly
         why this is a hard failure rather than a warning.
+
+        A rotated element is judged by its rotated bounding box — the corners
+        are what get clipped, and at 45 degrees they stand well proud of the
+        unrotated frame. That needs a height; where one is not stored (flowed
+        prose), the unrotated checks stand and the fit meter owns the rest.
         """
+        def rot_aabb(x, y, w, h, deg):
+            cx, cy = x + w / 2, y + h / 2
+            rad = math.radians(deg)
+            hw = abs(w / 2 * math.cos(rad)) + abs(h / 2 * math.sin(rad))
+            hh = abs(w / 2 * math.sin(rad)) + abs(h / 2 * math.cos(rad))
+            return cx - hw, cy - hh, cx + hw, cy + hh
+
         bad = []
         for el, p in self.positions.items():
             x, y = float(p["x"]), float(p["y"])
@@ -635,6 +729,12 @@ class Layout:
             if p.get("h") and y + float(p["h"]) > self.page_h + 0.01:
                 bad.append(f"'{el}' is {p['h']}in tall at y={y}in — "
                            f"{y + float(p['h']) - self.page_h:.2f}in past the bottom edge")
+            if p.get("rot") and p.get("w") and p.get("h"):
+                x1, y1, x2, y2 = rot_aabb(x, y, float(p["w"]), float(p["h"]),
+                                          float(p["rot"]))
+                if x1 < -0.01 or y1 < -0.01 or x2 > self.page_w + 0.01 \
+                        or y2 > self.page_h + 0.01:
+                    bad.append(f"'{el}' rotated {p['rot']}° swings past the page edge")
         for b in self.boxes:
             x, y, w = (float(b[k]) for k in ("x", "y", "w"))
             if x < 0 or y < 0 or x > self.page_w or y > self.page_h:
@@ -644,6 +744,12 @@ class Layout:
                            f"{x + w - self.page_w:.2f}in past the right edge")
         for s in self.shapes:
             x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
-            if x < 0 or y < 0 or x + w > self.page_w + 0.01 or y + h > self.page_h + 0.01:
+            if s.get("rot"):
+                x1, y1, x2, y2 = rot_aabb(x, y, w, h, float(s["rot"]))
+                if x1 < -0.01 or y1 < -0.01 or x2 > self.page_w + 0.01 \
+                        or y2 > self.page_h + 0.01:
+                    bad.append(f"shape '{s['id']}' rotated {s['rot']}° swings "
+                               f"past page {s['page']}")
+            elif x < 0 or y < 0 or x + w > self.page_w + 0.01 or y + h > self.page_h + 0.01:
                 bad.append(f"shape '{s['id']}' extends past page {s['page']}")
         return bad
