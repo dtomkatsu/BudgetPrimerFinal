@@ -310,6 +310,10 @@ class Layout:
         self.text = raw.get("text") or {}
         self.boxes = raw.get("boxes") or []
         self.fills = raw.get("fill") or {}
+        # Editor affordance only: ids the editor refuses to drag. The renderer
+        # never reads it, so it cannot move a byte of the published page — it
+        # is validated so a hand-edit cannot quietly disable the lock.
+        self.locked = raw.get("locked") or []
         self._validate()
 
     def _validate(self):
@@ -349,6 +353,9 @@ class Layout:
             _check_text(st, f"text '{key}'")
         for el, c in self.fills.items():
             _hex(c, f"fill '{el}'")
+        if not isinstance(self.locked, list) or any(
+                not isinstance(x, str) or not x for x in self.locked):
+            raise LayoutError("locked: expected a list of element ids")
         for i, b in enumerate(self.boxes):
             where = f"box #{i + 1}"
             bid = b.get("id")

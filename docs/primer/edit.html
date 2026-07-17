@@ -27,7 +27,11 @@
   :root { --ink:#2F3E46; --sage:#6B9E78; --deep:#52796F; --chrome:#334049;
           --chrome2:#3B4A54; --line:#4B5C66; --ctl:#455460; --ctl-line:#57686F;
           --txt:#EDF2EF; --dim:#A9BCB4; }
-  html, body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif; }
+  html { height:100%; }
+  /* Flex column, so the iframe takes whatever the bars leave. The old fixed
+     calc() heights lied whenever a toolbar wrapped to a second line. */
+  body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif;
+         display:flex; flex-direction:column; }
 
   /* -- top bar ----------------------------------------------------------- */
   #bar { position:relative; display:flex; gap:8px; align-items:center; padding:8px 14px;
@@ -54,32 +58,44 @@
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
   #save.dirty:hover { background:#A85E2F; }
-  #out { border:0; width:100%; height:calc(100% - 46px); background:#EDF1EE; }
+  /* The canvas: the report renders in a fixed desktop-width viewport and the
+     whole iframe is SCALED to the pane, never reflowed. A narrow pane would
+     otherwise fire the report's mobile media queries, and a drag would record
+     the phone layout's geometry into layout.json as if it were the page. */
+  #stage { flex:1; min-height:0; overflow:auto; position:relative; background:#EDF1EE; }
+  #out { border:0; display:block; width:1200px; height:100%;
+         transform-origin:0 0; background:#EDF1EE; }
 
-  /* -- the type row: contextual, Canva's own pattern --------------------- */
-  #type { position:relative; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
-          padding:7px 14px; background:var(--chrome2); border-bottom:1px solid var(--line); }
+  /* -- contextual rows: type (text selected) and arrange (elements selected) */
+  #type, #arrange { position:relative; display:flex; gap:6px; align-items:center;
+          flex-wrap:wrap; padding:7px 14px; background:var(--chrome2);
+          border-bottom:1px solid var(--line); }
   /* display:flex would silently beat the hidden attribute's display:none */
-  #type[hidden] { display:none; }
-  #type:not([hidden]) ~ #out { height:calc(100% - 91px); }
-  #type select, #type input[type=number] {
+  #type[hidden], #arrange[hidden] { display:none; }
+  #type select, #type input[type=number], #arrange input[type=number] {
           font:12.5px system-ui; height:29px; padding:0 7px; box-sizing:border-box;
           border:1px solid var(--ctl-line); border-radius:7px; background:var(--ctl);
           color:var(--txt); transition:border-color .12s; }
-  #type select:hover, #type input[type=number]:hover { border-color:var(--sage); }
-  #type select:focus, #type input:focus, #type button:focus-visible
+  #type select:hover, #type input[type=number]:hover,
+  #arrange input[type=number]:hover { border-color:var(--sage); }
+  #type select:focus, #type input:focus, #type button:focus-visible,
+  #arrange input:focus, #arrange button:focus-visible
         { outline:2px solid rgba(107,158,120,.55); outline-offset:1px; }
   #ty-font { width:150px; }
   #ty-weight { width:78px; }
-  #type input[type=number] { width:54px; }
-  #type button { display:inline-flex; align-items:center; justify-content:center;
-          font:12.5px system-ui; min-width:29px; height:29px; padding:0 8px;
-          cursor:pointer; border:1px solid var(--ctl-line); border-radius:7px;
-          background:var(--ctl); color:var(--txt);
+  #type input[type=number], #arrange input[type=number] { width:54px; }
+  #type button, #arrange button { display:inline-flex; align-items:center;
+          justify-content:center; font:12.5px system-ui; min-width:29px; height:29px;
+          padding:0 8px; cursor:pointer; border:1px solid var(--ctl-line);
+          border-radius:7px; background:var(--ctl); color:var(--txt);
           transition:background .12s, border-color .12s; }
-  #type button:hover { border-color:var(--sage); background:#4B5B68; }
-  #type button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
-  #type button svg { display:block; pointer-events:none; }
+  #type button:hover, #arrange button:hover { border-color:var(--sage); background:#4B5B68; }
+  #type button.on, #arrange button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #type button svg, #arrange button svg { display:block; pointer-events:none; }
+  #arrange button:disabled { opacity:.4; cursor:default; border-color:var(--ctl-line);
+          background:var(--ctl); }
+  #ar-del { color:#F2B8A8; }
+  #ar-del:hover { background:#8A4A3A; border-color:#8A4A3A; color:#fff; }
   /* segmented align group reads as one control, like Canva's */
   .ty-seg { display:inline-flex; }
   .ty-seg button { border-radius:0; margin-left:-1px; }
@@ -142,6 +158,16 @@
         border-radius:7px; cursor:pointer; }
   .pop .shp:hover { background:var(--sage); color:#fff; }
   .pop .shp svg { display:block; }
+  /* zoom: a quiet segmented control at the far end of the bar */
+  #zoom { display:inline-flex; margin-left:2px; }
+  #zoom button { border-radius:0; margin-left:-1px; min-width:34px; padding:5px 7px; }
+  #zoom button:first-child { border-radius:7px 0 0 7px; margin-left:0; }
+  #zoom button:last-child { border-radius:0 7px 7px 0; }
+  #zoom button.on { background:var(--sage); border-color:var(--sage); color:#fff;
+        position:relative; z-index:1; }
+  .ar-count { font:11.5px ui-monospace,monospace; color:var(--dim);
+        background:rgba(255,255,255,.07); padding:3px 9px; border-radius:99px; }
+  .ar-lab { font:11px system-ui; color:var(--dim); margin-left:2px; }
 </style>
 </head>
 <body>
@@ -162,6 +188,10 @@
       <circle cx="10" cy="4.4" r="2.9"/></svg>
     Shape</button>
   <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
+  <span id="zoom" title="Zoom">
+    <button data-z="fit">Fit</button><button data-z="1">100</button><button
+      data-z="1.25">125</button><button data-z="1.5">150</button>
+  </span>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save</button>
   <div class="pop" id="shapepop" hidden>
@@ -234,7 +264,54 @@
   </div>
   <input type="color" id="ty-color" hidden>
 </div>
-<iframe id="out" title="editable draft"></iframe>
+<div id="arrange" hidden>
+  <span class="ar-count" id="ar-count"></span>
+  <span class="ty-sep"></span>
+  <span class="ty-seg" title="Align horizontally (to the page; to the selection when several)">
+    <button class="ar-al" data-al="left" title="Align left"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 1.5v11M4.5 4.5h7M4.5 9.5h4.5"/></svg></button>
+    <button class="ar-al" data-al="hcenter" title="Align horizontal centre"><svg width="14"
+      height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round"><path d="M7 1.5v11M3.5 4.5h7M4.75 9.5h4.5"/></svg></button>
+    <button class="ar-al" data-al="right" title="Align right"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M12 1.5v11M2.5 4.5h7M5 9.5h4.5"/></svg></button>
+  </span>
+  <span class="ty-seg" title="Align vertically (to the page; to the selection when several)">
+    <button class="ar-al" data-al="top" title="Align top"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M1.5 2h11M4.5 4.5v7M9.5 4.5v4.5"/></svg></button>
+    <button class="ar-al" data-al="vcenter" title="Align vertical centre"><svg width="14"
+      height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round"><path d="M1.5 7h11M4.5 3.5v7M9.5 4.75v4.5"/></svg></button>
+    <button class="ar-al" data-al="bottom" title="Align bottom"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M1.5 12h11M4.5 2.5v7M9.5 5v4.5"/></svg></button>
+  </span>
+  <span class="ty-seg" title="Distribute evenly (three or more)">
+    <button id="ar-dh" title="Distribute horizontally"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M1.5 2v10M12.5 2v10M7 4.5v5"/></svg></button>
+    <button id="ar-dv" title="Distribute vertically"><svg width="14" height="14"
+      viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2 1.5h10M2 12.5h10M4.5 7h5"/></svg></button>
+  </span>
+  <span class="ty-sep"></span>
+  <button id="ar-dup" title="Duplicate (⌘D) — shapes and text boxes">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
+      <path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg></button>
+  <button id="ar-lock" title="Lock — a locked element cannot be dragged">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="6" width="9" height="6"
+      rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg></button>
+  <button id="ar-del" title="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
+  <span class="ar-lab" id="ar-hint"></span>
+</div>
+<div id="stage"><iframe id="out" title="editable draft"></iframe></div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
@@ -566,6 +643,14 @@ function layerMenu(d, el, e) {
     item('Forward',        () => bump(1), known);
     item('Backward',       () => bump(-1), known);
     item('Send to back',   async () => { setZ(id, Math.min(...zs, 0) - 1); markDirty(); await render(); }, known);
+    item(isLocked(id) ? 'Unlock' : 'Lock', () => {
+      pushHistory();
+      layout.locked = isLocked(id) ? lockedList().filter(x => x !== id)
+                                   : [...lockedList(), id];
+      if (!layout.locked.length) delete layout.locked;
+      markDirty();
+      paintSel(d);
+    });
   }
   if (layout.shapes.some(s => s.id === id)) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
@@ -834,11 +919,10 @@ addEventListener('mousedown', e => {
 $('text').onclick = async () => {
   const page = visiblePage();
   pushHistory();
-  let n = 1;
-  while (boxes().some(b => b.id === 't' + n) || layout.shapes.some(s => s.id === 't' + n)) n++;
-  const id = 't' + n;
+  const id = freeBoxId();
   boxes().push({ id, page, x: 1, y: 2, w: 3, z: 2,
                  md: 'New text. **Bold**, *italic* and [links](https://example.org) work.' });
+  setSel($('out').contentDocument, ['text.' + id]);
   markDirty();
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place, right-click for colour`;
@@ -1121,6 +1205,329 @@ function wireType() {
   });
 }
 
+// --------------------------------------------------------------- selection
+// Selection is a set of element IDS, not nodes: every commit-level change
+// re-renders the page into a fresh document, and a node-keyed selection would
+// silently die each time. wire() re-resolves and repaints after each render.
+//
+// Click selects and drags in one gesture (Canva's own physics); shift-click
+// toggles membership; dragging on empty page is a marquee; Esc clears. The
+// resize handles now belong to the selection — exactly one selected element
+// shows them — rather than to whatever the mouse happens to cross.
+const selIds = new Set();
+const idOf = el => el.dataset.shape || el.dataset.el;
+const selEls = d => [...selIds].map(id =>
+  d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`))
+  .filter(Boolean);
+const lockedList = () => (layout.locked = layout.locked || []);
+const isLocked = id => (layout.locked || []).includes(id);
+
+function paintSel(d) {
+  d.querySelectorAll('.ds-sel').forEach(el => el.classList.remove('ds-sel'));
+  hideHandles(d);
+  const els = selEls(d);
+  els.forEach(el => el.classList.add('ds-sel'));
+  if (els.length === 1 && !isLocked(idOf(els[0]))) {
+    const page = els[0].closest('section.page') || d.querySelector('section.page');
+    showHandles(d, page, els[0]);
+  }
+  arrangeBar();
+}
+const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
+const clearSel = d => { selIds.clear(); paintSel(d); };
+
+function arrangeBar() {
+  const n = selIds.size;
+  $('arrange').hidden = n === 0;
+  if (!n) return;
+  $('ar-count').textContent = n === 1 ? [...selIds][0] : `${n} selected`;
+  $('ar-dh').disabled = $('ar-dv').disabled = n < 3;
+  $('ar-dup').disabled = ![...selIds].every(id =>
+    layout.shapes.some(s => s.id === id) || boxOf(id));
+  const locked = [...selIds].every(isLocked);
+  $('ar-lock').classList.toggle('on', locked);
+  $('ar-lock').title = locked ? 'Unlock' : 'Lock — a locked element cannot be dragged';
+}
+
+/** Members of the selection on one page — cross-page alignment has no
+ *  meaning, so operations quietly act on the first element's page. */
+function pageMembers(d) {
+  // Locked means hands off — from align and distribute as much as from a drag.
+  const els = selEls(d).filter(el => !isLocked(idOf(el)));
+  if (!els.length) return { page: null, els: [] };
+  const page = els[0].closest('section.page') || d.querySelector('section.page');
+  return { page, els: els.filter(el => (el.closest('section.page')) === page) };
+}
+
+// Align: a single element aligns to the page (edges = the text column's
+// margins, centres = the true page centre — flush beats touching the trim);
+// several align to their own bounding box, which is what "align these" means.
+function alignSel(d, mode) {
+  const { page, els } = pageMembers(d);
+  if (!els.length) return;
+  pushHistory();
+  const items = els.map(el => ({ el, b: inchBox(el, page) }));
+  let ref;
+  if (items.length === 1) {
+    ref = { x: MARGIN_IN, y: TOP_IN,
+            w: PAGE_W_IN - 2 * MARGIN_IN, h: PAGE_H_IN - TOP_IN - 0.9 };
+    if (mode === 'hcenter') { ref.x = 0; ref.w = PAGE_W_IN; }
+    if (mode === 'vcenter') { ref.y = 0; ref.h = PAGE_H_IN; }
+  } else {
+    const x1 = Math.min(...items.map(o => o.b.x)), y1 = Math.min(...items.map(o => o.b.y));
+    const x2 = Math.max(...items.map(o => o.b.x + o.b.w));
+    const y2 = Math.max(...items.map(o => o.b.y + o.b.h));
+    ref = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+  }
+  items.forEach(({ el, b }) => {
+    let { x, y } = b;
+    if (mode === 'left') x = ref.x;
+    if (mode === 'hcenter') x = ref.x + (ref.w - b.w) / 2;
+    if (mode === 'right') x = ref.x + ref.w - b.w;
+    if (mode === 'top') y = ref.y;
+    if (mode === 'vcenter') y = ref.y + (ref.h - b.h) / 2;
+    if (mode === 'bottom') y = ref.y + ref.h - b.h;
+    const P = placer(d, el, page);
+    P.commit(P.put(x, y, false));
+  });
+  clearGuides(d);
+  paintSel(d);
+}
+
+function distributeSel(d, axis) {
+  const { page, els } = pageMembers(d);
+  if (els.length < 3) return;
+  pushHistory();
+  const items = els.map(el => ({ el, b: inchBox(el, page) }))
+    .sort((a, q) => axis === 'h' ? a.b.x - q.b.x : a.b.y - q.b.y);
+  const first = items[0].b, last = items[items.length - 1].b;
+  if (axis === 'h') {
+    const gap = ((last.x + last.w - first.x)
+               - items.reduce((s, o) => s + o.b.w, 0)) / (items.length - 1);
+    let x = first.x;
+    items.forEach(({ el, b }) => {
+      const P = placer(d, el, page);
+      P.commit(P.put(x, b.y, false));
+      x += b.w + gap;
+    });
+  } else {
+    const gap = ((last.y + last.h - first.y)
+               - items.reduce((s, o) => s + o.b.h, 0)) / (items.length - 1);
+    let y = first.y;
+    items.forEach(({ el, b }) => {
+      const P = placer(d, el, page);
+      P.commit(P.put(b.x, y, false));
+      y += b.h + gap;
+    });
+  }
+  clearGuides(d);
+  paintSel(d);
+}
+
+/** Delete what can be deleted: shapes and text boxes cease to exist; a
+ *  designed element cannot be deleted, so the key resets its override and
+ *  the design's own placement stands again. */
+async function deleteSel(d) {
+  if (!selIds.size) return;
+  pushHistory();
+  let touched = false;
+  [...selIds].filter(id => !isLocked(id)).forEach(id => {
+    if (layout.shapes.some(s => s.id === id)) {
+      layout.shapes = layout.shapes.filter(s => s.id !== id); touched = true;
+    } else if (boxOf(id)) {
+      layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, '')); touched = true;
+    } else if (layout.positions[id]) {
+      delete layout.positions[id]; touched = true;
+    }
+  });
+  selIds.clear();
+  if (!touched) { past.pop(); return; }
+  markDirty();
+  await render();
+}
+
+const freeBoxId = () => {
+  let n = 1;
+  while (boxes().some(b => b.id === 't' + n) || layout.shapes.some(s => s.id === 't' + n)) n++;
+  return 't' + n;
+};
+const freeShapeId = kind => {
+  let n = layout.shapes.length + 1;
+  while (layout.shapes.some(s => s.id === `s${n}-${kind}`)) n++;
+  return `s${n}-${kind}`;
+};
+
+/** Duplicate the selection's shapes and boxes, offset a fifth of an inch.
+ *  Designed elements are skipped: there is exactly one of each by design. */
+async function duplicateSel(d) {
+  const copies = [];
+  const dup = id => {
+    const sh = layout.shapes.find(s => s.id === id);
+    const b = boxOf(id);
+    if (sh) {
+      const nid = freeShapeId(sh.kind);
+      layout.shapes.push({ ...sh, id: nid,
+        x: Math.min(sh.x + 0.2, PAGE_W_IN - Math.min(sh.w, PAGE_W_IN)),
+        y: Math.min(sh.y + 0.2, PAGE_H_IN - Math.min(sh.h, PAGE_H_IN)) });
+      copies.push(nid);
+    } else if (b) {
+      const nid = freeBoxId();
+      boxes().push({ ...b, id: nid,
+        x: Math.min(b.x + 0.2, PAGE_W_IN - Math.min(b.w, PAGE_W_IN)),
+        y: Math.min(b.y + 0.2, PAGE_H_IN - 0.4) });
+      copies.push('text.' + nid);
+    }
+  };
+  if (!selIds.size) return;
+  pushHistory();
+  [...selIds].forEach(dup);
+  if (!copies.length) { past.pop(); return; }
+  setSel(d, copies);                       // the copies become the selection
+  markDirty();
+  await render();
+  $('stat').textContent = `duplicated ${copies.length} element${copies.length > 1 ? 's' : ''}`;
+}
+
+function toggleLockSel(d) {
+  if (!selIds.size) return;
+  pushHistory();
+  const all = [...selIds];
+  const locked = all.every(isLocked);
+  layout.locked = locked ? lockedList().filter(id => !selIds.has(id))
+                         : [...new Set([...lockedList(), ...all])];
+  if (!layout.locked.length) delete layout.locked;
+  markDirty();
+  paintSel(d);
+  $('stat').textContent = locked ? 'unlocked' : 'locked — drag is off until unlocked';
+}
+
+let lastNudge = 0;
+function nudgeSel(d, d4) {
+  const els = selEls(d).filter(el => !isLocked(idOf(el)));
+  if (!els.length) return;
+  // One undo step per burst of presses, not one per pixel of progress.
+  const now = Date.now();
+  if (now - lastNudge > 900) pushHistory();
+  lastNudge = now;
+  els.forEach(el => {
+    const page = el.closest('section.page') || d.querySelector('section.page');
+    const P = placer(d, el, page);
+    P.commit(P.put(P.box.x + d4[0], P.box.y + d4[1], false));
+  });
+  clearGuides(d);
+  paintSel(d);
+}
+
+/** Rubber-band select: drag on empty page. A click that never travels is a
+ *  click-away, which clears the selection — one gesture, both meanings. */
+function marquee(d, pg, e0) {
+  const px = DPI * zoomOf(pg);
+  const pr = pg.getBoundingClientRect();
+  const ox = (e0.clientX - pr.left) / px, oy = (e0.clientY - pr.top) / px;
+  const box = d.createElement('div');
+  box.className = 'ds-marquee';
+  pg.appendChild(box);
+  let r = null;
+  const move = e => {
+    const x = (e.clientX - pr.left) / px, y = (e.clientY - pr.top) / px;
+    r = { x: Math.min(ox, x), y: Math.min(oy, y),
+          w: Math.abs(x - ox), h: Math.abs(y - oy) };
+    box.style.cssText = `left:${r.x}in;top:${r.y}in;width:${r.w}in;height:${r.h}in`;
+  };
+  const up = () => {
+    d.removeEventListener('mousemove', move);
+    d.removeEventListener('mouseup', up);
+    box.remove();
+    if (!r || (r.w < 0.05 && r.h < 0.05)) { clearSel(d); return; }
+    const hit = [];
+    pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+      const b = inchBox(el, pg);
+      if ((b.w || b.h) && b.x < r.x + r.w && b.x + b.w > r.x
+          && b.y < r.y + r.h && b.y + b.h > r.y)
+        hit.push(idOf(el));
+    });
+    setSel(d, hit);
+    $('stat').textContent = hit.length ? `${hit.length} selected` : '';
+  };
+  d.addEventListener('mousemove', move);
+  d.addEventListener('mouseup', up);
+}
+
+/** Keyboard, inside the page: the top-level listener never hears iframe keys
+ *  (undo was dead whenever focus sat in the report — a real bug until now). */
+function keysFor(d) {
+  d.addEventListener('keydown', e => {
+    if (editing) return;
+    const t = e.target;
+    if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT'
+              || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault(); e.shiftKey ? redo() : undo(); return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+      e.preventDefault(); duplicateSel(d); return;
+    }
+    if (!selIds.size) return;
+    if (e.key === 'Escape') { clearSel(d); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault(); deleteSel(d); return;
+    }
+    if (t && held.get(t)) return;          // keyDrag owns a picked-up element
+    const step = e.shiftKey ? NUDGE_BIG_IN : NUDGE_IN;
+    const d4 = { ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+                 ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (d4) { e.preventDefault(); nudgeSel(d, d4); }
+  });
+}
+
+// ------------------------------------------------------------------- zoom
+// The iframe is a fixed desktop-width viewport (so the report's own media
+// queries see a desktop, always) and the CANVAS is scaled — Canva's model.
+// Events map through the transform, so every inch of drag math is untouched.
+// "Fit" tracks the pane; the numbers are absolute canvas scales.
+const VIEW_W = 1200;
+let zoomChoice = '';
+try { zoomChoice = localStorage.getItem('ds-zoom') || ''; } catch (e) { /* file: */ }
+
+function applyZoom() {
+  const out = $('out'), stage = $('stage');
+  const availW = stage.clientWidth;
+  let s = zoomChoice === 'fit' || !zoomChoice
+    ? Math.min(availW / VIEW_W, zoomChoice === 'fit' ? 10 : 1)
+    : +zoomChoice;
+  s = Math.max(0.25, Math.min(2, Math.round(s * 1000) / 1000));
+  out.style.width = VIEW_W + 'px';
+  out.style.height = (stage.clientHeight / s) + 'px';
+  out.style.transform = s === 1 ? '' : `scale(${s})`;
+  // Centre a canvas narrower than the pane; let a wider one scroll.
+  const slack = availW - VIEW_W * s;
+  out.style.marginLeft = slack > 0 ? (slack / 2) + 'px' : '0';
+}
+
+document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click', () => {
+  zoomChoice = zoomChoice === b.dataset.z ? '' : b.dataset.z;   // toggle off = auto
+  try { localStorage.setItem('ds-zoom', zoomChoice); } catch (e) { /* file: */ }
+  document.querySelectorAll('#zoom button').forEach(x =>
+    x.classList.toggle('on', x.dataset.z === zoomChoice));
+  applyZoom();
+  const d = $('out').contentDocument;
+  if (d) paintSel(d);
+}));
+
+let rsT = null;
+addEventListener('resize', () => {
+  clearTimeout(rsT);
+  rsT = setTimeout(applyZoom, 120);
+});
+
+$('ar-dup').addEventListener('click', () => duplicateSel($('out').contentDocument));
+$('ar-del').addEventListener('click', () => deleteSel($('out').contentDocument));
+$('ar-lock').addEventListener('click', () => toggleLockSel($('out').contentDocument));
+$('ar-dh').addEventListener('click', () => distributeSel($('out').contentDocument, 'h'));
+$('ar-dv').addEventListener('click', () => distributeSel($('out').contentDocument, 'v'));
+document.querySelectorAll('.ar-al').forEach(b => b.addEventListener('click', () =>
+  alignSel($('out').contentDocument, b.dataset.al)));
+
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
@@ -1159,11 +1566,12 @@ const inchBox = (el, page) => {
  * between arranging and fiddling.
  */
 function snapLines(d, page, moving) {
+  const skip = Array.isArray(moving) ? moving : [moving];   // a group skips itself
   const xs = [0, MARGIN_IN, PAGE_W_IN / 2, PAGE_W_IN - MARGIN_IN, PAGE_W_IN];
   const ys = [0, TOP_IN, PAGE_H_IN / 2, PAGE_H_IN - 0.9, PAGE_H_IN];
   page.querySelectorAll('[data-el], [data-shape], h1, h2.sub, .card, .branch, .photo')
       .forEach(el => {
-    if (el === moving || moving.contains(el) || el.contains(moving)) return;
+    if (skip.some(m => el === m || m.contains(el) || el.contains(m))) return;
     const b = inchBox(el, page);
     if (b.w < 0.1 || b.h < 0.1) return;
     xs.push(b.x, b.x + b.w / 2, b.x + b.w);
@@ -1232,9 +1640,24 @@ function dragify(d) {
     el.setAttribute('tabindex', '0');
     el.addEventListener('mousedown', e => {
       if (e.target.closest && e.target.closest('[data-slot]')) return;
-      if (editing) return;
+      if (editing || e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
+      const id = idOf(el);
+      // Shift toggles membership and nothing moves — building a selection
+      // should never scatter it.
+      if (e.shiftKey) {
+        selIds.has(id) ? selIds.delete(id) : selIds.add(id);
+        paintSel(d);
+        return;
+      }
+      // Clicking outside the selection replaces it; clicking inside keeps it,
+      // so the drag that follows moves the whole group.
+      if (!selIds.has(id)) setSel(d, [id]);
+      if (isLocked(id)) {
+        $('stat').textContent = `${id} is locked — unlock it to move it`;
+        return;
+      }
       startDrag(d, el, e);
     });
     // A text box has no [data-slot] inside it — its words live in layout.json —
@@ -1243,13 +1666,8 @@ function dragify(d) {
     if ((el.dataset.el || '').startsWith('text.'))
       el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
     el.addEventListener('keydown', e => keyDrag(d, el, e));
-    const page = el.closest('section.page') || d.querySelector('section.page');
-    el.addEventListener('mouseenter', () => { if (!editing) showHandles(d, page, el); });
-    el.addEventListener('focus', () => showHandles(d, page, el));
-  });
-  // Handles belong to whatever the pointer is on; leaving the page drops them.
-  d.querySelectorAll('section.page').forEach(pg => {
-    pg.addEventListener('mouseleave', () => hideHandles(d));
+    // Focus is selection's keyboard route; the handles ride the selection.
+    el.addEventListener('focus', () => { if (!selIds.has(idOf(el))) setSel(d, [idOf(el)]); });
   });
 }
 
@@ -1349,6 +1767,31 @@ function placer(d, el, page) {
   return { id, box, put, commit };
 }
 
+/** Alt-drag duplicates: clone the data AND the node so the copy is draggable
+ *  in the same gesture, before any re-render exists to build it properly. */
+function altClone(d, members, page) {
+  if (!members.every(m => m.dataset.shape || (m.dataset.el || '').startsWith('text.')))
+    return null;
+  return members.map(m => {
+    if (m.dataset.shape) {
+      const sh = layout.shapes.find(s => s.id === m.dataset.shape);
+      const nid = freeShapeId(sh.kind);
+      layout.shapes.push({ ...sh, id: nid });
+      const node = m.cloneNode(true);
+      node.setAttribute('data-shape', nid);
+      m.parentNode.appendChild(node);
+      return node;
+    }
+    const b = boxOf(m.dataset.el);
+    const nid = freeBoxId();
+    boxes().push({ ...b, id: nid });
+    const node = m.cloneNode(true);
+    node.setAttribute('data-el', 'text.' + nid);
+    page.appendChild(node);
+    return node;
+  });
+}
+
 function startDrag(d, el, e0) {
   const page = el.closest('section.page') || d.querySelector('section.page');
   const pr = page.getBoundingClientRect();
@@ -1359,14 +1802,43 @@ function startDrag(d, el, e0) {
     $('stat').textContent = 'cannot move that yet — the page has no layout';
     return;
   }
+  // Squeezed below print width the page has REFLOWED (max-width:100%): every
+  // measurement describes a layout the PDF will never have. applyZoom pins
+  // the width, so this only trips if someone forces 100% in a narrow pane.
+  if (page.offsetWidth < PAGE_W_IN * DPI * 0.98) {
+    $('stat').textContent = 'the page is squeezed below print width — use Fit zoom to move things';
+    return;
+  }
   pushHistory();
-  const P = placer(d, el, page);
+  // Dragging a selected element moves every selected element on this page;
+  // anything locked stays put. A fresh element drags alone.
+  let members = selIds.size > 1 && selIds.has(idOf(el))
+    ? selEls(d).filter(m => (m.closest('section.page')) === page && !isLocked(idOf(m)))
+    : [el];
+  if (!members.length) members = [el];
+  let cloned = false;
+  if (e0.altKey) {
+    const copies = altClone(d, members, page);
+    if (copies) {
+      members = copies;
+      cloned = true;
+      setSel(d, copies.map(idOf));
+    }
+  }
+  const Ps = members.map(m => placer(d, m, page));
   const px = DPI * zoomOf(page);
   const grab = { x: e0.clientX, y: e0.clientY };
-  const start = { x: P.box.x, y: P.box.y };
-  let at = { ...start };
+  const starts = Ps.map(P => ({ x: P.box.x, y: P.box.y }));
+  // The group's snap box, and each member's offset within it.
+  const group = { x: Math.min(...starts.map(s => s.x)),
+                  y: Math.min(...starts.map(s => s.y)) };
+  group.w = Math.max(...Ps.map((P, i) => starts[i].x + P.box.w)) - group.x;
+  group.h = Math.max(...Ps.map((P, i) => starts[i].y + P.box.h)) - group.y;
+  const glines = members.length > 1 ? snapLines(d, page, members) : null;
+  let at = starts.map(s => ({ ...s }));
+  let moved = false;
 
-  el.classList.add('ds-lifted');
+  members.forEach(m => m.classList.add('ds-lifted'));
   d.body.classList.add('ds-grabbing');
   hideHandles(d);
 
@@ -1376,17 +1848,41 @@ function startDrag(d, el, e0) {
   // buy nothing and cost a frame of lag. It also stops firing in a hidden
   // document, which turns a drag into a silent no-op.
   const move = e => {
-    at = P.put(start.x + (e.clientX - grab.x) / px,
-               start.y + (e.clientY - grab.y) / px);
+    const dx = (e.clientX - grab.x) / px, dy = (e.clientY - grab.y) / px;
+    if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) moved = true;
+    if (members.length === 1) {
+      at[0] = Ps[0].put(starts[0].x + dx, starts[0].y + dy);
+      return;
+    }
+    // Group: snap and clamp the GROUP box, then place members by their offsets.
+    let gx = group.x + dx, gy = group.y + dy, vx = null, hy = null;
+    const sx = snapAxis(glines.xs, gx, group.w), sy = snapAxis(glines.ys, gy, group.h);
+    if (sx) { gx = +sx.at.toFixed(3); vx = sx.line; }
+    if (sy) { gy = +sy.at.toFixed(3); hy = sy.line; }
+    gx = Math.min(Math.max(gx, 0), PAGE_W_IN - Math.min(group.w, PAGE_W_IN));
+    gy = Math.min(Math.max(gy, 0), PAGE_H_IN - Math.min(group.h, PAGE_H_IN));
+    Ps.forEach((P, i) => {
+      at[i] = P.put(starts[i].x - group.x + gx, starts[i].y - group.y + gy, false);
+    });
+    showGuides(d, page, vx, hy);
+    $('stat').textContent = `${members.length} elements → ${gx.toFixed(2)}in, ${gy.toFixed(2)}in`;
   };
-  const up = () => {
+  const up = async () => {
     d.removeEventListener('mousemove', move);
     d.removeEventListener('mouseup', up);
-    el.classList.remove('ds-lifted');
-    el.classList.add('ds-settling');       // ~120ms ease into the snapped spot
-    d.defaultView.setTimeout(() => el.classList.remove('ds-settling'), 160);
+    members.forEach(m => {
+      m.classList.remove('ds-lifted');
+      m.classList.add('ds-settling');      // ~120ms ease into the snapped spot
+    });
+    d.defaultView.setTimeout(() =>
+      members.forEach(m => m.classList.remove('ds-settling')), 160);
     d.body.classList.remove('ds-grabbing');
-    P.commit(at);
+    // A click that never travelled is a selection, not a move — committing it
+    // would write a position override that changes nothing and dirty the file.
+    if (!moved && !cloned) { past.pop(); clearGuides(d); paintSel(d); return; }
+    Ps.forEach((P, i) => P.commit(at[i]));
+    if (cloned) await render();            // clones need real, wired nodes
+    else paintSel(d);
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
@@ -1459,23 +1955,29 @@ document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('cli
   const kind = b.dataset.k;
   const page = visiblePage();
   pushHistory();
-  let n = layout.shapes.length + 1;
-  while (layout.shapes.some(s => s.id === `s${n}-${kind}`)) n++;
-  const id = `s${n}-${kind}`;
+  const id = freeShapeId(kind);
   layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: kind === 'line' ? 0 : 1,
                        fill: kind === 'line' ? 'none' : '#E8EDE6',
                        stroke: kind === 'line' ? '#52796F' : 'none',
                        sw: 0.02, z: -1 });
+  setSel($('out').contentDocument, [id]);
   markDirty();
   await render();
   $('stat').textContent = `${id} on page ${page} — drag to place, right-click to recolour`;
 }));
 
 addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.tagName === 'SELECT')) return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
     e.preventDefault();
     e.shiftKey ? redo() : undo();
   }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+    e.preventDefault();
+    duplicateSel($('out').contentDocument);
+  }
+  if (e.key === 'Escape' && selIds.size) clearSel($('out').contentDocument);
 });
 
 async function boot() {
@@ -1538,6 +2040,8 @@ async function boot() {
   $('ty-font').innerHTML = '<option value="">font</option>'
     + Object.keys(fonts).sort().map(f => `<option value="${f}">${f}</option>`).join('');
   wireType();
+  document.querySelectorAll('#zoom button').forEach(x =>
+    x.classList.toggle('on', x.dataset.z === zoomChoice));
   await render();
 }
 
@@ -1593,7 +2097,20 @@ function wire() {
   showLocalImages(d);
   dragify(d);
   contextify(d);
+  keysFor(d);
+  applyZoom();
   reportFit(d);
+  paintSel(d);                 // the selection is ids, so it survives a render
+  // Empty page is the marquee's surface; a travel-less marquee is click-away.
+  d.querySelectorAll('section.page').forEach(pg => {
+    pg.addEventListener('mousedown', e => {
+      if (e.button !== 0 || editing) return;
+      if (e.target.closest('[data-el], [data-shape], [data-slot], a, button, input, '
+        + 'select, textarea, summary, img, .ds-menu, .ds-handles, .ds-edit')) return;
+      e.preventDefault();
+      marquee(d, pg, e);
+    });
+  });
   const css = d.createElement('style');
   css.textContent = `
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
@@ -1621,6 +2138,16 @@ function wire() {
     [data-shape]:hover { outline:2px solid #6B9E78; }
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
+    /* Selected: a steady ring. Distinct from hover's dashed suggestion and
+       from lifted's elevation — three states, three silhouettes. */
+    .ds-sel { outline:2px solid #6B9E78 !important; outline-offset:2px; }
+    /* outline is not a thing SVG children have; a glow rings a shape without
+       repainting the stroke it actually owns */
+    svg.shape-layer .ds-sel { outline:none;
+       filter:drop-shadow(0 0 .02in #6B9E78) drop-shadow(0 0 .01in #6B9E78); }
+    .ds-marquee { position:absolute; z-index:9998; pointer-events:none;
+       border:1.5px dashed #6B9E78; background:rgba(107,158,120,.08);
+       border-radius:2px; }
     /* Lifted: it should read as picked up off the page, not just outlined —
        elevation and a hair of scale do that faster than any border. */
     .ds-lifted { box-shadow:0 12px 32px rgba(47,62,70,.28) !important;

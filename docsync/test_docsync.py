@@ -561,6 +561,14 @@ check("a box colour that is not a colour is caught",
                                 "md": "note", "fill": "teal"}]}),
       "not a hex colour")
 
+# The lock list is an editor affordance the renderer never reads — but a
+# malformed one must still fail at load, not quietly stop locking anything.
+check_eq("locked ids load", _layout({"locked": ["cover.logo", "s1-rect"]}).locked,
+         ["cover.logo", "s1-rect"])
+check("a lock list that is not ids is caught",
+      _layout_error({"locked": [{"id": "x"}]}), "list of element ids")
+check_eq("no lock list means nothing locked", empty.locked, [])
+
 filled = _layout({"fill": {"card.a": "#2F3E46"}})
 check_eq("a fill overrides the designed colour", filled.fill("card.a", "#6B9E78"), "#2F3E46")
 check_eq("an unfilled element keeps the colour the report chose",
