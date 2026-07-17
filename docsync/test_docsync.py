@@ -301,9 +301,17 @@ check("shapes never eat clicks", shaped.layer(7), "pointer-events:none")
 # Positioning something absolutely takes it out of the flow and its neighbours
 # rush into the gap — move the logo, and the title beneath it jumps. A moved
 # element must keep holding the height it occupied.
-held = _layout({"positions": {"cover.logo": {"x": 1, "y": 2, "h": 1.09}}})
+held = _layout({"positions": {"cover.logo": {"x": 1, "y": 2, "reserve": 1.09}}})
 check("a moved flow element reserves the height it vacated",
       held.spacer("cover.logo"), 'style="height:1.09in"')
+# 'reserve' (space held in the flow) and 'h' (how tall to draw it) are
+# different questions; one file used to answer both with 'h'.
+sized = _layout({"positions": {"photo": {"x": 1, "y": 2, "w": 3, "h": 2}}})
+check("a resized element is drawn at that size", sized.attr("photo"), "height:2in")
+check_eq("a size does not imply reserved flow space", sized.spacer("photo"), "")
+check("a box resized past the bottom is caught",
+      " ".join(_layout({"positions": {"p": {"x": 1, "y": 10, "h": 3}}}).check_bounds()),
+      "past the bottom edge")
 # An element that was already absolute never held flow space, so reserving any
 # would push its neighbours DOWN — the same bug, mirrored.
 absolute = _layout({"positions": {"lc.dec": {"x": 3, "y": 4}}})

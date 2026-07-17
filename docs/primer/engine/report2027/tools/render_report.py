@@ -560,6 +560,10 @@ def fy_pie_swap(fig_id, slices27, slices26, **kw):
 
 # ---------- page shells ----------
 def card(title, bullets, bg, light=None, key=""):
+    # Not positionable, deliberately: cards sit in flex rows, so pulling one out
+    # to absolute makes its siblings redistribute no matter what space is
+    # reserved. Moving a card out of its row is not a tweak, it is breaking the
+    # grid — resize the row's design here instead.
     if light is None:                       # auto: dark text on light tiles
         light = is_light_bg(bg)
     cls = "card light" if light else "card"
@@ -742,7 +746,7 @@ pages.append(f"""
 # -- page 8: photo + one-time/emergency
 pages.append(f"""
 <section class="page">
- <img class="photo" src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
+ {L.spacer("onetime.photo")}<img class="photo"{L.attr("onetime.photo")} src="assets/hb2296-signing.jpg" alt="{esc(C.text("onetime.photo.alt"))}">
  {C.html("onetime.photo.caption", "photocap")}
  <h3 class="sub2">{C.t("onetime.h3")}</h3>
  <div class="cards2">

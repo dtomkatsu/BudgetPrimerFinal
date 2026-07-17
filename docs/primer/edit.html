@@ -319,6 +319,98 @@ function contextify(d) {
   });
 }
 
+// ---------------------------------------------------------------- resizing
+// Width is always safe: text reflows, images scale. Height is not — pin a text
+// box's height and it either clips the words or leaves a hole the moment the
+// prose changes, and .page is overflow:hidden so the clipping is silent. So
+// prose gets a width handle only; things whose size IS their content (images,
+// shapes) get corners too.
+const MIN_IN = 0.4;
+
+function handlesFor(el) {
+  if (el.dataset.shape) return ['e', 's', 'se'];
+  const img = el.tagName === 'IMG' || el.querySelector('img');
+  return img ? ['e', 's', 'se'] : ['e'];
+}
+
+function showHandles(d, page, el) {
+  hideHandles(d);
+  const b = inchBox(el, page);
+  const ov = d.createElement('div');
+  ov.className = 'ds-handles';
+  ov.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
+  handlesFor(el).forEach(dir => {
+    const h = d.createElement('div');
+    h.className = 'ds-h ds-h-' + dir;
+    h.title = dir === 'e' ? 'Drag to set width' : 'Drag to resize';
+    h.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      startResize(d, el, e, dir);
+    });
+    ov.appendChild(h);
+  });
+  ov.dataset.for = el.dataset.shape || el.dataset.el;
+  page.appendChild(ov);
+}
+
+const hideHandles = d => d.querySelectorAll('.ds-handles').forEach(h => h.remove());
+
+function startResize(d, el, e0, dir) {
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  const pr = page.getBoundingClientRect();
+  if (!pr.width) return;
+  pushHistory();
+  const px = DPI * zoomOf(page);
+  const shapeId = el.dataset.shape;
+  const id = shapeId || el.dataset.el;
+  const P = placer(d, el, page);          // reuse: a resize is a layout override too
+  const b = P.box;
+  const grab = { x: e0.clientX, y: e0.clientY };
+  el.classList.add('ds-lifted');
+  d.body.classList.add('ds-resizing');
+
+  const apply = e => {
+    let w = b.w, h = b.h;
+    if (dir.includes('e')) w = Math.max(MIN_IN, b.w + (e.clientX - grab.x) / px);
+    if (dir.includes('s')) h = Math.max(MIN_IN, b.h + (e.clientY - grab.y) / px);
+    // Never let a resize push content off the page — same rule as the drag.
+    w = Math.min(w, PAGE_W_IN - b.x);
+    h = Math.min(h, PAGE_H_IN - b.y);
+    if (shapeId) {
+      const sh = layout.shapes.find(s => s.id === shapeId);
+      if (sh) { sh.w = +w.toFixed(2); sh.h = +h.toFixed(2); paintShape(d, shapeId); }
+    } else {
+      P.put(b.x, b.y, false);             // pin it in place, holding its flow slot
+      el.style.width = w.toFixed(2) + 'in';
+      if (dir.includes('s')) el.style.height = h.toFixed(2) + 'in';
+    }
+    showHandles(d, page, el);
+    $('stat').textContent = `${id} → ${w.toFixed(2)}in wide`
+                          + (dir.includes('s') ? ` × ${h.toFixed(2)}in` : '');
+    return { w, h };
+  };
+
+  let size = { w: b.w, h: b.h };
+  const move = e => { size = apply(e); };
+  const up = () => {
+    d.removeEventListener('mousemove', move);
+    d.removeEventListener('mouseup', up);
+    el.classList.remove('ds-lifted');
+    d.body.classList.remove('ds-resizing');
+    if (!shapeId) {
+      P.commit({ x: b.x, y: b.y });
+      const p = layout.positions[id];
+      p.w = +size.w.toFixed(2);
+      if (dir.includes('s')) p.h = +size.h.toFixed(2);
+    } else {
+      markDirty();
+    }
+    showHandles(d, page, el);
+  };
+  d.addEventListener('mousemove', move);
+  d.addEventListener('mouseup', up);
+}
+
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
@@ -434,6 +526,13 @@ function dragify(d) {
       startDrag(d, el, e);
     });
     el.addEventListener('keydown', e => keyDrag(d, el, e));
+    const page = el.closest('section.page') || d.querySelector('section.page');
+    el.addEventListener('mouseenter', () => { if (!editing) showHandles(d, page, el); });
+    el.addEventListener('focus', () => showHandles(d, page, el));
+  });
+  // Handles belong to whatever the pointer is on; leaving the page drops them.
+  d.querySelectorAll('section.page').forEach(pg => {
+    pg.addEventListener('mouseleave', () => hideHandles(d));
   });
 }
 
@@ -501,9 +600,10 @@ function placer(d, el, page) {
     if (!shapeId) {
       const prev = layout.positions[id] || {};
       const w = prev.w ?? (x + box.w <= PAGE_W_IN ? +box.w.toFixed(2) : undefined);
-      const h = prev.h ?? (heldFlow ? +box.h.toFixed(2) : undefined);
+      const reserve = prev.reserve ?? (heldFlow ? +box.h.toFixed(2) : undefined);
       layout.positions[id] = { ...prev, x: +x.toFixed(2), y: +y.toFixed(2),
-                              ...(w ? { w } : {}), ...(h ? { h } : {}) };
+                              ...(w ? { w } : {}),
+                              ...(reserve ? { reserve } : {}) };
     }
     clearGuides(d);
     if (spacer) spacer.classList.remove('ds-ghost');
@@ -532,6 +632,7 @@ function startDrag(d, el, e0) {
 
   el.classList.add('ds-lifted');
   d.body.classList.add('ds-grabbing');
+  hideHandles(d);
 
   // Applied straight from the event, not via requestAnimationFrame. Browsers
   // already coalesce mousemove to the frame rate, the snap lines are computed
@@ -750,6 +851,18 @@ function wire() {
     .ds-guide { position:absolute; z-index:9998; pointer-events:none; }
     .ds-guide.v { width:1px; background:#E8776B; box-shadow:0 0 0 .5px rgba(232,119,107,.35); }
     .ds-guide.h { height:1px; background:#E8776B; box-shadow:0 0 0 .5px rgba(232,119,107,.35); }
+    /* Handles ride an overlay rather than living inside the element: the
+       element may be static, and an absolute child would then anchor to the
+       page corner instead of the box. */
+    .ds-handles { position:absolute; z-index:9997; pointer-events:none;
+                  outline:1px solid rgba(107,158,120,.5); }
+    .ds-h { position:absolute; pointer-events:auto; background:#fff;
+            border:1.5px solid #6B9E78; border-radius:2px; }
+    .ds-h:hover { background:#6B9E78; }
+    .ds-h-e { right:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
+    .ds-h-s { bottom:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
+    .ds-h-se { right:-4px; bottom:-4px; width:9px; height:9px; cursor:nwse-resize; }
+    body.ds-resizing, body.ds-resizing * { cursor:inherit !important; }
     .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
                border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
                min-width:190px; font:12px system-ui; }

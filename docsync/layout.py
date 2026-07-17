@@ -14,7 +14,8 @@ Coordinates are inches from the page's top-left corner, because `.page` is
 `position: relative` and absolutely positioned children resolve against it.
 
     {
-      "positions": { "callout.obligated": {"x": 1.2, "y": 3.4, "w": 5.0} },
+      "positions": { "callout.obligated": {"x": 1.2, "y": 3.4, "w": 5.0,
+                                            "reserve": 2.7, "z": 1} },
       "shapes": [ {"id":"s1","page":3,"kind":"rect","x":1,"y":2,"w":3,"h":1,
                    "fill":"#6B9E78","z":"back"} ]
     }
@@ -100,6 +101,11 @@ class Layout:
         s = f'position:absolute;left:{p["x"]}in;top:{p["y"]}in'
         if p.get("w"):
             s += f';width:{p["w"]}in'
+        # Height is opt-in. A text box with a fixed height either clips its
+        # words or leaves a hole when the prose changes, so only things whose
+        # size is their content — images, shapes — should carry one.
+        if p.get("h"):
+            s += f';height:{p["h"]}in'
         # z is an integer layer: below 0 sits under the text, above 0 over it.
         s += f';z-index:{int(p.get("z", 1))}'
         return s
@@ -127,14 +133,15 @@ class Layout:
         it jumps. That is never what someone dragging one thing means to do, so
         the vacated height stays reserved and its neighbours stay put.
 
-        'h' is only recorded for elements that were in the flow to begin with;
-        an element that was already absolute (a lifecycle callout) reserves
-        nothing, because it never occupied flow space.
+        'reserve' is only recorded for elements that were in the flow to begin
+        with; an element that was already absolute (a lifecycle callout)
+        reserves nothing, because it never occupied flow space. It is a
+        different thing from 'h', which is how tall the element should be drawn.
         """
         p = self.positions.get(el_id)
-        if not p or not p.get("h"):
+        if not p or not p.get("reserve"):
             return ""
-        return (f'<div class="ds-spacer" style="height:{p["h"]}in"'
+        return (f'<div class="ds-spacer" style="height:{p["reserve"]}in"'
                 f' aria-hidden="true"></div>')
 
     def style(self, el_id: str, default: str = "") -> str:
@@ -198,6 +205,9 @@ class Layout:
             if p.get("w") and x + float(p["w"]) > PAGE_W_IN + 0.01:
                 bad.append(f"'{el}' is {p['w']}in wide at x={x}in — "
                            f"{x + float(p['w']) - PAGE_W_IN:.2f}in past the right edge")
+            if p.get("h") and y + float(p["h"]) > PAGE_H_IN + 0.01:
+                bad.append(f"'{el}' is {p['h']}in tall at y={y}in — "
+                           f"{y + float(p['h']) - PAGE_H_IN:.2f}in past the bottom edge")
         for s in self.shapes:
             x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
             if x < 0 or y < 0 or x + w > PAGE_W_IN + 0.01 or y + h > PAGE_H_IN + 0.01:
