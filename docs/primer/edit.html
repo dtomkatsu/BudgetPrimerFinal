@@ -229,9 +229,18 @@ $('save').onclick = async () => {
     $('save').classList.remove('dirty');
     $('stat').textContent = 'saved — the site rebuilds and the doc updates in ~2 min';
   } catch (e) {
-    $('stat').textContent = 'save failed: ' + e.message;
+    // "Resource not accessible" means the token is valid but was minted
+    // without write access — the default. Say the fix, not the status code.
+    const m = String(e.message);
+    const why = m.includes('not accessible')
+      ? 'the token has no write access. github.com/settings/personal-access-tokens '
+        + `-> your token -> Repository access: ${REPO} -> Permissions -> Contents: `
+        + 'Read and write. Then press Save again.'
+      : m.match(/401/) ? 'the token was rejected — it may be expired or mistyped.'
+      : m;
+    $('stat').textContent = 'save failed: ' + why;
     $('save').disabled = false;
-    if (String(e.message).match(/401|403/)) localStorage.removeItem('docsync-pat');
+    if (m.match(/401|403/)) localStorage.removeItem('docsync-pat');
   }
 };
 
