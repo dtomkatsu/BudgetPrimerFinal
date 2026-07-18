@@ -622,7 +622,13 @@ class Layout:
         Positioning something absolutely takes it out of the flow, so whatever
         followed it slides up into the gap — move the logo and the title beneath
         it jumps. That is never what someone dragging one thing means to do, so
-        the vacated height stays reserved and its neighbours stay put.
+        the vacated slot stays reserved and its neighbours stay put.
+
+        The slot has a width too, not only a height: a branch photo sits in a
+        FLEX row beside its card, and reserving only the height let the card
+        stretch across the gap the instant the photo moved. 'reserve' (the
+        vacated height) and 'w' (the pinned width) together hold the exact box,
+        and flex:none stops a flex parent from growing or shrinking it.
 
         'reserve' is only recorded for elements that were in the flow to begin
         with; an element that was already absolute (a lifecycle callout)
@@ -632,8 +638,9 @@ class Layout:
         p = self.positions.get(el_id)
         if not p or not p.get("reserve"):
             return ""
-        return (f'<div class="ds-spacer" style="height:{p["reserve"]}in"'
-                f' aria-hidden="true"></div>')
+        wid = f'width:{p["w"]}in;' if p.get("w") else ""
+        return (f'<div class="ds-spacer" style="{wid}height:{p["reserve"]}in;'
+                f'flex:0 0 auto" aria-hidden="true"></div>')
 
     def tag(self, el_id: str) -> str:
         """Just the data-el hook, for elements that already carry a style of

@@ -3118,15 +3118,19 @@ function placer(d, el, page) {
     d.defaultView.getComputedStyle(el).position === 'static';
   let spacer = null;
 
-  // Going absolute drops the element out of the flow and everything below it
-  // rushes up into the gap. The renderer reserves that height on the next
-  // build, but a drop no longer triggers one — so the gap is held here, in the
-  // same frame the element leaves the flow, or the page lurches under you.
+  // Going absolute drops the element out of the flow and everything around it
+  // moves in to fill the gap. Below it, the next block rushes up; BESIDE it in
+  // a flex row — a branch photo next to its card — the card stretches across
+  // the vacated width. The spacer holds the WHOLE box (width and height) with
+  // flex:none, so neither happens. The renderer reserves the same on the next
+  // build; here it is held in the frame the element leaves the flow, or the
+  // page lurches under you.
   const holdPlace = () => {
     if (!heldFlow || spacer) return;
     spacer = d.createElement('div');
     spacer.className = 'ds-spacer ds-ghost';
-    spacer.style.height = box.h.toFixed(2) + 'in';
+    spacer.style.cssText = `width:${box.w.toFixed(2)}in;height:${box.h.toFixed(2)}in;`
+      + 'flex:0 0 auto';
     spacer.setAttribute('aria-hidden', 'true');
     el.parentNode.insertBefore(spacer, el);
   };

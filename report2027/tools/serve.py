@@ -131,6 +131,14 @@ class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(DOCS), **k)
 
+    def end_headers(self):
+        # Never cache. A rebuild replaces edit.html and the engine files on
+        # disk; without this the browser reuses the copy it loaded first and a
+        # reload silently shows stale code — exactly the kind of ghost that
+        # wastes an afternoon.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def log_message(self, *a):        # quiet: only the rebuild lines matter
         pass
 

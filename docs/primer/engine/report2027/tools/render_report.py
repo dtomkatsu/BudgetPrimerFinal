@@ -797,7 +797,7 @@ branch_cards = [
     ]
 ]
 bc = "".join(
-    f'<div class="branch">{img_el(f"branch.photo.{k}", "", f"assets/{img}", esc(C.text(f"basics.branch.{k}.title")))}'
+    f'<div class="branch">{L.spacer(f"branch.photo.{k}")}{img_el(f"branch.photo.{k}", "", f"assets/{img}", esc(C.text(f"basics.branch.{k}.title")))}'
     f'<div class="branch-card{" onlight" if is_light_bg(L.fill(f"branch.{k}", bg)) else ""}"'
     f'{L.tag(f"branch.{k}")}{L.fill_tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
     f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"

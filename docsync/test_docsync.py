@@ -315,7 +315,13 @@ check("shapes never eat clicks", shaped.layer(7), "pointer-events:none")
 # element must keep holding the height it occupied.
 held = _layout({"positions": {"cover.logo": {"x": 1, "y": 2, "reserve": 1.09}}})
 check("a moved flow element reserves the height it vacated",
-      held.spacer("cover.logo"), 'style="height:1.09in"')
+      held.spacer("cover.logo"), 'height:1.09in;flex:0 0 auto')
+# A moved element in a FLEX row (a branch photo beside its card) must reserve
+# its WIDTH too, or the sibling stretches across the gap.
+held_w = _layout({"positions": {"branch.photo.x": {"x": 1, "y": 2, "w": 2.15,
+                                                   "reserve": 1.6}}})
+check("a moved flex element reserves its width and height",
+      held_w.spacer("branch.photo.x"), 'width:2.15in;height:1.6in;flex:0 0 auto')
 # 'reserve' (space held in the flow) and 'h' (how tall to draw it) are
 # different questions; one file used to answer both with 'h'.
 sized = _layout({"positions": {"photo": {"x": 1, "y": 2, "w": 3, "h": 2}}})
@@ -429,7 +435,7 @@ check("a moved prose block travels in one positioned wrapper",
       moved_para.html("a.b"),
       '<div style="position:absolute;left:1in;top:2in;width:4in;z-index:1"><p>Text.</p></div>')
 check("its vacated flow space stays held", moved_para.html("a.b"),
-      '<div class="ds-spacer" style="height:0.5in"')
+      '<div class="ds-spacer" style="width:4in;height:0.5in;flex:0 0 auto"')
 os.environ["DOCSYNC_EDIT"] = "1"
 try:
     check("in edit mode the wrapper is the editor's drag handle",
