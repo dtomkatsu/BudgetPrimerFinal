@@ -4,6 +4,16 @@ How the draft editor should save and share work when it's used across **many
 projects, by more than one person**. Grounded in how saving works today, then a
 phased plan.
 
+> **Status: Phase 1 is implemented** (steps 1–3, 5, 6 below — everything but
+> the per-branch preview build, which the editor sidesteps: a Share link opens
+> the editor itself pointed at the draft branch, so the draft renders locally
+> through Pyodide with no Actions workflow at all). The editor now has three
+> verbs — **Save draft** (one atomic commit to `draft/<project>/<user>`),
+> **Share** (copy a `?draft=…` link anyone can open), **Publish** (open + merge
+> a PR into main). Discard with nothing unsaved deletes the whole draft; a
+> reload picks your draft back up automatically; a raced save retries once on
+> the mover's tip. Phase 2 (GitHub App/OAuth) is the next step.
+
 ---
 
 ## 1. How saving works today

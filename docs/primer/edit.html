@@ -91,6 +91,8 @@
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
   #save.dirty:hover { background:#A85E2F; }
+  #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
+  #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
   /* Below the bars: the page rail and the canvas, side by side. */
   #work { flex:1; min-height:0; display:flex; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
@@ -316,7 +318,9 @@
   <button id="undo" disabled title="Undo (⌘Z)">↶</button>
   <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
-  <button id="save" disabled>Save</button>
+  <button id="save" disabled>Save draft</button>
+  <button id="share" disabled title="Copy a link that shows this draft to anyone">Share</button>
+  <button id="publish" disabled title="Make this draft the live report">Publish</button>
   <div class="pop" id="shapepop" hidden>
     <p class="pop-h">Add to the page in view</p>
     <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
@@ -631,14 +635,19 @@ async function uploadImageFile(d, onDone) {
     const b64 = String(dataUrl).split(',')[1];
     $('stat').textContent = `uploading ${name}…`;
     try {
+      // Images ride the draft too: they publish with the prose that uses them
+      // instead of landing on main ahead of it. (Local mode keeps main — the
+      // dev server's git push is the truth there.)
+      const branch = local ? 'main' : await draftForUpload();
       // Overwrite needs the blob's sha; a fresh path has none.
       let sha;
-      try { sha = (await gh(`contents/${path}?ref=main`)).sha; } catch (e) { sha = undefined; }
+      try { sha = (await gh(`contents/${path}?ref=${encodeURIComponent(branch)}`)).sha; }
+      catch (e) { sha = undefined; }
       await gh(`contents/${path}`, {
         method: 'PUT',
         body: JSON.stringify({
           message: `primer: add image ${name}`,
-          content: b64, branch: 'main', ...(sha ? { sha } : {}),
+          content: b64, branch, ...(sha ? { sha } : {}),
         }),
       });
       localImages.set('assets/' + name, dataUrl);
@@ -3456,7 +3465,10 @@ function paintShape(d, id) {
 function markDirty() {
   dirty = source !== original
        || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
-  $('save').disabled = $('revert').disabled = !dirty;
+  $('save').disabled = !dirty;
+  // Discard stays live while a saved draft exists: with nothing unsaved it
+  // offers to throw the whole draft away (see its handler).
+  $('revert').disabled = !dirty && !(draftBranch && !local);
   $('save').classList.toggle('dirty', dirty);
 }
 
@@ -3516,9 +3528,29 @@ async function boot() {
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
   $('title').textContent = M.id;
+  await detectLocal();          // local live server? then Save writes to disk
+  await resolveDraft();         // ?draft=… in the URL, or your own saved draft
 
   const urls = Object.keys(M.files);
   const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(get)]);
+  // Viewing or continuing a draft: its content and layout come from the draft
+  // branch, not the deployed copies (which are main's). The engine code itself
+  // stays same-origin — only the two authored files differ per draft.
+  if (draftBranch) {
+    try {
+      const [c, l] = await Promise.all([
+        fromBranch(M.content),
+        M.layout ? fromBranch(M.layout) : Promise.resolve('{}'),
+      ]);
+      files[urls.indexOf('engine/' + M.content)] = c;
+      if (M.layout) files[urls.indexOf('engine/' + M.layout)] = l;
+    } catch (e) {
+      draftBranch = null;
+      history.replaceState(null, '', location.pathname);
+      $('title').textContent = M.id;
+      $('stat').textContent = "that draft isn't on GitHub any more (probably published) — showing the live report";
+    }
+  }
   py = pyodide;
   // The renderer is written for a repo checkout, so rebuild one in Pyodide's FS
   // from the paths the manifest names — no directory list to keep in step.
@@ -3574,7 +3606,13 @@ async function boot() {
     x.classList.toggle('on', x.dataset.z === zoomChoice));
   $('guides').classList.toggle('on', guidesOn);
   await render();
-  await detectLocal();          // local live server? then Save writes to disk
+  if (!local) $('share').disabled = $('publish').disabled = false;
+  // Buttons start disabled in the HTML and only markDirty() flips them — run
+  // it once now so a resumed draft's Discard is live before the first edit.
+  markDirty();
+  // detectLocal ran before the renders that overwrite the status line; say it
+  // again now that the page is settled.
+  if (local) $('stat').textContent = 'live — edits here and from Claude land in the same files';
 }
 
 // ---------------------------------------------------------------- live mode
@@ -3594,6 +3632,10 @@ async function detectLocal() {
     if (r.ok) { try { liveVer = (await r.json()).v; } catch (e) {} }
   } catch (e) { local = false; }
   if (!local) return;
+  // Local mode is the dev loop: files on disk are the truth, git pushes them.
+  // Draft branches and PRs belong to the hosted editor, so those verbs hide.
+  $('share').hidden = $('publish').hidden = true;
+  $('save').textContent = 'Save';
   $('title').textContent = M.id + ' · live';
   $('stat').textContent = 'live — edits here and from Claude land in the same files';
   // Adopt a rebuild the moment the version moves. Two ways see it, because one
@@ -4301,9 +4343,10 @@ function edit(d, key) {
 }
 
 // --- persistence -----------------------------------------------------------
-// The one credential: a fine-grained token, this repo only, Contents r/w. It
-// lives in this browser and never leaves it except to call GitHub. Committing
-// content.md is what rebuilds the site and pushes the same text to the doc.
+// The one credential: a fine-grained token, this repo only, Contents r/w (and
+// Pull requests r/w, for Publish). It lives in this browser and never leaves
+// it except to call GitHub. Saves go to a draft branch; only Publish — a
+// merged pull request — touches main, rebuilds the site and updates the doc.
 async function gh(path, opts = {}) {
   const tok = localStorage.getItem('docsync-pat');
   const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
@@ -4347,11 +4390,13 @@ async function verifyToken(tok) {
 async function askToken() {
   const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
-  const entered = prompt('Paste a GitHub fine-grained token\n\n' +
+  const entered = prompt('One-time setup: paste a GitHub fine-grained token\n\n' +
     'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
     `Repository access: only ${REPO}\n` +
-    'Permissions -> Repository permissions -> Contents: Read and WRITE\n' +
-    '(Contents defaults to no access; Read-only is not enough.)\n\n' +
+    'Permissions -> Repository permissions:\n' +
+    '    Contents: Read and WRITE        (saving drafts)\n' +
+    '    Pull requests: Read and WRITE   (publishing)\n' +
+    '(Both default to no access; Read-only is not enough.)\n\n' +
     'Stored in this browser only.');
   if (!entered) return null;
   $('stat').textContent = 'checking the token…';
@@ -4361,9 +4406,218 @@ async function askToken() {
     return null;                       // not stored — a bad token helps nobody
   }
   localStorage.setItem('docsync-pat', entered.trim());
+  localStorage.removeItem('docsync-user');   // a new token may be a new person
   $('stat').textContent = 'token accepted';
   return entered.trim();
 }
+
+// The Token… button: swap credentials (a new collaborator on a shared machine,
+// or an expired token). It had no handler at all before this.
+$('tok').onclick = async () => {
+  localStorage.removeItem('docsync-pat');
+  localStorage.removeItem('docsync-user');
+  await askToken();
+};
+
+/** Explain a GitHub failure in terms of the fix, not the status code. */
+function tokenWhy(e) {
+  const m = String(e.message);
+  if (m.includes('not accessible'))
+    return 'the token has no write access. github.com/settings/personal-access-tokens '
+      + `-> your token -> Repository access: ${REPO} -> Permissions -> Contents: `
+      + 'Read and write. Then try again.';
+  // Only discard on 401 (the token itself is bad). A 403 means the token is
+  // fine but under-permissioned — discarding it just makes you paste the
+  // same token again and get the same 403, forever.
+  if (m.match(/401/)) {
+    localStorage.removeItem('docsync-pat');
+    return 'the token was rejected — it may be expired or mistyped.';
+  }
+  return m;
+}
+
+// --- drafts: Save draft / Share / Publish ----------------------------------
+// Nothing here writes to main. Save commits your work — prose and layout in
+// ONE commit — to draft/<project>/<user>, a branch of your own. Share hands
+// out a link that renders that branch. Publish opens and merges a pull
+// request into main, the only step that changes the live report. Three verbs;
+// the git underneath stays out of sight.
+let draftBranch = new URLSearchParams(location.search).get('draft') || null;
+
+const showDraftBadge = () =>
+  { $('title').textContent = M.id + ' · draft: ' + draftBranch.split('/').pop(); };
+const draftUrl = () =>
+  location.origin + location.pathname + '?draft=' + encodeURIComponent(draftBranch);
+
+async function resolveDraft() {
+  if (local) { draftBranch = null; return; }
+  if (!draftBranch) {
+    // No link in the URL, but this browser saved a draft before? Pick it up
+    // rather than silently showing main — "my edits vanished" is the scariest
+    // bug an editor can have.
+    const u = localStorage.getItem('docsync-user');
+    if (localStorage.getItem('docsync-pat') && u) {
+      const b = `draft/${M.id}/${u}`;
+      try { await gh(`git/ref/heads/${b}`); draftBranch = b; } catch (e) { /* none */ }
+    }
+  }
+  if (draftBranch) {
+    history.replaceState(null, '', draftUrl());
+    showDraftBadge();
+  }
+}
+
+/** A draft file, fresh. The API sees a commit instantly; raw.githubusercontent
+ *  can lag minutes behind a push, so it is only the tokenless fallback. */
+async function fromBranch(path) {
+  if (localStorage.getItem('docsync-pat')) {
+    const j = await gh(`contents/${path}?ref=${encodeURIComponent(draftBranch)}`);
+    return new TextDecoder().decode(
+      Uint8Array.from(atob(j.content.replace(/\n/g, '')), c => c.charCodeAt(0)));
+  }
+  const r = await fetch(bust(`https://raw.githubusercontent.com/${REPO}/${draftBranch}/${path}`),
+                        { cache: 'no-store' });
+  if (!r.ok) throw new Error(`HTTP ${r.status} — ${path}@${draftBranch}`);
+  return r.text();
+}
+
+/** Who the token belongs to — names the draft branch and the commits. */
+async function ghUser() {
+  let u = localStorage.getItem('docsync-user');
+  if (u) return u;
+  const r = await fetch('https://api.github.com/user', {
+    headers: { Authorization: `Bearer ${localStorage.getItem('docsync-pat')}`,
+               Accept: 'application/vnd.github+json' },
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status} asking who this token belongs to`);
+  u = (await r.json()).login.toLowerCase();
+  localStorage.setItem('docsync-user', u);
+  return u;
+}
+
+async function ensureBranch(branch) {
+  try { await gh(`git/ref/heads/${branch}`); return; }
+  catch (e) { if (!String(e.message).match(/404/)) throw e; }
+  const main = await gh('git/ref/heads/main');
+  await gh('git/refs', { method: 'POST',
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: main.object.sha }) });
+}
+
+/** One commit for everything that changed — prose and layout land together or
+ *  not at all, unlike the old per-file PUTs that could interleave or half-land.
+ *  If someone else saved this draft between our read and our write, retry once
+ *  on their tip: the tree only names the files WE changed, so their work on
+ *  the other file rides along untouched. */
+async function commitToBranch(branch, files, message) {
+  for (let attempt = 0; ; attempt++) {
+    const base = (await gh(`git/ref/heads/${branch}`)).object.sha;
+    const tree = await gh('git/trees', { method: 'POST', body: JSON.stringify({
+      base_tree: (await gh(`git/commits/${base}`)).tree.sha,
+      tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', content: f.content })),
+    }) });
+    const commit = await gh('git/commits', { method: 'POST', body: JSON.stringify({
+      message, tree: tree.sha, parents: [base] }) });
+    try {
+      await gh(`git/refs/heads/${branch}`, { method: 'PATCH',
+        body: JSON.stringify({ sha: commit.sha }) });
+      return commit.sha;
+    } catch (e) {
+      // Not a fast-forward: the branch moved under us. Once, quietly, retry.
+      if (attempt === 0 && String(e.message).match(/422|fast[- ]forward/i)) continue;
+      throw e;
+    }
+  }
+}
+
+/** Uploads (images) need a branch to land on before the editor's next Save;
+ *  make sure the draft exists and the URL points at it. */
+async function draftForUpload() {
+  const user = await ghUser();
+  if (!draftBranch) draftBranch = `draft/${M.id}/${user}`;
+  await ensureBranch(draftBranch);
+  history.replaceState(null, '', draftUrl());
+  showDraftBadge();
+  return draftBranch;
+}
+
+async function saveDraft() {
+  if (!await askToken()) return false;
+  $('save').disabled = true;
+  $('stat').textContent = 'saving your draft…';
+  try {
+    const user = await ghUser();
+    if (!draftBranch) draftBranch = `draft/${M.id}/${user}`;
+    await ensureBranch(draftBranch);
+    const layoutText = JSON.stringify(layout, null, 2) + '\n';
+    const files = [];
+    if (source !== original) files.push({ path: M.content, content: source });
+    if (M.layout && layoutText !== layoutOrig) files.push({ path: M.layout, content: layoutText });
+    if (files.length) await commitToBranch(draftBranch, files, `${M.id}: draft by ${user}`);
+    original = source; layoutOrig = layoutText;
+    markDirty();
+    history.replaceState(null, '', draftUrl());   // a reload finds this draft
+    showDraftBadge();
+    $('stat').textContent = 'draft saved — yours only, not live. Share it for feedback, or Publish';
+    return true;
+  } catch (e) {
+    $('stat').textContent = 'save failed: ' + tokenWhy(e);
+    markDirty();
+    return false;
+  }
+}
+
+$('share').onclick = async () => {
+  if (dirty || !draftBranch) { if (!await saveDraft()) return; }
+  const url = draftUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+    $('stat').textContent = 'link copied — it shows this draft, not the live report';
+  } catch (e) {
+    prompt('Copy this draft link:', url);   // clipboard blocked: show it instead
+  }
+};
+
+$('publish').onclick = async () => {
+  if (dirty) { if (!await saveDraft()) return; }
+  if (!draftBranch) {
+    $('stat').textContent = 'nothing to publish yet — make an edit and Save draft first';
+    return;
+  }
+  if (!confirm('Make this draft the live report?\n\nEveryone will see it. '
+             + 'The live site (and the Google Doc) update in about two minutes.')) return;
+  if (!await askToken()) return;
+  $('publish').disabled = true;
+  $('stat').textContent = 'publishing…';
+  try {
+    const user = await ghUser();
+    const owner = REPO.split('/')[0];
+    let pr = (await gh(`pulls?head=${owner}:${encodeURIComponent(draftBranch)}&state=open`))[0];
+    if (!pr) pr = await gh('pulls', { method: 'POST', body: JSON.stringify({
+      title: `${M.id}: publish draft by ${user}`, head: draftBranch, base: 'main',
+      body: 'Published from the draft editor.' }) });
+    await gh(`pulls/${pr.number}/merge`, { method: 'PUT',
+      body: JSON.stringify({ merge_method: 'squash' }) });
+    try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    draftBranch = null;
+    history.replaceState(null, '', location.pathname);
+    $('title').textContent = M.id;
+    markDirty();
+    $('stat').textContent = 'published ✓ — the live report updates in about two minutes';
+  } catch (e) {
+    const m = String(e.message);
+    $('stat').textContent =
+      m.match(/No commits between/i)
+        ? 'this draft already matches the live report — nothing to publish'
+      : m.match(/405|not mergeable|merge conflict/i)
+        ? 'the live report changed while you worked, and the two now overlap. '
+          + `Open github.com/${REPO}/pulls to look at the difference, or ask for help.`
+      : m.includes('not accessible')
+        ? 'the token cannot open pull requests. github.com/settings/personal-access-tokens '
+          + '-> your token -> Permissions -> Pull requests: Read and write. Then Publish again.'
+      : 'publish failed: ' + tokenWhy(e);
+  }
+  $('publish').disabled = false;
+};
 
 $('save').onclick = async () => {
   // Confirm, not block: prose has always been able to overflow a page and
@@ -4403,61 +4657,27 @@ $('save').onclick = async () => {
     return;
   }
 
-  if (!await askToken()) return;
-  $('save').disabled = true;
-  $('stat').textContent = 'saving…';
-  try {
-    // Prose and layout are separate files, so a text edit and a move are
-    // separate commits — each reviewable on its own.
-    const writes = [];
-    if (source !== original)
-      writes.push([M.content, source, `${M.id}: edit prose from the draft editor`]);
-    if (M.layout && layoutText !== layoutOrig)
-      writes.push([M.layout, layoutText, `${M.id}: move layout from the draft editor`]);
-
-    for (const [path, body, message] of writes) {
-      const cur = await gh(`contents/${path}?ref=main`).catch(() => ({}));
-      await gh(`contents/${path}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message,
-          content: btoa(String.fromCharCode(...new TextEncoder().encode(body))),
-          ...(cur.sha ? { sha: cur.sha } : {}), branch: 'main',
-        }),
-      });
-    }
-    original = source; layoutOrig = layoutText; dirty = false;
-    $('revert').disabled = true;
-    $('save').classList.remove('dirty');
-    $('stat').textContent = 'saved — the site rebuilds in ~90s';
-  } catch (e) {
-    // "Resource not accessible" means the token is valid but was minted
-    // without write access — the default. Say the fix, not the status code.
-    const m = String(e.message);
-    const why = m.includes('not accessible')
-      ? 'the token has no write access. github.com/settings/personal-access-tokens '
-        + `-> your token -> Repository access: ${REPO} -> Permissions -> Contents: `
-        + 'Read and write. Then press Save again.'
-      : m.match(/401/) ? 'the token was rejected — it may be expired or mistyped.'
-      : m;
-    $('stat').textContent = 'save failed: ' + why;
-    $('save').disabled = false;
-    // Only discard on 401 (the token itself is bad). A 403 means the token is
-    // fine but under-permissioned — discarding it just makes you paste the
-    // same token again and get the same 403, forever.
-    if (m.match(/401/)) localStorage.removeItem('docsync-pat');
-  }
+  await saveDraft();   // to draft/<project>/<user> — never straight to main
 };
 
 $('revert').onclick = async () => {
+  // With nothing unsaved, Discard means the DRAFT itself: delete its branch
+  // and go back to the live report. (With unsaved edits it stays what it
+  // always was — throw away what you typed since the last save.)
+  if (!dirty && draftBranch && !local) {
+    if (!confirm('Throw away this saved draft?\n\nThe live report is untouched. '
+               + 'This cannot be undone.')) return;
+    if (!await askToken()) return;
+    try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    location.href = location.pathname;   // reload clean, on the live content
+    return;
+  }
   if (!confirm('Discard your unsaved edits?')) return;
   source = original;
   layout = JSON.parse(layoutOrig || '{}');
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
-  dirty = false;
-  $('save').disabled = $('revert').disabled = true;
-  $('save').classList.remove('dirty');
+  markDirty();
   await render();
 };
 
