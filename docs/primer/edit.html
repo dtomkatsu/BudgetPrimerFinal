@@ -87,6 +87,27 @@
   .srcdel:hover:not(:disabled) { background:#C2703A; color:#fff; border-color:#C2703A; }
   .srcdel:disabled { opacity:.5; cursor:default; border-color:#d7dcd8; color:#9aa4a0; }
   .srcempty { padding:16px; color:#8B9A90; font-size:12px; }
+
+  /* Sign in with GitHub — same family as the sources panel. */
+  #authpanel { position:fixed; right:16px; width:min(380px,92vw); background:#fff;
+    color:var(--ink); border:1px solid #C9D6CD; border-radius:8px;
+    box-shadow:0 14px 38px rgba(0,0,0,.30); z-index:70; font:13px/1.5 system-ui; }
+  #authpanel header { display:flex; align-items:center; gap:10px; padding:9px 12px;
+    background:var(--ink); color:#E8EDE6; border-radius:8px 8px 0 0; }
+  #authpanel header b { flex:1; letter-spacing:.3px; }
+  #authpanel header .x { background:var(--sage); color:#fff; border:0;
+    border-radius:4px; padding:3px 11px; cursor:pointer; font:inherit; }
+  .au-body { padding:14px 16px 12px; text-align:center; }
+  .au-msg { margin:0 0 8px; color:#5B6E66; }
+  .au-code { font:700 26px/1.3 ui-monospace,monospace; letter-spacing:3px;
+    color:var(--ink); background:#EDF1EE; border-radius:6px; padding:8px 0;
+    margin-bottom:10px; user-select:all; }
+  .au-open { background:var(--sage); color:#fff; border:0; border-radius:5px;
+    padding:8px 18px; cursor:pointer; font:600 13px system-ui; }
+  .au-open:hover { background:var(--deep); }
+  .au-hint { margin:9px 0 0; font-size:11.5px; color:#8B9A90; }
+  .au-alt { margin:12px 0 0; font-size:11px; }
+  .au-alt a { color:#8B9A90; }
   #save { background:var(--sage); border-color:var(--sage); color:#fff; font-weight:600; }
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
@@ -616,7 +637,7 @@ const localImages = new Map();     // path -> data URL, for previewing pre-deplo
 /** Pick a file, push it to the repo's assets, and hand back its path — the
  *  one upload flow, whether the image lands in prose or replaces another. */
 async function uploadImageFile(d, onDone) {
-  const tok = await askToken();
+  const tok = await ensureAuth();
   if (!tok) return;
   const inp = d.createElement('input');
   inp.type = 'file';
@@ -4348,14 +4369,19 @@ function edit(d, key) {
 // it except to call GitHub. Saves go to a draft branch; only Publish — a
 // merged pull request — touches main, rebuilds the site and updates the doc.
 async function gh(path, opts = {}) {
-  const tok = localStorage.getItem('docsync-pat');
-  const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
-    ...opts,
-    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json',
-               ...(opts.headers || {}) },
-  });
-  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 160)}`);
-  return r.json();
+  for (let pass = 0; ; pass++) {
+    const tok = localStorage.getItem('docsync-pat');
+    const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
+      ...opts,
+      headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json',
+                 ...(opts.headers || {}) },
+    });
+    // A signed-in token expires after ~8h. One quiet refresh, then the retry;
+    // only if that fails does the failure reach the person.
+    if (r.status === 401 && pass === 0 && await refreshAuth(true)) continue;
+    if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 160)}`);
+    return r.json();
+  }
 }
 
 /**
@@ -4387,6 +4413,130 @@ async function verifyToken(tok) {
   return '';
 }
 
+// --- sign in with GitHub ---------------------------------------------------
+// The OAuth device flow needs no secret anywhere — only the App's public
+// client id. GitHub's login endpoints refuse cross-origin calls, so a tiny
+// relay (docs/primer/oauth-relay.js, ~40 lines, holds nothing) forwards the
+// two of them with CORS added. Configured per project in the manifest:
+//   "oauth": { "client_id": "Iv23…", "relay": "https://…workers.dev" }
+// Absent that config, the paste-a-token prompt below still does the job.
+const oauthOn = () => !!(M && M.oauth && M.oauth.client_id && M.oauth.relay);
+
+async function relay(path, body) {
+  const r = await fetch(M.oauth.relay + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ client_id: M.oauth.client_id, ...body }),
+  });
+  if (!r.ok) throw new Error(`sign-in relay ${r.status}`);
+  return r.json();
+}
+
+function storeAuth(j) {
+  localStorage.setItem('docsync-pat', j.access_token);
+  if (j.expires_in) localStorage.setItem('docsync-exp', String(Date.now() + j.expires_in * 1000));
+  else localStorage.removeItem('docsync-exp');
+  if (j.refresh_token) localStorage.setItem('docsync-refresh', j.refresh_token);
+  localStorage.removeItem('docsync-user');   // may be a different person now
+}
+
+function clearAuth() {
+  ['docsync-pat', 'docsync-exp', 'docsync-refresh', 'docsync-user']
+    .forEach(k => localStorage.removeItem(k));
+}
+
+/** Trade the refresh token for a fresh pair. force skips the expiry check —
+ *  that is gh()'s 401 path, where the token has proven stale regardless. */
+async function refreshAuth(force) {
+  const rt = localStorage.getItem('docsync-refresh');
+  if (!rt || !oauthOn()) return false;
+  const exp = +localStorage.getItem('docsync-exp') || 0;
+  if (!force && exp && Date.now() < exp - 120000) return false;
+  try {
+    const j = await relay('/device/token', { grant_type: 'refresh_token', refresh_token: rt });
+    if (!j.access_token) throw new Error(j.error || 'no token');
+    storeAuth(j);
+    return true;
+  } catch (e) {
+    clearAuth();               // a dead pair only blocks the next sign-in
+    return false;
+  }
+}
+
+/** The sign-in panel: a code to type at github.com, and a page that finishes
+ *  by itself. Resolves with the token, or null if the person backs out. */
+function signIn() {
+  return new Promise(resolve => {
+    const old = $('authpanel'); if (old) old.remove();
+    const p = document.createElement('div');
+    p.id = 'authpanel';
+    p.innerHTML =
+      '<header><b>SIGN IN WITH GITHUB</b><button type="button" class="x">Cancel</button></header>'
+      + '<div class="au-body"><p class="au-msg">getting your code…</p>'
+      + '<div class="au-code" hidden></div>'
+      + '<button type="button" class="au-open" hidden>Open GitHub</button>'
+      + '<p class="au-hint" hidden>Enter the code there and approve. '
+      + 'This page finishes on its own.</p>'
+      + '<p class="au-alt"><a href="#">use a paste-in token instead</a></p></div>';
+    document.body.appendChild(p);
+    p.style.top = ($('bar').getBoundingClientRect().bottom + 6) + 'px';
+    let stopped = false;
+    const done = v => { if (!stopped) { stopped = true; p.remove(); resolve(v); } };
+    p.querySelector('.x').onclick = () => done(null);
+    p.querySelector('.au-alt a').onclick = async e => {
+      e.preventDefault(); done(await askToken());
+    };
+    (async () => {
+      let d;
+      try { d = await relay('/device/code', {}); }
+      catch (e) {
+        p.querySelector('.au-msg').textContent =
+          'could not reach the sign-in relay — falling back to a paste-in token';
+        return setTimeout(async () => done(await askToken()), 1400);
+      }
+      const code = p.querySelector('.au-code');
+      code.textContent = d.user_code; code.hidden = false;
+      try { await navigator.clipboard.writeText(d.user_code);
+            p.querySelector('.au-msg').textContent = 'your code (already copied):'; }
+      catch (e) { p.querySelector('.au-msg').textContent = 'your code:'; }
+      const open = p.querySelector('.au-open');
+      open.hidden = p.querySelector('.au-hint').hidden = false;
+      open.onclick = () => window.open(d.verification_uri, '_blank');
+      let wait = (d.interval || 5) * 1000;
+      const until = Date.now() + (d.expires_in || 900) * 1000;
+      while (!stopped && Date.now() < until) {
+        await new Promise(r => setTimeout(r, wait));
+        if (stopped) return;
+        let j;
+        try {
+          j = await relay('/device/token',
+            { device_code: d.device_code,
+              grant_type: 'urn:ietf:params:oauth:grant-type:device_code' });
+        } catch (e) { continue; }               // a network blip is not a verdict
+        if (j.access_token) { storeAuth(j); return done(j.access_token); }
+        if (j.error === 'slow_down') wait += 5000;
+        else if (j.error === 'access_denied') {
+          p.querySelector('.au-msg').textContent = 'sign-in was declined on GitHub';
+          return setTimeout(() => done(null), 1600);
+        } else if (j.error && j.error !== 'authorization_pending') break;
+      }
+      if (!stopped) {
+        p.querySelector('.au-msg').textContent = 'the code expired — close this and try again';
+      }
+    })();
+  });
+}
+
+/** The one front door for credentials: a live token, refreshed if stale,
+ *  else GitHub sign-in, else the paste-a-token prompt. */
+async function ensureAuth() {
+  await refreshAuth(false);
+  const tok = localStorage.getItem('docsync-pat');
+  if (tok) return tok;
+  if (oauthOn()) return signIn();
+  return askToken();
+}
+
 async function askToken() {
   const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
@@ -4414,9 +4564,8 @@ async function askToken() {
 // The Token… button: swap credentials (a new collaborator on a shared machine,
 // or an expired token). It had no handler at all before this.
 $('tok').onclick = async () => {
-  localStorage.removeItem('docsync-pat');
-  localStorage.removeItem('docsync-user');
-  await askToken();
+  clearAuth();
+  await ensureAuth();
 };
 
 /** Explain a GitHub failure in terms of the fix, not the status code. */
@@ -4541,7 +4690,7 @@ async function draftForUpload() {
 }
 
 async function saveDraft() {
-  if (!await askToken()) return false;
+  if (!await ensureAuth()) return false;
   $('save').disabled = true;
   $('stat').textContent = 'saving your draft…';
   try {
@@ -4585,7 +4734,7 @@ $('publish').onclick = async () => {
   }
   if (!confirm('Make this draft the live report?\n\nEveryone will see it. '
              + 'The live site (and the Google Doc) update in about two minutes.')) return;
-  if (!await askToken()) return;
+  if (!await ensureAuth()) return;
   $('publish').disabled = true;
   $('stat').textContent = 'publishing…';
   try {
@@ -4667,7 +4816,7 @@ $('revert').onclick = async () => {
   if (!dirty && draftBranch && !local) {
     if (!confirm('Throw away this saved draft?\n\nThe live report is untouched. '
                + 'This cannot be undone.')) return;
-    if (!await askToken()) return;
+    if (!await ensureAuth()) return;
     try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
     location.href = location.pathname;   // reload clean, on the live content
     return;

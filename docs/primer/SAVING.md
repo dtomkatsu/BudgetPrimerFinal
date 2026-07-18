@@ -12,7 +12,16 @@ phased plan.
 > **Share** (copy a `?draft=…` link anyone can open), **Publish** (open + merge
 > a PR into main). Discard with nothing unsaved deletes the whole draft; a
 > reload picks your draft back up automatically; a raced save retries once on
-> the mover's tip. Phase 2 (GitHub App/OAuth) is the next step.
+> the mover's tip.
+>
+> **Phase 2 is implemented on the editor side**: "Sign in with GitHub" via the
+> OAuth device flow (a code + an approve click; tokens auto-refresh for ~6
+> months), with the paste-a-token prompt kept as fallback. GitHub's login
+> endpoints send no CORS headers (verified empirically), so the flow runs
+> through a ~40-line stateless relay (`oauth-relay.js` — holds no secret;
+> device flow needs only the public client id). Dormant until the manifest
+> gains an `oauth` block — `OAUTH_SETUP.md` has the two ~5-minute
+> account-bound steps (create the GitHub App, paste the relay worker).
 
 ---
 
