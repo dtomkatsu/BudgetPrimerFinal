@@ -16,17 +16,27 @@ place and show up together. Stdlib only; nothing to install.
 from __future__ import annotations
 
 import glob
+import io
 import json
 import os
+import shutil
+import signal
 import subprocess
+import tempfile
 import threading
 import time
 import webbrowser
+import zipfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
+WEB = ROOT / "report2027" / "web"                 # where index.html + assets live
+# The report is a Chrome-printed PDF; export reuses the same engine. Override
+# with CHROME_BIN on a non-mac host.
+CHROME = os.environ.get("CHROME_BIN") or \
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PORT = int(os.environ.get("PRIMER_PORT", "8010"))
 BUILD = ["make", "-C", "report2027", "pub"]      # the one build command
 # What a rebuild depends on. A change to any of these re-renders the report and
@@ -150,6 +160,14 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _bytes(self, code, ctype, data, filename):
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self):
         if self.path.split("?")[0] == "/__ping":
             return self._json(200, {"ok": True, "v": _version})
@@ -199,18 +217,149 @@ class Handler(SimpleHTTPRequestHandler):
             pass
 
     def do_POST(self):
-        if self.path.split("?")[0] != "/__save":
+        path = self.path.split("?")[0]
+        if path not in ("/__save", "/__export"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
             req = json.loads(self.rfile.read(n) or b"{}")
         except json.JSONDecodeError as e:
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
+        if path == "/__export":
+            return self._export(req)                 # writes its own response
         try:
             msg = self._save(req)
             return self._json(200, {"ok": True, "message": msg, "v": _version})
         except Exception as e:                       # noqa: BLE001 — report it
             return self._json(200, {"ok": False, "error": str(e)})
+
+    # ---- export: render the editor's CURRENT draft to a file and stream it ---
+    # The editor posts its in-memory content + layout, so you download exactly
+    # what is on screen — unsaved edits and all — without a Save (which pushes)
+    # and without touching content.md / layout.json. render_report.py takes the
+    # draft from temp files via DOCSYNC_CONTENT/LAYOUT and writes a throwaway
+    # HTML into web/ (so its relative primer.css/js/assets links resolve); Chrome
+    # then prints or screenshots it exactly as `make pdf` does.
+    def _export(self, req):
+        fmt = (req.get("fmt") or "pdf").lower()
+        if fmt not in ("pdf", "png"):
+            return self._json(400, {"ok": False, "error": "fmt must be pdf or png"})
+        content, layout = req.get("content"), req.get("layout")
+        if content is None or layout is None:
+            return self._json(400, {"ok": False, "error": "content and layout required"})
+        marks = bool(req.get("marks"))
+        work = Path(tempfile.mkdtemp(prefix="primer-exp-"))
+        token = work.name.rsplit("-", 1)[-1]
+        out_html = WEB / f"__export-{token}.html"     # must live in web/ for assets
+        try:
+            (work / "content.md").write_text(content)
+            (work / "layout.json").write_text(layout)
+            env = dict(os.environ)
+            env["DOCSYNC_CONTENT"] = str(work / "content.md")
+            env["DOCSYNC_LAYOUT"] = str(work / "layout.json")
+            env["DOCSYNC_OUT"] = str(out_html)
+            env.pop("DOCSYNC_EDIT", None)             # publish mode, not edit mode
+            if marks and fmt == "pdf":
+                env["DOCSYNC_MARKS"] = "1"
+            r = subprocess.run(["python3", "tools/render_report.py"],
+                               cwd=str(ROOT / "report2027"), env=env,
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                tail = (r.stdout + r.stderr).strip()[-2000:]
+                return self._json(200, {"ok": False,
+                                        "error": "the draft does not build:\n" + tail})
+            if fmt == "pdf":
+                data = self._chrome_pdf(out_html)
+                return self._bytes(200, "application/pdf", data,
+                                   "Budget-Primer-FY2026-27.pdf")
+            npages = out_html.read_text().count('<section class="page')
+            data = self._chrome_png_zip(out_html, npages)
+            return self._bytes(200, "application/zip", data, "Budget-Primer-pages.zip")
+        except Exception as e:                        # noqa: BLE001 — report it
+            return self._json(200, {"ok": False, "error": str(e)})
+        finally:
+            try:
+                out_html.unlink()
+            except OSError:
+                pass
+            shutil.rmtree(work, ignore_errors=True)
+
+    def _chrome_capture(self, args, out_file, deadline=50.0, settle=2.0) -> bool:
+        """Run headless Chrome and return once out_file is fully written.
+
+        This build of Chrome writes the PDF/PNG in a few seconds but then does
+        NOT exit under --headless=new, so waiting on the process (subprocess.run)
+        hangs forever. We watch the OUTPUT instead: once its size holds steady
+        it is done, and we kill the whole process group — main plus the gpu/
+        renderer helpers — so nothing lingers between exports."""
+        proc = subprocess.Popen(args, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, start_new_session=True)
+        start, last, held = time.time(), -1, 0.0
+        try:
+            while time.time() - start < deadline:
+                if proc.poll() is not None:       # some versions do self-exit
+                    break
+                time.sleep(0.4)
+                sz = out_file.stat().st_size if out_file.exists() else -1
+                if sz > 0 and sz == last:
+                    held += 0.4
+                    if held >= settle:
+                        break
+                else:
+                    held = 0.0
+                last = sz
+        finally:
+            if proc.poll() is None:
+                try:
+                    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+                except (ProcessLookupError, PermissionError):
+                    proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    try:
+                        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                    except (ProcessLookupError, PermissionError):
+                        proc.kill()
+        return out_file.exists() and out_file.stat().st_size > 0
+
+    def _chrome_pdf(self, out_html) -> bytes:
+        prof = Path(tempfile.mkdtemp(prefix="primer-chrome-"))
+        pdf = prof / "out.pdf"
+        try:
+            if not self._chrome_capture(
+                [CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
+                 "--no-first-run", f"--user-data-dir={prof}",
+                 "--virtual-time-budget=12000", "--no-pdf-header-footer",
+                 f"--print-to-pdf={pdf}", out_html.resolve().as_uri()],
+                pdf, deadline=50, settle=2.0):
+                raise RuntimeError("Chrome produced no PDF within the time limit.")
+            return pdf.read_bytes()
+        finally:
+            shutil.rmtree(prof, ignore_errors=True)
+
+    def _chrome_png_zip(self, out_html, npages) -> bytes:
+        # One screenshot per page via primer.js's ?only=N isolation; 816x1056 css
+        # px = 8.5x11in, doubled for a crisp raster. A fresh profile per page —
+        # Chrome is killed, not exited, so a reused profile can hold a lock.
+        base = out_html.resolve().as_uri()
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for i in range(1, max(npages, 1) + 1):
+                prof = Path(tempfile.mkdtemp(prefix="primer-chrome-"))
+                png = prof / f"page-{i}.png"
+                try:
+                    if self._chrome_capture(
+                        [CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
+                         "--no-first-run", f"--user-data-dir={prof}",
+                         "--virtual-time-budget=8000", "--hide-scrollbars",
+                         "--force-device-scale-factor=2", "--window-size=816,1056",
+                         f"--screenshot={png}", f"{base}?only={i}"],
+                        png, deadline=30, settle=1.0):
+                        z.write(png, f"budget-primer-page-{i:02d}.png")
+                finally:
+                    shutil.rmtree(prof, ignore_errors=True)
+        return buf.getvalue()
 
     def _save(self, req) -> str:
         """Write what changed to disk, rebuild, and push. Local git credentials

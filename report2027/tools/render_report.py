@@ -14,16 +14,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from docsync.content import Content, ContentError  # noqa: E402
-from docsync.layout import Layout, LayoutError     # noqa: E402
+from docsync.layout import Layout, LayoutError, fill_css, fill_repr  # noqa: E402
 
 HERE = Path(__file__).resolve().parent.parent
+# Input/output paths default to the working tree, so an ordinary render (CLI,
+# CI, the Pyodide editor) is byte-identical. The live server's export endpoint
+# overrides them to render the editor's current draft from temp files into a
+# throwaway output — a PDF/PNG of unsaved work without touching content.md or
+# layout.json. Empty/unset env -> the defaults below.
+_LAYOUT = Path(os.environ.get("DOCSYNC_LAYOUT") or (HERE / "layout.json"))
+_CONTENT = Path(os.environ.get("DOCSYNC_CONTENT") or (HERE / "content.md"))
+_OUT = Path(os.environ.get("DOCSYNC_OUT") or (HERE / "web" / "index.html"))
 # Position/shape/text overrides. Empty by default: the design below is the
 # default, and this only speaks where someone has moved or restyled something.
 # Built BEFORE C because C consumes it — and because some slots are rendered at
 # import time, so a later hand-off would work only by luck of line order.
-L = Layout(HERE / "layout.json")
+L = Layout(_LAYOUT)
 # Authored prose + sources. Synced from the Google Doc via `make pull-doc`.
-C = Content(HERE / "content.md", styles=L)
+C = Content(_CONTENT, styles=L)
 DATA = json.loads((HERE / "data" / "report_data.json").read_text())
 BUD = DATA["budget"]
 RES = DATA["research"]
@@ -600,12 +608,12 @@ def card(title, bullets, bg, light=None, key=""):
         # The luminance test must run again, on the colour actually being used.
         light = None
     if light is None:                       # auto: dark text on light tiles
-        light = is_light_bg(bg)
+        light = is_light_bg(fill_repr(bg))
     cls = "card light" if light else "card"
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     ul = C.ul_attr(key) if key else ""
     override = L.style(el_id, "") if el_id else ""
-    style = f"background:{bg}" + (f";{override}" if override else "")
+    style = f"background:{fill_css(bg)}" + (f";{override}" if override else "")
     tag = (L.tag(el_id) + L.fill_tag(el_id)) if el_id else ""
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
@@ -644,8 +652,8 @@ def callout_open(key):
     cls, bg = "callout", ""
     if L.refilled(cid):
         c = L.fill(cid)
-        cls = "callout onlight" if is_light_bg(c) else "callout"
-        bg = f"background:{c}"
+        cls = "callout onlight" if is_light_bg(fill_repr(c)) else "callout"
+        bg = f"background:{fill_css(c)}"
     return f'{L.spacer(cid)} <div class="{cls}"{L.attr(cid, bg)}{L.fill_tag(cid)}>'
 
 
@@ -668,10 +676,10 @@ def table1_for(year):
     t1 = []
     if L.refilled("table1.head"):
         c = L.fill("table1.head")
-        t1.append(f"--th-bg:{c};--th-tc:{INK if is_light_bg(c) else '#fff'}")
+        t1.append(f"--th-bg:{fill_css(c)};--th-tc:{INK if is_light_bg(fill_repr(c)) else '#fff'}")
     if L.refilled("table1.total"):
         c = L.fill("table1.total")
-        t1.append(f"--tot-bg:{c};--tot-tc:{INK if is_light_bg(c) else '#fff'}")
+        t1.append(f"--tot-bg:{fill_css(c)};--tot-tc:{INK if is_light_bg(fill_repr(c)) else '#fff'}")
     t1s = f' style="{";".join(t1)}"' if t1 else ""
     return f"""<table class="t1" data-fig="table1" data-fy="{year}"{hidden}{t1s}>
 <thead><tr{L.fill_tag("table1.head")}><th></th><th class="lk" data-dept="__all"{C.slot_attr("table1.header.executive")}>{C("table1.header.executive")}</th><th{C.slot_attr("table1.header.judiciary")}>{C("table1.header.judiciary")}</th>
@@ -798,8 +806,8 @@ branch_cards = [
 ]
 bc = "".join(
     f'<div class="branch">{L.spacer(f"branch.photo.{k}")}{img_el(f"branch.photo.{k}", "", f"assets/{img}", esc(C.text(f"basics.branch.{k}.title")))}'
-    f'<div class="branch-card{" onlight" if is_light_bg(L.fill(f"branch.{k}", bg)) else ""}"'
-    f'{L.tag(f"branch.{k}")}{L.fill_tag(f"branch.{k}")} style="background:{L.fill(f"branch.{k}", bg)}">'
+    f'<div class="branch-card{" onlight" if is_light_bg(fill_repr(L.fill(f"branch.{k}", bg))) else ""}"'
+    f'{L.tag(f"branch.{k}")}{L.fill_tag(f"branch.{k}")} style="background:{fill_css(L.fill(f"branch.{k}", bg))}">'
     f'<h4>{t}</h4><ul{C.ul_attr(f"basics.branch.{k}.bullets")}>' + "".join(f"<li>{b}</li>" for b in bl) + "</ul></div></div>"
     for t, bg, img, lt, bl, k in branch_cards)
 pages.append(f"""
@@ -1053,7 +1061,7 @@ html = f"""<!DOCTYPE html>
 {L.font_link()}
 <link rel="stylesheet" href="primer.css">
 </head>
-<body>
+<body{' class="ds-bleed"' if os.environ.get("DOCSYNC_MARKS") else ''}>
 <div class="toolbar noprint">
  <span>Hawaiʻi Budget Primer FY2026–27</span>
  <span class="tb-actions">
@@ -1077,5 +1085,5 @@ window.PRIMER_LINKS = {json.dumps({
 </body>
 </html>"""
 
-(HERE / "web" / "index.html").write_text(html)
-print(f"wrote web/index.html ({len(html):,} bytes, {len(pages)} pages)")
+_OUT.write_text(html)
+print(f"wrote {_OUT} ({len(html):,} bytes, {len(pages)} pages)")

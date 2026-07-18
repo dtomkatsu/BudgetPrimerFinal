@@ -233,7 +233,8 @@ else:
 # blank canvas: the renderer's design is the default, data only overrides it.
 # With nothing overridden the published HTML must be untouched.
 import json, tempfile                                          # noqa: E402
-from docsync.layout import Layout, LayoutError, shadow_css     # noqa: E402
+from docsync.layout import (Layout, LayoutError, shadow_css,   # noqa: E402
+                            fill_css, fill_repr, fill_svg_paint)
 
 
 def _layout(d):
@@ -785,6 +786,70 @@ def _is_light_a(hexc):                                # 8-digit, composited over
 check_eq("an opaque charcoal fill reads dark", _is_light_a("#2F3E46FF"), False)
 check_eq("the same charcoal at 25% shows the page and reads light",
          _is_light_a("#2F3E4640"), True)
+
+# --- gradient fills --------------------------------------------------------
+# A fill may be a hex (byte-identity) or a gradient object; shape, box and the
+# fill{} surfaces all accept both. The three helpers must keep a hex verbatim so
+# a solid fill never moves a byte, and must turn a gradient into CSS / an SVG
+# paint+defs / one contrast colour.
+_LIN = {"type": "linear", "angle": 90,
+        "stops": [{"color": "#FFFFFF", "at": 0}, {"color": "#2F3E46", "at": 1}]}
+_RAD = {"type": "radial",
+        "stops": [{"color": "#6B9E78", "at": 0}, {"color": "#354F52", "at": 1}]}
+
+check_eq("a gradient fill loads on a shape",
+         _layout({"shapes": [{"id": "g", "page": 5, "kind": "rect",
+                              "x": 1, "y": 1, "w": 2, "h": 2, "fill": _LIN}]}).shapes[0]["fill"]["type"],
+         "linear")
+check_eq("a gradient fill loads on a fill surface",
+         _layout({"fill": {"card.a": _RAD}}).fill("card.a", "#fff")["type"], "radial")
+check("a gradient needs two or more stops",
+      _layout_error({"fill": {"card.a": {"type": "linear",
+                                         "stops": [{"color": "#fff", "at": 0}]}}}),
+      "two or more stops")
+check("a gradient needs a known type",
+      _layout_error({"fill": {"card.a": {"type": "conic",
+                                         "stops": [{"color": "#fff", "at": 0},
+                                                   {"color": "#000", "at": 1}]}}}),
+      "'linear' or 'radial'")
+check("a gradient stop needs a hex colour",
+      _layout_error({"fill": {"card.a": {"type": "linear",
+                                         "stops": [{"color": "teal", "at": 0},
+                                                   {"color": "#000", "at": 1}]}}}),
+      "not a hex colour")
+check("a gradient stop position stays within 0..1",
+      _layout_error({"fill": {"card.a": {"type": "linear",
+                                         "stops": [{"color": "#fff", "at": 0},
+                                                   {"color": "#000", "at": 2}]}}}),
+      "between 0 and 1")
+
+# The byte-identity guarantee: a SOLID fill emits exactly what it did before —
+# no gradient <defs>, hex verbatim in CSS and SVG.
+_solidshape = _layout({"shapes": [{"id": "s", "page": 5, "kind": "rect",
+                                   "x": 1, "y": 1, "w": 2, "h": 2, "fill": "#6B9E78"}]})
+check("a solid shape emits its hex verbatim", _solidshape.layer(5), 'fill="#6B9E78"')
+check_eq("a solid shape draws no gradient def", "linearGradient" in _solidshape.layer(5), False)
+check_eq("fill_css keeps a hex verbatim", fill_css("#E8EDE6"), "#E8EDE6")
+check_eq("fill_repr keeps a hex verbatim", fill_repr("#123456"), "#123456")
+
+# A gradient shape references a def; the def is emitted once in the layer.
+_gradshape = _layout({"shapes": [{"id": "gg", "page": 5, "kind": "rect",
+                                  "x": 1, "y": 1, "w": 2, "h": 2, "fill": _LIN}]})
+check("a gradient shape paints from a def", _gradshape.layer(5), 'fill="url(#ds-fill-gg)"')
+check("the gradient def is emitted", _gradshape.layer(5), '<linearGradient id="ds-fill-gg"')
+check("fill_css writes a CSS linear-gradient", fill_css(_LIN), "linear-gradient(90deg,")
+check("fill_css writes a CSS radial-gradient", fill_css(_RAD), "radial-gradient(circle,")
+check_eq("fill_repr returns a six-digit hex for a gradient", len(fill_repr(_LIN)), 7)
+check_eq("contrast still resolves on a gradient (it returns a bool)",
+         isinstance(_is_light(fill_repr(_LIN)), bool), True)
+# 90deg = to the right: the last stop sits at x=1.
+check("a 90deg gradient runs left to right", fill_svg_paint(_LIN, "d")[1], 'x1="0.0"')
+check("its last stop is on the right", fill_svg_paint(_LIN, "d")[1], 'x2="1.0"')
+# An 8-digit stop splits into colour + opacity for SVG.
+check("an 8-digit stop splits its alpha",
+      fill_svg_paint({"type": "linear", "stops": [{"color": "#2F3E4680", "at": 0},
+                                                  {"color": "#fff", "at": 1}]}, "d")[1],
+      'stop-color="#2F3E46" stop-opacity="0.5')
 
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))

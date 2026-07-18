@@ -1,3 +1,21 @@
+/* Single-page isolation for per-page PNG export. The live server's export
+   endpoint screenshots "file://…/__export.html?only=N" once per page; this
+   hides every page but the Nth and squares it to the viewport top-left so the
+   capture is exactly that trim page. Inert without ?only= — normal loads never
+   see it. */
+(function () {
+  var m = /[?&]only=(\d+)/.exec(location.search);
+  if (!m) return;
+  var n = parseInt(m[1], 10);
+  document.documentElement.style.background = document.body.style.background = '#fff';
+  var tb = document.querySelector('.toolbar');
+  if (tb) tb.style.display = 'none';
+  document.querySelectorAll('section.page').forEach(function (pg, i) {
+    if (i === n - 1) { pg.style.margin = '0'; pg.style.height = '11in'; pg.style.boxShadow = 'none'; }
+    else { pg.style.display = 'none'; }
+  });
+})();
+
 /* Interactive layer: hover tooltips + department preview popovers that surface a
    slice of the Budget Tracker (funding trend + largest programs) in place.
    Progressive enhancement over the inline SVG; print unaffected. */
