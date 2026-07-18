@@ -3783,6 +3783,13 @@ function wire() {
     .ds-lifted { box-shadow:0 12px 32px rgba(47,62,70,.28) !important;
                  transform:scale(1.015); opacity:.96; z-index:9999 !important;
                  outline:2px solid #6B9E78 !important; outline-offset:2px; }
+    /* …but none of that survives contact with an SVG child: the outline paints
+       around the whole page-sized viewport (the recurring giant box — this was
+       its FOURTH appearance, during drag and resize), and a CSS scale on an
+       SVG node scales from the SVG's origin, walking the shape. A lifted shape
+       keeps only the slight fade. */
+    svg.shape-layer .ds-lifted { outline:none !important; transform:none;
+                 box-shadow:none !important; }
     /* Settling: land, don't teleport. Short enough to feel like physics. */
     .ds-settling { transition:left .13s cubic-bezier(.2,.8,.3,1),
                               top .13s cubic-bezier(.2,.8,.3,1); }
