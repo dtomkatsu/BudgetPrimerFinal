@@ -56,6 +56,37 @@
                          background:var(--ctl); }
   #bar button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
   #undo, #redo { font-size:16px; line-height:1; padding:4px 9px; }
+
+  /* Sources manager — a light panel over the preview, in the top document so a
+     re-render of the iframe never disturbs it. top is set from the bar height. */
+  #srcpanel { position:fixed; right:16px; width:min(560px,92vw);
+    max-height:calc(100vh - 90px); overflow:auto; background:#fff; color:var(--ink);
+    border:1px solid #C9D6CD; border-radius:8px; box-shadow:0 14px 38px rgba(0,0,0,.30);
+    z-index:60; font:13px/1.45 system-ui; }
+  #srcpanel header { display:flex; align-items:center; gap:10px; padding:9px 12px;
+    background:var(--ink); color:#E8EDE6; border-radius:8px 8px 0 0; position:sticky; top:0; }
+  #srcpanel header b { letter-spacing:.3px; }
+  #srcpanel header span { flex:1; font-size:11px; opacity:.82; }
+  #srcpanel header button { background:var(--sage); color:#fff; border:0;
+    border-radius:4px; padding:3px 11px; cursor:pointer; font:inherit; }
+  .srcrow { padding:9px 12px; border-bottom:1px solid #EDF1EE;
+    display:grid; grid-template-columns:1fr auto; gap:6px 8px; align-items:center; }
+  .srcid { grid-column:1 / -1; font:11px ui-monospace,monospace; color:var(--deep);
+    display:flex; gap:8px; align-items:center; }
+  .srcuse { font-size:10px; color:#8B9A90; }
+  .srcidctl { margin-left:auto; display:flex; gap:4px; }
+  .srcren { font:10px system-ui; padding:2px 8px; cursor:pointer; border:1px solid #C9D6CD;
+    background:#fff; color:var(--deep); border-radius:4px; }
+  .srcren:hover:not(:disabled) { background:var(--sage); color:#fff; border-color:var(--sage); }
+  .srcren:disabled { opacity:.35; cursor:default; }
+  .srcrow input { font:12px system-ui; padding:5px 7px; width:100%; box-sizing:border-box;
+    border:1px solid #C9D6CD; border-radius:4px; color:var(--ink); }
+  .srctext { grid-column:1 / -1; }
+  .srcdel { font:11px system-ui; padding:5px 11px; border:1px solid #d9b0a0;
+    background:#fff; color:#C2703A; border-radius:4px; cursor:pointer; white-space:nowrap; }
+  .srcdel:hover:not(:disabled) { background:#C2703A; color:#fff; border-color:#C2703A; }
+  .srcdel:disabled { opacity:.5; cursor:default; border-color:#d7dcd8; color:#9aa4a0; }
+  .srcempty { padding:16px; color:#8B9A90; font-size:12px; }
   #save { background:var(--sage); border-color:var(--sage); color:#fff; font-weight:600; }
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
@@ -280,6 +311,7 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
+  <button id="sources" title="View, edit, reorder and remove citations">Sources</button>
   <button id="undo" disabled title="Undo (⌘Z)">↶</button>
   <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
@@ -3940,6 +3972,122 @@ function addSource(id, text, url) {
   writeSlot('sources', readSlot('sources') + '\n' + line);
 }
 
+// --- sources manager: edit, rename, reorder and remove citations -----------
+// Reuses the slot primitives above; every mutation calls pushHistory() first,
+// so a source edit is undoable like any move. A source is one "[id]: text — url"
+// line; the renderer's parser uses the same shape (docsync/content.py).
+const srcLineRe = id => new RegExp(`^\\[${rxEsc(id)}\\]:.*$`, 'm');
+const parseSources = () => readSlot('sources').split('\n').map(l => l.trim())
+  .filter(Boolean).map(l => {
+    const m = l.match(/^\[([^\]]+)\]:\s*(.*?)\s+—\s+(\S+)\s*$/);
+    return m ? { id: m[1], text: m[2].trim(), url: m[3].trim() } : null;
+  }).filter(Boolean);
+const citeCount = id =>
+  (source.match(new RegExp(`\\[\\^${rxEsc(id)}\\]`, 'g')) || []).length;
+
+function updateSource(id, text, url) {
+  writeSlot('sources', readSlot('sources').replace(srcLineRe(id), `[${id}]: ${text} — ${url}`));
+}
+function deleteSource(id) {
+  writeSlot('sources', readSlot('sources')
+    .replace(new RegExp(`^\\[${rxEsc(id)}\\]:.*(?:\\n|$)`, 'm'), '')
+    .replace(/\n{2,}/g, '\n').trim());
+}
+// Rename a source id across the whole document: every [^old] ref in the prose
+// and the [old]: line. Numbering is by first appearance, so only the stable id
+// changes — the footnote numbers do not.
+function renameSource(oldId, neu) {
+  source = source
+    .replace(new RegExp(`\\[\\^${rxEsc(oldId)}\\]`, 'g'), `[^${neu}]`)
+    .replace(new RegExp(`^\\[${rxEsc(oldId)}\\]:`, 'm'), `[${neu}]:`);
+}
+// Reorder the declaration list. Endnote NUMBERS follow first appearance in the
+// prose, so this reorders the [[sources]] list and the Cite dropdown while the
+// report's numbering is unaffected — it just keeps the list organised.
+function moveSource(id, dir) {
+  const lines = readSlot('sources').split('\n').map(l => l.trim()).filter(Boolean);
+  const i = lines.findIndex(l => l.startsWith(`[${id}]:`));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= lines.length) return;
+  [lines[i], lines[j]] = [lines[j], lines[i]];
+  writeSlot('sources', lines.join('\n'));
+}
+
+let srcPanel = null;
+function closeSources() { if (srcPanel) { srcPanel.remove(); srcPanel = null; } }
+function openSources() {
+  if (editing) return;
+  closeSources();
+  srcPanel = document.createElement('div');
+  srcPanel.id = 'srcpanel';
+  srcPanel.innerHTML =
+    '<header><b>SOURCES</b><span>edit text or link, reorder, rename, or delete an '
+    + 'uncited source — endnote numbers follow first use in the prose</span>'
+    + '<button type="button">Close</button></header><div id="srclist"></div>';
+  srcPanel.querySelector('button').onclick = closeSources;
+  document.body.appendChild(srcPanel);
+  srcPanel.style.top = ($('bar').getBoundingClientRect().bottom + 6) + 'px';
+  renderSources();
+}
+function renderSources() {
+  if (!srcPanel) return;
+  const list = srcPanel.querySelector('#srclist');
+  list.textContent = '';
+  const rows = parseSources();
+  if (!rows.length) {
+    list.innerHTML = '<p class="srcempty">No sources yet. Use <b>Cite</b> while '
+      + 'editing a paragraph to add one.</p>';
+    return;
+  }
+  rows.forEach((s, idx) => {
+    const n = citeCount(s.id);
+    const row = document.createElement('div'); row.className = 'srcrow';
+    const id = document.createElement('div'); id.className = 'srcid';
+    id.innerHTML = `[${s.id}]<span class="srcuse">${n ? `cited ${n}×` : 'unused'}</span>`;
+    const ctl = document.createElement('span'); ctl.className = 'srcidctl';
+    const mkb = (label, title, dis, fn) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'srcren'; b.textContent = label; b.title = title;
+      b.disabled = !!dis;
+      b.addEventListener('click', fn);
+      ctl.appendChild(b);
+    };
+    mkb('↑', 'Move up', idx === 0, () => {
+      pushHistory(); moveSource(s.id, -1); markDirty(); render(); renderSources(); });
+    mkb('↓', 'Move down', idx === rows.length - 1, () => {
+      pushHistory(); moveSource(s.id, 1); markDirty(); render(); renderSources(); });
+    mkb('rename', 'Rename this id everywhere it is cited', false, () => {
+      const neu = (prompt(`Rename [${s.id}] to:`, s.id) || '').trim();
+      if (!neu || neu === s.id) return;
+      if (!/^[A-Za-z0-9._-]+$/.test(neu)) { alert('Use letters, numbers, and . _ - only.'); return; }
+      if (parseSources().some(x => x.id === neu)) { alert(`[${neu}] already exists.`); return; }
+      pushHistory(); renameSource(s.id, neu); markDirty(); render(); renderSources();
+    });
+    id.appendChild(ctl);
+    const txt = document.createElement('input');
+    txt.className = 'srctext'; txt.value = s.text; txt.placeholder = 'citation text';
+    const url = document.createElement('input');
+    url.value = s.url; url.placeholder = 'https://…';
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'srcdel'; del.textContent = 'Delete';
+    if (n) { del.disabled = true; del.title = `Cited in the prose — remove the [^${s.id}] refs first`; }
+    const commit = () => {
+      const t = txt.value.trim(), u = url.value.trim();
+      if (!t || !u) return;                       // never write a half-line
+      pushHistory(); updateSource(s.id, t, u); markDirty(); render();
+    };
+    txt.addEventListener('change', commit);       // fires on blur only when changed
+    url.addEventListener('change', commit);
+    del.addEventListener('click', () => {
+      if (!confirm(`Delete source [${s.id}]? This cannot be undone from here.`)) return;
+      pushHistory(); deleteSource(s.id); markDirty(); render(); renderSources();
+    });
+    row.append(id, txt, url, del);
+    list.appendChild(row);
+  });
+}
+$('sources').onclick = openSources;
+
 function spliceAt(el, before, after = '') {
   const s = el.selectionStart ?? el.value.length;
   const e = el.selectionEnd ?? el.value.length;
@@ -3955,6 +4103,7 @@ function edit(d, key) {
   const blocks = [...d.querySelectorAll(`[data-slot="${key}"]`)];
   if (!blocks.length || editing) return;
   editing = true;
+  closeSources();   // its citation counts would go stale behind an edit
 
   const inline = blocks[0].dataset.inline === '1';
   const ta = d.createElement(inline ? 'input' : 'textarea');
