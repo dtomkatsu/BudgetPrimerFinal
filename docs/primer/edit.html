@@ -311,6 +311,7 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
+  <button id="add" title="Add a new prose section to a page">+ Section</button>
   <button id="sources" title="View, edit, reorder and remove citations">Sources</button>
   <button id="undo" disabled title="Undo (⌘Z)">↶</button>
   <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
@@ -3936,7 +3937,19 @@ function wire() {
     .ds-sw-custom { width:20px; height:20px; padding:0; border:1px dashed #8B9A90;
                     border-radius:4px; background:none; cursor:pointer; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
-    body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
+    body.ds-grabbing [data-slot] { cursor:grabbing !important; }
+    /* Added prose sections: a subtle dashed frame and corner controls. */
+    .extra-section { position:relative; }
+    .extra-section:hover { outline:1px dashed #C08497; outline-offset:5px; }
+    .ds-xtools { position:absolute; top:-12px; right:-4px; display:none; gap:3px; z-index:5; }
+    .extra-section:hover .ds-xtools { display:flex; }
+    .ds-xtools button { width:22px; height:22px; padding:0; font:12px system-ui;
+                        border:1px solid #B9C9BE; background:#fff; color:#2F3E46;
+                        border-radius:4px; cursor:pointer; line-height:1; }
+    .ds-xtools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
+    .ds-xtools button.del:hover { background:#c2703a; border-color:#c2703a; }
+    .ds-xtools button:disabled { opacity:.35; cursor:default; }
+    .ds-xtools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -3958,6 +3971,53 @@ function wire() {
       el.addEventListener('click', () => { showType(key); edit(d, key); });
     }
   });
+
+  // Added sections carry reorder / move / delete controls. The single-click
+  // editor above already applies (a section is a [data-slot] outside any
+  // object); a control press stops propagation so it never also opens the
+  // editor beneath it.
+  d.querySelectorAll('.extra-section[data-extra="1"]').forEach(el => {
+    const key = el.dataset.slot;
+    const ctl = d.createElement('div');
+    ctl.className = 'ds-xtools';
+    ctl.addEventListener('mousedown', e => e.preventDefault());
+    const mk = (label, title, cls, fn) => {
+      const b = d.createElement('button');
+      b.type = 'button'; b.textContent = label; b.title = title;
+      if (cls) b.className = cls;
+      b.addEventListener('click', e => { e.stopPropagation(); if (!editing && !b.disabled) fn(); });
+      ctl.appendChild(b);
+      return b;
+    };
+    const sibs = extraKeys(pageOf(key)), pos = sibs.indexOf(key);
+    const up = mk('↑', 'Move section up', '', () => { pushHistory(); moveExtra(key, -1); markDirty(); render(); });
+    const dn = mk('↓', 'Move section down', '', () => { pushHistory(); moveExtra(key, 1); markDirty(); render(); });
+    mk('⇄', 'Move to another page', '', () => {
+      const menu = EXTRA_PAGES.map(([, l], i) => `${i + 1}. ${l}`).join('\n');
+      const pick = d.defaultView.prompt(
+        `Move this section to which page?\n(now on: ${pageOf(key)})\n\n${menu}\n\n`
+        + `Enter a number 1–${EXTRA_PAGES.length}:`);
+      if (pick === null) return;
+      const idx = parseInt(pick, 10) - 1;
+      if (!(idx >= 0 && idx < EXTRA_PAGES.length)) return;
+      pushHistory(); moveSectionToPage(key, EXTRA_PAGES[idx][0]); markDirty(); render();
+    });
+    mk('✕', 'Delete this section', 'del', () => {
+      if (!d.defaultView.confirm('Delete this whole section?')) return;
+      pushHistory(); removeExtra(key); markDirty(); render();
+    });
+    up.disabled = pos <= 0;
+    dn.disabled = pos === sibs.length - 1;
+    el.appendChild(ctl);
+  });
+
+  // A section just added from the toolbar: open it once THIS document contains
+  // the slot. A render in flight when it was added can fire an earlier onload
+  // against content without the section; consuming pendingEdit then would drop
+  // it and the section would silently never open. Leave it for the right render.
+  if (pendingEdit && d.querySelector(`[data-slot="${pendingEdit}"]`)) {
+    const k = pendingEdit; pendingEdit = null; edit(d, k);
+  }
 }
 
 // The [[sources]] slot is the citation list: "[id]: text — url" per line. A
@@ -4087,6 +4147,87 @@ function renderSources() {
   });
 }
 $('sources').onclick = openSources;
+
+// --- sections: add, edit, reorder, move and delete whole prose sections -----
+// A section is an [[extra.<page>.<slug>]] overflow slot the renderer drops at
+// the end of its page (render_report.py EXTRA_PAGES). These helpers edit the
+// raw content.md string, touching only extra.* keys, so the report's fixed,
+// name-referenced slots are never at risk. Every action calls pushHistory() so
+// it is undoable — which is what makes a section delete recoverable.
+const EXTRA_PAGES = [
+  ['basics', 'Budget Basics'], ['process', 'Budget Process'],
+  ['spent', 'How Money Is Spent'], ['categories', 'Spending Categories'],
+  ['cip', 'Capital Improvements'], ['onetime', 'One-Time & Emergency'],
+  ['funding', 'Funding the Budget'], ['taxes', 'Taxes'], ['whopays', 'Who Pays'],
+];
+let pendingEdit = null;    // a section to open for editing after the next render
+const pageOf = key => key.split('.')[1];
+// A whole block: the [[key]] line and its body, up to the next slot or EOF.
+// Anchored on a leading \n — extras always follow an earlier slot, never start
+// the file — so swaps and deletes never merge into a neighbour's line.
+const blockRe = k => new RegExp(`\\n\\[\\[${rxEsc(k)}\\]\\]\\n[\\s\\S]*?(?=\\n\\[\\[|$)`);
+const rawBlock = k => (source.match(blockRe(k)) || [''])[0];
+const extraKeys = page => [...source.matchAll(/\n\[\[(extra\.[^\]]+)\]\]/g)]
+  .map(m => m[1]).filter(k => k.startsWith(`extra.${page}.`));
+
+function addExtra(page, slug) {
+  const key = `extra.${page}.${slug}`;
+  const block = `\n\n[[${key}]]\n## New section\n\nWrite the section here.`;
+  const sibs = extraKeys(page);
+  if (sibs.length) source = source.replace(blockRe(sibs[sibs.length - 1]), m => m + block);
+  else source = source.replace(/\s*$/, '') + block + '\n';
+  return key;
+}
+function removeExtra(key) {
+  source = source.replace(blockRe(key), '').replace(/\n{3,}/g, '\n\n');
+}
+// Swap a section with its neighbour on the same page. Placeholders first, so
+// replacing the first block cannot clobber the text of the second.
+function moveExtra(key, dir) {
+  const keys = extraKeys(pageOf(key));
+  const i = keys.indexOf(key), j = i + dir;
+  if (i < 0 || j < 0 || j >= keys.length) return;
+  const a = keys[Math.min(i, j)], b = keys[Math.max(i, j)];
+  const ra = rawBlock(a), rb = rawBlock(b);
+  source = source.replace(blockRe(a), '\x00A\x00').replace(blockRe(b), '\x00B\x00')
+                 .replace('\x00A\x00', rb).replace('\x00B\x00', ra);
+}
+// Relocate a section to another page: the slot's <page> component decides the
+// page, so rewrite extra.<old>.<slug> -> extra.<new>.<slug> and drop the block
+// among the target page's extras. Slug kept, suffixed only on a clash.
+function moveSectionToPage(key, newPage) {
+  if (newPage === pageOf(key)) return;
+  const body = readSlot(key);
+  const slug = key.split('.').slice(2).join('.');
+  let newKey = `extra.${newPage}.${slug}`;
+  const base = newKey;
+  for (let n = 2; source.includes(`[[${newKey}]]`); n++) newKey = `${base}-${n}`;
+  removeExtra(key);
+  const block = `\n\n[[${newKey}]]\n${body}`;
+  const sibs = extraKeys(newPage);
+  if (sibs.length) source = source.replace(blockRe(sibs[sibs.length - 1]), m => m + block);
+  else source = source.replace(/\s*$/, '') + block + '\n';
+}
+
+$('add').onclick = () => {
+  if (editing) return;
+  const menu = EXTRA_PAGES.map(([, label], i) => `${i + 1}. ${label}`).join('\n');
+  const pick = prompt(`Add a new section to which page?\n\n${menu}\n\nEnter a number 1–${EXTRA_PAGES.length}:`);
+  if (pick === null) return;
+  const idx = parseInt(pick, 10) - 1;
+  if (!(idx >= 0 && idx < EXTRA_PAGES.length)) { $('stat').textContent = `"${pick}" is not a page number`; return; }
+  const [page, label] = EXTRA_PAGES[idx];
+  let slug = (prompt(`Short name for the section on "${label}" (letters, numbers, hyphens):`, '') || '')
+             .trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (!slug) return;
+  const base = slug;
+  for (let n = 2; source.includes(`[[extra.${page}.${slug}]]`); n++) slug = `${base}-${n}`;
+  pushHistory();
+  pendingEdit = addExtra(page, slug);
+  markDirty();
+  $('stat').textContent = `new section on ${label} — write it below`;
+  render();
+};
 
 function spliceAt(el, before, after = '') {
   const s = el.selectionStart ?? el.value.length;

@@ -320,10 +320,27 @@ class Content:
         """Render every overflow slot for a page — keys named
         [[extra.<page>.<slug>]] — in content.md order. This is what lets an
         editor add a whole new prose section from the Google Doc alone:
-        no renderer change, the slot just appears at the end of that page."""
+        no renderer change, the slot just appears at the end of that page.
+
+        Under DOCSYNC_EDIT each section is wrapped in a tagged, clickable
+        container so the draft editor can edit it (block_html emits bare
+        <h2>/<p>/<ul> with no slot to hang a handler on) and offer reorder,
+        move and delete controls. An empty slot still gets a placeholder so a
+        just-added section is never an invisible target. Off by default: the
+        published HTML is unwrapped."""
         prefix = f"extra.{page}."
-        return "".join(block_html(self.raw(k))
-                       for k in self._raw if k.startswith(prefix))
+        edit = os.environ.get("DOCSYNC_EDIT")
+        out: list[str] = []
+        for k in self._raw:
+            if not k.startswith(prefix):
+                continue
+            html = block_html(self.raw(k))
+            if edit:
+                html = (f'<div class="extra-section" data-slot="{k}" data-extra="1">'
+                        + (html or '<p><em>New section — click to write.</em></p>')
+                        + '</div>')
+            out.append(html)
+        return "".join(out)
 
     def unused_keys(self) -> list[str]:
         return sorted(set(self._raw) - self._used)
