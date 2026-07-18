@@ -279,8 +279,16 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
+  <button id="download" title="Download the report as a PDF or per-page PNGs">Download ▾</button>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save</button>
+  <div class="pop" id="downloadpop" hidden>
+    <p class="pop-h">Download this draft</p>
+    <button class="shp" id="dl-pdf">PDF — the whole report</button>
+    <button class="shp" id="dl-png">PNG — every page (.zip)</button>
+    <label style="margin-top:6px;padding-top:8px;border-top:1px solid #EEF2EF">
+      <input type="checkbox" id="dl-marks">Bleed &amp; crop marks (PDF)</label>
+  </div>
   <div class="pop" id="shapepop" hidden>
     <p class="pop-h">Add to the page in view</p>
     <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
@@ -676,7 +684,10 @@ function fillTargets(id) {
 // text colour in layout.json. Offering them saves eyedropping your own work.
 function colorsInUse() {
   const set = new Set();
-  const add = c => { if (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c)) set.add(c.toUpperCase()); };
+  const add = c => {
+    if (typeof c === 'string' && /^#[0-9a-f]{3,8}$/i.test(c)) set.add(c.toUpperCase());
+    else if (c && typeof c === 'object' && Array.isArray(c.stops)) c.stops.forEach(s => add(s.color));
+  };
   Object.values(layout.fill || {}).forEach(add);
   (layout.shapes || []).forEach(s => { add(s.fill); add(s.stroke); });
   (layout.boxes || []).forEach(b => add(b.fill));
@@ -718,62 +729,160 @@ function colorExtras(d, host, current, onPick) {
   }
 }
 
+// A fill value -> a CSS background, for the gradient editor's PREVIEW bar only.
+// The report itself is painted by Python's fill_css at render time; this mirror
+// exists so a slider drag updates the swatch without a full re-render, and it
+// matches that one on purpose.
+function cssFill(v) {
+  if (!v || typeof v === 'string') return v || 'transparent';
+  const stops = v.stops.map(s => `${s.color} ${(+s.at * 100).toFixed(1)}%`).join(', ');
+  return v.type === 'radial'
+    ? `radial-gradient(circle, ${stops})`
+    : `linear-gradient(${v.angle ?? 0}deg, ${stops})`;
+}
+
+// The colour surface in the right-click menu. A fill is a solid hex OR a
+// gradient; a Solid / Linear / Radial switch chooses. Solid is the original
+// one-click flow. A gradient is edited in place against a live preview and only
+// committed (one render) on Apply — the menu lives in the iframe, so rendering
+// mid-edit would destroy it. A line paints its stroke, which stays a solid hex,
+// so it never offers the gradient modes.
 function fillRow(d, m, id) {
   const t = fillTargets(id);
-  const h = d.createElement('div');
-  h.className = 'ds-menu-head';
-  h.textContent = t.label.toLowerCase();
-  m.appendChild(h);
-  const row = d.createElement('div');
-  row.className = 'ds-swatches';
-  const current = (t.get() || '').toUpperCase();
-  const rgb6 = current.slice(0, 7);
-  const paint = async c => {
-    pushHistory();
-    t.set(c);
-    markDirty();
-    closeMenu(d);
-    await render();
-  };
-  (M.palette || []).forEach(c => {
-    const b = d.createElement('button');
-    b.className = 'ds-sw' + (c.toUpperCase() === rgb6 ? ' on' : '');
-    b.style.background = c;
-    b.title = c;
-    b.addEventListener('click', () => paint(c));
-    row.appendChild(b);
-  });
-  const custom = d.createElement('input');
-  custom.type = 'color';
-  custom.className = 'ds-sw-custom';
-  custom.title = 'Custom colour';
-  custom.value = /^#[0-9A-F]{6}/.test(current) ? rgb6 : '#6b9e78';
-  custom.addEventListener('change', () => paint(custom.value + alphaHex()));
-  row.appendChild(custom);
-  m.appendChild(row);
-  colorExtras(d, m, current, c => paint(c + alphaHex()));
-  // Opacity, appended as the 8th/9th hex digits — is_light_bg composites it
-  // over white, so a translucent tile still gets a readable text colour.
-  let alpha = current.length >= 9 ? parseInt(current.slice(7, 9), 16) / 255 : 1;
-  const alphaHex = () => alpha >= 0.999 ? '' :
-    Math.round(alpha * 255).toString(16).padStart(2, '0').toUpperCase();
-  const arow = d.createElement('label');
-  arow.className = 'ds-menu-slider';
-  arow.textContent = 'opacity';
-  const ain = d.createElement('input');
-  ain.type = 'range'; ain.min = '0.1'; ain.max = '1'; ain.step = '0.05'; ain.value = alpha;
-  ain.addEventListener('change', () => {
-    alpha = +ain.value;
-    if (rgb6.length === 7) paint(rgb6 + alphaHex());
-  });
-  arow.appendChild(ain);
-  if (rgb6.length === 7) m.appendChild(arow);
-  if (t.resettable) {
-    const b = d.createElement('button');
-    b.textContent = t.resetLabel;
-    b.addEventListener('click', () => paint(null));
-    m.appendChild(b);
+  const sh = layout.shapes.find(s => s.id === id);
+  const isLine = sh && sh.kind === 'line';
+  let val = t.get();
+  let mode = (val && typeof val === 'object') ? val.type : 'solid';
+
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head';
+  head.textContent = t.label.toLowerCase();
+  m.appendChild(head);
+  const modesWrap = d.createElement('div');
+  const body = d.createElement('div');
+  m.appendChild(modesWrap);
+  m.appendChild(body);
+
+  const commit = async v => { pushHistory(); t.set(v); markDirty(); closeMenu(d); await render(); };
+
+  function toGrad(type) {
+    if (val && typeof val === 'object') return { ...val, type };
+    const seed = (typeof val === 'string' && val) ? val.slice(0, 7) : '#E8EDE6';
+    return { type, angle: 90, stops: [{ color: seed, at: 0 }, { color: '#FFFFFF', at: 1 }] };
   }
+  function setMode(mk) {
+    if (mk === mode) return;
+    if (mk === 'solid') {                       // take the first stop, commit
+      const c = (val && typeof val === 'object') ? val.stops[0].color
+              : (typeof val === 'string' && val) ? val : '#6B9E78';
+      return commit(c);
+    }
+    val = toGrad(mk); mode = mk; redraw();
+  }
+  function drawModes() {
+    modesWrap.innerHTML = '';
+    if (isLine) return;
+    modesWrap.className = 'ds-fillmodes';
+    [['solid', 'Solid'], ['linear', 'Linear'], ['radial', 'Radial']].forEach(([mk, lbl]) => {
+      const b = d.createElement('button');
+      b.textContent = lbl;
+      b.className = 'ds-modebtn' + (mk === mode ? ' on' : '');
+      b.addEventListener('click', () => setMode(mk));
+      modesWrap.appendChild(b);
+    });
+  }
+  function redraw() { drawModes(); body.innerHTML = ''; mode === 'solid' ? solidBody() : gradBody(); }
+
+  function solidBody() {
+    const current = (typeof val === 'string' ? val : '').toUpperCase();
+    const rgb6 = current.slice(0, 7);
+    // Opacity rides the 8th/9th hex digits — is_light_bg composites it over
+    // white, so a translucent tile still gets a readable text colour.
+    let alpha = current.length >= 9 ? parseInt(current.slice(7, 9), 16) / 255 : 1;
+    const alphaHex = () => alpha >= 0.999 ? '' :
+      Math.round(alpha * 255).toString(16).padStart(2, '0').toUpperCase();
+    const row = d.createElement('div');
+    row.className = 'ds-swatches';
+    (M.palette || []).forEach(c => {
+      const b = d.createElement('button');
+      b.className = 'ds-sw' + (c.toUpperCase() === rgb6 ? ' on' : '');
+      b.style.background = c; b.title = c;
+      b.addEventListener('click', () => commit(c));
+      row.appendChild(b);
+    });
+    const custom = d.createElement('input');
+    custom.type = 'color'; custom.className = 'ds-sw-custom'; custom.title = 'Custom colour';
+    custom.value = /^#[0-9A-F]{6}/.test(current) ? rgb6 : '#6b9e78';
+    custom.addEventListener('change', () => commit(custom.value + alphaHex()));
+    row.appendChild(custom);
+    body.appendChild(row);
+    colorExtras(d, body, current, c => commit(c + alphaHex()));
+    const arow = d.createElement('label');
+    arow.className = 'ds-menu-slider'; arow.textContent = 'opacity';
+    const ain = d.createElement('input');
+    ain.type = 'range'; ain.min = '0.1'; ain.max = '1'; ain.step = '0.05'; ain.value = alpha;
+    ain.addEventListener('change', () => { alpha = +ain.value; if (rgb6.length === 7) commit(rgb6 + alphaHex()); });
+    arow.appendChild(ain);
+    if (rgb6.length === 7) body.appendChild(arow);
+    if (t.resettable) {
+      const b = d.createElement('button');
+      b.textContent = t.resetLabel;
+      b.addEventListener('click', () => commit(null));
+      body.appendChild(b);
+    }
+  }
+
+  function gradBody() {
+    const g = val;                              // edited in place; Apply commits it
+    const prev = d.createElement('div');
+    prev.className = 'ds-gradprev';
+    const paintPrev = () => { prev.style.background = cssFill(g); };
+    body.appendChild(prev); paintPrev();
+    const stopsWrap = d.createElement('div');
+    body.appendChild(stopsWrap);
+    const drawStops = () => {
+      stopsWrap.innerHTML = '';
+      g.stops.forEach((s, i) => {
+        const rw = d.createElement('div'); rw.className = 'ds-stoprow';
+        const col = d.createElement('input');
+        col.type = 'color'; col.value = (s.color || '#000000').slice(0, 7); col.title = 'stop colour';
+        col.addEventListener('input', () => { s.color = col.value.toUpperCase(); paintPrev(); });
+        const pos = d.createElement('input');
+        pos.type = 'range'; pos.min = '0'; pos.max = '1'; pos.step = '0.01'; pos.value = s.at; pos.title = 'position';
+        pos.addEventListener('input', () => { s.at = +pos.value; paintPrev(); });
+        const del = d.createElement('button');
+        del.textContent = '×'; del.title = 'remove stop'; del.disabled = g.stops.length <= 2;
+        del.addEventListener('click', () => { g.stops.splice(i, 1); drawStops(); paintPrev(); });
+        rw.append(col, pos, del);
+        stopsWrap.appendChild(rw);
+      });
+    };
+    drawStops();
+    const add = d.createElement('button');
+    add.textContent = '+ add stop';
+    add.addEventListener('click', () => { g.stops.push({ color: '#FFFFFF', at: 1 }); drawStops(); paintPrev(); });
+    body.appendChild(add);
+    if (mode === 'linear') {
+      const arow = d.createElement('label');
+      arow.className = 'ds-menu-slider'; arow.textContent = 'angle';
+      const ain = d.createElement('input');
+      ain.type = 'range'; ain.min = '0'; ain.max = '360'; ain.step = '5'; ain.value = g.angle ?? 90;
+      ain.addEventListener('input', () => { g.angle = +ain.value; paintPrev(); });
+      arow.appendChild(ain); body.appendChild(arow);
+    }
+    const apply = d.createElement('button');
+    apply.className = 'ds-apply'; apply.textContent = 'Apply gradient';
+    apply.addEventListener('click', () => { g.stops.sort((a, b) => a.at - b.at); commit(g); });
+    body.appendChild(apply);
+    if (t.resettable) {
+      const rb = d.createElement('button');
+      rb.textContent = t.resetLabel;
+      rb.addEventListener('click', () => commit(null));
+      body.appendChild(rb);
+    }
+  }
+
+  redraw();
 }
 
 // ------------------------------------------------------------------ layers
@@ -855,6 +964,19 @@ function layerMenu(d, el, e) {
       else item('Group', () => groupSel(d));
       const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     }
+  }
+  // Copy / paste (objects) and the format painter (copy / paste style). Acting
+  // through the menu selects the clicked element first, so it operates on what
+  // was right-clicked rather than a stale selection.
+  if (!surface) {
+    const clonable = layout.shapes.some(s => s.id === id) || !!boxOf(id);
+    item('Copy', () => { if (!selIds.has(id)) setSel(d, [id]); copySel(d); }, clonable);
+    if (clip) item('Paste', () => pasteClip(d));
+    item('Copy style', () => { setSel(d, [id]); copyStyle(d); }, !!styleType(d, id));
+    if (styleClip) item('Paste style',
+      () => { if (!selIds.has(id)) setSel(d, [id]); pasteStyle(d); },
+      styleType(d, id) === styleClip.type);
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
   }
   if (!surface) {
     const head = d.createElement('div');
@@ -1616,7 +1738,7 @@ function togglePop(pop, anchor) {
     document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
 addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape, #layers'))
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape, #layers, #download'))
     document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
 });
 
@@ -1944,6 +2066,19 @@ const selEls = d => [...selIds].map(id =>
   .filter(Boolean);
 const lockedList = () => (layout.locked = layout.locked || []);
 const isLocked = id => (layout.locked || []).includes(id);
+
+// Clipboard + format painter, both IN-MEMORY only (no OS clipboard). `clip`
+// holds whole shape/box overrides for ⌘C/⌘V; `styleClip` holds one element's
+// style subset for the format painter. Neither is in snapshot(), so undo never
+// touches them.
+let clip = null;
+let styleClip = null;
+const clone = v => JSON.parse(JSON.stringify(v));
+const pick = (o, keys) => {          // just the named keys that are actually set
+  const r = {};
+  keys.forEach(k => { if (o && o[k] !== undefined) r[k] = clone(o[k]); });
+  return r;
+};
 
 // Groups: a click on any member selects the WHOLE group, so it moves as one —
 // Canva's own model. Alt-click reaches through to the single member inside.
@@ -2324,6 +2459,122 @@ async function duplicateSel(d) {
   $('stat').textContent = `duplicated ${copies.length} element${copies.length > 1 ? 's' : ''}`;
 }
 
+// ----------------------------------------------------------- clipboard
+// Copy the selection's shapes and boxes, then paste onto the page IN VIEW with
+// fresh ids — so an object crosses pages, which ⌘D / alt-drag (same-page only)
+// cannot. Designed elements have exactly one instance and no free id, so they
+// are never cloned; copySel skips them (matching duplicateSel) and points at
+// Copy style instead.
+function copySel(d) {
+  if (!selIds.size) return;
+  const items = [];
+  [...selIds].forEach(id => {
+    const sh = layout.shapes.find(s => s.id === id);
+    const b = boxOf(id);
+    if (sh) items.push({ kind: 'shape', data: clone(sh) });
+    else if (b) items.push({ kind: 'box', data: clone(b) });
+  });
+  if (!items.length) {
+    $('stat').textContent = "nothing to copy — a designed element can't be copied; try Copy style";
+    return;
+  }
+  const wasGroup = selGroups().length === 1 && selGroups()[0].length === selIds.size
+    && selGroups()[0].every(id => selIds.has(id));
+  clip = { items, wasGroup, pastes: 0 };
+  $('stat').textContent = `copied ${items.length} element${items.length > 1 ? 's' : ''} — ⌘V pastes onto the page in view`;
+}
+
+async function pasteClip(d) {
+  if (!clip || !clip.items.length) return;
+  pushHistory();
+  const page = visiblePageId();
+  const off = 0.2 * (++clip.pastes);         // repeated pastes cascade
+  const copies = [];
+  clip.items.forEach(it => {
+    if (it.kind === 'shape') {
+      const nid = freeShapeId(it.data.kind);
+      layout.shapes.push({ ...it.data, id: nid, page,
+        x: Math.min(it.data.x + off, PAGE_W_IN - Math.min(it.data.w, PAGE_W_IN)),
+        y: Math.min(it.data.y + off, PAGE_H_IN - Math.min(it.data.h, PAGE_H_IN)) });
+      copies.push(nid);
+    } else {
+      const nid = freeBoxId();
+      boxes().push({ ...it.data, id: nid, page,
+        x: Math.min(it.data.x + off, PAGE_W_IN - Math.min(it.data.w, PAGE_W_IN)),
+        y: Math.min(it.data.y + off, PAGE_H_IN - 0.4) });
+      copies.push('text.' + nid);
+    }
+  });
+  if (clip.wasGroup && copies.length > 1) {   // a copied group pastes as a group
+    layout.groups = layout.groups || [];
+    layout.groups.push(copies);
+  }
+  setSel(d, copies);
+  markDirty();
+  await render();
+  $('stat').textContent = `pasted ${copies.length} element${copies.length > 1 ? 's' : ''} onto page ${page}`;
+}
+
+// ------------------------------------------------------- format painter
+// Copy one element's STYLE and stamp it onto others of a COMPATIBLE type. The
+// subset is per-type; geometry / id / page are never touched. Paste makes each
+// target MATCH the source — a key the source lacks is removed from the target —
+// so it copies the look exactly rather than merging into it.
+const STYLE_SUBSET = {
+  shape: ['fill', 'stroke', 'sw', 'dash', 'ends', 'r', 'shadow', 'alpha'],
+  box:   ['fill', 'shadow', 'alpha', 'style'],
+};
+function styleType(d, id) {
+  if (layout.shapes.some(s => s.id === id)) return 'shape';
+  if (boxOf(id)) return 'box';
+  const el = d.querySelector(`[data-el="${CSS.escape(id)}"]`);
+  if (!el) return null;
+  if (el.matches('[data-slot]') || el.querySelector('[data-slot]')) return null;  // prose: use the type strip
+  if (el.tagName === 'IMG' || el.querySelector('img')) return 'image';
+  return null;
+}
+function copyStyle(d) {
+  if (selIds.size !== 1) { $('stat').textContent = 'select one element to copy its style'; return; }
+  const id = [...selIds][0];
+  const type = styleType(d, id);
+  let data;
+  if (type === 'shape') data = pick(layout.shapes.find(s => s.id === id), STYLE_SUBSET.shape);
+  else if (type === 'box') data = pick(boxOf(id), STYLE_SUBSET.box);
+  else if (type === 'image') data = {                      // image style lives in TWO stores
+    img: pick((layout.img || {})[id] || {}, ['radius', 'filter']),
+    flip: ((layout.positions || {})[id] || {}).flip };
+  else { $('stat').textContent = 'that element has no copyable style'; return; }
+  styleClip = { type, data: clone(data) };
+  $('stat').textContent = `style copied — select ${type}${type === 'box' ? 'es' : 's'} and press ⌘⌥V to paste it`;
+}
+async function pasteStyle(d) {
+  if (!styleClip) { $('stat').textContent = 'copy a style first (⌘⌥C)'; return; }
+  const targets = [...selIds].filter(id => styleType(d, id) === styleClip.type);
+  if (!targets.length) { $('stat').textContent = `paste style needs a selected ${styleClip.type}`; return; }
+  pushHistory();
+  targets.forEach(id => {
+    if (styleClip.type === 'image') {
+      layout.img = layout.img || {};
+      const g = layout.img[id] || (layout.img[id] = {});
+      ['radius', 'filter'].forEach(k =>
+        styleClip.data.img[k] !== undefined ? g[k] = clone(styleClip.data.img[k]) : delete g[k]);
+      if (!Object.keys(g).length) delete layout.img[id];
+      layout.positions = layout.positions || {};
+      const p = layout.positions[id] || (layout.positions[id] = {});
+      styleClip.data.flip !== undefined ? p.flip = styleClip.data.flip : delete p.flip;
+      if (!Object.keys(p).length) delete layout.positions[id];
+    } else {
+      const obj = styleClip.type === 'shape' ? layout.shapes.find(s => s.id === id) : boxOf(id);
+      if (!obj) return;
+      STYLE_SUBSET[styleClip.type].forEach(k =>
+        styleClip.data[k] !== undefined ? obj[k] = clone(styleClip.data[k]) : delete obj[k]);
+    }
+  });
+  markDirty();
+  await render();
+  $('stat').textContent = `style pasted to ${targets.length} ${styleClip.type}${targets.length > 1 ? 's' : ''}`;
+}
+
 function toggleLockSel(d) {
   if (!selIds.size) return;
   pushHistory();
@@ -2463,6 +2714,15 @@ function keysFor(d) {
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
       e.preventDefault(); duplicateSel(d); return;
+    }
+    // ⌘C/⌘V copy objects; ⌥ makes it the format painter (copy/paste style).
+    // Guard on there being something to act on, so a bare ⌘C/⌘V still reaches
+    // the browser's own copy/paste.
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && selIds.size) {
+      e.preventDefault(); e.altKey ? copyStyle(d) : copySel(d); return;
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && (e.altKey ? styleClip : clip)) {
+      e.preventDefault(); e.altKey ? pasteStyle(d) : pasteClip(d); return;
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
       e.preventDefault(); e.shiftKey ? ungroupSel(d) : groupSel(d); return;
@@ -3439,6 +3699,14 @@ addEventListener('keydown', e => {
     e.preventDefault();
     duplicateSel($('out').contentDocument);
   }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c' && selIds.size) {
+    e.preventDefault();
+    e.altKey ? copyStyle($('out').contentDocument) : copySel($('out').contentDocument);
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'v' && (e.altKey ? styleClip : clip)) {
+    e.preventDefault();
+    e.altKey ? pasteStyle($('out').contentDocument) : pasteClip($('out').contentDocument);
+  }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
     e.preventDefault();
     e.shiftKey ? ungroupSel($('out').contentDocument) : groupSel($('out').contentDocument);
@@ -3856,7 +4124,7 @@ function wire() {
     body.ds-resizing, body.ds-resizing * { cursor:inherit !important; }
     .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
                border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
-               min-width:190px; font:12px system-ui; }
+               min-width:190px; font:12px system-ui; max-height:84vh; overflow-y:auto; }
     .ds-menu-head { font:10px ui-monospace,monospace; color:#8B9A90; padding:4px 8px 6px; }
     .ds-menu-sep { height:1px; background:#E4EBE6; margin:4px 0; }
     .ds-menu button { display:block; width:100%; text-align:left; border:0; background:none;
@@ -3887,6 +4155,23 @@ function wire() {
              text-shadow:0 0 3px rgba(0,0,0,.85); }
     .ds-sw-custom { width:20px; height:20px; padding:0; border:1px dashed #8B9A90;
                     border-radius:4px; background:none; cursor:pointer; }
+    /* gradient editor */
+    .ds-fillmodes { display:flex; gap:3px; padding:2px 8px 6px; }
+    .ds-modebtn { flex:1; width:auto !important; text-align:center !important;
+             border:1px solid #D8E0DA !important; border-radius:4px; padding:4px 0 !important;
+             font:11px system-ui; }
+    .ds-modebtn.on { background:#2F3E46 !important; color:#fff !important; border-color:#2F3E46 !important; }
+    .ds-gradprev { height:26px; margin:2px 8px 7px; border-radius:5px;
+             border:1px solid rgba(0,0,0,.18); }
+    .ds-stoprow { display:flex; align-items:center; gap:6px; padding:2px 8px; }
+    .ds-stoprow input[type=color] { width:24px; height:22px; padding:0; border:1px solid rgba(0,0,0,.18);
+             border-radius:4px; background:none; cursor:pointer; flex:0 0 auto; }
+    .ds-stoprow input[type=range] { flex:1; accent-color:#6B9E78; min-width:70px; }
+    .ds-stoprow button { width:22px !important; flex:0 0 auto; text-align:center !important;
+             padding:2px 0 !important; color:#8B9A90; }
+    .ds-apply { margin:5px 8px 3px; width:calc(100% - 16px) !important; text-align:center !important;
+             background:#6B9E78 !important; color:#fff !important; border-radius:5px; padding:6px 0 !important; }
+    .ds-apply:hover { background:#52796F !important; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
     body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
   d.head.appendChild(css);
@@ -4154,6 +4439,50 @@ $('revert').onclick = async () => {
   $('save').classList.remove('dirty');
   await render();
 };
+
+// --- export -----------------------------------------------------------------
+// Download the CURRENT draft — unsaved edits and all — as a PDF or per-page
+// PNGs. Live mode renders it server-side (Chrome, exactly like `make pdf`) from
+// the in-memory content+layout, so nothing is written or pushed. Without the
+// server there is no build host: PDF falls back to the browser's own print-to-
+// PDF of the preview, and PNG (which needs Chrome screenshots) is unavailable.
+$('download').onclick = () => {
+  $('dl-png').disabled = !local;
+  $('dl-png').title = local ? '' : 'PNG export needs the local live server (make live)';
+  $('dl-marks').disabled = !local;
+  togglePop($('downloadpop'), $('download'));
+};
+$('dl-pdf').onclick = () => doExport('pdf');
+$('dl-png').onclick = () => doExport('png');
+
+async function doExport(fmt) {
+  $('downloadpop').hidden = true;
+  if (!local) {                        // GitHub mode: browser print-to-PDF only
+    if (fmt === 'pdf') $('out').contentWindow.print();
+    return;
+  }
+  const marks = $('dl-marks').checked;
+  const name = fmt === 'pdf' ? 'Budget-Primer-FY2026-27.pdf' : 'Budget-Primer-pages.zip';
+  $('stat').textContent = `rendering the ${fmt.toUpperCase()}… (a full report takes a moment)`;
+  try {
+    const r = await fetch('/__export', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fmt, marks,
+        content: source, layout: JSON.stringify(layout, null, 2) + '\n' }),
+    });
+    if ((r.headers.get('Content-Type') || '').includes('application/json')) {
+      throw new Error((await r.json()).error || 'export failed');
+    }
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    $('stat').textContent = `downloaded ${name}`;
+  } catch (e) {
+    $('stat').textContent = 'export failed: ' + e.message;
+  }
+}
 
 addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 boot().catch(e => { $('stat').textContent = 'failed to start: ' + e.message; });
