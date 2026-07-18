@@ -55,6 +55,7 @@
   #bar button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
                          background:var(--ctl); }
   #bar button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #undo, #redo { font-size:16px; line-height:1; padding:4px 9px; }
   #save { background:var(--sage); border-color:var(--sage); color:#fff; font-weight:600; }
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
@@ -279,6 +280,8 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
+  <button id="undo" disabled title="Undo (⌘Z)">↶</button>
+  <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save</button>
   <div class="pop" id="shapepop" hidden>
@@ -3027,10 +3030,19 @@ const clearGuides = d => d.querySelectorAll('.ds-guide').forEach(g => g.remove()
 // ---- history: every move is undoable, or it is not safe to experiment ----
 const past = [], future = [];
 const snapshot = () => JSON.stringify({ source, layout });
+// Reflect what's undoable on the toolbar buttons. The buttons only mirror
+// state; undo()/redo() themselves stay the source of truth (and still work
+// from the keyboard when a button is momentarily out of sync).
+function syncHistoryButtons() {
+  const u = $('undo'), r = $('redo');
+  if (u) u.disabled = !past.length;
+  if (r) r.disabled = !future.length;
+}
 function pushHistory() {
   past.push(snapshot());
   if (past.length > 60) past.shift();
   future.length = 0;
+  syncHistoryButtons();
 }
 async function restore(json) {
   const st = JSON.parse(json);
@@ -3043,14 +3055,18 @@ async function undo() {
   if (!past.length) { $('stat').textContent = 'nothing to undo'; return; }
   future.push(snapshot());
   await restore(past.pop());
+  syncHistoryButtons();
   $('stat').textContent = 'undone';
 }
 async function redo() {
   if (!future.length) { $('stat').textContent = 'nothing to redo'; return; }
   past.push(snapshot());
   await restore(future.pop());
+  syncHistoryButtons();
   $('stat').textContent = 'redone';
 }
+$('undo').onclick = undo;
+$('redo').onclick = redo;
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
