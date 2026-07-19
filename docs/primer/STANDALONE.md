@@ -7,6 +7,34 @@ its own files, and a way to get a finished document out. Three explicit asks:
 **new files**, **export**, **resize document**. Grounded in what's there today,
 then what's missing, then a plan.
 
+> **Status: all four pieces are implemented** (`start.html`/`index.html` naming
+> collision caught along the way — see §5). Recap:
+> - **B (installable shell):** `manifest.webmanifest` + `sw.js`, registered from
+>   both app pages. Three-tier caching (Pyodide CDN forever, app shell
+>   stale-while-revalidate, report data/GitHub network-only) — and the real
+>   published report (`index.html`) is explicitly excluded, so a reader who
+>   never opened the editor is never affected, and one who did never gets a
+>   stale copy of what they came here to read.
+> - **A (landing page):** `docs/primer/start.html` — a card grid over
+>   `projects.json`, "+ New report" opens a modal. Named `start.html`, not
+>   `index.html`: that name was already the actual published report.
+> - **C (export):** an "Export" button that calls `print()` on the rendered
+>   iframe (not the parent page), reusing the print CSS `make pdf` already
+>   relies on — no server, no headless Chrome.
+> - **D (resize + new-from-template):** page size is chosen **once, at
+>   creation**, not as a retrofit on an existing report — see §5 for why the
+>   existing Budget Primer's own resize stays explicitly out of scope. A new
+>   report picks Letter/A4/Legal in the creation modal; the choice is baked
+>   into that project's own generated CSS and manifest, with zero legacy
+>   content to re-anchor.
+>
+> Verified end-to-end in a headless browser: landing page → New Report
+> (Git Data API commit sequence, atomic) → redirect → the scaffolded project
+> actually boots and renders through Pyodide with the chosen page size,
+> editable sections, and the shared Sources panel — plus the full prior
+> regression suite (sections/sources/undo/drafts/sign-in/multi-project)
+> still green.
+
 ---
 
 ## 1. What "opening an app" is missing today
@@ -144,3 +172,57 @@ Two related capabilities:
 
 None of this touches the drafts/Share/Publish/sign-in/sections/sources work
 already shipped — it wraps a front door and an output around it.
+
+---
+
+## 5. Implementation notes (what actually shipped, and why)
+
+**`start.html`, not `index.html`.** `docs/primer/index.html` turned out to
+already be the actual published, publicly-readable report (built by CI from
+`content.md`) — not a spare slot. The landing page lives at `start.html`
+instead; `manifest.webmanifest`'s `start_url` points there.
+
+**Page size is a creation-time choice, not a retrofit.** Genuinely resizing
+the *existing* Budget Primer report was ruled out for this pass: its renderer
+is ~900 lines of pixel-precise SVG figure layout built for Letter (chart
+viewBoxes, label positions, table geometry), and I have not verified how deep
+that coupling goes beyond `primer.css`'s two literal `8.5in`/`11in`s. Retrofitting
+that safely is real, separate, careful work — not something to fold into a
+"resize" button without its own review. What ships instead is real and useful:
+**a brand-new report** picks its page size once, in the creation modal
+(Letter/A4/Legal), baked into that project's own generated renderer and CSS —
+zero legacy content, so there's nothing to mis-place.
+
+**A blank project's renderer is genuinely minimal**, not a copy of the Budget
+Primer's: it reads `content.md` via the shared, already-generic
+`docsync.content.Content` (confirmed to carry zero Budget Primer-specific
+logic), assembles any number of `[[extra.page1.*]]` sections — the same
+overflow mechanism "+ Section" already uses — and emits basic page/print CSS
+parameterized by the chosen size. `docsync/layout.py` is copied in too (its
+own header already documents Letter as "a default, not a law" — any report
+passes its own size in) because `boot()` unconditionally imports
+`docsync.layout` for the font/effect-picker UI, even for a report with no
+visual layer yet.
+
+**`EXTRA_PAGES` (the page list "+ Section" offers) moved from a hardcoded
+constant to a manifest field** (`"pages": [["id","Label"], …]`), with the
+Budget Primer's own list as the default when a manifest declares none — so
+existing reports need no changes, but a new report's "+ Section" correctly
+offers only the page(s) it actually has, instead of nine Budget-Primer page
+names that would mean nothing on a blank report.
+
+**A real gap, disclosed rather than silently left:** every project has a
+"true source" location (a working directory, same convention as the Budget
+Primer's own `report2027/`) *and* a staged copy under `docs/primer/<base>/
+engine/` that the editor fetches before any draft exists — this is the
+existing architecture, not something introduced here (`build.yml`
+already does this dance for the Budget Primer, watching `report2027/**` and
+re-staging on every push to `main`). "New Report" writes both copies
+identically at creation time, so a fresh project is immediately viewable and
+editable. What it does **not** do is extend `build.yml` to keep re-staging a
+NEW project's copy after subsequent publishes — that's a real, bounded
+follow-up, not done here. In practice this rarely bites: anyone actively
+editing a report always reads live from GitHub the moment they have a draft
+(resumed or fresh), which is most of a new report's early activity; the gap
+only shows for a first-time visitor loading a project with no draft in
+progress, after a publish that outpaced the staging step.
