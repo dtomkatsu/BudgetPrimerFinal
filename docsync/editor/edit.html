@@ -423,6 +423,12 @@
     <label style="margin-top:6px;padding-top:8px;border-top:1px solid #EEF2EF">
       <input type="checkbox" id="dl-marks">Bleed &amp; crop marks (PDF)</label>
   </div>
+  <div class="pop" id="textpop" hidden>
+    <p class="pop-h">Add text to the page in view</p>
+    <button class="shp txtpreset" data-k="heading" style="font:700 17px system-ui">Add a heading</button>
+    <button class="shp txtpreset" data-k="subheading" style="font:600 14px system-ui">Add a subheading</button>
+    <button class="shp txtpreset" data-k="body" style="font:12px system-ui">Add body text</button>
+  </div>
   <div class="pop" id="shapepop" hidden>
     <p class="pop-h">Add to the page in view</p>
     <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
@@ -2183,21 +2189,36 @@ function togglePop(pop, anchor) {
     document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
 addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #shape, #layers, #download'))
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #layers, #download'))
     document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
 });
 
-$('text').onclick = async () => {
+// Canva's "Add a text box" panel: a heading, a subheading, or body text. Each
+// is a text box with a style preset, so it drags, resizes and recolours like
+// any other — and its size/weight can then be tuned in the formatting toolbar.
+$('text').onclick = () => togglePop($('textpop'), $('text'));
+const TEXT_PRESETS = {
+  heading:    { md: 'Heading',     style: { size: 30, weight: 700, leading: 1.05 }, w: 4 },
+  subheading: { md: 'Subheading',  style: { size: 19, weight: 600 },               w: 3.5 },
+  body:       { md: 'Body text. **Bold**, *italic* and [links](https://example.org) work.',
+                style: {},                                                          w: 3 },
+};
+async function addTextBox(kind) {
+  $('textpop').hidden = true;
+  const preset = TEXT_PRESETS[kind] || TEXT_PRESETS.body;
   const page = visiblePageId();
   pushHistory();
   const id = freeBoxId();
-  boxes().push({ id, page, x: 1, y: 2, w: 3, z: 2,
-                 md: 'New text. **Bold**, *italic* and [links](https://example.org) work.' });
+  const box = { id, page, x: 1, y: 2, w: preset.w, z: 2, md: preset.md };
+  if (preset.style && Object.keys(preset.style).length) box.style = { ...preset.style };
+  boxes().push(box);
   setSel($('out').contentDocument, ['text.' + id]);
   markDirty();
   await render();
-  $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place, right-click for colour`;
-};
+  $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place`;
+}
+document.querySelectorAll('#textpop .txtpreset').forEach(b =>
+  b.addEventListener('click', () => addTextBox(b.dataset.k)));
 
 const freeTableId = () => {
   let n = 1; while (tables().some(t => t.id === 't' + n)) n++;

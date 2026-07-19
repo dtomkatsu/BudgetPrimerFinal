@@ -15,6 +15,14 @@
   are not editable here.
 -->
 
+[[cover.title]]
+HAWAIʻI
+BUDGET
+PRIMER
+
+[[cover.year]]
+FY2026–27
+
 [[toc.mission1]]
 Hawaiʻi Appleseed is committed to a more socially and economically just Hawaiʻi, where everyone has genuine opportunities to achieve economic security and fulfill their potential. We change systems to address inequity and foster greater opportunity by conducting data analysis and research to address income inequality, educating policymakers and the public, engaging in collaborative problem solving and coalition building, and advocating for policy and systems change.
 

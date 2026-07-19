@@ -5,7 +5,9 @@
 const { test, expect, gotoEditor } = require('./fixtures/editor-test');
 
 async function addTextBox(page) {
+  // The Text button now opens a preset popover (Heading/Subheading/Body).
   await page.click('#text');
+  await page.click('#textpop .txtpreset[data-k="body"]');
   const box = page.frameLocator('#out').locator('.ds-textbox').first();
   await box.waitFor({ state: 'attached', timeout: 20000 });
   await page.waitForTimeout(1000);

@@ -758,6 +758,9 @@ def blank_page(bid):
 pages = []
 
 # -- page 1: cover
+# The title's stacked lines are one editable slot: kept as <br> breaks so the
+# design is untouched, but data-slot lets the editor edit all three lines.
+_cover_title = "<br>".join(esc(l) for l in C.lines("cover.title"))
 pages.append(f"""
 <section class="page cover"{L.fill_attr(f"page.1")}>
  {L.layer(1)}{L.text_boxes(1)}{L.tables_html(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
@@ -765,8 +768,8 @@ pages.append(f"""
  <div class="cover-inner">
   {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
-  <h1 class="cover-title">HAWAIʻI<br>BUDGET<br>PRIMER</h1>
-  <div class="cover-year">FY2026–27</div>
+  <h1 class="cover-title"{C.slot_attr("cover.title")}>{_cover_title}</h1>
+  <div class="cover-year">{C.t("cover.year")}</div>
  </div>
 </section>""")
 
