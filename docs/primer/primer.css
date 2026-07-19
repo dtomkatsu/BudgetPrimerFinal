@@ -389,3 +389,10 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 @media screen and (min-width: 1120px) {
   .page { zoom: 1.25; }
 }
+
+/* placed, editable tables (layout.json `tables`) */
+table.ds-table { border-collapse: collapse; width: 100%; font-size: 13px;
+  background: #fff; }
+table.ds-table th, table.ds-table td { border: 1px solid #C9D6CD;
+  padding: 5px 9px; text-align: left; vertical-align: top; }
+table.ds-table th { background: #E8EDE6; font-weight: 600; color: #2F3E46; }

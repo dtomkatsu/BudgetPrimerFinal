@@ -362,6 +362,11 @@
       stroke-width="1.5"><rect x="1.2" y="3.4" width="8" height="8" rx="1.4"/>
       <circle cx="10" cy="4.4" r="2.9"/></svg>
     Shape</button>
+  <button id="table" title="Add a table to the page in view">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
+      <path d="M1.5 5.5h11M1.5 9h11M5.5 2v10"/></svg>
+    Table</button>
   <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
   <span id="zoom" title="Zoom">
     <button data-z="fit">Fit</button><button data-z="1">100</button><button
@@ -1694,6 +1699,8 @@ function handlesFor(el) {
   if (el.dataset.shape) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   if (el.classList.contains('ds-textbox')) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   if (isGraphic(el)) return ['ne', 'nw', 'se', 'sw'];
+  // A table is width-driven — its rows set the height — so it takes the two
+  // horizontal edges, like a designed prose slot.
   return ['e', 'w'];
 }
 
@@ -1815,7 +1822,7 @@ function startResize(d, el, e0, dir) {
       P.commit({ x: size.x, y: size.y });
       // A text box's geometry lives in boxes[], not positions{} — writing to
       // the wrong store used to throw here and the width never persisted.
-      const bx2 = boxOf(id);
+      const bx2 = boxOf(id), tb2 = tableOf(id);
       if (bx2) {
         bx2.w = +size.w.toFixed(2);
         // A text box grows to at least this height (min-height in the renderer,
@@ -1825,6 +1832,9 @@ function startResize(d, el, e0, dir) {
           if (size.h > MIN_IN + 0.01) bx2.h = +size.h.toFixed(2);
           else delete bx2.h;
         }
+        markDirty();
+      } else if (tb2) {
+        tb2.w = +size.w.toFixed(2);       // a table is width-only; rows set height
         markDirty();
       } else {
         const p = layout.positions[id];
@@ -2134,6 +2144,8 @@ function reportFit(d) {
 // and undo all work on it already. Almost none of this is new machinery.
 const boxes = () => (layout.boxes = layout.boxes || []);
 const boxOf = id => boxes().find(b => b.id === (id || '').replace(/^text\./, ''));
+const tables = () => (layout.tables = layout.tables || []);
+const tableOf = id => tables().find(t => t.id === (id || '').replace(/^table\./, ''));
 
 /** One popover open at a time, anchored under its button; any click that is
  *  not inside a popover (or on its trigger) closes them. */
@@ -2165,6 +2177,100 @@ $('text').onclick = async () => {
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place, right-click for colour`;
 };
+
+const freeTableId = () => {
+  let n = 1; while (tables().some(t => t.id === 't' + n)) n++;
+  return 't' + n;
+};
+
+$('table').onclick = async () => {
+  const page = visiblePageId();
+  pushHistory();
+  const id = freeTableId();
+  tables().push({ id, page, x: 1, y: 2, w: 3.5, z: 2, header: true,
+                  rows: [['Column 1', 'Column 2'], ['', ''], ['', '']] });
+  setSel($('out').contentDocument, ['table.' + id]);
+  markDirty();
+  await render();
+  $('stat').textContent = `table.${id} added to page ${page} — double-click a cell to edit, right-click for rows & columns`;
+};
+
+/** Table cells edit in place (double-click) and offer a rows/columns menu
+ *  (right-click). Both are bound each render, since the DOM is rebuilt. */
+function wireCells(d) {
+  d.querySelectorAll('table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
+    .forEach(td => {
+      td.addEventListener('dblclick', e => { e.preventDefault(); e.stopPropagation(); editCell(d, td); });
+      td.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); tableMenu(d, td, e); });
+    });
+}
+
+function editCell(d, td) {
+  if (editing) return;
+  const tableEl = td.closest('[data-el^="table."]');
+  const t = tableEl && tableOf(tableEl.dataset.el);
+  if (!t) return;
+  const [ri, ci] = td.dataset.cell.split(',').map(Number);
+  editing = true;
+  const ta = d.createElement('textarea');
+  ta.className = 'ds-cell-edit';
+  ta.value = (t.rows[ri] && t.rows[ri][ci]) || '';
+  td.textContent = '';
+  td.appendChild(ta);
+  ta.focus(); ta.select();
+  const fit = () => { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
+  requestAnimationFrame(fit); ta.addEventListener('input', fit);
+  const finish = async keep => {
+    if (ta.dataset.done) return; ta.dataset.done = '1';
+    editing = false;
+    if (keep && ta.value !== ((t.rows[ri] && t.rows[ri][ci]) || '')) {
+      pushHistory(); t.rows[ri][ci] = ta.value; markDirty();
+    }
+    await render();
+  };
+  ta.addEventListener('blur', () => { if (!modalOpen) finish(true); });
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    // Enter commits (a cell is usually one line); Shift+Enter for a real newline.
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
+  });
+}
+
+/** Rows & columns for the right-clicked cell — insert/delete either side, and
+ *  toggle the header band. */
+function tableMenu(d, td, e) {
+  closeMenu(d);
+  const tableEl = td.closest('[data-el^="table."]');
+  const t = tableEl && tableOf(tableEl.dataset.el);
+  if (!t) return;
+  const [ri, ci] = td.dataset.cell.split(',').map(Number);
+  const cols = t.rows[0].length;
+  const m = d.createElement('div'); m.className = 'ds-menu';
+  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
+  m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
+  const head = d.createElement('div'); head.className = 'ds-menu-head';
+  head.textContent = `${tableEl.dataset.el} · row ${ri + 1}, col ${ci + 1}`; m.appendChild(head);
+  const item = (label, fn, on = true) => {
+    const b = d.createElement('button'); b.textContent = label; b.disabled = !on;
+    b.addEventListener('click', async () => { closeMenu(d); pushHistory(); fn(); markDirty(); await render(); });
+    m.appendChild(b);
+  };
+  const sep = () => { const s = d.createElement('div'); s.className = 'ds-menu-sep'; m.appendChild(s); };
+  item('Insert row above', () => t.rows.splice(ri, 0, Array(cols).fill('')));
+  item('Insert row below', () => t.rows.splice(ri + 1, 0, Array(cols).fill('')));
+  item('Delete row', () => t.rows.splice(ri, 1), t.rows.length > 1);
+  sep();
+  item('Insert column left', () => t.rows.forEach(r => r.splice(ci, 0, '')));
+  item('Insert column right', () => t.rows.forEach(r => r.splice(ci + 1, 0, '')));
+  item('Delete column', () => t.rows.forEach(r => r.splice(ci, 1)), cols > 1);
+  sep();
+  item(t.header ? 'Remove header row' : 'Make first row a header', () => { t.header = !t.header; });
+  d.body.appendChild(m);
+  const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
+  if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
+  if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
 
 /** Editing a box's words. Its text is in layout.json, not content.md, so it
  *  cannot go through readSlot/writeSlot — but it is the same textarea, the same
@@ -2811,6 +2917,8 @@ async function deleteSel(d) {
       layout.shapes = layout.shapes.filter(s => s.id !== id); touched = true; gone.push(id);
     } else if (boxOf(id)) {
       layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, '')); touched = true; gone.push(id);
+    } else if (tableOf(id)) {
+      layout.tables = tables().filter(t => t.id !== id.replace(/^table\./, '')); touched = true; gone.push(id);
     } else if (layout.positions[id]) {
       delete layout.positions[id]; touched = true;
     }
@@ -4522,6 +4630,7 @@ function wire() {
   showLocalImages(d);
   dragify(d);
   contextify(d);
+  wireCells(d);
   keysFor(d);
   applyZoom();
   reportFit(d);
@@ -4580,6 +4689,11 @@ function wire() {
     .ds-edit { width:100%; box-sizing:border-box; font:inherit; line-height:1.5;
                padding:8px 10px; border:2px solid #6B9E78; border-radius:4px;
                background:#fff; resize:vertical; }
+    table.ds-table td[data-cell], table.ds-table th[data-cell] { cursor:text; }
+    table.ds-table td[data-cell]:hover, table.ds-table th[data-cell]:hover { background:#EAF3EC; }
+    .ds-cell-edit { width:100%; box-sizing:border-box; font:inherit; color:inherit;
+               line-height:1.4; padding:2px 4px; margin:0; border:2px solid #6B9E78;
+               border-radius:3px; background:#fff; resize:none; overflow:hidden; }
     .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }
     .ds-inline { display:inline-block; width:auto; min-width:8ch; padding:1px 5px;
                  font:inherit; color:inherit; line-height:inherit; vertical-align:baseline; }

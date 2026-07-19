@@ -753,14 +753,14 @@ def blank_page(bid):
     """An empty page a blank id names — a surface for boxes, shapes and images.
     It only exists when the id appears in the order, so byte-identity holds."""
     return (f'\n<section class="page ds-blank">\n '
-            f'{L.layer(bid)}{L.text_boxes(bid)}{folio(bid)}\n</section>')
+            f'{L.layer(bid)}{L.text_boxes(bid)}{L.tables_html(bid)}{folio(bid)}\n</section>')
 
 pages = []
 
 # -- page 1: cover
 pages.append(f"""
 <section class="page cover"{L.fill_attr(f"page.1")}>
- {L.layer(1)}{L.text_boxes(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
+ {L.layer(1)}{L.text_boxes(1)}{L.tables_html(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
   {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
@@ -789,7 +789,7 @@ pages.append(f"""
   <div><span>Endnotes</span><span>{pageno(12)}</span></div>
  </div>
  <p class="copyright">{"<br>".join(esc(l) for l in C.lines("toc.copyright"))}</p>
- {L.layer(2)}{L.text_boxes(2)}{folio(2)}
+ {L.layer(2)}{L.text_boxes(2)}{L.tables_html(2)}{folio(2)}
 </section>""")
 
 # -- page 3: budget basics
@@ -816,7 +816,7 @@ pages.append(f"""
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
-{C.extras("basics")} {L.layer(3)}{L.text_boxes(3)}{folio(3)}
+{C.extras("basics")} {L.layer(3)}{L.text_boxes(3)}{L.tables_html(3)}{folio(3)}
 </section>""")
 
 # -- page 4: budget process
@@ -829,7 +829,7 @@ pages.append(f"""
   {fig1_lifecycle()}
   {lifecycle_callouts()}
  </div>
-{C.extras("process")} {L.layer(4)}{L.text_boxes(4)}{folio(4)}
+{C.extras("process")} {L.layer(4)}{L.text_boxes(4)}{L.tables_html(4)}{folio(4)}
 </section>""")
 
 # -- page 5: how money is spent
@@ -847,7 +847,7 @@ pages.append(f"""
  <p class="figcap"><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
-{C.extras("spent")} {L.layer(5)}{L.text_boxes(5)}{folio(5)}
+{C.extras("spent")} {L.layer(5)}{L.text_boxes(5)}{L.tables_html(5)}{folio(5)}
 </section>""")
 
 # -- page 6: figure 2
@@ -866,7 +866,7 @@ pages.append(f"""
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
-{C.extras("categories")} {L.layer(6)}{L.text_boxes(6)}{folio(6)}
+{C.extras("categories")} {L.layer(6)}{L.text_boxes(6)}{L.tables_html(6)}{folio(6)}
 </section>""")
 
 # -- page 7: obligated costs + fig 3
@@ -892,7 +892,7 @@ pages.append(f"""
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
-{C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}{folio(7)}
+{C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}{L.tables_html(7)}{folio(7)}
 </section>""")
 
 # -- page 8: photo + one-time/emergency
@@ -905,7 +905,7 @@ pages.append(f"""
   {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
   {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
  </div>
-{C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{folio(8)}
+{C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{L.tables_html(8)}{folio(8)}
 </section>""")
 
 # -- page 9: funding the budget
@@ -920,7 +920,7 @@ pages.append(f"""
   {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
   {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
  </div>
-{C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{folio(9)}
+{C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{L.tables_html(9)}{folio(9)}
 </section>""")
 
 # -- page 10: taxes
@@ -934,7 +934,7 @@ pages.append(f"""
   {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}
   {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets")}
  </div>
-{C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{folio(10)}
+{C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{L.tables_html(10)}{folio(10)}
 </section>""")
 
 # -- page 11: who pays
@@ -949,7 +949,7 @@ pages.append(f"""
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
-{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{folio(11)}
+{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{L.tables_html(11)}{folio(11)}
 </section>""")
 
 # -- page 12: endnotes ------------------------------------------------------
@@ -966,7 +966,7 @@ by_id[12] = f"""
 <section class="page"{L.fill_attr("page.12")}>
  <h1>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{ENDNOTES_SLOT}</ol>
- {L.layer(12)}{L.text_boxes(12)}{folio(12)}
+ {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
