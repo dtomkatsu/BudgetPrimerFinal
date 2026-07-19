@@ -211,6 +211,27 @@
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
             background:rgba(255,255,255,.07); padding:3px 9px; border-radius:99px; }
   .ty-sep { width:1px; height:20px; background:var(--line); margin:0 4px; }
+  /* Canva-style LIGHT formatting toolbar: clean white controls, segmented
+     groups, sage for the active/primary state — matching the reference. Only
+     the context (#type/#arrange) row is re-themed; the dark top chrome stays. */
+  #context { background:#F5F8F6; border-bottom:1px solid #D9E1DB; }
+  #type, #arrange { background:#F5F8F6; gap:5px; }
+  #type select, #type input[type=number], #arrange input[type=number],
+  #type button, #arrange button {
+    background:#fff; color:#2F3E46; border-color:#D9E1DB;
+    box-shadow:0 1px 1px rgba(20,40,30,.04); }
+  #type select:hover, #type input[type=number]:hover, #arrange input[type=number]:hover,
+  #type button:hover, #arrange button:hover { border-color:var(--sage); background:#EDF4EE; }
+  #type button.on, #arrange button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #arrange button:disabled { background:#fff; border-color:#E6ECE7; color:#A6B4AB; opacity:.7; box-shadow:none; }
+  .ty-sep { background:#DCE4DE; }
+  .ty-seg button { box-shadow:none; }
+  .ty-key, .ar-count { color:#5B6E66; background:#E7EEE8; }
+  #ty-reset { color:#7A8E85; box-shadow:none; }
+  #ty-reset:hover { color:#2F3E46; background:#EDF4EE; }
+  #ar-del { color:#C0603F; }
+  #ar-del:hover { background:#C0603F; border-color:#C0603F; color:#fff; }
+  #ty-colorbtn .A, #ar-fill .A { color:#2F3E46; }
   /* effect parameter chips */
   .ty-num { display:inline-flex; align-items:center; gap:4px; font:11.5px system-ui;
             color:var(--dim); background:rgba(255,255,255,.05); border-radius:7px;
