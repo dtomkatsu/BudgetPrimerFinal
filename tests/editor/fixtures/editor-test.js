@@ -80,4 +80,48 @@ const hostedTest = base.test.extend({
   },
 });
 
-module.exports = { test, hostedTest, expect: base.expect, gotoEditor, waitForFirstRender, blockDangerousLocalEndpoints };
+// --- native <dialog> helpers ------------------------------------------------
+// prompt()/confirm() were replaced by dsForm/dsConfirm/dsPrompt over a native
+// <dialog class="dsdlg"> in the PARENT document (not the iframe). These drive
+// them: fill named fields, then submit (OK) or cancel.
+async function dialog(page) {
+  const d = page.locator('dialog.dsdlg');
+  await d.waitFor({ state: 'visible' });
+  return d;
+}
+async function fillDialog(page, values) {
+  const d = await dialog(page);
+  for (const [name, value] of Object.entries(values)) {
+    const f = d.locator(`[name="${name}"]`);
+    const tag = await f.evaluate(el => el.tagName);
+    if (tag === 'SELECT') await f.selectOption(value);
+    else await f.fill(value);
+  }
+  return d;
+}
+async function submitDialog(page) {
+  const d = await dialog(page);
+  await d.locator('.dsdlg-ok').click();
+  await d.waitFor({ state: 'hidden' });
+}
+async function cancelDialog(page) {
+  const d = await dialog(page);
+  await d.locator('.dsdlg-cancel').click();
+  await d.waitFor({ state: 'hidden' });
+}
+/** Submit a dialog only if one opens within `timeout` — for confirms that are
+ *  conditional (e.g. the print-fit-cut warning on Save, which appears only when
+ *  content overflows a page). Returns whether a dialog was handled. */
+async function submitDialogIfPresent(page, timeout = 3000) {
+  const d = page.locator('dialog.dsdlg');
+  try { await d.waitFor({ state: 'visible', timeout }); } catch (e) { return false; }
+  await d.locator('.dsdlg-ok').click();
+  await d.waitFor({ state: 'hidden' });
+  return true;
+}
+
+module.exports = {
+  test, hostedTest, expect: base.expect, gotoEditor, waitForFirstRender,
+  blockDangerousLocalEndpoints, dialog, fillDialog, submitDialog, cancelDialog,
+  submitDialogIfPresent,
+};

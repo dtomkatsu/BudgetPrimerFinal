@@ -1,17 +1,14 @@
 // Undo/redo (docsync/editor/edit.html): pushHistory()/undo()/redo() snapshot
-// {source, layout} on every structural edit. Uses the section-add flow as a
-// convenient, already-verified mutation to undo/redo against.
-const { test, expect, gotoEditor } = require('./fixtures/editor-test');
+// {source, layout} on every structural edit. Uses the section-add flow (now a
+// native <dialog> form) as a convenient, already-verified mutation.
+const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtures/editor-test');
 
-function queuePrompts(page, answers) {
-  if (page.__promptListener) page.off('dialog', page.__promptListener);
-  const queue = [...answers];
-  page.__promptListener = async dialog => {
-    const next = queue.shift();
-    if (next === undefined) throw new Error(`unexpected dialog: ${dialog.message()}`);
-    await dialog.accept(next);
-  };
-  page.on('dialog', page.__promptListener);
+async function addSection(page, slug) {
+  await page.click('#add');
+  await fillDialog(page, { page: 'basics', slug });
+  await submitDialog(page);
+  await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
+  await page.keyboard.press('Escape');
 }
 
 test.describe('undo / redo', () => {
@@ -23,12 +20,9 @@ test.describe('undo / redo', () => {
     await expect(page.locator('#undo')).toBeDisabled();
     await expect(page.locator('#redo')).toBeDisabled();
 
-    queuePrompts(page, ['1', 'undo-me']);
-    await page.click('#add');
-    const frame = page.frameLocator('#out');
-    await frame.locator('.ds-edit').waitFor({ state: 'visible' });
-    await page.keyboard.press('Escape');
+    await addSection(page, 'undo-me');
 
+    const frame = page.frameLocator('#out');
     const key = 'extra.basics.undo-me';
     await expect(frame.locator(`[data-slot="${key}"]`)).toHaveCount(1);
     await expect(page.locator('#undo')).toBeEnabled();

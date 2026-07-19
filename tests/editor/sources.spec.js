@@ -2,18 +2,7 @@
 // toolbar button while editing a paragraph, then edit/rename/reorder/delete
 // it from the Sources panel (openSources/renderSources/addSource/
 // updateSource/renameSource/moveSource/deleteSource). Local-mode, no GitHub.
-const { test, expect, gotoEditor } = require('./fixtures/editor-test');
-
-function queuePrompts(page, answers) {
-  if (page.__promptListener) page.off('dialog', page.__promptListener);
-  const queue = [...answers];
-  page.__promptListener = async dialog => {
-    const next = queue.shift();
-    if (next === undefined) throw new Error(`unexpected dialog: ${dialog.message()}`);
-    await dialog.accept(next);
-  };
-  page.on('dialog', page.__promptListener);
-}
+const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtures/editor-test');
 
 // toc.author (the "Author: …" byline) is a plain [data-slot] outside any
 // movable [data-el] object, so a single click opens it for editing — most
@@ -24,17 +13,17 @@ function queuePrompts(page, answers) {
 const EDITABLE_SLOT = 'toc.author';
 
 /** Click into an editable prose block, open the Cite panel, and add a
- *  brand-new source through the real "+ new source…" flow (three prompts:
- *  id, citation text, URL) — the only UI path that creates a source. */
+ *  brand-new source through the real "+ new source…" flow — now one <dialog>
+ *  form (id + citation text + URL), the only UI path that creates a source. */
 async function addSourceViaUi(page, id, text, url) {
   const frame = page.frameLocator('#out');
   const block = frame.locator(`[data-slot="${EDITABLE_SLOT}"]`);
   await block.click();
   await frame.locator('.ds-tools button', { hasText: 'Cite' }).click();
-  queuePrompts(page, [id, text, url]);
   await frame.locator('.ds-cite select').selectOption('__new');
-  // The select's change handler runs the three prompts synchronously, then
-  // removes the .ds-cite panel — wait for that to settle.
+  // The dsForm dialog opens in the parent doc; fill all three fields at once.
+  await fillDialog(page, { id, text, url });
+  await submitDialog(page);
   await frame.locator('.ds-cite').waitFor({ state: 'detached' });
   // Blur (not Escape) to COMMIT the edit — Escape's finish(false) would
   // discard the [^id] reference spliceAt() just inserted, leaving the source
@@ -95,8 +84,9 @@ test.describe('sources panel', () => {
     await page.click('#sources');
     const row = page.locator('#srcpanel .srcrow', { has: page.locator('.srcid', { hasText: '[old-id]' }) });
 
-    queuePrompts(page, ['new-id']);
     await row.locator('.srcren', { hasText: 'rename' }).click();
+    await fillDialog(page, { id: 'new-id' });
+    await submitDialog(page);
 
     const renamed = page.locator('#srcpanel .srcrow', { has: page.locator('.srcid', { hasText: '[new-id]' }) });
     await expect(renamed).toBeVisible();

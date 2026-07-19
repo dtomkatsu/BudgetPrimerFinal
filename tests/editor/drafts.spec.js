@@ -2,30 +2,23 @@
 // mode — /__ping is blocked so local=false and every persistence call goes
 // through gh() against the in-memory FakeGitHub (tests/editor/fixtures/
 // fake-github.js), never the real GitHub API.
-const { hostedTest: test, expect, gotoEditor } = require('./fixtures/editor-test');
+const { hostedTest: test, expect, gotoEditor, fillDialog, submitDialog, submitDialogIfPresent } = require('./fixtures/editor-test');
 
-// Every dialog in this flow is either a confirm() this test wants to accept
-// (the print-fit-cut warning on Save, "publish this draft?", "throw away this
-// draft?") or a prompt() with a queued answer (the +Section flow's page
-// number / slug). One router avoids ordering/leftover-listener bugs from
-// juggling several page.once()/page.on() registrations across a test.
-function routeDialogs(page, promptAnswers = []) {
-  const queue = [...promptAnswers];
-  page.on('dialog', async dialog => {
-    if (dialog.type() === 'prompt') {
-      const next = queue.shift();
-      if (next === undefined) throw new Error(`unexpected prompt: ${dialog.message()}`);
-      return dialog.accept(next);
-    }
-    return dialog.accept();   // confirm()s in this flow are all "yes, proceed"
-  });
-}
-
+// Every modal here is a native <dialog>: the +Section form, the print-fit-cut
+// confirm on Save, and the publish/discard confirms. submitDialog clicks OK on
+// whichever one is currently open.
 async function addASection(page) {
-  routeDialogs(page, ['1', 'draft-section']);
   await page.click('#add');
+  await fillDialog(page, { page: 'basics', slug: 'draft-section' });
+  await submitDialog(page);
   await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
   await page.keyboard.press('Escape');
+}
+
+/** Save, accepting the print-fit-cut confirm if the added section raises one. */
+async function saveAcceptingFit(page) {
+  await page.click('#save');
+  await submitDialogIfPresent(page);   // "N pages will be cut off — Save anyway?"
 }
 
 test.describe('drafts: save / share / publish', () => {
@@ -45,7 +38,7 @@ test.describe('drafts: save / share / publish', () => {
 
   test('Save draft commits content+layout to draft/<project>/<user> via the Git Data API', async ({ page, github }) => {
     await addASection(page);
-    await page.click('#save');
+    await saveAcceptingFit(page);
     await expect(page.locator('#stat')).toContainText('draft saved', { timeout: 15000 });
 
     expect(github.refs.has('draft/budget-primer/test-user')).toBe(true);
@@ -59,10 +52,11 @@ test.describe('drafts: save / share / publish', () => {
 
   test('Publish merges the draft branch into main and returns to the live view', async ({ page, github }) => {
     await addASection(page);
-    await page.click('#save');
+    await saveAcceptingFit(page);
     await expect(page.locator('#stat')).toContainText('draft saved', { timeout: 15000 });
 
-    await page.click('#publish');   // routeDialogs() already accepts its confirm()
+    await page.click('#publish');
+    await submitDialog(page);   // "Make this draft the live report?"
     await expect(page.locator('#stat')).toContainText('published', { timeout: 15000 });
 
     expect(github.pulls.some(p => p.head === 'draft/budget-primer/test-user' && !p.open)).toBe(true);
@@ -78,13 +72,13 @@ test.describe('drafts: save / share / publish', () => {
 
   test('Discard on a saved draft deletes the branch and returns to the live report', async ({ page, github }) => {
     await addASection(page);
-    await page.click('#save');
+    await saveAcceptingFit(page);
     await expect(page.locator('#stat')).toContainText('draft saved', { timeout: 15000 });
     expect(github.refs.has('draft/budget-primer/test-user')).toBe(true);
 
-    const navigated = page.waitForURL(url => !url.searchParams.has('draft'));
-    await page.click('#revert');   // routeDialogs() already accepts its confirm()
-    await navigated;
+    await page.click('#revert');
+    await submitDialog(page);   // "Throw away this saved draft?"
+    await page.waitForURL(url => !url.searchParams.has('draft'));
 
     expect(github.refs.has('draft/budget-primer/test-user')).toBe(false);
   });

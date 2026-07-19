@@ -305,6 +305,33 @@
   .ar-pos { display:inline-flex; align-items:center; gap:4px;
         font:11.5px system-ui; color:var(--dim); }
   .ar-pos input { width:58px !important; }
+  /* modal dialogs (native <dialog>): replace prompt()/confirm()/alert() with a
+     focus-trapped modal that can gather several fields at once. */
+  .dsdlg { border:0; border-radius:12px; padding:0; width:min(440px, 92vw);
+        box-shadow:0 24px 60px rgba(20,30,35,.4); color:var(--ink);
+        background:#fff; }
+  .dsdlg::backdrop { background:rgba(30,44,50,.5); }
+  .dsdlg-form { display:flex; flex-direction:column; gap:12px; padding:18px 20px 16px; margin:0; }
+  .dsdlg-title { font:600 14px system-ui; margin:0; color:var(--ink); }
+  .dsdlg-msg { font:13px/1.5 system-ui; margin:0; white-space:pre-wrap; color:var(--ink); }
+  .dsdlg-field { display:flex; flex-direction:column; gap:5px; font:12px system-ui; color:#5B6E66; }
+  .dsdlg-field > input, .dsdlg-field > select, .dsdlg-field > textarea {
+        font:13px system-ui; color:var(--ink); padding:8px 10px;
+        border:1px solid #C9D6CD; border-radius:7px; background:#fff; width:100%;
+        box-sizing:border-box; }
+  .dsdlg-field > textarea { resize:vertical; min-height:64px; }
+  .dsdlg-field > input:focus, .dsdlg-field > select:focus, .dsdlg-field > textarea:focus {
+        outline:none; border-color:var(--sage); box-shadow:0 0 0 3px rgba(107,158,120,.18); }
+  .dsdlg-err { font:12px system-ui; color:#C0392B; margin:0; min-height:0; }
+  .dsdlg-err:empty { display:none; }
+  .dsdlg-btns { display:flex; justify-content:flex-end; gap:8px; margin-top:4px; }
+  .dsdlg-btns button { font:600 12.5px system-ui; padding:7px 15px; border-radius:7px;
+        cursor:pointer; border:1px solid #C9D6CD; background:#fff; color:var(--ink); }
+  .dsdlg-btns button:hover { border-color:var(--sage); }
+  .dsdlg-ok { background:var(--sage) !important; border-color:var(--sage) !important; color:#fff !important; }
+  .dsdlg-ok:hover { background:var(--deep) !important; border-color:var(--deep) !important; }
+  .dsdlg-ok.danger { background:#C0392B !important; border-color:#C0392B !important; }
+  .dsdlg-ok.danger:hover { background:#A93226 !important; border-color:#A93226 !important; }
 </style>
 </head>
 <body>
@@ -356,6 +383,7 @@
     <p class="pop-h">Download this draft</p>
     <button class="shp" id="dl-pdf">PDF — the whole report</button>
     <button class="shp" id="dl-png">PNG — every page (.zip)</button>
+    <button class="shp" id="dl-src">Source — files &amp; images (.zip)</button>
     <label style="margin-top:6px;padding-top:8px;border-top:1px solid #EEF2EF">
       <input type="checkbox" id="dl-marks">Bleed &amp; crop marks (PDF)</label>
   </div>
@@ -540,6 +568,151 @@ let REPO = '';                         // owner/name we save to
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
+// --- modal dialogs ----------------------------------------------------------
+// Native <dialog> (Baseline since 2022): focus-trapped, Esc-closable, a
+// backdrop for free — and, unlike prompt()/confirm(), one dialog can gather
+// several fields at once and never silently drops typed input to an accidental
+// dismissal. Everything below returns a Promise so call sites just `await`.
+// modalOpen guards the in-iframe edit: opening a dialog steals focus and would
+// otherwise blur the paragraph being edited and commit it out from under the
+// dialog (see edit()'s blur handler).
+let modalOpen = false;
+
+function dsModal(build) {
+  return new Promise(resolve => {
+    const dlg = document.createElement('dialog');
+    dlg.className = 'dsdlg';
+    let settled = false;
+    const done = v => {
+      if (settled) return; settled = true;
+      modalOpen = false;
+      try { dlg.close(); } catch (e) {}
+      dlg.remove();
+      resolve(v);
+    };
+    build(dlg, done);
+    dlg.addEventListener('cancel', e => { e.preventDefault(); done(null); });   // Esc
+    dlg.addEventListener('click', e => { if (e.target === dlg) done(null); });  // backdrop
+    document.body.appendChild(dlg);
+    modalOpen = true;
+    dlg.showModal();
+  });
+}
+
+/** A form dialog. fields: [{name, label, type:'text'|'textarea'|'select',
+ *  value, placeholder, options:[{value,label}], required, readOnly}]. Resolves
+ *  an object of the entered values, or null if cancelled. opts.validate(values)
+ *  may return an error string to show and keep the dialog open. */
+function dsForm(title, fields, opts = {}) {
+  return dsModal((dlg, done) => {
+    const form = document.createElement('form');
+    form.method = 'dialog';
+    form.className = 'dsdlg-form';
+    if (title) {
+      const h = document.createElement('p'); h.className = 'dsdlg-title';
+      h.textContent = title; form.appendChild(h);
+    }
+    const inputs = {};
+    fields.forEach(f => {
+      const label = document.createElement('label'); label.className = 'dsdlg-field';
+      if (f.label) { const s = document.createElement('span'); s.textContent = f.label; label.appendChild(s); }
+      let input;
+      if (f.type === 'select') {
+        input = document.createElement('select');
+        (f.options || []).forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.value; opt.textContent = o.label;
+          input.appendChild(opt);
+        });
+        if (f.value != null) input.value = f.value;
+      } else if (f.type === 'textarea') {
+        input = document.createElement('textarea');
+        input.value = f.value || '';
+        if (f.placeholder) input.placeholder = f.placeholder;
+      } else {
+        input = document.createElement('input');
+        input.type = 'text';
+        input.value = f.value || '';
+        if (f.placeholder) input.placeholder = f.placeholder;
+        if (f.readOnly) input.readOnly = true;
+      }
+      input.name = f.name;
+      if (f.required) input.required = true;
+      label.appendChild(input);
+      inputs[f.name] = input;
+      form.appendChild(label);
+    });
+    const err = document.createElement('p'); err.className = 'dsdlg-err'; form.appendChild(err);
+    const btns = document.createElement('div'); btns.className = 'dsdlg-btns';
+    const cancel = document.createElement('button');
+    cancel.type = 'button'; cancel.className = 'dsdlg-cancel';
+    cancel.textContent = opts.cancelLabel || 'Cancel';
+    const ok = document.createElement('button');
+    ok.type = 'submit'; ok.className = 'dsdlg-ok' + (opts.danger ? ' danger' : '');
+    ok.textContent = opts.okLabel || 'OK';
+    btns.append(cancel, ok); form.appendChild(btns);
+    cancel.onclick = () => done(null);
+    form.onsubmit = e => {
+      e.preventDefault();
+      const values = {};
+      for (const k in inputs) values[k] = inputs[k].value;
+      if (opts.validate) { const msg = opts.validate(values); if (msg) { err.textContent = msg; return; } }
+      done(values);
+    };
+    dlg.appendChild(form);
+    const first = fields[0] && inputs[fields[0].name];
+    if (first) setTimeout(() => { first.focus(); first.select && first.select(); }, 0);
+  });
+}
+
+/** A yes/no dialog. Resolves true only on the confirm button. */
+function dsConfirm(message, opts = {}) {
+  return dsModal((dlg, done) => {
+    const form = document.createElement('form');
+    form.method = 'dialog'; form.className = 'dsdlg-form';
+    const msg = document.createElement('p'); msg.className = 'dsdlg-msg';
+    msg.textContent = message; form.appendChild(msg);
+    const btns = document.createElement('div'); btns.className = 'dsdlg-btns';
+    const cancel = document.createElement('button');
+    cancel.type = 'button'; cancel.className = 'dsdlg-cancel';
+    cancel.textContent = opts.cancelLabel || 'Cancel';
+    const ok = document.createElement('button');
+    ok.type = 'submit'; ok.className = 'dsdlg-ok' + (opts.danger ? ' danger' : '');
+    ok.textContent = opts.okLabel || 'OK';
+    btns.append(cancel, ok); form.appendChild(btns);
+    cancel.onclick = () => done(false);
+    form.onsubmit = e => { e.preventDefault(); done(true); };
+    dlg.appendChild(form);
+    setTimeout(() => ok.focus(), 0);
+  }).then(v => v === true);
+}
+
+/** A single-field prompt. Resolves the string, or null if cancelled. */
+async function dsPrompt(message, value = '', opts = {}) {
+  const r = await dsForm(opts.title || '', [{
+    name: 'value', label: message, type: opts.multiline ? 'textarea' : 'text',
+    value, placeholder: opts.placeholder, readOnly: opts.readOnly, required: opts.required,
+  }], opts);
+  return r ? r.value : null;
+}
+
+/** An acknowledge-only dialog. */
+function dsAlert(message) {
+  return dsModal((dlg, done) => {
+    const form = document.createElement('form');
+    form.method = 'dialog'; form.className = 'dsdlg-form';
+    const msg = document.createElement('p'); msg.className = 'dsdlg-msg';
+    msg.textContent = message; form.appendChild(msg);
+    const btns = document.createElement('div'); btns.className = 'dsdlg-btns';
+    const ok = document.createElement('button');
+    ok.type = 'submit'; ok.className = 'dsdlg-ok'; ok.textContent = 'OK';
+    btns.appendChild(ok); form.appendChild(btns);
+    form.onsubmit = e => { e.preventDefault(); done(); };
+    dlg.appendChild(form);
+    setTimeout(() => ok.focus(), 0);
+  });
+}
+
 let py = null, source = '', original = '', dirty = false, editing = false;
 let lastFit = [];
 let layout = null, layoutOrig = '', scrollTopWas = 0;
@@ -587,8 +760,9 @@ async function loadRegistry() {
     `<option value="${id}">${REGISTRY[id].name || id}</option>`).join('');
   sel.value = PROJECT || defaultId;
   sel.hidden = false;
-  sel.onchange = () => {
-    if (dirty && !confirm('Switch project? Unsaved edits here are lost.')) {
+  sel.onchange = async () => {
+    if (dirty && !await dsConfirm('Switch project? Unsaved edits here are lost.',
+        { okLabel: 'Switch', danger: true })) {
       sel.value = PROJECT || defaultId; return;
     }
     location.href = location.pathname + '?project=' + encodeURIComponent(sel.value);
@@ -643,9 +817,9 @@ function buildTools(d, ta, key) {
   return bar;
 }
 
-function link(d, ta) {
+async function link(d, ta) {
   const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
-  const url = d.defaultView.prompt('Link URL', 'https://');
+  const url = await dsPrompt('Link URL', 'https://', { title: 'Add a link' });
   if (!url) return;
   if (sel) spliceAt(ta, '[', `](${url})`);
   else spliceAt(ta, `[link text](${url})`);
@@ -664,20 +838,30 @@ function cite(d, ta, bar) {
         (sourceText(id) || '').slice(0, 60)}</option>`).join('')
     + '<option value="__new">+ new source…</option>';
   sel.addEventListener('mousedown', e => e.stopPropagation());  // let it open
-  sel.addEventListener('change', () => {
+  sel.addEventListener('change', async () => {
     const v = sel.value;
     if (!v) return;
     if (v === '__new') {
-      const w = d.defaultView;
-      const id = (w.prompt('Short id for the source (e.g. act99, itep-whopays)') || '').trim();
-      if (!id) return;
-      if (sourceIds().includes(id)) { w.alert(`[${id}] already exists — pick it from the list.`); return; }
-      const text = (w.prompt('Citation text, e.g. "Act 99," State of Hawai\u02bbi, 2026.') || '').trim();
-      if (!text) return;
-      const url = (w.prompt('Source URL', 'https://') || '').trim();
-      if (!url) return;
-      addSource(id, text, url);
-      spliceAt(ta, `[^${id}]`);
+      // One form, not three sequential prompts — a dismissed field no longer
+      // throws away the id and text already typed, and the duplicate-id check
+      // is inline instead of a separate alert that loses everything.
+      const r = await dsForm('New source', [
+        { name: 'id', label: 'Short id (e.g. act99, itep-whopays)', type: 'text', required: true },
+        { name: 'text', label: 'Citation text, e.g. "Act 99," 2026.', type: 'text', required: true },
+        { name: 'url', label: 'Source URL', type: 'text', value: 'https://', required: true },
+      ], { okLabel: 'Add & cite', validate: vals => {
+        const id = vals.id.trim();
+        if (!id) return 'A short id is required.';
+        if (sourceIds().includes(id)) return `[${id}] already exists — pick it from the list.`;
+        if (!vals.text.trim()) return 'Citation text is required.';
+        if (!vals.url.trim()) return 'A source URL is required.';
+        return '';
+      } });
+      if (r) {
+        const id = r.id.trim();
+        addSource(id, r.text.trim(), r.url.trim());
+        spliceAt(ta, `[^${id}]`);
+      }
     } else {
       spliceAt(ta, `[^${v}]`);
     }
@@ -785,8 +969,8 @@ async function uploadImageFile(d, onDone) {
 }
 
 function image(d, ta) {
-  uploadImageFile(d, (path, name) => {
-    const alt = d.defaultView.prompt('Describe the image (alt text)', name) || name;
+  uploadImageFile(d, async (path, name) => {
+    const alt = (await dsPrompt('Describe the image (alt text)', name, { title: 'Image alt text' })) || name;
     spliceAt(ta, `\n\n![${alt}](${path})\n\n`);
     $('stat').textContent = `${name} uploaded — it renders below`;
   });
@@ -3846,6 +4030,62 @@ function markDirty() {
   // offers to throw the whole draft away (see its handler).
   $('revert').disabled = !dirty && !(draftBranch && !local);
   $('save').classList.toggle('dirty', dirty);
+  cacheDraft();                       // persist unsaved edits for offline safety
+}
+
+// --- offline draft cache (idb-keyval) --------------------------------------
+// Unsaved edits survive a closed tab or a dropped connection before a network
+// Save. localStorage would work but is synchronous and size-limited; IndexedDB
+// — via idb-keyval, a ~1kB zero-dependency ESM wrapper loaded from the same CDN
+// as Pyodide — is the right store, and matches the offline direction
+// STANDALONE.md started. Deliberately ONLY the draft cache lives here: the
+// token and user stay in localStorage, so ensureAuth()/resolveDraft() keep
+// their synchronous reads. Local mode is exempt — there the files on disk are
+// the truth and serve.py already persists every Save.
+let _idb = null;
+async function idbKV() {
+  if (_idb === null) {
+    try { _idb = await import('https://cdn.jsdelivr.net/npm/idb-keyval@6.3.0/dist/index.js'); }
+    catch (e) { _idb = false; }        // offline first load or blocked — cache just no-ops
+  }
+  return _idb || null;
+}
+const cacheKey = () => `draft-cache:${M.id}`;   // per project; stable across draft/main views
+let _cacheTimer = 0;
+let cachedRestored = false;
+function cacheDraft() {
+  if (local || !M) return;
+  clearTimeout(_cacheTimer);
+  _cacheTimer = setTimeout(async () => {
+    if (!dirty) return;                // nothing unsaved to keep
+    const kv = await idbKV();
+    if (!kv) return;
+    try { await kv.set(cacheKey(), { source, layout: JSON.stringify(layout), at: Date.now() }); }
+    catch (e) { /* storage full / private mode — losing the cache is not fatal */ }
+  }, 800);
+}
+async function clearDraftCache() {
+  if (local || !M) return;
+  const kv = await idbKV();
+  if (kv) { try { await kv.del(cacheKey()); } catch (e) {} }
+}
+/** On boot, adopt any unsaved edits cached in THIS browser over what we loaded
+ *  from the branch — auto-restore, not a prompt, because Save keeps them and
+ *  Discard drops them, so nothing is lost either way. */
+async function restoreCachedDraft() {
+  if (local || !M) return;
+  const kv = await idbKV();
+  if (!kv) return;
+  let cached;
+  try { cached = await kv.get(cacheKey()); } catch (e) { return; }
+  if (!cached || cached.source == null) return;
+  const cachedLayout = cached.layout || '{}';
+  if (cached.source === source && cachedLayout === JSON.stringify(layout)) return;  // nothing new
+  source = cached.source;
+  try { layout = JSON.parse(cachedLayout); } catch (e) { source = original; return; }
+  layout.positions = layout.positions || {};
+  layout.shapes = layout.shapes || [];
+  cachedRestored = true;
 }
 
 $('shape').onclick = () => togglePop($('shapepop'), $('shape'));
@@ -3992,6 +4232,7 @@ async function boot() {
   document.querySelectorAll('#zoom button').forEach(x =>
     x.classList.toggle('on', x.dataset.z === zoomChoice));
   $('guides').classList.toggle('on', guidesOn);
+  await restoreCachedDraft();   // adopt this browser's unsaved edits before the first paint
   await render();
   if (!local) $('share').disabled = $('publish').disabled = false;
   // Buttons start disabled in the HTML and only markDirty() flips them — run
@@ -4000,6 +4241,8 @@ async function boot() {
   // detectLocal ran before the renders that overwrite the status line; say it
   // again now that the page is settled.
   if (local) $('stat').textContent = 'live — edits here and from Claude land in the same files';
+  else if (cachedRestored) $('stat').textContent =
+    'restored unsaved edits from this browser — Save to keep them, or Discard to drop them';
 }
 
 // ---------------------------------------------------------------- live mode
@@ -4442,18 +4685,17 @@ function wire() {
     const sibs = extraKeys(pageOf(key)), pos = sibs.indexOf(key);
     const up = mk('↑', 'Move section up', '', () => { pushHistory(); moveExtra(key, -1); markDirty(); render(); });
     const dn = mk('↓', 'Move section down', '', () => { pushHistory(); moveExtra(key, 1); markDirty(); render(); });
-    mk('⇄', 'Move to another page', '', () => {
-      const menu = EXTRA_PAGES.map(([, l], i) => `${i + 1}. ${l}`).join('\n');
-      const pick = d.defaultView.prompt(
-        `Move this section to which page?\n(now on: ${pageOf(key)})\n\n${menu}\n\n`
-        + `Enter a number 1–${EXTRA_PAGES.length}:`);
-      if (pick === null) return;
-      const idx = parseInt(pick, 10) - 1;
-      if (!(idx >= 0 && idx < EXTRA_PAGES.length)) return;
-      pushHistory(); moveSectionToPage(key, EXTRA_PAGES[idx][0]); markDirty(); render();
+    mk('⇄', 'Move to another page', '', async () => {
+      const r = await dsForm('Move this section', [{
+        name: 'page', label: `Move to which page? (now on: ${pageOf(key)})`, type: 'select',
+        value: pageOf(key),
+        options: EXTRA_PAGES.map(([id, l]) => ({ value: id, label: l })),
+      }], { okLabel: 'Move' });
+      if (!r) return;
+      pushHistory(); moveSectionToPage(key, r.page); markDirty(); render();
     });
-    mk('✕', 'Delete this section', 'del', () => {
-      if (!d.defaultView.confirm('Delete this whole section?')) return;
+    mk('✕', 'Delete this section', 'del', async () => {
+      if (!await dsConfirm('Delete this whole section?', { okLabel: 'Delete', danger: true })) return;
       pushHistory(); removeExtra(key); markDirty(); render();
     });
     up.disabled = pos <= 0;
@@ -4566,11 +4808,19 @@ function renderSources() {
       pushHistory(); moveSource(s.id, -1); markDirty(); render(); renderSources(); });
     mkb('↓', 'Move down', idx === rows.length - 1, () => {
       pushHistory(); moveSource(s.id, 1); markDirty(); render(); renderSources(); });
-    mkb('rename', 'Rename this id everywhere it is cited', false, () => {
-      const neu = (prompt(`Rename [${s.id}] to:`, s.id) || '').trim();
-      if (!neu || neu === s.id) return;
-      if (!/^[A-Za-z0-9._-]+$/.test(neu)) { alert('Use letters, numbers, and . _ - only.'); return; }
-      if (parseSources().some(x => x.id === neu)) { alert(`[${neu}] already exists.`); return; }
+    mkb('rename', 'Rename this id everywhere it is cited', false, async () => {
+      const r = await dsForm(`Rename [${s.id}]`, [{
+        name: 'id', label: 'New id', type: 'text', value: s.id, required: true,
+      }], { okLabel: 'Rename', validate: vals => {
+        const neu = vals.id.trim();
+        if (!neu) return 'An id is required.';
+        if (!/^[A-Za-z0-9._-]+$/.test(neu)) return 'Use letters, numbers, and . _ - only.';
+        if (neu !== s.id && parseSources().some(x => x.id === neu)) return `[${neu}] already exists.`;
+        return '';
+      } });
+      if (!r) return;
+      const neu = r.id.trim();
+      if (neu === s.id) return;
       pushHistory(); renameSource(s.id, neu); markDirty(); render(); renderSources();
     });
     id.appendChild(ctl);
@@ -4588,8 +4838,9 @@ function renderSources() {
     };
     txt.addEventListener('change', commit);       // fires on blur only when changed
     url.addEventListener('change', commit);
-    del.addEventListener('click', () => {
-      if (!confirm(`Delete source [${s.id}]? This cannot be undone from here.`)) return;
+    del.addEventListener('click', async () => {
+      if (!await dsConfirm(`Delete source [${s.id}]? This cannot be undone from here.`,
+          { okLabel: 'Delete', danger: true })) return;
       pushHistory(); deleteSource(s.id); markDirty(); render(); renderSources();
     });
     row.append(id, txt, url, del);
@@ -4661,16 +4912,21 @@ function moveSectionToPage(key, newPage) {
   else source = source.replace(/\s*$/, '') + block + '\n';
 }
 
-$('add').onclick = () => {
+$('add').onclick = async () => {
   if (editing) return;
-  const menu = EXTRA_PAGES.map(([, label], i) => `${i + 1}. ${label}`).join('\n');
-  const pick = prompt(`Add a new section to which page?\n\n${menu}\n\nEnter a number 1–${EXTRA_PAGES.length}:`);
-  if (pick === null) return;
-  const idx = parseInt(pick, 10) - 1;
-  if (!(idx >= 0 && idx < EXTRA_PAGES.length)) { $('stat').textContent = `"${pick}" is not a page number`; return; }
-  const [page, label] = EXTRA_PAGES[idx];
-  let slug = (prompt(`Short name for the section on "${label}" (letters, numbers, hyphens):`, '') || '')
-             .trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  // One form: pick the page and name the section together, so nothing typed is
+  // lost to a dismissed second prompt.
+  const r = await dsForm('Add a new section', [
+    { name: 'page', label: 'Page', type: 'select',
+      options: EXTRA_PAGES.map(([id, label]) => ({ value: id, label })) },
+    { name: 'slug', label: 'Short name (letters, numbers, hyphens)', type: 'text', required: true },
+  ], { okLabel: 'Add', validate: vals =>
+    vals.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      ? '' : 'A short name is required.' });
+  if (!r) return;
+  const page = r.page;
+  const label = (EXTRA_PAGES.find(([id]) => id === page) || [, page])[1];
+  let slug = r.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   if (!slug) return;
   const base = slug;
   for (let n = 2; source.includes(`[[extra.${page}.${slug}]]`); n++) slug = `${base}-${n}`;
@@ -4749,7 +5005,10 @@ function edit(d, key) {
     // panel it just opened — a blur like any other, but finishing the edit
     // over it would remove `tools` (and the freshly appended .ds-cite panel
     // inside it) before a person could ever use it. Only finish when focus is
-    // truly leaving the toolbar, not moving to a control within it.
+    // truly leaving the toolbar, not moving to a control within it. Likewise a
+    // modal dialog (Cite → new source, image alt) steals focus while it is
+    // open; committing the edit under it would splice into a detached textarea.
+    if (modalOpen) return;
     if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
@@ -4937,14 +5196,15 @@ async function ensureAuth() {
 async function askToken() {
   const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
-  const entered = prompt('One-time setup: paste a GitHub fine-grained token\n\n' +
-    'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
-    `Repository access: only ${REPO}\n` +
-    'Permissions -> Repository permissions:\n' +
+  const entered = await dsPrompt(
+    'github.com → Settings → Developer settings → Fine-grained tokens.\n' +
+    `Repository access: only ${REPO}.\n` +
+    'Permissions → Repository permissions:\n' +
     '    Contents: Read and WRITE        (saving drafts)\n' +
     '    Pull requests: Read and WRITE   (publishing)\n' +
-    '(Both default to no access; Read-only is not enough.)\n\n' +
-    'Stored in this browser only.');
+    '(Both default to no access; Read-only is not enough.)\n' +
+    'Stored in this browser only.',
+    '', { title: 'Paste a GitHub fine-grained token', placeholder: 'github_pat_…' });
   if (!entered) return null;
   $('stat').textContent = 'checking the token…';
   const bad = await verifyToken(entered.trim());
@@ -5099,6 +5359,7 @@ async function saveDraft() {
     if (M.layout && layoutText !== layoutOrig) files.push({ path: M.layout, content: layoutText });
     if (files.length) await commitToBranch(draftBranch, files, `${M.id}: draft by ${user}`);
     original = source; layoutOrig = layoutText;
+    clearDraftCache();        // it's on the branch now — the local cache is stale
     markDirty();
     history.replaceState(null, '', draftUrl());   // a reload finds this draft
     showDraftBadge();
@@ -5118,7 +5379,8 @@ $('share').onclick = async () => {
     await navigator.clipboard.writeText(url);
     $('stat').textContent = 'link copied — it shows this draft, not the live report';
   } catch (e) {
-    prompt('Copy this draft link:', url);   // clipboard blocked: show it instead
+    // clipboard blocked: show it in a read-only field to copy by hand
+    await dsPrompt('Copy this draft link:', url, { title: 'Share draft', readOnly: true, cancelLabel: 'Close' });
   }
 };
 
@@ -5128,8 +5390,9 @@ $('publish').onclick = async () => {
     $('stat').textContent = 'nothing to publish yet — make an edit and Save draft first';
     return;
   }
-  if (!confirm('Make this draft the live report?\n\nEveryone will see it. '
-             + 'The live site (and the Google Doc) update in about two minutes.')) return;
+  if (!await dsConfirm('Make this draft the live report?\n\nEveryone will see it. '
+             + 'The live site (and the Google Doc) update in about two minutes.',
+             { okLabel: 'Publish' })) return;
   if (!await ensureAuth()) return;
   $('publish').disabled = true;
   $('stat').textContent = 'publishing…';
@@ -5143,6 +5406,7 @@ $('publish').onclick = async () => {
     await gh(`pulls/${pr.number}/merge`, { method: 'PUT',
       body: JSON.stringify({ merge_method: 'squash' }) });
     try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    clearDraftCache();        // it's live now — the local cache is stale
     draftBranch = null;
     history.replaceState(null, '', pageUrl());
     $('title').textContent = M.id;
@@ -5171,8 +5435,8 @@ $('save').onclick = async () => {
   // whole job.
   if (lastFit.length) {
     const pages = [...new Set(lastFit.map(b => b.page))];
-    if (!confirm(`${pages.length} page${pages.length > 1 ? 's' : ''} will be cut off in the `
-               + `printed PDF (${pages.join(', ')}).\n\nSave anyway?`)) return;
+    if (!await dsConfirm(`${pages.length} page${pages.length > 1 ? 's' : ''} will be cut off in the `
+               + `printed PDF (${pages.join(', ')}).\n\nSave anyway?`, { okLabel: 'Save anyway' })) return;
   }
   const layoutText = JSON.stringify(layout, null, 2) + '\n';
 
@@ -5210,18 +5474,20 @@ $('revert').onclick = async () => {
   // and go back to the live report. (With unsaved edits it stays what it
   // always was — throw away what you typed since the last save.)
   if (!dirty && draftBranch && !local) {
-    if (!confirm('Throw away this saved draft?\n\nThe live report is untouched. '
-               + 'This cannot be undone.')) return;
+    if (!await dsConfirm('Throw away this saved draft?\n\nThe live report is untouched. '
+               + 'This cannot be undone.', { okLabel: 'Throw away', danger: true })) return;
     if (!await ensureAuth()) return;
     try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    await clearDraftCache();             // dropping the draft drops its cached edits too
     location.href = pageUrl();           // reload clean, on the live content
     return;
   }
-  if (!confirm('Discard your unsaved edits?')) return;
+  if (!await dsConfirm('Discard your unsaved edits?', { okLabel: 'Discard', danger: true })) return;
   source = original;
   layout = JSON.parse(layoutOrig || '{}');
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
+  clearDraftCache();                     // the edits are gone — so is their cache
   markDirty();
   await render();
 };
@@ -5240,6 +5506,42 @@ $('download').onclick = () => {
 };
 $('dl-pdf').onclick = () => doExport('pdf');
 $('dl-png').onclick = () => doExport('png');
+$('dl-src').onclick = () => downloadSource();
+
+// A "source" download: the two authored files (content.md + layout.json) plus
+// any images uploaded this session, zipped in the browser via fflate — an ~8kB
+// ESM module loaded from the same CDN as Pyodide, so no build step and no new
+// server dependency. This is the half of Export that STANDALONE.md left out:
+// the raw material of the report, for anyone who wants the files without a git
+// checkout. It only reads state the editor already holds, so it needs neither
+// the local server nor a token, and works identically in local and hosted mode.
+const baseName = p => p.split('/').pop();
+async function downloadSource() {
+  $('downloadpop').hidden = true;
+  $('stat').textContent = 'zipping the source…';
+  try {
+    const { zipSync, strToU8 } =
+      await import('https://cdn.jsdelivr.net/npm/fflate@0.8.3/esm/browser.js');
+    const files = {};
+    files[baseName(M.content)] = strToU8(source);
+    if (M.layout) files[baseName(M.layout)] = strToU8(JSON.stringify(layout, null, 2) + '\n');
+    // Images uploaded this session live in localImages as data URLs; decode
+    // each back to bytes and keep its assets/… path inside the zip.
+    for (const [path, dataUrl] of localImages) {
+      const b64 = String(dataUrl).split(',')[1] || '';
+      files[path] = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    }
+    const blob = new Blob([zipSync(files, { level: 6 })], { type: 'application/zip' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (M.id || 'report') + '-source.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    $('stat').textContent = `downloaded ${a.download}`;
+  } catch (e) {
+    $('stat').textContent = 'source download failed: ' + e.message;
+  }
+}
 
 async function doExport(fmt) {
   $('downloadpop').hidden = true;

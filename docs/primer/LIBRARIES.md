@@ -86,34 +86,38 @@ Ranked by value / effort.
    inside `start.html`'s new-report JS template (itself containing a literal
    `</body>`) and corrupted the whole page's script.
 
-2. **`fflate` — tiny, CDN-friendly** — enables a "Download source"
-   (the `content.md` + `layout.json` + touched assets as a `.zip`), the half
-   of Export that `STANDALONE.md` left out. Clear value for anyone who wants
-   the raw files; zero architectural conflict (it only reads state the editor
-   already holds). *Verified 2026-07-18:* fflate **v0.8.3** (published
-   2026-05-16), zero runtime dependencies, ships an ESM `module`/`exports`
-   build that drops straight in as a CDN import — no build step, which is the
-   binding constraint here. Actively maintained (2.9k★, last pushed 2026-05-16,
-   not archived). Preferred over **JSZip** (larger, older API); this is the
-   "8kB package" its own npm description names, and the `Download ▾` popover
-   already has the natural home for a third "Source (.zip)" item.
+2. **`fflate` — done.** A "Source — files & images (.zip)" item in the
+   `Download ▾` popover (`downloadSource()`), bundling `content.md` +
+   `layout.json` + any session-uploaded images. fflate **v0.8.3** loads as an
+   ESM `import()` from the same CDN as Pyodide — no build step, no server, no
+   token; it only reads state the editor already holds, so it works in local
+   and hosted mode alike. Preferred over **JSZip** (larger, older API). Pinned
+   by `download.spec.js` (asserts a real `PK`-signature zip carrying both
+   authored files).
 
-3. **Native `<dialog>` (not a library)** — the editor still uses raw
-   `prompt()`/`confirm()` for new-section, source id, rename, cross-page move,
-   token entry, publish. `start.html` already has a proper in-app modal;
-   standardizing on `<dialog>` would make those flows consistent and stop
-   losing typed input to a dismissed prompt. A UX cleanup, not a library add.
-   *Verified 2026-07-18 (MDN):* `<dialog>` + `.showModal()` is **Baseline
-   widely available since March 2022** (Safari 15.4 was the last engine to
-   land it), so it's safe with zero dependency. Caveats to design around:
-   `::backdrop` is supported but style it explicitly, and animating the modal
-   in/out needs `transition-behavior: allow-discrete` on `display`. This also
-   *directly retires the two `prompt()`-fragility papercuts the test suite
-   exposed* — the sequential `prompt()` chains in `+Section` and Cite are
-   exactly the "typed input lost to a dismissed prompt" failure a `<dialog>`
-   form removes.
+3. **Native `<dialog>` — done.** All ~20 `prompt()`/`confirm()`/`alert()`
+   call sites now go through `dsForm`/`dsConfirm`/`dsPrompt`/`dsAlert`, a set
+   of Promise-returning helpers over a focus-trapped `<dialog>` in the parent
+   document (Baseline since March 2022, zero dependency). The win the test
+   suite predicted is realized: `+Section` and Cite's "+ new source" are now
+   single multi-field forms with inline validation, so a dismissed field no
+   longer discards everything already typed (the old sequential-`prompt()` +
+   `alert()` failure). A `modalOpen` flag stops an opening dialog from firing
+   the in-iframe edit's blur/`finish()`. Pinned by `dialogs.spec.js` (cancel
+   is a clean no-op, a validation error keeps the form and its input open, Esc
+   cancels) plus the sections/sources/drafts/multiproject specs driving the
+   real modals.
 
-4. **`idb-keyval` — tiny, optional** — drafts and the token live in
+4. **`idb-keyval` — done.** Unsaved edits autosave (debounced) to IndexedDB
+   via idb-keyval **v6.3.0** and auto-restore on the next boot, so a closed
+   tab or a refresh before a network Save no longer loses work; the cache is
+   cleared on Save/Publish/Discard. Hosted mode only — local mode's files on
+   disk are already the truth. Deliberately ONLY the draft cache moved to
+   IndexedDB; the token/user stay in `localStorage`, so `ensureAuth()`/
+   `resolveDraft()` keep their synchronous reads (the sync→async migration cost
+   noted below is thus avoided). Pinned by `offline-cache.spec.js`.
+
+   *Original assessment, for the record:* drafts and the token live in
    `localStorage` today. For offline draft persistence (edits survive a
    closed tab / dropped connection before a network save), a tiny IndexedDB
    wrapper fits the service-worker/offline direction already started in

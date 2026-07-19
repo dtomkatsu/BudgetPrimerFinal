@@ -1,24 +1,19 @@
 // Structural section editing (docsync/editor/edit.html): add/reorder/move/
-// delete an [[extra.<page>.<slug>]] overflow section — the feature added in
-// the 2026-07-17 session (addExtra/removeExtra/moveExtra/moveSectionToPage).
-// Local-mode: no GitHub involved, only in-memory `source` (content.md text)
-// and the Pyodide-rendered iframe.
-const { test, expect, gotoEditor } = require('./fixtures/editor-test');
+// delete an [[extra.<page>.<slug>]] overflow section. The +Section and delete
+// flows now go through native <dialog> modals (dsForm/dsConfirm), not
+// prompt()/confirm(). Local-mode: no GitHub, only in-memory `source` and the
+// Pyodide-rendered iframe.
+const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtures/editor-test');
 
-/** #add's click handler fires two sequential window.prompt()s: a page number,
- *  then a slug. Answer them in order as they appear. Replaces any prior
- *  'dialog' listener so calling this more than once per test never leaves a
- *  stale, exhausted queue still attached (Playwright dispatches to every
- *  registered listener, not just the newest). */
-function queuePrompts(page, answers) {
-  if (page.__promptListener) page.off('dialog', page.__promptListener);
-  const queue = [...answers];
-  page.__promptListener = async dialog => {
-    const next = queue.shift();
-    if (next === undefined) throw new Error(`unexpected dialog: ${dialog.message()}`);
-    await dialog.accept(next);
-  };
-  page.on('dialog', page.__promptListener);
+/** Add a section through the +Section dialog: pick a page and name it in one
+ *  form, submit, then Escape out of the auto-opened editor so it re-renders
+ *  read-only with its .extra-section / .ds-xtools controls. */
+async function addSection(page, slug, pageValue = 'basics') {
+  await page.click('#add');
+  await fillDialog(page, { page: pageValue, slug });
+  await submitDialog(page);
+  await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
+  await page.keyboard.press('Escape');
 }
 
 test.describe('section editing', () => {
@@ -27,16 +22,9 @@ test.describe('section editing', () => {
   });
 
   test('adds a new section to a page and it renders', async ({ page }) => {
-    queuePrompts(page, ['1', 'auto-test-section']);
-    await page.click('#add');
+    await addSection(page, 'auto-test-section');
 
     const frame = page.frameLocator('#out');
-    // Adding auto-opens the new section for editing (pendingEdit) — cancel
-    // out of that with Escape so it re-renders read-only and picks up the
-    // .extra-section / .ds-xtools controls.
-    await frame.locator('.ds-edit').waitFor({ state: 'visible' });
-    await page.keyboard.press('Escape');
-
     // toHaveCount, not toBeVisible: a section landing past the print-fit cut
     // is genuinely clipped by its (print-accurate) .page container — that's
     // real behavior, not a broken render, so visibility isn't the right check.
@@ -48,15 +36,8 @@ test.describe('section editing', () => {
   });
 
   test('reorders two sections on the same page with ↑/↓', async ({ page }) => {
-    queuePrompts(page, ['1', 'section-a']);
-    await page.click('#add');
-    await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
-    await page.keyboard.press('Escape');
-
-    queuePrompts(page, ['1', 'section-b']);
-    await page.click('#add');
-    await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
-    await page.keyboard.press('Escape');
+    await addSection(page, 'section-a');
+    await addSection(page, 'section-b');
 
     const frame = page.frameLocator('#out');
     const extras = frame.locator('.extra-section[data-extra="1"]');
@@ -75,19 +56,16 @@ test.describe('section editing', () => {
   });
 
   test('deletes a section via the ✕ control after confirming', async ({ page }) => {
-    queuePrompts(page, ['1', 'to-delete']);
-    await page.click('#add');
-    const frame = page.frameLocator('#out');
-    await frame.locator('.ds-edit').waitFor({ state: 'visible' });
-    await page.keyboard.press('Escape');
+    await addSection(page, 'to-delete');
 
+    const frame = page.frameLocator('#out');
     const key = 'extra.basics.to-delete';
     const section = frame.locator(`[data-slot="${key}"]`);
     await expect(section).toHaveCount(1);
 
-    page.off('dialog', page.__promptListener);   // done answering add-section prompts
-    page.once('dialog', dialog => dialog.accept());
+    // The ✕ opens a dsConfirm dialog (in the parent doc); accept it.
     await section.locator('.ds-xtools button.del').dispatchEvent('click');
+    await submitDialog(page);
 
     await expect(frame.locator(`[data-slot="${key}"]`)).toHaveCount(0);
   });

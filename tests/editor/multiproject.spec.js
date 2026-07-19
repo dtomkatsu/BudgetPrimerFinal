@@ -3,7 +3,7 @@
 // 2+ ids — one editor, any number of reports. This repo's real projects.json
 // has exactly one entry (budget-primer), so the picker never appears in
 // production; inject a second id to exercise the switching behavior itself.
-const { test, expect, gotoEditor } = require('./fixtures/editor-test');
+const { test, expect, gotoEditor, fillDialog, submitDialog, cancelDialog } = require('./fixtures/editor-test');
 
 async function withTwoProjectRegistry(context) {
   // get()'s cache-buster appends ?cb=<timestamp> — match that suffix too.
@@ -50,22 +50,21 @@ test.describe('multi-project registry', () => {
 
   test('switching with unsaved edits asks for confirmation first', async ({ page }) => {
     await gotoEditor(page);
-    // Make a real edit so dirty=true — reuse the +Section flow (already
-    // proven in sections.spec.js) rather than reaching into editor internals.
-    page.on('dialog', async d => {
-      if (d.type() === 'prompt') return d.accept(d.message().includes('page') ? '1' : 'mp-test-section');
-      return d.dismiss();   // decline the "Switch project?" confirm
-    });
+    // Make a real edit so dirty=true — reuse the +Section flow (already proven
+    // in sections.spec.js) via its <dialog> form.
     await page.click('#add');
+    await fillDialog(page, { page: 'basics', slug: 'mp-test-section' });
+    await submitDialog(page);
     await page.frameLocator('#out').locator('.ds-edit').waitFor({ state: 'visible' });
     await page.keyboard.press('Escape');
     await expect(page.locator('#undo')).toBeEnabled();   // confirms the edit landed, dirty=true
 
     const urlBefore = page.url();
     await page.locator('#proj').selectOption('second-report');
+    await cancelDialog(page);   // decline the "Switch project?" confirm
     await page.waitForTimeout(500);   // give a (wrongly) accepted navigation a chance to happen
 
-    expect(page.url()).toBe(urlBefore);   // dismissed confirm() -> selection reverts, no navigation
+    expect(page.url()).toBe(urlBefore);   // declined -> selection reverts, no navigation
     await expect(page.locator('#proj')).toHaveValue('budget-primer');
   });
 });

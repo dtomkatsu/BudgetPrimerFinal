@@ -38,6 +38,29 @@ test.describe('download: local mode (server-rendered PDF/PNG via /__export)', ()
   });
 });
 
+test.describe('download: source zip (fflate, client-side)', () => {
+  test('bundles content.md + layout.json into a zip named for the project', async ({ page }) => {
+    await gotoEditor(page);
+    await page.click('#download');
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.click('#dl-src'),
+    ]);
+    expect(download.suggestedFilename()).toBe('budget-primer-source.zip');
+    await expect(page.locator('#stat')).toContainText('downloaded budget-primer-source.zip');
+
+    // Read the downloaded bytes and confirm it's a real zip carrying both
+    // authored files — fflate wrote a genuine archive, not an empty stub.
+    const fs = require('fs');
+    const path = await download.path();
+    const buf = fs.readFileSync(path);
+    expect(buf.subarray(0, 2).toString('latin1')).toBe('PK');   // zip local-file signature
+    const asText = buf.toString('latin1');
+    expect(asText).toContain('content.md');
+    expect(asText).toContain('layout.json');
+  });
+});
+
 test.describe('download: hosted mode (no local server)', () => {
   test.beforeEach(async ({ context, page }) => {
     await context.route('**/__ping', route => route.fulfill({ status: 404, body: 'no local server' }));
