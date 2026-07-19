@@ -784,7 +784,7 @@ pages.append(f"""
  </div>
  {C.html("toc.mission1", "mission")}
  {C.html("toc.mission2", "mission")}
- <h2 class="toc-title">{C.t("toc.title")}</h2>
+ {L.spacer("toc.title")}<h2 class="toc-title"{L.attr("toc.title")}>{C.t("toc.title")}</h2>
  <div class="toc-list">
   <div><span>Budget Basics</span><span>{pageno(3)}</span></div>
   <div><span>How Money Is Spent</span><span>{pageno(5)}</span></div>
@@ -815,7 +815,7 @@ bc = "".join(
     for t, bg, img, lt, bl, k in branch_cards)
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.3")}>
- <h1>{C.t("basics.h1")}</h1>
+ {L.spacer("basics.h1")}<h1{L.attr("basics.h1")}>{C.t("basics.h1")}</h1>
  {C.html("basics.p1")}
  {C.html("basics.p2")}
  {bc}
@@ -825,7 +825,7 @@ pages.append(f"""
 # -- page 4: budget process
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.4")}>
- <h2 class="sub">{C.t("process.h2")}</h2>
+ {L.spacer("process.h2")}<h2 class="sub"{L.attr("process.h2")}>{C.t("process.h2")}</h2>
  {C.html("process.p1")}
  <p class="figcap"><b>Figure 1.</b> {C.t("process.fig1.caption")}</p>
  <div class="lifecycle-wrap">
@@ -838,7 +838,7 @@ pages.append(f"""
 # -- page 5: how money is spent
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.5")}>
- <h1>{C.t("spent.h1")}</h1>
+ {L.spacer("spent.h1")}<h1{L.attr("spent.h1")}>{C.t("spent.h1")}</h1>
  {C.html("spent.p1")}
  {C.html("spent.p2")}
  <div class="cards3">
@@ -856,8 +856,8 @@ pages.append(f"""
 # -- page 6: figure 2
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.6")}>
- <h2 class="sub">{C.t("categories.h2")}</h2>
- <h3 class="sub2">{C.t("categories.h3")}</h3>
+ {L.spacer("categories.h2")}<h2 class="sub"{L.attr("categories.h2")}>{C.t("categories.h2")}</h2>
+ {L.spacer("categories.h3")}<h3 class="sub2"{L.attr("categories.h3")}>{C.t("categories.h3")}</h3>
  <p class="figcap"><b>Figure 2.</b> {C.t("categories.fig2.caption")} {fy_picker("fig2")}
  <span class="noprint figcap-hint">{C.t("categories.fig2.hint", esc=True)}</span></p>
  {fig2_chart_for(2027)}
@@ -890,7 +890,7 @@ pages.append(f"""
    <p class="obligated-note">{C("obligated.panel.note").format(oblig_first=f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}", oblig_last=f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}")}</p>
   </div>
  </details>
- <h3 class="sub2">{C.t("cip.h3")}</h3>
+ {L.spacer("cip.h3")}<h3 class="sub2"{L.attr("cip.h3")}>{C.t("cip.h3")}</h3>
  <p class="figcap"><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
@@ -903,7 +903,7 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.8")}>
  {L.spacer("onetime.photo")}{img_el("onetime.photo", "photo", "assets/hb2296-signing.jpg", esc(C.text("onetime.photo.alt")))}
  {C.html("onetime.photo.caption", "photocap")}
- <h3 class="sub2">{C.t("onetime.h3")}</h3>
+ {L.spacer("onetime.h3")}<h3 class="sub2"{L.attr("onetime.h3")}>{C.t("onetime.h3")}</h3>
  <div class="cards2">
   {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
   {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
@@ -914,7 +914,7 @@ pages.append(f"""
 # -- page 9: funding the budget
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.9")}>
- <h1>{C.t("funding.h1")}</h1>
+ {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  <p class="figcap"><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
  {C.html("funding.p1")}
@@ -929,7 +929,7 @@ pages.append(f"""
 # -- page 10: taxes
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.10")}>
- <h2 class="sub">{C.t("taxes.h2")}</h2>
+ {L.spacer("taxes.h2")}<h2 class="sub"{L.attr("taxes.h2")}>{C.t("taxes.h2")}</h2>
  <p class="figcap"><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
@@ -943,7 +943,7 @@ pages.append(f"""
 # -- page 11: who pays
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.11")}>
- <h3 class="sub2">{C.t("whopays.h3")}</h3>
+ {L.spacer("whopays.h3")}<h3 class="sub2"{L.attr("whopays.h3")}>{C.t("whopays.h3")}</h3>
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
@@ -967,7 +967,7 @@ ENDNOTES_SLOT = "<!--ds-endnotes-->"
 by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..11
 by_id[12] = f"""
 <section class="page"{L.fill_attr("page.12")}>
- <h1>{C.t("endnotes.h1")}</h1>
+ {L.spacer("endnotes.h1")}<h1{L.attr("endnotes.h1")}>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{ENDNOTES_SLOT}</ol>
  {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>"""

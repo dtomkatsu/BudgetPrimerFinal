@@ -3398,10 +3398,41 @@ function chip(pid, pos, label, isHidden) {
     x.className = 'chip-x'; x.textContent = '×'; x.title = 'Delete this blank page';
     x.addEventListener('click', async e => {
       e.stopPropagation();
+      // A blank page has no content.md tie to "un-hide" back to — unlike a
+      // designed page, deleting it is really final, so anything placed there
+      // is about to become unreachable. Ask first, same as any other
+      // permanent loss (a saved draft, a source).
+      const onPage = layout.shapes.filter(s => s.page === pid)
+        .concat(boxes().filter(b => b.page === pid))
+        .concat(tables().filter(t => t.page === pid));
+      if (onPage.length) {
+        const n = onPage.length;
+        if (!await dsConfirm(
+            `Delete this blank page? It has ${n} element${n > 1 ? 's' : ''} on it — `
+            + `they go with it and cannot be recovered from here.`,
+            { okLabel: 'Delete page', danger: true })) return;
+      }
       pushHistory();
       const blanks = pageBlanks().filter(b => b.id !== pid);
       writeOrder(pageOrder().filter(p => p !== pid), blanks);
+      // Nothing can render on a page that no longer exists — orphaned shapes/
+      // boxes/tables would otherwise sit invisible in layout.json and silently
+      // reappear if a future blank page reused this same id.
+      const gone = [];
+      layout.shapes = layout.shapes.filter(s => {
+        if (s.page !== pid) return true; gone.push(s.id); return false;
+      });
+      layout.boxes = boxes().filter(b => {
+        if (b.page !== pid) return true; gone.push('text.' + b.id); return false;
+      });
+      layout.tables = tables().filter(t => {
+        if (t.page !== pid) return true; gone.push('table.' + t.id); return false;
+      });
+      forgetInGroups(gone);
+      gone.forEach(id => selIds.delete(id));
+      if (layout.locked) layout.locked = layout.locked.filter(id => !gone.includes(id));
       await render();
+      $('stat').textContent = `page deleted`;
     });
     c.appendChild(x);
   } else {
