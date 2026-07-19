@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#2F3E46">
 <title>Draft editor</title>
 <!--
   Edit the report's prose in the report itself.
@@ -347,6 +351,7 @@
   <button id="save" disabled>Save draft</button>
   <button id="share" disabled title="Copy a link that shows this draft to anyone">Share</button>
   <button id="publish" disabled title="Make this draft the live report">Publish</button>
+  <button id="export" disabled title="Print or save this report as a PDF">Export</button>
   <div class="pop" id="shapepop" hidden>
     <p class="pop-h">Add to the page in view</p>
     <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
@@ -3595,6 +3600,7 @@ async function boot() {
   await loadRegistry();
   M = JSON.parse(await get(withBase('engine/manifest.json')));
   REPO = M.repo || '';
+  if (M.pages && M.pages.length) EXTRA_PAGES = M.pages;
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
   $('title').textContent = M.id;
@@ -3678,6 +3684,7 @@ async function boot() {
   $('guides').classList.toggle('on', guidesOn);
   await render();
   if (!local) $('share').disabled = $('publish').disabled = false;
+  $('export').disabled = false;   // printing needs only the rendered iframe, no auth
   // Buttons start disabled in the HTML and only markDirty() flips them — run
   // it once now so a resumed draft's Discard is live before the first edit.
   markDirty();
@@ -4267,11 +4274,13 @@ $('sources').onclick = openSources;
 
 // --- sections: add, edit, reorder, move and delete whole prose sections -----
 // A section is an [[extra.<page>.<slug>]] overflow slot the renderer drops at
-// the end of its page (render_report.py EXTRA_PAGES). These helpers edit the
-// raw content.md string, touching only extra.* keys, so the report's fixed,
-// name-referenced slots are never at risk. Every action calls pushHistory() so
-// it is undoable — which is what makes a section delete recoverable.
-const EXTRA_PAGES = [
+// the end of its page (render_report.py's own EXTRA_PAGES list, which this
+// must match). Which pages exist is a property of the REPORT, not the editor
+// — set in the manifest as "pages": [["id","Label"], …]; this default is the
+// Budget Primer's own list, used when a manifest declares none, so the one
+// report that predates the field keeps working unmodified. boot() overwrites
+// this from M.pages the moment the manifest is known.
+let EXTRA_PAGES = [
   ['basics', 'Budget Basics'], ['process', 'Budget Process'],
   ['spent', 'How Money Is Spent'], ['categories', 'Spending Categories'],
   ['cip', 'Capital Improvements'], ['onetime', 'One-Time & Emergency'],
@@ -4821,6 +4830,22 @@ $('publish').onclick = async () => {
   $('publish').disabled = false;
 };
 
+// Export: the browser's own print dialog, aimed at the iframe — not window.
+// print(), which would print the toolbar along with it. The rendered page
+// already carries the same @media print rules `make pdf` uses server-side
+// (primer.css), so "Save as PDF" from this dialog is the same output, with no
+// server, no headless Chrome, and no repo checkout required to get it.
+$('export').onclick = () => {
+  if (lastFit.length) {
+    const pages = [...new Set(lastFit.map(b => b.page))];
+    $('stat').textContent = `heads up: ${pages.length} page${pages.length > 1 ? 's' : ''} `
+      + `(${pages.join(', ')}) will be cut off in the export — opening print anyway`;
+  }
+  const win = $('out').contentWindow;
+  win.focus();      // an unfocused iframe prints the parent page in some browsers
+  win.print();
+};
+
 $('save').onclick = async () => {
   // Confirm, not block: prose has always been able to overflow a page and
   // nothing stopped it. Turning a pre-existing, permitted edit into a hard
@@ -4884,6 +4909,11 @@ $('revert').onclick = async () => {
 };
 
 addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
+// Registered here, not blocking boot() — the editor works with no service
+// worker at all (this is a progressive enhancement, not a dependency), and a
+// registration failure (an unsupported browser, a scope error) should never
+// stop the page from loading.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 boot().catch(e => { $('stat').textContent = 'failed to start: ' + e.message; });
 </script>
 </body>
