@@ -1737,7 +1737,24 @@ function showHandles(d, page, el) {
   const ov = d.createElement('div');
   ov.className = 'ds-handles';
   ov.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
-  handlesFor(el).forEach(dir => {
+  const dirs = handlesFor(el);
+  // Canva's own trick: a corner does double duty. A ring OUTSIDE each corner's
+  // resize square rotates; the square itself still resizes. The ring is
+  // painted (and appended) BEFORE its resize square, so the square — same
+  // stacking context, later in the DOM — wins the pixels they share, and only
+  // the surrounding ring answers to a rotate drag.
+  const corners = dirs.filter(dir => dir.length === 2);
+  corners.forEach(dir => {
+    const rg = d.createElement('div');
+    rg.className = 'ds-h ds-rot-corner ds-rot-' + dir;
+    rg.title = 'Drag to rotate — snaps to the compass, Shift for free angles';
+    rg.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      startRotate(d, el, e);
+    });
+    ov.appendChild(rg);
+  });
+  dirs.forEach(dir => {
     const h = d.createElement('div');
     h.className = 'ds-h ds-h-' + dir;
     h.title = dir === 'e' ? 'Drag to set width' : 'Drag to resize';
@@ -1747,14 +1764,19 @@ function showHandles(d, page, el) {
     });
     ov.appendChild(h);
   });
-  const rg = d.createElement('div');
-  rg.className = 'ds-h ds-rot';
-  rg.title = 'Drag to rotate — snaps to the compass, Shift for free angles';
-  rg.addEventListener('mousedown', e => {
-    e.preventDefault(); e.stopPropagation();
-    startRotate(d, el, e);
-  });
-  ov.appendChild(rg);
+  // Elements with no corner (width-only: a designed prose slot, a table) have
+  // nowhere to hang a corner rotate ring — keep the dangling top handle so
+  // they don't lose rotation entirely.
+  if (!corners.length) {
+    const rg = d.createElement('div');
+    rg.className = 'ds-h ds-rot';
+    rg.title = 'Drag to rotate — snaps to the compass, Shift for free angles';
+    rg.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      startRotate(d, el, e);
+    });
+    ov.appendChild(rg);
+  }
   ov.dataset.for = el.dataset.shape || el.dataset.el;
   page.appendChild(ov);
 }
@@ -4858,11 +4880,38 @@ function wire() {
     .ds-h-nw { left:-4px; top:-4px; width:9px; height:9px; cursor:nwse-resize; }
     .ds-h-ne { right:-4px; top:-4px; width:9px; height:9px; cursor:nesw-resize; }
     .ds-h-sw { left:-4px; bottom:-4px; width:9px; height:9px; cursor:nesw-resize; }
-    /* the rotate grip hangs above the box on a short stem, Canva's own spot */
+    /* the rotate grip hangs above the box on a short stem — only for elements
+       with no corner to rotate from (a width-only prose slot, a table) */
     .ds-rot { top:-20px; left:50%; width:11px; height:11px; margin-left:-6px;
               border-radius:50%; cursor:grab; }
     .ds-rot::after { content:""; position:absolute; left:50%; top:100%; width:1px;
               height:8px; background:#6B9E78; }
+    /* Corner rotate ring: invisible, larger than its resize square and
+       centred on the same point, so the square (painted after, same stacking
+       context) claims the shared centre and only the ring outside it rotates —
+       exactly the affordance Canva's own corner handles give. */
+    .ds-rot-corner { width:22px; height:22px; background:transparent; border:0; }
+    .ds-rot-corner:hover { background:transparent; }   /* stays invisible — the cursor is the affordance */
+    .ds-rot-se { right:-11px; bottom:-11px; cursor:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
+<path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
+stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
+stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
+    .ds-rot-sw { left:-11px; bottom:-11px; cursor:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
+<path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
+stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
+stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
+    .ds-rot-ne { right:-11px; top:-11px; cursor:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
+<path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
+stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
+stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
+    .ds-rot-nw { left:-11px; top:-11px; cursor:url('data:image/svg+xml;utf8,\
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
+<path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
+stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
+stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
     body.ds-resizing, body.ds-resizing * { cursor:inherit !important; }
     .ds-menu { position:absolute; z-index:99999; background:#fff; border:1px solid #C9D6CD;
                border-radius:6px; box-shadow:0 6px 24px rgba(47,62,70,.22); padding:4px;
