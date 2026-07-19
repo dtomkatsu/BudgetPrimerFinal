@@ -114,6 +114,10 @@
   #save.dirty:hover { background:#A85E2F; }
   #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
   #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
+  #proj { font:12.5px system-ui; background:var(--ctl); color:#E8EDE6;
+          border:1px solid var(--ctl-line); border-radius:5px; padding:4px 6px;
+          cursor:pointer; max-width:220px; }
+  #proj:hover { border-color:var(--sage); }
   /* Below the bars: the page rail and the canvas, side by side. */
   #work { flex:1; min-height:0; display:flex; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
@@ -305,6 +309,7 @@
     stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path
     d="M11.3 1.9l2.8 2.8L5 13.8l-3.6.8.8-3.6z"/></svg>Draft editor</span>
   <span id="title" class="ds-id"></span>
+  <select id="proj" hidden title="Switch project"></select>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
   <button id="text" title="Add a text box to the page in view">
@@ -533,6 +538,49 @@ async function get(u) {
   const r = await fetch(bust(u), { cache: 'no-store' });
   if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
   return r.text();
+}
+
+// --- projects: one editor, many reports ------------------------------------
+// projects.json beside this file maps an id to the directory holding that
+// report's engine/ (relative to this page, or an absolute URL — GitHub Pages
+// sends CORS, so another repo's site works). ?project=<id> picks one; no
+// param, a missing registry, or an unknown id all mean the engine/ next door,
+// which is exactly the single-project editor this grew from.
+let PROJECT = new URLSearchParams(location.search).get('project') || '';
+let PBASE = '';                 // '' = this directory
+let REGISTRY = null;
+
+const withBase = u => PBASE ? PBASE.replace(/\/+$/, '') + '/' + u : u;
+
+/** Every URL the editor writes carries the project, so a draft link, a
+ *  reload, or a post-publish reset never quietly jumps projects. */
+const pageUrl = extra => {
+  const q = new URLSearchParams();
+  if (PROJECT) q.set('project', PROJECT);
+  if (extra) for (const k in extra) q.set(k, extra[k]);
+  const s = q.toString();
+  return location.pathname + (s ? '?' + s : '');
+};
+
+async function loadRegistry() {
+  try { REGISTRY = JSON.parse(await get('projects.json')); } catch (e) { REGISTRY = null; }
+  if (!REGISTRY) { PROJECT = ''; return; }
+  if (PROJECT && REGISTRY[PROJECT]) PBASE = REGISTRY[PROJECT].base || '';
+  else PROJECT = '';            // unknown id: fall back to the default engine
+  const ids = Object.keys(REGISTRY);
+  if (ids.length < 2) return;   // one project: no picker, nothing to switch to
+  const defaultId = ids.find(id => !(REGISTRY[id].base || '')) || ids[0];
+  const sel = $('proj');
+  sel.innerHTML = ids.map(id =>
+    `<option value="${id}">${REGISTRY[id].name || id}</option>`).join('');
+  sel.value = PROJECT || defaultId;
+  sel.hidden = false;
+  sel.onchange = () => {
+    if (dirty && !confirm('Switch project? Unsaved edits here are lost.')) {
+      sel.value = PROJECT || defaultId; return;
+    }
+    location.href = location.pathname + '?project=' + encodeURIComponent(sel.value);
+  };
 }
 
 // content.md is [[key]] lines followed by their text. Reading and rewriting a
@@ -3544,7 +3592,8 @@ addEventListener('keydown', e => {
 });
 
 async function boot() {
-  M = JSON.parse(await get('engine/manifest.json'));
+  await loadRegistry();
+  M = JSON.parse(await get(withBase('engine/manifest.json')));
   REPO = M.repo || '';
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
@@ -3553,7 +3602,8 @@ async function boot() {
   await resolveDraft();         // ?draft=… in the URL, or your own saved draft
 
   const urls = Object.keys(M.files);
-  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(get)]);
+  const [pyodide, ...files] =
+    await Promise.all([loadPyodide(), ...urls.map(u => get(withBase(u)))]);
   // Viewing or continuing a draft: its content and layout come from the draft
   // branch, not the deployed copies (which are main's). The engine code itself
   // stays same-origin — only the two authored files differ per draft.
@@ -3567,7 +3617,7 @@ async function boot() {
       if (M.layout) files[urls.indexOf('engine/' + M.layout)] = l;
     } catch (e) {
       draftBranch = null;
-      history.replaceState(null, '', location.pathname);
+      history.replaceState(null, '', pageUrl());
       $('title').textContent = M.id;
       $('stat').textContent = "that draft isn't on GitHub any more (probably published) — showing the live report";
     }
@@ -3703,8 +3753,8 @@ async function _pull() {
   let freshSrc = original, freshLayout = layoutOrig;
   try {
     [freshSrc, freshLayout] = await Promise.all([
-      get('engine/' + M.content),
-      M.layout ? get('engine/' + M.layout) : Promise.resolve('{}'),
+      get(withBase('engine/' + M.content)),
+      M.layout ? get(withBase('engine/' + M.layout)) : Promise.resolve('{}'),
     ]);
   } catch (e) { return; }
   let took = false, clash = false;
@@ -3770,6 +3820,10 @@ open('/repo/' + OUT).read()
     const se = $('out').contentDocument.scrollingElement;
     if (se) se.scrollTop = scrollTopWas;
   };
+  // srcdoc resolves relative URLs (assets/…) against THIS page. Right for the
+  // default project, whose deploy puts assets beside the editor; a switched
+  // project's assets live under its own base, so point the document there.
+  if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
   $('out').srcdoc = html;
   $('stat').textContent = dirty ? 'unsaved changes'
                                 : 'click selects and drags · double-click edits text';
@@ -4595,8 +4649,7 @@ let draftBranch = new URLSearchParams(location.search).get('draft') || null;
 
 const showDraftBadge = () =>
   { $('title').textContent = M.id + ' · draft: ' + draftBranch.split('/').pop(); };
-const draftUrl = () =>
-  location.origin + location.pathname + '?draft=' + encodeURIComponent(draftBranch);
+const draftUrl = () => location.origin + pageUrl({ draft: draftBranch });
 
 async function resolveDraft() {
   if (local) { draftBranch = null; return; }
@@ -4748,7 +4801,7 @@ $('publish').onclick = async () => {
       body: JSON.stringify({ merge_method: 'squash' }) });
     try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
     draftBranch = null;
-    history.replaceState(null, '', location.pathname);
+    history.replaceState(null, '', pageUrl());
     $('title').textContent = M.id;
     markDirty();
     $('stat').textContent = 'published ✓ — the live report updates in about two minutes';
@@ -4818,7 +4871,7 @@ $('revert').onclick = async () => {
                + 'This cannot be undone.')) return;
     if (!await ensureAuth()) return;
     try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
-    location.href = location.pathname;   // reload clean, on the live content
+    location.href = pageUrl();           // reload clean, on the live content
     return;
   }
   if (!confirm('Discard your unsaved edits?')) return;

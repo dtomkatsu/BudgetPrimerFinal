@@ -147,6 +147,25 @@ written to the draft branch, before committing to full CRDT.
 that selects a manifest from a small registry, so one deployed editor serves
 every report instead of one deployment per repo.
 
+> **Implemented.** `projects.json` beside the editor maps ids to the directory
+> holding each report's `engine/` — relative, or an absolute URL to another
+> GitHub Pages site (Pages sends CORS). With more than one entry a picker
+> appears in the bar; every URL the editor writes carries `?project=`, so
+> draft links, reloads and post-publish resets stay inside their project, and
+> a `<base>` tag points a switched project's assets at its own directory.
+> Adding a report = deploy its engine dir + one line in `projects.json`:
+>
+> ```json
+> {
+>   "budget-primer": { "name": "Budget Primer FY2026–27", "base": "" },
+>   "next-report":   { "name": "Next Report",
+>                      "base": "https://user.github.io/NextReport/editor" }
+> }
+> ```
+>
+> Each project's manifest already names its own `repo`, so drafts, publishes
+> and tokens all target the right repository per project.
+
 ---
 
 ## 5. Concrete first steps (Phase 1, in order)
