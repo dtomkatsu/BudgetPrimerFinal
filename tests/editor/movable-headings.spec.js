@@ -83,7 +83,7 @@ test.describe('movable headings', () => {
     await text.dblclick({ force: true });
     const ta = frame.locator('.ds-edit');
     await ta.waitFor({ state: 'visible' });
-    await expect(ta).toHaveValue(/BUDGET BASICS/i);
+    await expect(ta).toHaveText(/BUDGET BASICS/i);
   });
 
   test('an unmoved heading publishes with no position scaffolding (published bytes unchanged)', async ({ page }) => {

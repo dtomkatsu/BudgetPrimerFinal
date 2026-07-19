@@ -832,6 +832,198 @@ const slotRe = k => new RegExp(`((?:^|\\n)\\[\\[${rxEsc(k)}\\]\\]\\n)([\\s\\S]*?
 const readSlot  = k => (source.match(slotRe(k)) || [,,''])[2].trim();
 const writeSlot = (k, v) => { source = source.replace(slotRe(k), (m, head) => head + v.trim() + '\n'); };
 
+// --- markdown <-> rich text --------------------------------------------
+// The contenteditable edit surface shows exactly what the report will
+// render, so this re-derives the same HTML content.py's md_inline() /
+// paragraphs() / block_html() produce server-side, and reverses it on save.
+// One grammar, two directions: images, links (never a footnote ref — same
+// exclusion as Python), bold, italic, footnote refs as non-editable chips,
+// plus (only for allowLists surfaces — block_html() is the only renderer
+// that gives them meaning) '#'/'##' headings and '- '/'N. ' lists.
+//
+// Bold+italic together don't round-trip through md_inline's regexes (the
+// bold pass' non-greedy match eats into a following italic marker), so the
+// toolbar keeps the two mutually exclusive rather than let the UI create
+// markup that silently corrupts on save — see boldItalicBlocked().
+const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
+function mdInlineToHtml(text) {
+  // Footnote refs first — an editor-only concept (Python leaves [^id]
+  // literal, for later document-wide resolution) — stashed before anything
+  // else so no other pass can split or escape into the middle of one.
+  const fns = [];
+  let s = text.replace(/\[\^([^\]]+)\]/g, (m, id) => {
+    fns.push(id);
+    return `\x00FN${fns.length - 1}\x00`;
+  });
+  // Images, then links — same order and same footnote-ref exclusion as
+  // content.py's md_inline, so a link can never swallow a stashed footnote.
+  const imgs = [];
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (m, alt, src) => {
+    imgs.push([alt, src]);
+    return `\x00IMG${imgs.length - 1}\x00`;
+  });
+  const urls = [];
+  s = s.replace(/\[([^\]^][^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (m, txt, url) => {
+    urls.push(url);
+    return `\x00LINK${urls.length - 1}\x00${txt}\x01`;
+  });
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/(?<![\w*])\*(?!\s)([\s\S]+?)(?<!\s)\*(?![\w*])/g, '<i>$1</i>');
+  s = s.replace(/\x00LINK(\d+)\x00([\s\S]*?)\x01/g,
+    (m, i, inner) => `<a href="${escAttr(urls[+i])}">${inner}</a>`);
+  s = s.replace(/\x00IMG(\d+)\x00/g, (m, i) => {
+    const [alt, src] = imgs[+i];
+    return `<img class="inline-img" contenteditable="false" src="${escAttr(src)}" alt="${escAttr(alt)}">`;
+  });
+  s = s.replace(/\x00FN(\d+)\x00/g, (m, i) =>
+    `<span class="ds-chip ds-fnchip" contenteditable="false" data-fn-id="${escAttr(fns[+i])}">[^${fns[+i]}]</span>`);
+  return s;
+}
+
+/** A slot's raw markdown -> the contenteditable's initial innerHTML.
+ *  inline: one run, no <p> wrapper (a heading, a caption, a table cell).
+ *  allowLists: block_html()'s grammar (headings + lists) — editBox/extras
+ *  targets only; every other slot goes through paragraphs(), which has no
+ *  block structure beyond blank-line-separated <p>s. */
+function mdToHtml(md, { allowLists = false, inline = false } = {}) {
+  if (inline) return mdInlineToHtml((md || '').trim());
+  if (!allowLists) {
+    const chunks = (md || '').trim().split(/\n\s*\n/).filter(c => c.trim());
+    if (!chunks.length) return '<p><br></p>';
+    return chunks.map(c => {
+      const line = c.split('\n').map(l => l.trim()).filter(Boolean).join(' ');
+      return `<p>${mdInlineToHtml(line)}</p>`;
+    }).join('');
+  }
+  // block_html()'s line-by-line state machine: '#'/'##' heading, '- '
+  // bulleted, 'N.'/'N)' numbered, blank-line-separated paragraphs otherwise.
+  const out = [];
+  let para = [], items = [], ordered = false;
+  const flushPara = () => { if (para.length) { out.push(`<p>${mdInlineToHtml(para.join(' '))}</p>`); para = []; } };
+  const flushItems = () => {
+    if (items.length) {
+      const tag = ordered ? 'ol' : 'ul';
+      out.push(`<${tag}>${items.map(i => `<li>${mdInlineToHtml(i)}</li>`).join('')}</${tag}>`);
+      items = [];
+    }
+  };
+  for (const raw of (md || '').split('\n')) {
+    const s = raw.trim();
+    if (!s) { flushPara(); flushItems(); continue; }
+    const h = s.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      flushPara(); flushItems();
+      out.push(h[1].length <= 2 ? `<h2>${mdInlineToHtml(h[2])}</h2>` : `<h3>${mdInlineToHtml(h[2])}</h3>`);
+      continue;
+    }
+    const n = s.match(/^(\d+)[.)]\s+(.*)$/);
+    if (s.startsWith('- ') || n) {
+      const isOrdered = !!n;
+      if (items.length && ordered !== isOrdered) flushItems();
+      flushPara();
+      ordered = isOrdered;
+      items.push(n ? n[2].trim() : s.slice(2).trim());
+      continue;
+    }
+    flushItems();
+    para.push(s);
+  }
+  flushPara(); flushItems();
+  return out.length ? out.join('') : '<p><br></p>';
+}
+
+function nodeToMdInline(node) {
+  let out = '';
+  node.childNodes.forEach(n => {
+    if (n.nodeType === Node.TEXT_NODE) { out += n.nodeValue; return; }
+    if (n.nodeType !== Node.ELEMENT_NODE) return;
+    if (n.classList && n.classList.contains('ds-fnchip')) { out += `[^${n.dataset.fnId}]`; return; }
+    const tag = n.tagName;
+    if (tag === 'B' || tag === 'STRONG') { out += `**${nodeToMdInline(n)}**`; return; }
+    if (tag === 'I' || tag === 'EM') { out += `*${nodeToMdInline(n)}*`; return; }
+    if (tag === 'A') { out += `[${nodeToMdInline(n)}](${n.getAttribute('href') || ''})`; return; }
+    if (tag === 'IMG') { out += `![${n.getAttribute('alt') || ''}](${n.getAttribute('src') || ''})`; return; }
+    if (tag === 'BR') { out += '\n'; return; }
+    out += nodeToMdInline(n);   // unknown wrapper: recurse, don't drop content
+  });
+  return out;
+}
+
+/** The contenteditable's current DOM -> markdown text, the inverse of
+ *  mdToHtml — same {allowLists, inline} contract. */
+function htmlToMd(root, { allowLists = false, inline = false } = {}) {
+  if (inline) return nodeToMdInline(root).trim();
+  const blocks = [...root.children];
+  const parts = [];
+  for (const el of blocks) {
+    const tag = el.tagName;
+    if (allowLists && tag === 'UL') {
+      parts.push([...el.children].map(li => `- ${nodeToMdInline(li).trim()}`).join('\n'));
+    } else if (allowLists && tag === 'OL') {
+      parts.push([...el.children].map((li, i) => `${i + 1}. ${nodeToMdInline(li).trim()}`).join('\n'));
+    } else if (allowLists && tag === 'H2') {
+      parts.push(`## ${nodeToMdInline(el).trim()}`);
+    } else if (allowLists && tag === 'H3') {
+      parts.push(`### ${nodeToMdInline(el).trim()}`);
+    } else {
+      const text = nodeToMdInline(el).trim();
+      if (text) parts.push(text);
+    }
+  }
+  return parts.join('\n\n').trim();
+}
+
+/** True when the selection sits inside a <b> while about to apply italic
+ *  (or vice versa) — md_inline's bold/italic regexes don't round-trip a
+ *  combined ***bold italic*** span, so the toolbar refuses to create one. */
+function boldItalicBlocked(d, which) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return false;
+  let n = sel.getRangeAt(0).commonAncestorContainer;
+  if (n.nodeType === Node.TEXT_NODE) n = n.parentElement;
+  const other = which === 'bold' ? ['I', 'EM'] : ['B', 'STRONG'];
+  for (let e = n; e; e = e.parentElement) {
+    if (e.tagName && other.includes(e.tagName)) return true;
+    if (e.classList && e.classList.contains('ds-edit')) break;
+  }
+  return false;
+}
+
+/** Save the current selection's Range if it sits inside `host` — captured
+ *  before a modal (dsForm/dsPrompt/file picker) steals focus, so an insert
+ *  flow (Cite -&gt; new source, Image upload) can land back at the right
+ *  caret instead of wherever focus happens to end up. */
+function saveRange(d, host) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  const r = sel.getRangeAt(0);
+  return host.contains(r.commonAncestorContainer) ? r.cloneRange() : null;
+}
+
+/** Insert `node` at `range`'s START (or the end of `host` if the range was
+ *  lost to a modal) and collapse the selection just after it. Never deletes
+ *  a selection — a citation/image dropped in belongs AT the caret, not in
+ *  place of whatever happened to be selected (the editor auto-selects all
+ *  text on open, so a Cite click with no intervening click-to-place-caret
+ *  would otherwise wipe the field instead of inserting into it). Fires
+ *  'input' so the caller's dirty-tracking sees the change. */
+function insertNodeAt(d, host, range, node) {
+  host.focus();
+  const r = range && host.contains(range.commonAncestorContainer)
+    ? range
+    : (() => { const rr = d.createRange(); rr.selectNodeContents(host); rr.collapse(false); return rr; })();
+  r.collapse(true);
+  r.insertNode(node);
+  r.setStartAfter(node);
+  r.collapse(true);
+  const sel = d.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(r);
+  host.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 /**
  * Link and cite, acting on the open editor's selection.
  *
@@ -839,7 +1031,12 @@ const writeSlot = (k, v) => { source = source.replace(slotRe(k), (m, head) => he
  * editor first, which commits and re-renders, so the button would act on an
  * element that no longer exists.
  */
-function buildTools(d, ta, key) {
+/** host: the contenteditable surface. opts: {allowMd, allowLists} — gate
+ *  which buttons make sense for this slot's grammar (see mdToHtml/htmlToMd:
+ *  a plain-text slot never goes through md_inline, and only block_html()
+ *  targets support lists). */
+function buildTools(d, host, key, opts = {}) {
+  const { allowMd = true, allowLists = false } = opts;
   const bar = d.createElement('div');
   bar.className = 'ds-tools';
   bar.addEventListener('mousedown', e => e.preventDefault());
@@ -854,13 +1051,27 @@ function buildTools(d, ta, key) {
     return b;
   };
 
-  btn('Link', 'Wrap the selection in a link (\u2318K)', () => link(d, ta));
-  btn('Cite', 'Insert a footnote reference', () => cite(d, ta, bar));
-  btn('Image', 'Upload an image and place it here', () => image(d, ta));
-  btn('Bold', 'Wrap the selection in **bold**', () => spliceAt(ta, '**', '**'));
-  btn('Italic', 'Wrap the selection in *italic*', () => spliceAt(ta, '*', '*'));
-  btn('\u2022 List', 'Bulleted list (toggle on the selected lines)', () => toggleList(ta, false));
-  btn('1. List', 'Numbered list (toggle on the selected lines)', () => toggleList(ta, true));
+  if (allowMd) {
+    btn('Link', 'Turn the selection into a link (⌘K)', () => link(d, host));
+    btn('Cite', 'Insert a footnote reference', () => cite(d, host, bar));
+    btn('Image', 'Upload an image and place it here', () => image(d, host));
+    const boldBtn = btn('Bold', 'Bold the selection', () => {
+      host.focus(); d.execCommand('bold'); host.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const italicBtn = btn('Italic', 'Italicize the selection', () => {
+      host.focus(); d.execCommand('italic'); host.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const refreshBI = () => {
+      boldBtn.disabled = boldItalicBlocked(d, 'bold');
+      italicBtn.disabled = boldItalicBlocked(d, 'italic');
+    };
+    d.addEventListener('selectionchange', refreshBI);
+    refreshBI();
+    if (allowLists) {
+      btn('• List', 'Bulleted list (toggle on the selected paragraphs)', () => toggleListRich(d, host, false));
+      btn('1. List', 'Numbered list (toggle on the selected paragraphs)', () => toggleListRich(d, host, true));
+    }
+  }
 
   const note = d.createElement('span');
   note.className = 'ds-tools-key';
@@ -869,19 +1080,33 @@ function buildTools(d, ta, key) {
   return bar;
 }
 
-async function link(d, ta) {
-  const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+async function link(d, host) {
+  const range = saveRange(d, host);
   const url = await dsPrompt('Link URL', 'https://', { title: 'Add a link' });
   if (!url) return;
-  if (sel) spliceAt(ta, '[', `](${url})`);
-  else spliceAt(ta, `[link text](${url})`);
+  const r = range && host.contains(range.commonAncestorContainer) ? range : null;
+  const a = d.createElement('a');
+  a.href = url;
+  if (r && !r.collapsed) {
+    // Wrap the selection's contents in the link, preserving any bold/italic
+    // already inside it (surroundContents throws on a partial overlap —
+    // fall back to extract-wrap-reinsert, the standard workaround).
+    try { r.surroundContents(a); }
+    catch (e) { a.appendChild(r.extractContents()); r.insertNode(a); }
+    r.setStartAfter(a); r.collapse(true);
+    d.getSelection().removeAllRanges(); d.getSelection().addRange(r);
+    host.dispatchEvent(new Event('input', { bubbles: true }));
+  } else {
+    a.textContent = 'link text';
+    insertNodeAt(d, host, r, a);
+  }
 }
 
 /** Create a brand-new source and cite it at the caret. One form, not three
  *  sequential prompts — a dismissed field no longer throws away the id and
  *  text already typed, and the duplicate-id check is inline. Shared by the Cite
  *  panel's "+ new source" and the right-click "Add endnote here". */
-async function newSourceAt(ta) {
+async function newSourceAt(d, host, range) {
   const r = await dsForm('New endnote', [
     { name: 'id', label: 'Short id (e.g. act99, itep-whopays)', type: 'text', required: true },
     { name: 'text', label: 'Citation text, e.g. "Act 99," 2026.', type: 'text', required: true },
@@ -897,14 +1122,24 @@ async function newSourceAt(ta) {
   if (!r) return null;
   const id = r.id.trim();
   addSource(id, r.text.trim(), r.url.trim());
-  spliceAt(ta, `[^${id}]`);
+  insertNodeAt(d, host, range, makeFnChip(d, id));
   return id;
 }
 
+function makeFnChip(d, id) {
+  const chip = d.createElement('span');
+  chip.className = 'ds-chip ds-fnchip';
+  chip.contentEditable = 'false';
+  chip.dataset.fnId = id;
+  chip.textContent = `[^${id}]`;
+  return chip;
+}
+
 /** Cite an existing source, or add one and cite it. */
-function cite(d, ta, bar) {
+function cite(d, host, bar) {
   const old = bar.querySelector('.ds-cite');
   if (old) { old.remove(); return; }
+  const range = saveRange(d, host);
 
   const panel = d.createElement('div');
   panel.className = 'ds-cite';
@@ -917,8 +1152,8 @@ function cite(d, ta, bar) {
   sel.addEventListener('change', async () => {
     const v = sel.value;
     if (!v) return;
-    if (v === '__new') await newSourceAt(ta);
-    else spliceAt(ta, `[^${v}]`);
+    if (v === '__new') await newSourceAt(d, host, range);
+    else insertNodeAt(d, host, range, makeFnChip(d, v));
     panel.remove();
   });
   panel.appendChild(sel);
@@ -926,14 +1161,15 @@ function cite(d, ta, bar) {
   sel.focus();
 }
 
-/** The right-click endnote menu, shown over the prose textarea at the caret.
+/** The right-click endnote menu, shown over the prose editor at the caret.
  *  "Add endnote here" is the direct path the plain prose reader expects;
  *  existing sources are listed to cite without retyping. */
-function endnoteMenu(d, ta, e) {
+function endnoteMenu(d, host, e) {
   closeMenu(d);
+  const range = saveRange(d, host);
   const m = d.createElement('div');
   m.className = 'ds-menu';
-  // Keep the textarea focused when a menu button is pressed — otherwise the
+  // Keep the editor focused when a menu button is pressed — otherwise the
   // click blurs it, commits the edit, and the caret this menu targets is gone.
   m.addEventListener('mousedown', ev => ev.preventDefault());
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
@@ -946,7 +1182,7 @@ function endnoteMenu(d, ta, e) {
     b.addEventListener('click', async () => { closeMenu(d); await fn(); });
     m.appendChild(b);
   };
-  item('Add endnote here…', () => newSourceAt(ta));
+  item('Add endnote here…', () => newSourceAt(d, host, range));
   // Most-recent first, so a source you just added is right at the top; capped
   // so the menu stays short. The Cite button holds the full list.
   const ids = sourceIds().slice().reverse();
@@ -954,13 +1190,72 @@ function endnoteMenu(d, ta, e) {
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     const h2 = d.createElement('div'); h2.className = 'ds-menu-head'; h2.textContent = 'Cite existing'; m.appendChild(h2);
     ids.slice(0, 12).forEach(id =>
-      item(`[${id}] ${(sourceText(id) || '').slice(0, 34)}`, async () => spliceAt(ta, `[^${id}]`)));
+      item(`[${id}] ${(sourceText(id) || '').slice(0, 34)}`, async () => insertNodeAt(d, host, range, makeFnChip(d, id))));
   }
   d.body.appendChild(m);
   // Nudge back on-screen if it would spill off the right/bottom edge.
   const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
   if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
   if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
+
+/** Toggle a bulleted/numbered list on the block-level elements ($host's
+ *  direct children — <p>, <h2>/<h3>, an existing <ul>/<ol>) the selection
+ *  spans. Mirrors the old line-prefix toggleList's "toggle off when the
+ *  whole selection is already one list of the same kind" semantics, but
+ *  operates on DOM block structure instead of markdown '- '/'N. ' prefixes,
+ *  since a contenteditable has no lines to prefix. */
+function blockAncestor(host, node, offset) {
+  // Range.selectNodeContents(host) (select-all) points startContainer/
+  // endContainer straight at host, offset indexing its childNodes — resolve
+  // that to the actual child before walking up, or the walk overshoots host
+  // entirely and returns null.
+  if (node === host) {
+    const kids = host.childNodes;
+    node = kids[Math.min(offset ?? 0, kids.length - 1)];
+  }
+  if (node && node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  while (node && node.parentElement !== host) node = node.parentElement;
+  return node;
+}
+function toggleListRich(d, host, ordered) {
+  const sel = d.getSelection();
+  if (!sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  const startEl = blockAncestor(host, r.startContainer, r.startOffset);
+  const endEl = blockAncestor(host, r.endContainer, r.endOffset);
+  if (!startEl || !endEl) return;
+  const children = [...host.children];
+  let si = children.indexOf(startEl), ei = children.indexOf(endEl);
+  if (si === -1 || ei === -1) return;
+  if (si > ei) [si, ei] = [ei, si];
+  const targets = children.slice(si, ei + 1);
+  const wantTag = ordered ? 'OL' : 'UL';
+  const allListed = targets.every(el => el.tagName === wantTag);
+  if (allListed) {
+    for (const list of targets) {
+      const ps = [...list.children].map(li => {
+        const p = d.createElement('p');
+        p.append(...li.childNodes);
+        return p;
+      });
+      list.replaceWith(...ps);
+    }
+  } else {
+    const listEl = d.createElement(ordered ? 'ol' : 'ul');
+    for (const el of targets) {
+      if (el.tagName === 'UL' || el.tagName === 'OL') {
+        [...el.children].forEach(li => listEl.appendChild(li));
+      } else {
+        const li = d.createElement('li');
+        li.append(...el.childNodes);
+        listEl.appendChild(li);
+      }
+    }
+    targets[0].replaceWith(listEl);
+    targets.slice(1).forEach(el => el.remove());
+  }
+  host.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 // Uploaded images live in the report's own assets dir; the binding's build
@@ -1059,10 +1354,28 @@ async function uploadImageFile(d, onDone) {
   inp.click();
 }
 
-function image(d, ta) {
+function image(d, host) {
+  const range = saveRange(d, host);
+  const inline = host.dataset.richMode === 'inline';
   uploadImageFile(d, async (path, name) => {
     const alt = (await dsPrompt('Describe the image (alt text)', name, { title: 'Image alt text' })) || name;
-    spliceAt(ta, `\n\n![${alt}](${path})\n\n`);
+    const img = d.createElement('img');
+    img.className = 'inline-img';
+    img.contentEditable = 'false';
+    img.src = path;
+    img.alt = alt;
+    if (inline) {
+      insertNodeAt(d, host, range, img);
+    } else {
+      // block_html() gives an image its own paragraph — match that, rather
+      // than dropping it mid-sentence.
+      const p = d.createElement('p');
+      p.appendChild(img);
+      const at = range && host.contains(range.commonAncestorContainer)
+        ? blockAncestor(host, range.commonAncestorContainer) : null;
+      if (at && at.parentElement === host) at.after(p); else host.appendChild(p);
+      host.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     $('stat').textContent = `${name} uploaded — it renders below`;
   });
 }
@@ -2276,27 +2589,36 @@ function editCell(d, td) {
   if (!t) return;
   const [ri, ci] = td.dataset.cell.split(',').map(Number);
   editing = true;
-  const ta = d.createElement('textarea');
-  ta.className = 'ds-cell-edit';
-  ta.value = (t.rows[ri] && t.rows[ri][ci]) || '';
+  const raw = (t.rows[ri] && t.rows[ri][ci]) || '';
+  const host = d.createElement('span');
+  host.contentEditable = 'true';
+  host.className = 'ds-cell-edit';
+  host.dataset.richMode = 'inline';
+  host.style.whiteSpace = 'pre-wrap';   // a cell can carry a Shift+Enter newline
+  host.innerHTML = mdToHtml(raw, { inline: true });
   td.textContent = '';
-  td.appendChild(ta);
-  ta.focus(); ta.select();
-  const fit = () => { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
-  requestAnimationFrame(fit); ta.addEventListener('input', fit);
+  td.appendChild(host);
+  host.focus();
+  const r = d.createRange(); r.selectNodeContents(host);
+  const s = d.getSelection(); s.removeAllRanges(); s.addRange(r);
   const finish = async keep => {
-    if (ta.dataset.done) return; ta.dataset.done = '1';
+    if (host.dataset.done) return; host.dataset.done = '1';
     editing = false;
-    if (keep && ta.value !== ((t.rows[ri] && t.rows[ri][ci]) || '')) {
-      pushHistory(); t.rows[ri][ci] = ta.value; markDirty();
+    if (keep) {
+      const newVal = htmlToMd(host, { inline: true });
+      if (newVal !== ((t.rows[ri] && t.rows[ri][ci]) || '')) {
+        pushHistory(); t.rows[ri][ci] = newVal; markDirty();
+      }
     }
     await render();
   };
-  ta.addEventListener('blur', () => { if (!modalOpen) finish(true); });
-  ta.addEventListener('keydown', e => {
+  host.addEventListener('blur', () => { if (!modalOpen) finish(true); });
+  host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     // Enter commits (a cell is usually one line); Shift+Enter for a real newline.
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
+    else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); d.execCommand('insertLineBreak'); }
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
   });
 }
 
@@ -2345,37 +2667,114 @@ function editBox(d, el) {
   if (!b) return;
   editing = true;
   pushHistory();
-  // The editor opens WHERE THE BOX IS. A bare textarea is static, and static
+  // The editor opens WHERE THE BOX IS. A bare host is static, and static
   // means it flows to wherever the box's markup happens to sit in the DOM —
   // on the cover that was the top of the page, nowhere near the words being
-  // edited. So the textarea rides an absolutely positioned wrapper at the
-  // box's own inches, above everything while it is open.
+  // edited. So it rides an absolutely positioned wrapper at the box's own
+  // inches, above everything while it is open.
   const wrap = d.createElement('div');
   wrap.style.cssText = `position:absolute;left:${b.x}in;top:${b.y}in;`
     + `width:${Math.max(b.w, 1.8)}in;z-index:20000`;
-  const ta = d.createElement('textarea');
-  ta.className = 'ds-edit';
-  ta.value = b.md;
-  const tools = d.createElement('p');
-  tools.className = 'ds-hint';
-  tools.textContent = `text.${b.id} — markdown; blank line = new paragraph. `
-                    + `Not in the Google Doc. Click away to render, Esc to cancel.`;
-  wrap.append(ta, tools);
+  const host = d.createElement('div');
+  host.contentEditable = 'true';
+  host.className = 'ds-edit';
+  host.dataset.richMode = 'block';
+  host.innerHTML = mdToHtml(b.md, { allowLists: true });
+  const tools = buildTools(d, host, `text.${b.id}`, { allowMd: true, allowLists: true });
+  const hint = d.createElement('p');
+  hint.className = 'ds-hint';
+  hint.textContent = `text.${b.id} — not in the Google Doc. Click away to render, Esc to cancel.`;
+  wrap.append(host, tools, hint);
   el.replaceWith(wrap);
-  requestAnimationFrame(() => {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
-  });
-  ta.focus();
+  host.focus();
+  const r = d.createRange(); r.selectNodeContents(host);
+  const s = d.getSelection(); s.removeAllRanges(); s.addRange(r);
   const finish = async keep => {
-    if (ta.dataset.done) return;
-    ta.dataset.done = '1';
+    if (host.dataset.done) return;
+    host.dataset.done = '1';
     editing = false;
-    if (keep && ta.value.trim() && ta.value !== b.md) { b.md = ta.value.trim(); markDirty(); }
+    tools.remove();
+    if (keep) {
+      const newVal = htmlToMd(host, { allowLists: true });
+      if (newVal.trim() && newVal !== b.md) { b.md = newVal.trim(); markDirty(); }
+    }
     await render();
   };
-  ta.addEventListener('blur', () => finish(true));
-  ta.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); finish(false); } });
+  host.addEventListener('blur', e => {
+    if (modalOpen) return;
+    if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
+    finish(true);
+  });
+  host.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
+  });
+  host.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    endnoteMenu(d, host, e);
+  });
+}
+
+/** Edit an endnote's citation text/URL right on the Endnotes page. A source
+ *  is two fields (text + URL), not one markdown blob, so — like a text box —
+ *  it gets its own small form rather than the [data-slot] editor. It reuses
+ *  updateSource() (the same function the Sources panel's own text/url fields
+ *  call, docsync/editor/edit.html's renderSources()): both write through to
+ *  the single [[sources]] block in content.md, and the Endnotes page's <li>
+ *  list is rebuilt fresh from it on every render — so there is nothing else
+ *  that could hold a second, stale copy for the two to fall out of sync. */
+function editEndnote(d, li, sid) {
+  if (editing) return;
+  const s = parseSources().find(r => r.id === sid);
+  if (!s) return;
+  editing = true;
+
+  const wrap = d.createElement('div');
+  wrap.className = 'ds-endnote-edit';
+  const txt = d.createElement('input');
+  txt.className = 'ds-en-text';
+  txt.value = s.text;
+  txt.placeholder = 'citation text';
+  const url = d.createElement('input');
+  url.className = 'ds-en-url';
+  url.value = s.url;
+  url.placeholder = 'https://…';
+  const hint = d.createElement('p');
+  hint.className = 'ds-hint';
+  hint.textContent = `[${sid}] — this is the same source the Sources panel edits. `
+                   + `Click away to save, Esc to cancel.`;
+  wrap.append(txt, url, hint);
+  li.replaceWith(wrap);
+  txt.focus();
+  txt.select();
+
+  const finish = async keep => {
+    if (wrap.dataset.done) return;
+    wrap.dataset.done = '1';
+    editing = false;
+    if (keep) {
+      const t = txt.value.trim(), u = url.value.trim();
+      if (t && u && (t !== s.text || u !== s.url)) {
+        pushHistory();
+        updateSource(sid, t, u);
+        markDirty();
+      }
+    }
+    await render();
+  };
+  // Only finish once focus truly leaves BOTH fields, not on the hop between
+  // them (matches the [data-slot] editor's toolbar-focus guard, adapted for
+  // two inputs instead of one field plus a toolbar).
+  const blurCheck = () => setTimeout(() => {
+    if (!wrap.contains(d.activeElement)) finish(true);
+  }, 0);
+  txt.addEventListener('blur', blurCheck);
+  url.addEventListener('blur', blurCheck);
+  [txt, url].forEach(inp => inp.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+  }));
 }
 
 // ----------------------------------------------------------------- effects
@@ -4037,6 +4436,14 @@ function dragify(d) {
     // is Canva's: it opens the crop.
     if ((el.dataset.el || '').startsWith('text.'))
       el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
+    else if ((el.dataset.el || '').startsWith('endnote.'))
+      // Like a text box: its two fields (citation text + URL) don't fit the
+      // one-slot-one-string model [data-slot] editing assumes, so it gets its
+      // own double-click entry point too.
+      el.addEventListener('dblclick', e => {
+        e.preventDefault();
+        editEndnote(d, el, el.dataset.el.slice('endnote.'.length));
+      });
     else if (el.tagName === 'IMG' || el.classList.contains('ds-cropw'))
       el.addEventListener('dblclick', e => { e.preventDefault(); cropMode(d, el); });
   });
@@ -4781,17 +5188,33 @@ function wire() {
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
                   outline:1px dashed transparent; outline-offset:3px; }
     [data-slot]:hover { background:#EAF3EC; outline-color:#95B7A2; }
-    .ds-edit { width:100%; box-sizing:border-box; font:inherit; line-height:1.5;
-               padding:8px 10px; border:2px solid #6B9E78; border-radius:4px;
-               background:#fff; resize:vertical; }
+    /* No box: this is what makes it read as editing IN the page rather than
+       a form field dropped on top of it — same outline-not-background
+       language [data-slot]:hover already uses for "this is interactive". An
+       outline draws outside the box, so opening/closing an edit never
+       reflows whatever's next to it. */
+    .ds-edit { font:inherit; line-height:inherit; color:inherit; outline:2px solid #6B9E78;
+               outline-offset:3px; border-radius:4px; background:transparent; cursor:text; }
+    .ds-edit p { margin:0 0 .8em; }
+    .ds-edit p:last-child { margin-bottom:0; }
+    .ds-edit:focus { outline-color:#4F7A5C; }
     table.ds-table td[data-cell], table.ds-table th[data-cell] { cursor:text; }
     table.ds-table td[data-cell]:hover, table.ds-table th[data-cell]:hover { background:#EAF3EC; }
-    .ds-cell-edit { width:100%; box-sizing:border-box; font:inherit; color:inherit;
-               line-height:1.4; padding:2px 4px; margin:0; border:2px solid #6B9E78;
-               border-radius:3px; background:#fff; resize:none; overflow:hidden; }
+    .ds-cell-edit { display:inline-block; min-width:1.5em; min-height:1em;
+               font:inherit; color:inherit; line-height:inherit; outline:2px solid #6B9E78;
+               outline-offset:1px; border-radius:2px; background:transparent; cursor:text; }
     .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }
-    .ds-inline { display:inline-block; width:auto; min-width:8ch; padding:1px 5px;
-                 font:inherit; color:inherit; line-height:inherit; vertical-align:baseline; }
+    /* display:inline (not inline-block) would let an EMPTY field collapse to
+       a zero-size, unclickable box — inline-block with a floor keeps it a
+       real target even before anything is typed. */
+    .ds-inline { display:inline-block; min-width:1.5em; min-height:1em; }
+    .ds-chip { border-radius:3px; padding:0 3px; background:rgba(107,158,120,.14);
+               outline:1px solid #B9C9BE; cursor:default; user-select:none; }
+    .ds-chip.ds-fnchip { font-size:.85em; vertical-align:super; color:#2F3E46; }
+    .ds-endnote-edit { display:block; padding:2px 0; }
+    .ds-endnote-edit input { display:block; width:100%; box-sizing:border-box; font:inherit;
+               color:inherit; margin:0 0 4px; padding:2px 4px; border:2px solid #6B9E78;
+               border-radius:3px; background:#fff; }
     .ds-tools { display:flex; gap:5px; align-items:center; flex-wrap:wrap;
                 margin:5px 0 0; font:11px system-ui; }
     .ds-tools button { font:11px system-ui; padding:3px 9px; border:1px solid #B9C9BE;
@@ -5302,47 +5725,13 @@ $('add').onclick = async () => {
   render();
 };
 
-function spliceAt(el, before, after = '') {
-  const s = el.selectionStart ?? el.value.length;
-  const e = el.selectionEnd ?? el.value.length;
-  const sel = el.value.slice(s, e);
-  el.value = el.value.slice(0, s) + before + sel + after + el.value.slice(e);
-  const caret = s + before.length + sel.length + after.length;
-  el.setSelectionRange(caret, caret);
-  el.focus();
-}
-
-// Toggle a bulleted ("- ") or numbered ("1. ") list on the selected lines. The
-// renderer (content.py block_html) turns those prefixes into <ul>/<ol>, so this
-// only rewrites the markdown line prefixes. Toggles off when every non-empty
-// line in the selection already carries the matching prefix.
-const BULLET_RE = /^(\s*)- +/;
-const NUMBER_RE = /^(\s*)\d+[.)] +/;
-function toggleList(el, ordered) {
-  const val = el.value;
-  let s = el.selectionStart ?? 0, e = el.selectionEnd ?? val.length;
-  // Expand the selection to whole lines.
-  s = val.lastIndexOf('\n', s - 1) + 1;
-  const endNl = val.indexOf('\n', e);
-  e = endNl === -1 ? val.length : endNl;
-  const lines = val.slice(s, e).split('\n');
-  const nonEmpty = lines.filter(l => l.trim());
-  const re = ordered ? NUMBER_RE : BULLET_RE;
-  const allListed = nonEmpty.length > 0 && nonEmpty.every(l => re.test(l));
-  let n = 0;
-  const out = lines.map(l => {
-    if (!l.trim()) return l;
-    const bare = l.replace(BULLET_RE, '$1').replace(NUMBER_RE, '$1');   // strip any existing prefix
-    if (allListed) return bare;                                        // toggle OFF
-    n += 1;
-    return ordered ? bare.replace(/^(\s*)/, `$1${n}. `) : bare.replace(/^(\s*)/, '$1- ');
-  });
-  const next = out.join('\n');
-  el.value = val.slice(0, s) + next + val.slice(e);
-  el.setSelectionRange(s, s + next.length);
-  el.focus();
-  el.dispatchEvent(new Event('input'));   // keep the textarea's auto-size in step
-}
+/** True Canva-style editing: a contenteditable surface that shows exactly
+ *  what the report renders (mdToHtml/htmlToMd, see above), not a boxed
+ *  textarea full of raw markdown. allowMd is a conservative denylist — the
+ *  only slots that don't go through content.py's md_inline today are the
+ *  cover title/year (see render_report.py); everything else already
+ *  supports bold/italic/links and should keep offering them. */
+const RICH_PLAINTEXT_SLOTS = new Set(['cover.title', 'cover.year']);
 
 function edit(d, key) {
 
@@ -5352,75 +5741,92 @@ function edit(d, key) {
   closeSources();   // its citation counts would go stale behind an edit
 
   const inline = blocks[0].dataset.inline === '1';
-  const ta = d.createElement(inline ? 'input' : 'textarea');
-  if (inline) ta.type = 'text';
-  ta.className = inline ? 'ds-edit ds-inline' : 'ds-edit';
-  ta.value = readSlot(key);
+  const allowLists = key.startsWith('extra.');
+  const allowMd = !RICH_PLAINTEXT_SLOTS.has(key);
+  const extraClass = (blocks[0].className || '').split(/\s+/).filter(Boolean);
+
+  const host = d.createElement(inline ? 'span' : 'div');
+  host.contentEditable = 'true';
+  host.className = inline ? 'ds-edit ds-inline' : 'ds-edit';
+  host.dataset.richMode = inline ? 'inline' : 'block';
+  if (extraClass.length) host.classList.add(...extraClass);
+
+  const raw = readSlot(key);
+  if (!allowMd) {
+    host.style.whiteSpace = 'pre-wrap';   // preserve cover.title's <br> lines
+    host.textContent = raw;
+  } else {
+    host.innerHTML = mdToHtml(raw, { allowLists, inline });
+    if (!inline && extraClass.length)
+      host.querySelectorAll(':scope > p').forEach(p => p.classList.add(...extraClass));
+  }
 
   let hint = null;
   if (!inline) {
     hint = d.createElement('p');
     hint.className = 'ds-hint';
-    hint.textContent = `${key} — **bold**, *italic*, [text](url). Blank line = new paragraph. `
-                     + `Click away to render, Esc to cancel.`;
+    hint.textContent = allowMd
+      ? `${key} — select text, then Bold/Italic/Link/Cite from the toolbar. `
+        + `Blank line = new paragraph. Click away to render, Esc to cancel.`
+      : `${key} — plain text (no formatting here). Click away to render, Esc to cancel.`;
   }
 
-  const tools = buildTools(d, ta, key);
+  const tools = allowMd ? buildTools(d, host, key, { allowMd, allowLists }) : null;
 
-  blocks[0].replaceWith(ta);
-  ta.after(tools);
-  if (hint) tools.after(hint);
+  blocks[0].replaceWith(host);
+  let after = host;
+  if (tools) { after.after(tools); after = tools; }
+  if (hint) after.after(hint);
   blocks.slice(1).forEach(b => b.remove());
-  // Size to the text only once layout has settled: measured any earlier the
-  // box is still zero-width, so the content "wraps" into thousands of pixels.
-  if (!inline) {
-    const fit = () => {
-      ta.style.height = 'auto';
-      ta.style.height = Math.min(Math.max(ta.scrollHeight + 4, 64), 460) + 'px';
-    };
-    requestAnimationFrame(fit);
-    ta.addEventListener('input', fit);
-  }
-  ta.focus();
-  ta.select?.();
+
+  host.focus();
+  const selRange = d.createRange();
+  selRange.selectNodeContents(host);
+  const domSel = d.getSelection();
+  domSel.removeAllRanges();
+  domSel.addRange(selRange);
 
   const finish = async (keep) => {
-    if (ta.dataset.done) return;
-    ta.dataset.done = '1';
+    if (host.dataset.done) return;
+    host.dataset.done = '1';
     editing = false;
-    tools.remove();
-    if (keep && ta.value.trim() !== readSlot(key)) {
-      writeSlot(key, ta.value);
-      dirty = source !== original || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
-      $('save').disabled = $('revert').disabled = !dirty;
-      $('save').classList.toggle('dirty', dirty);
+    if (tools) tools.remove();
+    if (keep) {
+      const newVal = !allowMd ? (inline ? host.textContent : host.innerText)
+                               : htmlToMd(host, { allowLists, inline });
+      if (newVal.trim() !== readSlot(key)) {
+        writeSlot(key, newVal);
+        dirty = source !== original || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
+        $('save').disabled = $('revert').disabled = !dirty;
+        $('save').classList.toggle('dirty', dirty);
+      }
     }
     await render();
   };
-  ta.addEventListener('blur', e => {
+  host.addEventListener('blur', e => {
     // cite()'s "+ new source…" flow calls sel.focus() to move focus into the
     // panel it just opened — a blur like any other, but finishing the edit
     // over it would remove `tools` (and the freshly appended .ds-cite panel
     // inside it) before a person could ever use it. Only finish when focus is
     // truly leaving the toolbar, not moving to a control within it. Likewise a
     // modal dialog (Cite → new source, image alt) steals focus while it is
-    // open; committing the edit under it would splice into a detached textarea.
+    // open; committing the edit under it would act on a detached element.
     if (modalOpen) return;
-    if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
+    if (tools && e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
-  ta.addEventListener('keydown', e => {
+  host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
-    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, ta); }
+    if (allowMd && e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
   });
   // Right-click in the prose to drop an endnote at the caret — the intuitive
   // path, without hunting for the Cite button. (Inline single-line fields — a
   // heading, a caption — take no footnotes, so they keep the native menu.)
-  if (!inline) ta.addEventListener('contextmenu', e => {
+  if (allowMd && !inline) host.addEventListener('contextmenu', e => {
     e.preventDefault();
     e.stopPropagation();   // else it bubbles to an ancestor's fill/colour menu
-    endnoteMenu(d, ta, e);
+    endnoteMenu(d, host, e);
   });
 }
 

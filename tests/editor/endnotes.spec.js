@@ -39,7 +39,7 @@ test.describe('right-click endnotes', () => {
     await submitDialog(page);
 
     // The [^rc-src] ref landed in the prose text.
-    await expect(ta).toHaveValue(/\[\^rc-src\]/);
+    await expect(ta).toContainText('[^rc-src]');
   });
 
   test('the menu lists existing sources to cite without retyping', async ({ page }) => {
@@ -50,14 +50,15 @@ test.describe('right-click endnotes', () => {
     await frame.locator('.ds-menu button', { hasText: 'Add endnote here' }).click();
     await fillDialog(page, { id: 'existing1', text: 'First source.', url: 'https://example.com/1' });
     await submitDialog(page);
-    await expect(ta).toHaveValue(/\[\^existing1\]/);
+    await expect(ta).toContainText('[^existing1]');
 
     // Right-click again — the existing source is now offered directly.
     await ta.click({ button: 'right' });
     const cite = frame.locator('.ds-menu button', { hasText: '[existing1]' });
     await expect(cite).toBeVisible();
     await cite.click();
-    // A second reference to the same source now sits in the text.
-    await expect(ta).toHaveValue(/\[\^existing1\][\s\S]*\[\^existing1\]|\[\^existing1\]\[\^existing1\]/);
+    // A second reference to the same source now sits in the text, as a
+    // second footnote chip.
+    await expect(ta.locator('.ds-fnchip[data-fn-id="existing1"]')).toHaveCount(2);
   });
 });

@@ -205,6 +205,12 @@ class Footnotes:
         """(text, url) in numbered order — feeds the Endnotes page."""
         return [self.sources[sid] for sid in self.order]
 
+    def endnotes_with_ids(self) -> list[tuple[str, str, str]]:
+        """(id, text, url) in numbered order — like endnotes(), plus the
+        source id the draft editor needs to route an in-place edit on the
+        Endnotes page back to its own [[sources]] line."""
+        return [(sid, *self.sources[sid]) for sid in self.order]
+
 
 class Content:
     """Key lookup with a loud failure when a key is missing."""

@@ -657,8 +657,15 @@ def callout_open(key):
     return f'{L.spacer(cid)} <div class="{cls}"{L.attr(cid, bg)}{L.fill_tag(cid)}>'
 
 
-def endnote_link(n, txt, url):
-    return f'<li id="en{n}">{txt} <a href="{url}">{url}</a></li>'
+def endnote_link(n, sid, txt, url):
+    # Independently movable, like any other designed element (L.attr/spacer)
+    # — the <ol>'s numbering is DOM-order based, so dragging one entry never
+    # renumbers its neighbours. data-el uses the source id, not the number:
+    # n is citation order and can shift when a source is added/removed, but
+    # a moved endnote's saved position must keep tracking the SAME source.
+    eid = f"endnote.{sid}"
+    return (f'{L.spacer(eid)}<li id="en{n}"{L.attr(eid)}>{txt} '
+            f'<a href="{url}">{url}</a></li>')
 
 ONE_TIME_BULLETS = C.list("onetime.cards.onetime.bullets")
 EMERG_BULLETS = C.list("onetime.cards.emergency.bullets")
@@ -760,6 +767,10 @@ pages = []
 # -- page 1: cover
 # The title's stacked lines are one editable slot: kept as <br> breaks so the
 # design is untouched, but data-slot lets the editor edit all three lines.
+# Movable like any section heading (see basics.h1 below): the <h1>/<div>
+# itself carries L.attr (the drag/resize hook), a nested element carries the
+# text-edit data-slot — two style-bearing attributes on one element would
+# silently keep only the first (Layout.attr()'s own docstring warns of this).
 _cover_title = "<br>".join(esc(l) for l in C.lines("cover.title"))
 pages.append(f"""
 <section class="page cover"{L.fill_attr(f"page.1")}>
@@ -768,8 +779,8 @@ pages.append(f"""
  <div class="cover-inner">
   {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
-  <h1 class="cover-title"{C.slot_attr("cover.title")}>{_cover_title}</h1>
-  <div class="cover-year">{C.t("cover.year")}</div>
+  {L.spacer("cover.title")}<h1 class="cover-title"{L.attr("cover.title")}><span{C.slot_attr("cover.title")}>{_cover_title}</span></h1>
+  {L.spacer("cover.year")}<div class="cover-year"{L.attr("cover.year")}>{C.t("cover.year")}</div>
  </div>
 </section>""")
 
@@ -990,7 +1001,7 @@ if missing_src:
     raise ContentError(
         "content.md declares sources never cited in the prose: " + srcs)
 
-en = "".join(endnote_link(i + 1, t, u) for i, (t, u) in enumerate(C.fn.endnotes()))
+en = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(C.fn.endnotes_with_ids()))
 notes = C.fn.endnotes()
 
 def linkify_footnotes(markup):
