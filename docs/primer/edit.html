@@ -845,6 +845,30 @@ async function link(d, ta) {
   else spliceAt(ta, `[link text](${url})`);
 }
 
+/** Create a brand-new source and cite it at the caret. One form, not three
+ *  sequential prompts — a dismissed field no longer throws away the id and
+ *  text already typed, and the duplicate-id check is inline. Shared by the Cite
+ *  panel's "+ new source" and the right-click "Add endnote here". */
+async function newSourceAt(ta) {
+  const r = await dsForm('New endnote', [
+    { name: 'id', label: 'Short id (e.g. act99, itep-whopays)', type: 'text', required: true },
+    { name: 'text', label: 'Citation text, e.g. "Act 99," 2026.', type: 'text', required: true },
+    { name: 'url', label: 'Source URL', type: 'text', value: 'https://', required: true },
+  ], { okLabel: 'Add & cite', validate: vals => {
+    const id = vals.id.trim();
+    if (!id) return 'A short id is required.';
+    if (sourceIds().includes(id)) return `[${id}] already exists — pick it from the list.`;
+    if (!vals.text.trim()) return 'Citation text is required.';
+    if (!vals.url.trim()) return 'A source URL is required.';
+    return '';
+  } });
+  if (!r) return null;
+  const id = r.id.trim();
+  addSource(id, r.text.trim(), r.url.trim());
+  spliceAt(ta, `[^${id}]`);
+  return id;
+}
+
 /** Cite an existing source, or add one and cite it. */
 function cite(d, ta, bar) {
   const old = bar.querySelector('.ds-cite');
@@ -861,35 +885,50 @@ function cite(d, ta, bar) {
   sel.addEventListener('change', async () => {
     const v = sel.value;
     if (!v) return;
-    if (v === '__new') {
-      // One form, not three sequential prompts — a dismissed field no longer
-      // throws away the id and text already typed, and the duplicate-id check
-      // is inline instead of a separate alert that loses everything.
-      const r = await dsForm('New source', [
-        { name: 'id', label: 'Short id (e.g. act99, itep-whopays)', type: 'text', required: true },
-        { name: 'text', label: 'Citation text, e.g. "Act 99," 2026.', type: 'text', required: true },
-        { name: 'url', label: 'Source URL', type: 'text', value: 'https://', required: true },
-      ], { okLabel: 'Add & cite', validate: vals => {
-        const id = vals.id.trim();
-        if (!id) return 'A short id is required.';
-        if (sourceIds().includes(id)) return `[${id}] already exists — pick it from the list.`;
-        if (!vals.text.trim()) return 'Citation text is required.';
-        if (!vals.url.trim()) return 'A source URL is required.';
-        return '';
-      } });
-      if (r) {
-        const id = r.id.trim();
-        addSource(id, r.text.trim(), r.url.trim());
-        spliceAt(ta, `[^${id}]`);
-      }
-    } else {
-      spliceAt(ta, `[^${v}]`);
-    }
+    if (v === '__new') await newSourceAt(ta);
+    else spliceAt(ta, `[^${v}]`);
     panel.remove();
   });
   panel.appendChild(sel);
   bar.appendChild(panel);
   sel.focus();
+}
+
+/** The right-click endnote menu, shown over the prose textarea at the caret.
+ *  "Add endnote here" is the direct path the plain prose reader expects;
+ *  existing sources are listed to cite without retyping. */
+function endnoteMenu(d, ta, e) {
+  closeMenu(d);
+  const m = d.createElement('div');
+  m.className = 'ds-menu';
+  // Keep the textarea focused when a menu button is pressed — otherwise the
+  // click blurs it, commits the edit, and the caret this menu targets is gone.
+  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
+  m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head'; head.textContent = 'Endnote'; m.appendChild(head);
+  const item = (label, fn) => {
+    const b = d.createElement('button');
+    b.textContent = label;
+    b.addEventListener('click', async () => { closeMenu(d); await fn(); });
+    m.appendChild(b);
+  };
+  item('Add endnote here…', () => newSourceAt(ta));
+  // Most-recent first, so a source you just added is right at the top; capped
+  // so the menu stays short. The Cite button holds the full list.
+  const ids = sourceIds().slice().reverse();
+  if (ids.length) {
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+    const h2 = d.createElement('div'); h2.className = 'ds-menu-head'; h2.textContent = 'Cite existing'; m.appendChild(h2);
+    ids.slice(0, 12).forEach(id =>
+      item(`[${id}] ${(sourceText(id) || '').slice(0, 34)}`, async () => spliceAt(ta, `[^${id}]`)));
+  }
+  d.body.appendChild(m);
+  // Nudge back on-screen if it would spill off the right/bottom edge.
+  const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
+  if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
+  if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
 }
 
 // Uploaded images live in the report's own assets dir; the binding's build
@@ -5130,6 +5169,14 @@ function edit(d, key) {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, ta); }
+  });
+  // Right-click in the prose to drop an endnote at the caret — the intuitive
+  // path, without hunting for the Cite button. (Inline single-line fields — a
+  // heading, a caption — take no footnotes, so they keep the native menu.)
+  if (!inline) ta.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    e.stopPropagation();   // else it bubbles to an ancestor's fill/colour menu
+    endnoteMenu(d, ta, e);
   });
 }
 
