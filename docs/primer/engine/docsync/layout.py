@@ -32,7 +32,7 @@ from pathlib import Path
 # styler duck-typed), so there is no cycle. A text box is a markdown block that
 # happens to be positioned — block_html already renders exactly that for the
 # overflow slots, and a second renderer for the same thing would drift.
-from .content import block_html
+from .content import block_html, md_inline
 
 # Letter portrait, because that is what the Budget Primer is. Any report with a
 # different page passes its own size in — this is a default, not a law. It is
@@ -468,6 +468,7 @@ class Layout:
         self.shapes = raw.get("shapes") or []
         self.text = raw.get("text") or {}
         self.boxes = raw.get("boxes") or []
+        self.tables = raw.get("tables") or []
         self.fills = raw.get("fill") or {}
         # Editor affordances only: ids the editor refuses to drag, and groups
         # that select-and-move as one. The renderer reads neither, so they
@@ -648,6 +649,8 @@ class Layout:
                 raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
             for k in ("x", "y", "w"):
                 _num(b.get(k), f"{where}.{k}")
+            if b.get("h") is not None:      # optional min-height (never clips)
+                _num(b["h"], f"{where}.h")
             if not str(b.get("md", "")).strip():
                 raise LayoutError(f"{where}: has no text — 'md' is empty")
             if "z" in b and not isinstance(b["z"], int):
@@ -662,6 +665,41 @@ class Layout:
                 _check_shadow(b["shadow"], f"{where}.shadow")
             if b.get("style"):
                 _check_text(b["style"], f"{where}.style")
+
+        for i, t in enumerate(self.tables):
+            where = f"table #{i + 1}"
+            tid = t.get("id")
+            if not tid:
+                raise LayoutError(f"{where}: needs an 'id'")
+            if tid in seen:
+                raise LayoutError(f"{where}: duplicate id '{tid}' — already a shape or box")
+            seen.add(tid)
+            if not isinstance(t.get("page"), (int, str)) or isinstance(t.get("page"), bool):
+                raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
+            for k in ("x", "y", "w"):
+                _num(t.get(k), f"{where}.{k}")
+            rows = t.get("rows")
+            if not isinstance(rows, list) or not rows:
+                raise LayoutError(f"{where}: 'rows' must be a non-empty grid")
+            width = None
+            for ri, row in enumerate(rows):
+                if not isinstance(row, list) or not row:
+                    raise LayoutError(f"{where}: row #{ri + 1} must be a non-empty list of cells")
+                if width is None:
+                    width = len(row)
+                elif len(row) != width:
+                    raise LayoutError(f"{where}: row #{ri + 1} has {len(row)} cells, expected {width}")
+                for c in row:
+                    if not isinstance(c, str):
+                        raise LayoutError(f"{where}: every cell must be text (markdown)")
+            if "z" in t and not isinstance(t["z"], int):
+                raise LayoutError(f"{where}: z {t['z']!r} is not a layer number")
+            if t.get("rot") is not None:
+                _num(t["rot"], f"{where}.rot")
+            if t.get("alpha") is not None:
+                _alpha(t["alpha"], f"{where}.alpha")
+            if t.get("style"):
+                _check_text(t["style"], f"{where}.style")
 
     # ---- positions -------------------------------------------------------
 
@@ -916,9 +954,10 @@ class Layout:
         price of that is real: it never reaches the bound Google Doc, so an
         editor working there will never see it.
 
-        No height, deliberately: the same reason a text slot has none. A box
-        with a pinned height either clips its words or leaves a hole the moment
-        they change. Its bottom is the fit check's problem.
+        Height is opt-in via `h`, and only ever a MIN-height: a box grows to at
+        least that tall (so a coloured panel can be sized on all sides in the
+        editor) but never clips — if the words are taller than `h`, the box
+        grows past it. A box with no `h` is auto-height, as before.
         """
         mine = [b for b in self.boxes if b.get("page") == page]
         if not mine:
@@ -927,6 +966,8 @@ class Layout:
         for b in mine:
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
+            if b.get("h"):
+                css += f';min-height:{b["h"]}in'
             if b.get("fill"):
                 # A background needs breathing room or the words sit on its
                 # edge; padding only when filled, so a plain box's text keeps
@@ -947,6 +988,45 @@ class Layout:
 
     def box(self, box_id: str) -> dict | None:
         return next((b for b in self.boxes if b.get("id") == box_id), None)
+
+    # ---- tables ----------------------------------------------------------
+
+    def tables_html(self, page: int) -> str:
+        """A placed, editable grid. Like a text box, it is absolutely positioned
+        in inches and width-driven — the rows set the height. `rows` is a grid
+        of cell markdown; `header` makes the first row a <th> band. Each cell
+        carries a data-cell hook in edit mode so the editor can edit it in
+        place."""
+        mine = [t for t in self.tables if t.get("page") == page]
+        if not mine:
+            return ""
+        edit = bool(os.environ.get("DOCSYNC_EDIT"))
+        out = []
+        for t in mine:
+            css = (f'position:absolute;left:{t["x"]}in;top:{t["y"]}in;'
+                   f'width:{t["w"]}in;z-index:{int(t.get("z", 2))}')
+            if t.get("rot"):
+                css += f';transform:rotate({t["rot"]}deg)'
+            if t.get("alpha") is not None:
+                css += f';opacity:{t["alpha"]:g}'
+            style = text_css(t.get("style") or {})
+            tag = f' data-el="table.{t["id"]}"' if edit else ""
+            header = bool(t.get("header"))
+            body = ""
+            for ri, row in enumerate(t.get("rows", [])):
+                cells = ""
+                for ci, c in enumerate(row):
+                    th = header and ri == 0
+                    name = "th" if th else "td"
+                    hook = f' data-cell="{ri},{ci}"' if edit else ""
+                    cells += f'<{name}{hook}>{md_inline(str(c))}</{name}>'
+                body += f"<tr>{cells}</tr>"
+            out.append(f'<table class="ds-table"{tag} '
+                       f'style="{css}{";" + style if style else ""}">{body}</table>')
+        return "".join(out)
+
+    def table(self, table_id: str) -> dict | None:
+        return next((t for t in self.tables if t.get("id") == table_id), None)
 
     # ---- shapes ----------------------------------------------------------
 
