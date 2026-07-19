@@ -224,6 +224,16 @@
   #ty-colorbtn .A { font:700 13px/1 system-ui; }
   #ty-colorbtn .Abar { width:16px; height:4px; border-radius:2px;
             background:linear-gradient(90deg,#e66,#6b9e78,#66e); }
+  #ar-fill { flex-direction:column; gap:1px; padding:3px 9px 4px; line-height:1; }
+  #ar-fill .A { font:700 13px/1 system-ui; }
+  #ar-fill .Abar { width:16px; height:4px; border-radius:2px;
+            background:linear-gradient(90deg,#e66,#6b9e78,#66e); }
+  #ar-fill-extras .ds-swatches { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  #ar-fill-extras .ds-sw { width:26px; height:26px; border:1px solid rgba(0,0,0,.16);
+        border-radius:6px; cursor:pointer; padding:0; }
+  #ar-fill-extras .ds-sw:hover { outline:2px solid var(--ink); outline-offset:1px; }
+  #ar-fill-extras .ds-sw-eye { display:grid; place-items:center; font-size:14px;
+        background:#fff; color:var(--ink); }
   /* size stepper: − number + as one unit */
   .ty-step { display:inline-flex; align-items:center; }
   .ty-step button { border-radius:7px 0 0 7px; font-size:15px; }
@@ -530,6 +540,14 @@
   <button id="ar-del" title="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
+  <button id="ar-fill" title="Fill colour" hidden><span class="A">◆</span><span
+    class="Abar" id="ar-fillbar"></span></button>
+  <div class="pop" id="ar-fillpop" hidden>
+    <p class="pop-h" id="ar-fillhead">Fill</p>
+    <div class="swgrid" id="ar-swgrid"></div>
+    <div id="ar-fill-extras"></div>
+    <button class="sw-default" id="ar-fillreset" hidden>No background</button>
+  </div>
   <span class="ty-sep" id="ar-possep"></span>
   <label class="ar-pos" title="Left edge, inches">X<input id="ar-x" type="number" step="0.01"></label>
   <label class="ar-pos" title="Top edge, inches">Y<input id="ar-y" type="number" step="0.01"></label>
@@ -1004,7 +1022,7 @@ function fillTargets(id) {
     label: sh.kind === 'line' ? 'Line colour' : 'Fill',
     get: () => (sh.kind === 'line' ? sh.stroke : sh.fill),
     set: c => { if (sh.kind === 'line') sh.stroke = c || '#52796F';
-                else sh.fill = c || '#E8EDE6'; },
+                else sh.fill = c || '#6B9E78'; },
     resettable: false,             // a shape's colour is intrinsic — no "default"
   };
   const b = boxOf(id);
@@ -2579,6 +2597,17 @@ function arrangeBar(d) {
   // The numbers panel: one element, typed placement in inches.
   const one = n === 1 && d ? selEls(d)[0] : null;
   document.querySelectorAll('.ar-pos, #ar-possep').forEach(x => { x.hidden = !one; });
+  // Fill control: one selected shape or text box carries its own colour, so it
+  // gets a Fill swatch right here in the toolbar (no more right-click needed).
+  const fillId = one ? idOf(one) : null;
+  const canFill = !!fillId && (layout.shapes.some(s => s.id === fillId) || !!boxOf(fillId));
+  $('ar-fill').hidden = !canFill;
+  if (!canFill) $('ar-fillpop').hidden = true;
+  if (canFill) {
+    const ft = fillTargets(fillId);
+    $('ar-fillbar').style.background = fillPreview(ft.get());
+    $('ar-fill').title = ft.label + ' colour';
+  }
   if (!one) return;
   const page = one.closest('section.page') || d.querySelector('section.page');
   const b = inchBox(one, page);
@@ -3549,6 +3578,50 @@ $('ar-dv').addEventListener('click', () => distributeSel($('out').contentDocumen
 document.querySelectorAll('.ar-al').forEach(b => b.addEventListener('click', () =>
   alignSel($('out').contentDocument, b.dataset.al)));
 
+// The Fill swatch on a selected shape/text box: a hex preview, or a gradient
+// bar. Mirrors the text-colour button's preview.
+function fillPreview(v) {
+  if (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v)) return v;
+  if (v && typeof v === 'object' && Array.isArray(v.stops))
+    return 'linear-gradient(90deg,' + v.stops.map(s => s.color).join(',') + ')';
+  return 'linear-gradient(90deg,#e66,#6b9e78,#66e)';   // no fill set
+}
+
+// Recolour a shape or text box straight from the toolbar. Reuses fillTargets()
+// (the same routing right-click uses) and the shared palette + eyedropper.
+$('ar-fill').addEventListener('click', () => {
+  const d = $('out').contentDocument;
+  const els = selEls(d);
+  if (els.length !== 1) return;
+  const id = idOf(els[0]);
+  const ft = fillTargets(id);
+  const grid = $('ar-swgrid');
+  grid.innerHTML = '';
+  (M.palette || []).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'sw'; b.dataset.c = c.toUpperCase(); b.style.background = c; b.title = c;
+    if ((ft.get() || '').toString().toUpperCase() === c.toUpperCase()) b.classList.add('on');
+    b.addEventListener('click', async () => {
+      $('ar-fillpop').hidden = true;
+      pushHistory(); ft.set(c); markDirty(); await render(); paintSel($('out').contentDocument);
+    });
+    grid.appendChild(b);
+  });
+  const host = $('ar-fill-extras'); host.innerHTML = '';
+  colorExtras(document, host, (ft.get() || '').toString(), async c => {
+    $('ar-fillpop').hidden = true;
+    pushHistory(); ft.set(c); markDirty(); await render(); paintSel($('out').contentDocument);
+  });
+  const reset = $('ar-fillreset');
+  reset.hidden = !ft.resettable;
+  reset.textContent = ft.resetLabel || 'Reset colour';
+  reset.onclick = async () => {
+    $('ar-fillpop').hidden = true;
+    pushHistory(); ft.set(null); markDirty(); await render(); paintSel($('out').contentDocument);
+  };
+  togglePop($('ar-fillpop'), $('ar-fill'));
+});
+
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
 // The target of the mousedown decides: land on a text slot and you are
@@ -4095,14 +4168,21 @@ document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('cli
   const page = visiblePageId();
   pushHistory();
   const id = freeShapeId(kind);
+  // A new shape is a SOLID, visible object by default — a near-white fill read
+  // as "just an outline". Sage is the report's own primary, clearly on the
+  // page; recolour it from the Fill control in the toolbar (or right-click).
+  // z:3 — on TOP by default so a new shape is plainly visible, not hidden
+  // behind the page's own (often translucent) panels, which read as "just an
+  // outline". Send it back from the layers panel / right-click when it should
+  // sit behind content.
   layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: kind === 'line' ? 0 : 1,
-                       fill: kind === 'line' ? 'none' : '#E8EDE6',
+                       fill: kind === 'line' ? 'none' : '#6B9E78',
                        stroke: kind === 'line' ? '#52796F' : 'none',
-                       sw: 0.02, z: -1 });
+                       sw: 0.02, z: 3 });
   setSel($('out').contentDocument, [id]);
   markDirty();
   await render();
-  $('stat').textContent = `${id} on page ${page} — drag to place, right-click to recolour`;
+  $('stat').textContent = `${id} on page ${page} — drag to place, recolour with the Fill button`;
 }));
 
 addEventListener('keydown', e => {
