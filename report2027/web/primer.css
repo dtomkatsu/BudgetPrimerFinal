@@ -49,6 +49,8 @@ img.inline-img { display: block; max-width: 100%; height: auto; margin: 10px 0;
 /* Overflow slots ([[extra.<page>.<slug>]]) — bullet lists outside cards */
 ul.extra-bullets { margin: 0 0 12px; padding-left: 20px; }
 ul.extra-bullets li { margin: 3px 0; }
+ol.extra-numbers { margin: 0 0 12px; padding-left: 22px; }
+ol.extra-numbers li { margin: 3px 0; }
 
 /* FY year picker (Figures 3/4/5) */
 .fy-pick { font: inherit; font-weight: 700; color: var(--ink); background: var(--mint);

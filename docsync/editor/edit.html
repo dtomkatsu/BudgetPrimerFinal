@@ -827,6 +827,8 @@ function buildTools(d, ta, key) {
   btn('Image', 'Upload an image and place it here', () => image(d, ta));
   btn('Bold', 'Wrap the selection in **bold**', () => spliceAt(ta, '**', '**'));
   btn('Italic', 'Wrap the selection in *italic*', () => spliceAt(ta, '*', '*'));
+  btn('\u2022 List', 'Bulleted list (toggle on the selected lines)', () => toggleList(ta, false));
+  btn('1. List', 'Numbered list (toggle on the selected lines)', () => toggleList(ta, true));
 
   const note = d.createElement('span');
   note.className = 'ds-tools-key';
@@ -5025,6 +5027,38 @@ function spliceAt(el, before, after = '') {
   const caret = s + before.length + sel.length + after.length;
   el.setSelectionRange(caret, caret);
   el.focus();
+}
+
+// Toggle a bulleted ("- ") or numbered ("1. ") list on the selected lines. The
+// renderer (content.py block_html) turns those prefixes into <ul>/<ol>, so this
+// only rewrites the markdown line prefixes. Toggles off when every non-empty
+// line in the selection already carries the matching prefix.
+const BULLET_RE = /^(\s*)- +/;
+const NUMBER_RE = /^(\s*)\d+[.)] +/;
+function toggleList(el, ordered) {
+  const val = el.value;
+  let s = el.selectionStart ?? 0, e = el.selectionEnd ?? val.length;
+  // Expand the selection to whole lines.
+  s = val.lastIndexOf('\n', s - 1) + 1;
+  const endNl = val.indexOf('\n', e);
+  e = endNl === -1 ? val.length : endNl;
+  const lines = val.slice(s, e).split('\n');
+  const nonEmpty = lines.filter(l => l.trim());
+  const re = ordered ? NUMBER_RE : BULLET_RE;
+  const allListed = nonEmpty.length > 0 && nonEmpty.every(l => re.test(l));
+  let n = 0;
+  const out = lines.map(l => {
+    if (!l.trim()) return l;
+    const bare = l.replace(BULLET_RE, '$1').replace(NUMBER_RE, '$1');   // strip any existing prefix
+    if (allListed) return bare;                                        // toggle OFF
+    n += 1;
+    return ordered ? bare.replace(/^(\s*)/, `$1${n}. `) : bare.replace(/^(\s*)/, '$1- ');
+  });
+  const next = out.join('\n');
+  el.value = val.slice(0, s) + next + val.slice(e);
+  el.setSelectionRange(s, s + next.length);
+  el.focus();
+  el.dispatchEvent(new Event('input'));   // keep the textarea's auto-size in step
 }
 
 function edit(d, key) {

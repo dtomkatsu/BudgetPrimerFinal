@@ -116,12 +116,14 @@ def paragraph(block: str) -> str:
 
 
 def block_html(block: str) -> str:
-    """Generic renderer for overflow slots: headings, bullet lists and
-    paragraphs in source order. '##' -> section heading, '###' -> subheading,
-    matching the report's existing styles."""
+    """Generic renderer for overflow slots: headings, bullet/numbered lists and
+    paragraphs in source order. '##' -> section heading, '###' -> subheading;
+    '- ' -> bulleted list; '1. ' (or '1) ') -> numbered list; matching the
+    report's existing styles."""
     out: list[str] = []
     para: list[str] = []
     items: list[str] = []
+    ordered = False
 
     def flush_para():
         if para:
@@ -130,8 +132,9 @@ def block_html(block: str) -> str:
 
     def flush_items():
         if items:
-            out.append('<ul class="extra-bullets">'
-                       + "".join(f"<li>{i}</li>" for i in items) + "</ul>")
+            tag, cls = ("ol", "extra-numbers") if ordered else ("ul", "extra-bullets")
+            out.append(f'<{tag} class="{cls}">'
+                       + "".join(f"<li>{i}</li>" for i in items) + f"</{tag}>")
             items.clear()
 
     for line in block.splitlines():
@@ -146,9 +149,17 @@ def block_html(block: str) -> str:
             out.append(f'<h2 class="sub">{txt}</h2>' if len(m.group(1)) <= 2
                        else f'<h3 class="sub2">{txt}</h3>')
             continue
-        if s.startswith("- "):
+        # A list item is either "- text" (bulleted) or "N. text" / "N) text"
+        # (numbered). Switching between the two starts a fresh list.
+        mo = re.match(r"^(\d+)[.)]\s+(.*)$", s)
+        if s.startswith("- ") or mo:
+            is_ordered = bool(mo)
+            content = mo.group(2).strip() if mo else s[2:].strip()
             flush_para()
-            items.append(md_inline(s[2:].strip()))
+            if items and ordered != is_ordered:
+                flush_items()
+            ordered = is_ordered
+            items.append(md_inline(content))
             continue
         flush_items()
         para.append(s)
