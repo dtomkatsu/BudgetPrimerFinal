@@ -3145,10 +3145,12 @@ function showMini(d, els) {
     bar.appendChild(b);
     return b;
   };
-  btn('Duplicate (⌘D)',
+  const dupDisabled = ![...selIds].every(id => layout.shapes.some(s => s.id === id) || boxOf(id));
+  btn(dupDisabled ? 'Duplicate — only shapes and text boxes can be duplicated; a designed element exists once, by design'
+                  : 'Duplicate (⌘D)',
     '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/><path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg>',
     () => duplicateSel(d),
-    ![...selIds].every(id => layout.shapes.some(s => s.id === id) || boxOf(id)));
+    dupDisabled);
   const lockB = btn(allLocked ? 'Unlock' : 'Lock',
     '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="6" width="9" height="6" rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg>',
     () => toggleLockSel(d));
