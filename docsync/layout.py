@@ -648,6 +648,8 @@ class Layout:
                 raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
             for k in ("x", "y", "w"):
                 _num(b.get(k), f"{where}.{k}")
+            if b.get("h") is not None:      # optional min-height (never clips)
+                _num(b["h"], f"{where}.h")
             if not str(b.get("md", "")).strip():
                 raise LayoutError(f"{where}: has no text — 'md' is empty")
             if "z" in b and not isinstance(b["z"], int):
@@ -916,9 +918,10 @@ class Layout:
         price of that is real: it never reaches the bound Google Doc, so an
         editor working there will never see it.
 
-        No height, deliberately: the same reason a text slot has none. A box
-        with a pinned height either clips its words or leaves a hole the moment
-        they change. Its bottom is the fit check's problem.
+        Height is opt-in via `h`, and only ever a MIN-height: a box grows to at
+        least that tall (so a coloured panel can be sized on all sides in the
+        editor) but never clips — if the words are taller than `h`, the box
+        grows past it. A box with no `h` is auto-height, as before.
         """
         mine = [b for b in self.boxes if b.get("page") == page]
         if not mine:
@@ -927,6 +930,8 @@ class Layout:
         for b in mine:
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
+            if b.get("h"):
+                css += f';min-height:{b["h"]}in'
             if b.get("fill"):
                 # A background needs breathing room or the words sit on its
                 # edge; padding only when filled, so a plain box's text keeps

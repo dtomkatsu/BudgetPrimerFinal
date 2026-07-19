@@ -1687,11 +1687,12 @@ function contextify(d) {
 const MIN_IN = 0.4;
 
 function handlesFor(el) {
-  // Shapes resize from every edge and corner. Graphics scale uniformly, so
-  // their handles are the four corners (each drives the one scale factor).
-  // Text reflows on width alone — no height to drag — so it gets both
-  // horizontal edges, east and west.
+  // Shapes and text boxes resize from every edge and corner. Graphics scale
+  // uniformly, so their handles are the four corners (each drives the one
+  // scale factor). A designed prose slot reflows on width alone — no height to
+  // drag — so it gets both horizontal edges, east and west.
   if (el.dataset.shape) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+  if (el.classList.contains('ds-textbox')) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   if (isGraphic(el)) return ['ne', 'nw', 'se', 'sw'];
   return ['e', 'w'];
 }
@@ -1817,6 +1818,13 @@ function startResize(d, el, e0, dir) {
       const bx2 = boxOf(id);
       if (bx2) {
         bx2.w = +size.w.toFixed(2);
+        // A text box grows to at least this height (min-height in the renderer,
+        // so words never clip); dragging a vertical edge sets it, and dragging
+        // it back to nothing clears it (auto height again).
+        if (dir.includes('s') || dir.includes('n')) {
+          if (size.h > MIN_IN + 0.01) bx2.h = +size.h.toFixed(2);
+          else delete bx2.h;
+        }
         markDirty();
       } else {
         const p = layout.positions[id];
