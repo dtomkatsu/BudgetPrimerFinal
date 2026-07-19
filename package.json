@@ -1,0 +1,13 @@
+{
+  "name": "budgetprimerfinal-editor-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Dev-only Playwright test suite for the single-file draft editor (docsync/editor/edit.html). Ships nothing to users.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

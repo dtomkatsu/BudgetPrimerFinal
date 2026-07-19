@@ -185,8 +185,18 @@ class Handler(SimpleHTTPRequestHandler):
         if not f.is_file():
             return super().do_GET()
         html = f.read_text(errors="replace")
-        html = (html.replace("</body>", RELOAD_JS + "</body>", 1)
-                if "</body>" in html else html + RELOAD_JS)
+        # rpartition, not the first "</body>": start.html's new-report flow
+        # builds a whole starter report as a JS template literal, which
+        # contains its OWN literal "</body>" long before the page's real
+        # closing tag. Replacing the first occurrence spliced a live
+        # <script> block into the middle of that JS string and corrupted the
+        # page's syntax ("Unexpected end of input") — the last occurrence is
+        # always the actual closing tag.
+        if "</body>" in html:
+            head, sep, tail = html.rpartition("</body>")
+            html = head + RELOAD_JS + sep + tail
+        else:
+            html = html + RELOAD_JS
         body = html.encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")

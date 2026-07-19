@@ -1,0 +1,63 @@
+name: Editor tests
+
+# The draft editor (docsync/editor/edit.html) is a single file with no build
+# step and, until now, no tests in-tree — every change was verified by hand
+# in an ad-hoc /tmp Playwright harness (see docs/primer/LIBRARIES.md's #1
+# recommendation). This formalizes that harness: tests/editor/ runs against
+# the real local dev server (report2027/tools/serve.py) with GitHub itself
+# fully mocked (tests/editor/fixtures/fake-github.js) — no real network, no
+# real git push, ever.
+
+on:
+  pull_request:
+    paths:
+      - "docsync/editor/edit.html"
+      - "docs/primer/edit.html"
+      - "docs/primer/start.html"
+      - "docs/primer/sw.js"
+      - "report2027/tools/serve.py"
+      - "report2027/tools/render_report.py"
+      - "docsync/layout.py"
+      - "docsync/content.py"
+      - "tests/editor/**"
+      - "playwright.config.js"
+      - "package.json"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Self-test the docsync engine
+        run: python3 docsync/test_docsync.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the editor test suite
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

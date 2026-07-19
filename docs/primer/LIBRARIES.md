@@ -71,32 +71,59 @@ Same verdict, same reason, for **Konva** and **Paper.js** (canvas engines).
 
 Ranked by value / effort.
 
-1. **`@playwright/test` (dev-only)** — the verification for every editor
-   feature this far has been an ad-hoc Playwright harness kept in `/tmp`.
-   Formalize it into the repo as a real test suite and wire it into CI
-   (alongside `docsync/test_docsync.py`). Highest value: a collaborative,
-   fast-moving single-file editor with no tests in-tree is the real risk.
-   Ships nothing to users (dev dependency), so the single-file constraint
-   doesn't apply.
+1. **`@playwright/test` (dev-only) — done.** Formalized into `tests/editor/`
+   (36 tests: image compression, sections, sources, undo/redo, drafts/share/
+   publish, oauth device-flow, multi-project registry, standalone install
+   lifecycle, download/export) and wired into CI
+   (`.github/workflows/editor-tests.yml`), alongside `docsync/test_docsync.py`.
+   GitHub itself is fully mocked in-memory (`tests/editor/fixtures/
+   fake-github.js`) so the suite never touches the real API or pushes a real
+   commit. Building it surfaced two real bugs, both fixed: (a) the Cite
+   toolbar button's `sel.focus()` blurred the paragraph being edited and tore
+   down the citation panel before it could be used; (b) the local dev
+   server's live-reload injection (`serve.py`) spliced its `<script>` into
+   the *first* `</body>` string in the page instead of the last, which landed
+   inside `start.html`'s new-report JS template (itself containing a literal
+   `</body>`) and corrupted the whole page's script.
 
-2. **`fflate` (or JSZip) — tiny, CDN-friendly** — enables a "Download source"
+2. **`fflate` — tiny, CDN-friendly** — enables a "Download source"
    (the `content.md` + `layout.json` + touched assets as a `.zip`), the half
-   of Export that `STANDALONE.md` left out. `fflate` is ~8KB and drops in as
-   an ESM import. Clear value for anyone who wants the raw files; zero
-   architectural conflict (it only reads state the editor already holds).
+   of Export that `STANDALONE.md` left out. Clear value for anyone who wants
+   the raw files; zero architectural conflict (it only reads state the editor
+   already holds). *Verified 2026-07-18:* fflate **v0.8.3** (published
+   2026-05-16), zero runtime dependencies, ships an ESM `module`/`exports`
+   build that drops straight in as a CDN import — no build step, which is the
+   binding constraint here. Actively maintained (2.9k★, last pushed 2026-05-16,
+   not archived). Preferred over **JSZip** (larger, older API); this is the
+   "8kB package" its own npm description names, and the `Download ▾` popover
+   already has the natural home for a third "Source (.zip)" item.
 
 3. **Native `<dialog>` (not a library)** — the editor still uses raw
    `prompt()`/`confirm()` for new-section, source id, rename, cross-page move,
    token entry, publish. `start.html` already has a proper in-app modal;
-   standardizing on `<dialog>` (well-supported, zero dependency) would make
-   those flows consistent and stop losing typed input to a dismissed prompt.
-   A UX cleanup, not a library add.
+   standardizing on `<dialog>` would make those flows consistent and stop
+   losing typed input to a dismissed prompt. A UX cleanup, not a library add.
+   *Verified 2026-07-18 (MDN):* `<dialog>` + `.showModal()` is **Baseline
+   widely available since March 2022** (Safari 15.4 was the last engine to
+   land it), so it's safe with zero dependency. Caveats to design around:
+   `::backdrop` is supported but style it explicitly, and animating the modal
+   in/out needs `transition-behavior: allow-discrete` on `display`. This also
+   *directly retires the two `prompt()`-fragility papercuts the test suite
+   exposed* — the sequential `prompt()` chains in `+Section` and Cite are
+   exactly the "typed input lost to a dismissed prompt" failure a `<dialog>`
+   form removes.
 
-4. **`idb-keyval` — ~1KB, optional** — drafts and the token live in
+4. **`idb-keyval` — tiny, optional** — drafts and the token live in
    `localStorage` today. For offline draft persistence (edits survive a
    closed tab / dropped connection before a network save), a tiny IndexedDB
    wrapper fits the service-worker/offline direction already started in
-   `STANDALONE.md`. Plausible next step, not urgent.
+   `STANDALONE.md`. Plausible next step, not urgent. *Verified 2026-07-18:*
+   idb-keyval **v6.3.0**, zero runtime dependencies, ESM `exports`, actively
+   maintained (3.2k★, last pushed 2026-07-08). Note the migration cost:
+   `localStorage` is synchronous and IndexedDB is not, so the token/draft
+   reads scattered through `ensureAuth()`/`resolveDraft()` would each become
+   `await`s — worth it only once offline persistence is an actual goal, not
+   before.
 
 ---
 

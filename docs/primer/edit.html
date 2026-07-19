@@ -4744,7 +4744,15 @@ function edit(d, key) {
     }
     await render();
   };
-  ta.addEventListener('blur', () => finish(true));
+  ta.addEventListener('blur', e => {
+    // cite()'s "+ new source…" flow calls sel.focus() to move focus into the
+    // panel it just opened — a blur like any other, but finishing the edit
+    // over it would remove `tools` (and the freshly appended .ds-cite panel
+    // inside it) before a person could ever use it. Only finish when focus is
+    // truly leaving the toolbar, not moving to a control within it.
+    if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
+    finish(true);
+  });
   ta.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
