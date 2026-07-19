@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#2F3E46">
 <title>Draft editor</title>
 <!--
   Edit the report's prose in the report itself.
@@ -55,10 +59,69 @@
   #bar button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
                          background:var(--ctl); }
   #bar button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #undo, #redo { font-size:16px; line-height:1; padding:4px 9px; }
+
+  /* Sources manager — a light panel over the preview, in the top document so a
+     re-render of the iframe never disturbs it. top is set from the bar height. */
+  #srcpanel { position:fixed; right:16px; width:min(560px,92vw);
+    max-height:calc(100vh - 90px); overflow:auto; background:#fff; color:var(--ink);
+    border:1px solid #C9D6CD; border-radius:8px; box-shadow:0 14px 38px rgba(0,0,0,.30);
+    z-index:60; font:13px/1.45 system-ui; }
+  #srcpanel header { display:flex; align-items:center; gap:10px; padding:9px 12px;
+    background:var(--ink); color:#E8EDE6; border-radius:8px 8px 0 0; position:sticky; top:0; }
+  #srcpanel header b { letter-spacing:.3px; }
+  #srcpanel header span { flex:1; font-size:11px; opacity:.82; }
+  #srcpanel header button { background:var(--sage); color:#fff; border:0;
+    border-radius:4px; padding:3px 11px; cursor:pointer; font:inherit; }
+  .srcrow { padding:9px 12px; border-bottom:1px solid #EDF1EE;
+    display:grid; grid-template-columns:1fr auto; gap:6px 8px; align-items:center; }
+  .srcid { grid-column:1 / -1; font:11px ui-monospace,monospace; color:var(--deep);
+    display:flex; gap:8px; align-items:center; }
+  .srcuse { font-size:10px; color:#8B9A90; }
+  .srcidctl { margin-left:auto; display:flex; gap:4px; }
+  .srcren { font:10px system-ui; padding:2px 8px; cursor:pointer; border:1px solid #C9D6CD;
+    background:#fff; color:var(--deep); border-radius:4px; }
+  .srcren:hover:not(:disabled) { background:var(--sage); color:#fff; border-color:var(--sage); }
+  .srcren:disabled { opacity:.35; cursor:default; }
+  .srcrow input { font:12px system-ui; padding:5px 7px; width:100%; box-sizing:border-box;
+    border:1px solid #C9D6CD; border-radius:4px; color:var(--ink); }
+  .srctext { grid-column:1 / -1; }
+  .srcdel { font:11px system-ui; padding:5px 11px; border:1px solid #d9b0a0;
+    background:#fff; color:#C2703A; border-radius:4px; cursor:pointer; white-space:nowrap; }
+  .srcdel:hover:not(:disabled) { background:#C2703A; color:#fff; border-color:#C2703A; }
+  .srcdel:disabled { opacity:.5; cursor:default; border-color:#d7dcd8; color:#9aa4a0; }
+  .srcempty { padding:16px; color:#8B9A90; font-size:12px; }
+
+  /* Sign in with GitHub — same family as the sources panel. */
+  #authpanel { position:fixed; right:16px; width:min(380px,92vw); background:#fff;
+    color:var(--ink); border:1px solid #C9D6CD; border-radius:8px;
+    box-shadow:0 14px 38px rgba(0,0,0,.30); z-index:70; font:13px/1.5 system-ui; }
+  #authpanel header { display:flex; align-items:center; gap:10px; padding:9px 12px;
+    background:var(--ink); color:#E8EDE6; border-radius:8px 8px 0 0; }
+  #authpanel header b { flex:1; letter-spacing:.3px; }
+  #authpanel header .x { background:var(--sage); color:#fff; border:0;
+    border-radius:4px; padding:3px 11px; cursor:pointer; font:inherit; }
+  .au-body { padding:14px 16px 12px; text-align:center; }
+  .au-msg { margin:0 0 8px; color:#5B6E66; }
+  .au-code { font:700 26px/1.3 ui-monospace,monospace; letter-spacing:3px;
+    color:var(--ink); background:#EDF1EE; border-radius:6px; padding:8px 0;
+    margin-bottom:10px; user-select:all; }
+  .au-open { background:var(--sage); color:#fff; border:0; border-radius:5px;
+    padding:8px 18px; cursor:pointer; font:600 13px system-ui; }
+  .au-open:hover { background:var(--deep); }
+  .au-hint { margin:9px 0 0; font-size:11.5px; color:#8B9A90; }
+  .au-alt { margin:12px 0 0; font-size:11px; }
+  .au-alt a { color:#8B9A90; }
   #save { background:var(--sage); border-color:var(--sage); color:#fff; font-weight:600; }
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
   #save.dirty:hover { background:#A85E2F; }
+  #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
+  #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
+  #proj { font:12.5px system-ui; background:var(--ctl); color:#E8EDE6;
+          border:1px solid var(--ctl-line); border-radius:5px; padding:4px 6px;
+          cursor:pointer; max-width:220px; }
+  #proj:hover { border-color:var(--sage); }
   /* Below the bars: the page rail and the canvas, side by side. */
   #work { flex:1; min-height:0; display:flex; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
@@ -250,6 +313,7 @@
     stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path
     d="M11.3 1.9l2.8 2.8L5 13.8l-3.6.8.8-3.6z"/></svg>Draft editor</span>
   <span id="title" class="ds-id"></span>
+  <select id="proj" hidden title="Switch project"></select>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
   <button id="text" title="Add a text box to the page in view">
@@ -279,9 +343,15 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
-  <button id="download" title="Download the report as a PDF or per-page PNGs">Download ▾</button>
+  <button id="add" title="Add a new prose section to a page">+ Section</button>
+  <button id="sources" title="View, edit, reorder and remove citations">Sources</button>
+  <button id="undo" disabled title="Undo (⌘Z)">↶</button>
+  <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
-  <button id="save" disabled>Save</button>
+  <button id="save" disabled>Save draft</button>
+  <button id="share" disabled title="Copy a link that shows this draft to anyone">Share</button>
+  <button id="publish" disabled title="Make this draft the live report">Publish</button>
+  <button id="download" title="Download the report as a PDF or per-page PNGs">Download ▾</button>
   <div class="pop" id="downloadpop" hidden>
     <p class="pop-h">Download this draft</p>
     <button class="shp" id="dl-pdf">PDF — the whole report</button>
@@ -482,6 +552,49 @@ async function get(u) {
   return r.text();
 }
 
+// --- projects: one editor, many reports ------------------------------------
+// projects.json beside this file maps an id to the directory holding that
+// report's engine/ (relative to this page, or an absolute URL — GitHub Pages
+// sends CORS, so another repo's site works). ?project=<id> picks one; no
+// param, a missing registry, or an unknown id all mean the engine/ next door,
+// which is exactly the single-project editor this grew from.
+let PROJECT = new URLSearchParams(location.search).get('project') || '';
+let PBASE = '';                 // '' = this directory
+let REGISTRY = null;
+
+const withBase = u => PBASE ? PBASE.replace(/\/+$/, '') + '/' + u : u;
+
+/** Every URL the editor writes carries the project, so a draft link, a
+ *  reload, or a post-publish reset never quietly jumps projects. */
+const pageUrl = extra => {
+  const q = new URLSearchParams();
+  if (PROJECT) q.set('project', PROJECT);
+  if (extra) for (const k in extra) q.set(k, extra[k]);
+  const s = q.toString();
+  return location.pathname + (s ? '?' + s : '');
+};
+
+async function loadRegistry() {
+  try { REGISTRY = JSON.parse(await get('projects.json')); } catch (e) { REGISTRY = null; }
+  if (!REGISTRY) { PROJECT = ''; return; }
+  if (PROJECT && REGISTRY[PROJECT]) PBASE = REGISTRY[PROJECT].base || '';
+  else PROJECT = '';            // unknown id: fall back to the default engine
+  const ids = Object.keys(REGISTRY);
+  if (ids.length < 2) return;   // one project: no picker, nothing to switch to
+  const defaultId = ids.find(id => !(REGISTRY[id].base || '')) || ids[0];
+  const sel = $('proj');
+  sel.innerHTML = ids.map(id =>
+    `<option value="${id}">${REGISTRY[id].name || id}</option>`).join('');
+  sel.value = PROJECT || defaultId;
+  sel.hidden = false;
+  sel.onchange = () => {
+    if (dirty && !confirm('Switch project? Unsaved edits here are lost.')) {
+      sel.value = PROJECT || defaultId; return;
+    }
+    location.href = location.pathname + '?project=' + encodeURIComponent(sel.value);
+  };
+}
+
 // content.md is [[key]] lines followed by their text. Reading and rewriting a
 // single slot is all the editor needs, so it works on the raw string and
 // leaves every byte it did not touch exactly as it was.
@@ -584,7 +697,7 @@ const localImages = new Map();     // path -> data URL, for previewing pre-deplo
 /** Pick a file, push it to the repo's assets, and hand back its path — the
  *  one upload flow, whether the image lands in prose or replaces another. */
 async function uploadImageFile(d, onDone) {
-  const tok = await askToken();
+  const tok = await ensureAuth();
   if (!tok) return;
   const inp = d.createElement('input');
   inp.type = 'file';
@@ -603,14 +716,19 @@ async function uploadImageFile(d, onDone) {
     const b64 = String(dataUrl).split(',')[1];
     $('stat').textContent = `uploading ${name}…`;
     try {
+      // Images ride the draft too: they publish with the prose that uses them
+      // instead of landing on main ahead of it. (Local mode keeps main — the
+      // dev server's git push is the truth there.)
+      const branch = local ? 'main' : await draftForUpload();
       // Overwrite needs the blob's sha; a fresh path has none.
       let sha;
-      try { sha = (await gh(`contents/${path}?ref=main`)).sha; } catch (e) { sha = undefined; }
+      try { sha = (await gh(`contents/${path}?ref=${encodeURIComponent(branch)}`)).sha; }
+      catch (e) { sha = undefined; }
       await gh(`contents/${path}`, {
         method: 'PUT',
         body: JSON.stringify({
           message: `primer: add image ${name}`,
-          content: b64, branch: 'main', ...(sha ? { sha } : {}),
+          content: b64, branch, ...(sha ? { sha } : {}),
         }),
       });
       localImages.set('assets/' + name, dataUrl);
@@ -3287,10 +3405,19 @@ const clearGuides = d => d.querySelectorAll('.ds-guide').forEach(g => g.remove()
 // ---- history: every move is undoable, or it is not safe to experiment ----
 const past = [], future = [];
 const snapshot = () => JSON.stringify({ source, layout });
+// Reflect what's undoable on the toolbar buttons. The buttons only mirror
+// state; undo()/redo() themselves stay the source of truth (and still work
+// from the keyboard when a button is momentarily out of sync).
+function syncHistoryButtons() {
+  const u = $('undo'), r = $('redo');
+  if (u) u.disabled = !past.length;
+  if (r) r.disabled = !future.length;
+}
 function pushHistory() {
   past.push(snapshot());
   if (past.length > 60) past.shift();
   future.length = 0;
+  syncHistoryButtons();
 }
 async function restore(json) {
   const st = JSON.parse(json);
@@ -3303,14 +3430,18 @@ async function undo() {
   if (!past.length) { $('stat').textContent = 'nothing to undo'; return; }
   future.push(snapshot());
   await restore(past.pop());
+  syncHistoryButtons();
   $('stat').textContent = 'undone';
 }
 async function redo() {
   if (!future.length) { $('stat').textContent = 'nothing to redo'; return; }
   past.push(snapshot());
   await restore(future.pop());
+  syncHistoryButtons();
   $('stat').textContent = 'redone';
 }
+$('undo').onclick = undo;
+$('redo').onclick = redo;
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
@@ -3667,7 +3798,10 @@ function paintShape(d, id) {
 function markDirty() {
   dirty = source !== original
        || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
-  $('save').disabled = $('revert').disabled = !dirty;
+  $('save').disabled = !dirty;
+  // Discard stays live while a saved draft exists: with nothing unsaved it
+  // offers to throw the whole draft away (see its handler).
+  $('revert').disabled = !dirty && !(draftBranch && !local);
   $('save').classList.toggle('dirty', dirty);
 }
 
@@ -3730,14 +3864,37 @@ addEventListener('keydown', e => {
 });
 
 async function boot() {
-  M = JSON.parse(await get('engine/manifest.json'));
+  await loadRegistry();
+  M = JSON.parse(await get(withBase('engine/manifest.json')));
   REPO = M.repo || '';
+  if (M.pages && M.pages.length) EXTRA_PAGES = M.pages;
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
   $('title').textContent = M.id;
+  await detectLocal();          // local live server? then Save writes to disk
+  await resolveDraft();         // ?draft=… in the URL, or your own saved draft
 
   const urls = Object.keys(M.files);
-  const [pyodide, ...files] = await Promise.all([loadPyodide(), ...urls.map(get)]);
+  const [pyodide, ...files] =
+    await Promise.all([loadPyodide(), ...urls.map(u => get(withBase(u)))]);
+  // Viewing or continuing a draft: its content and layout come from the draft
+  // branch, not the deployed copies (which are main's). The engine code itself
+  // stays same-origin — only the two authored files differ per draft.
+  if (draftBranch) {
+    try {
+      const [c, l] = await Promise.all([
+        fromBranch(M.content),
+        M.layout ? fromBranch(M.layout) : Promise.resolve('{}'),
+      ]);
+      files[urls.indexOf('engine/' + M.content)] = c;
+      if (M.layout) files[urls.indexOf('engine/' + M.layout)] = l;
+    } catch (e) {
+      draftBranch = null;
+      history.replaceState(null, '', pageUrl());
+      $('title').textContent = M.id;
+      $('stat').textContent = "that draft isn't on GitHub any more (probably published) — showing the live report";
+    }
+  }
   py = pyodide;
   // The renderer is written for a repo checkout, so rebuild one in Pyodide's FS
   // from the paths the manifest names — no directory list to keep in step.
@@ -3793,7 +3950,13 @@ async function boot() {
     x.classList.toggle('on', x.dataset.z === zoomChoice));
   $('guides').classList.toggle('on', guidesOn);
   await render();
-  await detectLocal();          // local live server? then Save writes to disk
+  if (!local) $('share').disabled = $('publish').disabled = false;
+  // Buttons start disabled in the HTML and only markDirty() flips them — run
+  // it once now so a resumed draft's Discard is live before the first edit.
+  markDirty();
+  // detectLocal ran before the renders that overwrite the status line; say it
+  // again now that the page is settled.
+  if (local) $('stat').textContent = 'live — edits here and from Claude land in the same files';
 }
 
 // ---------------------------------------------------------------- live mode
@@ -3813,6 +3976,10 @@ async function detectLocal() {
     if (r.ok) { try { liveVer = (await r.json()).v; } catch (e) {} }
   } catch (e) { local = false; }
   if (!local) return;
+  // Local mode is the dev loop: files on disk are the truth, git pushes them.
+  // Draft branches and PRs belong to the hosted editor, so those verbs hide.
+  $('share').hidden = $('publish').hidden = true;
+  $('save').textContent = 'Save';
   $('title').textContent = M.id + ' · live';
   $('stat').textContent = 'live — edits here and from Claude land in the same files';
   // Adopt a rebuild the moment the version moves. Two ways see it, because one
@@ -3859,8 +4026,8 @@ async function _pull() {
   let freshSrc = original, freshLayout = layoutOrig;
   try {
     [freshSrc, freshLayout] = await Promise.all([
-      get('engine/' + M.content),
-      M.layout ? get('engine/' + M.layout) : Promise.resolve('{}'),
+      get(withBase('engine/' + M.content)),
+      M.layout ? get(withBase('engine/' + M.layout)) : Promise.resolve('{}'),
     ]);
   } catch (e) { return; }
   let took = false, clash = false;
@@ -3926,6 +4093,10 @@ open('/repo/' + OUT).read()
     const se = $('out').contentDocument.scrollingElement;
     if (se) se.scrollTop = scrollTopWas;
   };
+  // srcdoc resolves relative URLs (assets/…) against THIS page. Right for the
+  // default project, whose deploy puts assets beside the editor; a switched
+  // project's assets live under its own base, so point the document there.
+  if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
   $('out').srcdoc = html;
   $('stat').textContent = dirty ? 'unsaved changes'
                                 : 'click selects and drags · double-click edits text';
@@ -4173,7 +4344,19 @@ function wire() {
              background:#6B9E78 !important; color:#fff !important; border-radius:5px; padding:6px 0 !important; }
     .ds-apply:hover { background:#52796F !important; }
     body.ds-grabbing, body.ds-grabbing * { cursor:grabbing !important; }
-    body.ds-grabbing [data-slot] { cursor:grabbing !important; }`;
+    body.ds-grabbing [data-slot] { cursor:grabbing !important; }
+    /* Added prose sections: a subtle dashed frame and corner controls. */
+    .extra-section { position:relative; }
+    .extra-section:hover { outline:1px dashed #C08497; outline-offset:5px; }
+    .ds-xtools { position:absolute; top:-12px; right:-4px; display:none; gap:3px; z-index:5; }
+    .extra-section:hover .ds-xtools { display:flex; }
+    .ds-xtools button { width:22px; height:22px; padding:0; font:12px system-ui;
+                        border:1px solid #B9C9BE; background:#fff; color:#2F3E46;
+                        border-radius:4px; cursor:pointer; line-height:1; }
+    .ds-xtools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
+    .ds-xtools button.del:hover { background:#c2703a; border-color:#c2703a; }
+    .ds-xtools button:disabled { opacity:.35; cursor:default; }
+    .ds-xtools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }`;
   d.head.appendChild(css);
 
   const seen = new Set();
@@ -4195,6 +4378,53 @@ function wire() {
       el.addEventListener('click', () => { showType(key); edit(d, key); });
     }
   });
+
+  // Added sections carry reorder / move / delete controls. The single-click
+  // editor above already applies (a section is a [data-slot] outside any
+  // object); a control press stops propagation so it never also opens the
+  // editor beneath it.
+  d.querySelectorAll('.extra-section[data-extra="1"]').forEach(el => {
+    const key = el.dataset.slot;
+    const ctl = d.createElement('div');
+    ctl.className = 'ds-xtools';
+    ctl.addEventListener('mousedown', e => e.preventDefault());
+    const mk = (label, title, cls, fn) => {
+      const b = d.createElement('button');
+      b.type = 'button'; b.textContent = label; b.title = title;
+      if (cls) b.className = cls;
+      b.addEventListener('click', e => { e.stopPropagation(); if (!editing && !b.disabled) fn(); });
+      ctl.appendChild(b);
+      return b;
+    };
+    const sibs = extraKeys(pageOf(key)), pos = sibs.indexOf(key);
+    const up = mk('↑', 'Move section up', '', () => { pushHistory(); moveExtra(key, -1); markDirty(); render(); });
+    const dn = mk('↓', 'Move section down', '', () => { pushHistory(); moveExtra(key, 1); markDirty(); render(); });
+    mk('⇄', 'Move to another page', '', () => {
+      const menu = EXTRA_PAGES.map(([, l], i) => `${i + 1}. ${l}`).join('\n');
+      const pick = d.defaultView.prompt(
+        `Move this section to which page?\n(now on: ${pageOf(key)})\n\n${menu}\n\n`
+        + `Enter a number 1–${EXTRA_PAGES.length}:`);
+      if (pick === null) return;
+      const idx = parseInt(pick, 10) - 1;
+      if (!(idx >= 0 && idx < EXTRA_PAGES.length)) return;
+      pushHistory(); moveSectionToPage(key, EXTRA_PAGES[idx][0]); markDirty(); render();
+    });
+    mk('✕', 'Delete this section', 'del', () => {
+      if (!d.defaultView.confirm('Delete this whole section?')) return;
+      pushHistory(); removeExtra(key); markDirty(); render();
+    });
+    up.disabled = pos <= 0;
+    dn.disabled = pos === sibs.length - 1;
+    el.appendChild(ctl);
+  });
+
+  // A section just added from the toolbar: open it once THIS document contains
+  // the slot. A render in flight when it was added can fire an earlier onload
+  // against content without the section; consuming pendingEdit then would drop
+  // it and the section would silently never open. Leave it for the right render.
+  if (pendingEdit && d.querySelector(`[data-slot="${pendingEdit}"]`)) {
+    const k = pendingEdit; pendingEdit = null; edit(d, k);
+  }
 }
 
 // The [[sources]] slot is the citation list: "[id]: text — url" per line. A
@@ -4208,6 +4438,205 @@ function addSource(id, text, url) {
   const line = `[${id}]: ${text} — ${url}`;
   writeSlot('sources', readSlot('sources') + '\n' + line);
 }
+
+// --- sources manager: edit, rename, reorder and remove citations -----------
+// Reuses the slot primitives above; every mutation calls pushHistory() first,
+// so a source edit is undoable like any move. A source is one "[id]: text — url"
+// line; the renderer's parser uses the same shape (docsync/content.py).
+const srcLineRe = id => new RegExp(`^\\[${rxEsc(id)}\\]:.*$`, 'm');
+const parseSources = () => readSlot('sources').split('\n').map(l => l.trim())
+  .filter(Boolean).map(l => {
+    const m = l.match(/^\[([^\]]+)\]:\s*(.*?)\s+—\s+(\S+)\s*$/);
+    return m ? { id: m[1], text: m[2].trim(), url: m[3].trim() } : null;
+  }).filter(Boolean);
+const citeCount = id =>
+  (source.match(new RegExp(`\\[\\^${rxEsc(id)}\\]`, 'g')) || []).length;
+
+function updateSource(id, text, url) {
+  writeSlot('sources', readSlot('sources').replace(srcLineRe(id), `[${id}]: ${text} — ${url}`));
+}
+function deleteSource(id) {
+  writeSlot('sources', readSlot('sources')
+    .replace(new RegExp(`^\\[${rxEsc(id)}\\]:.*(?:\\n|$)`, 'm'), '')
+    .replace(/\n{2,}/g, '\n').trim());
+}
+// Rename a source id across the whole document: every [^old] ref in the prose
+// and the [old]: line. Numbering is by first appearance, so only the stable id
+// changes — the footnote numbers do not.
+function renameSource(oldId, neu) {
+  source = source
+    .replace(new RegExp(`\\[\\^${rxEsc(oldId)}\\]`, 'g'), `[^${neu}]`)
+    .replace(new RegExp(`^\\[${rxEsc(oldId)}\\]:`, 'm'), `[${neu}]:`);
+}
+// Reorder the declaration list. Endnote NUMBERS follow first appearance in the
+// prose, so this reorders the [[sources]] list and the Cite dropdown while the
+// report's numbering is unaffected — it just keeps the list organised.
+function moveSource(id, dir) {
+  const lines = readSlot('sources').split('\n').map(l => l.trim()).filter(Boolean);
+  const i = lines.findIndex(l => l.startsWith(`[${id}]:`));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= lines.length) return;
+  [lines[i], lines[j]] = [lines[j], lines[i]];
+  writeSlot('sources', lines.join('\n'));
+}
+
+let srcPanel = null;
+function closeSources() { if (srcPanel) { srcPanel.remove(); srcPanel = null; } }
+function openSources() {
+  if (editing) return;
+  closeSources();
+  srcPanel = document.createElement('div');
+  srcPanel.id = 'srcpanel';
+  srcPanel.innerHTML =
+    '<header><b>SOURCES</b><span>edit text or link, reorder, rename, or delete an '
+    + 'uncited source — endnote numbers follow first use in the prose</span>'
+    + '<button type="button">Close</button></header><div id="srclist"></div>';
+  srcPanel.querySelector('button').onclick = closeSources;
+  document.body.appendChild(srcPanel);
+  srcPanel.style.top = ($('bar').getBoundingClientRect().bottom + 6) + 'px';
+  renderSources();
+}
+function renderSources() {
+  if (!srcPanel) return;
+  const list = srcPanel.querySelector('#srclist');
+  list.textContent = '';
+  const rows = parseSources();
+  if (!rows.length) {
+    list.innerHTML = '<p class="srcempty">No sources yet. Use <b>Cite</b> while '
+      + 'editing a paragraph to add one.</p>';
+    return;
+  }
+  rows.forEach((s, idx) => {
+    const n = citeCount(s.id);
+    const row = document.createElement('div'); row.className = 'srcrow';
+    const id = document.createElement('div'); id.className = 'srcid';
+    id.innerHTML = `[${s.id}]<span class="srcuse">${n ? `cited ${n}×` : 'unused'}</span>`;
+    const ctl = document.createElement('span'); ctl.className = 'srcidctl';
+    const mkb = (label, title, dis, fn) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'srcren'; b.textContent = label; b.title = title;
+      b.disabled = !!dis;
+      b.addEventListener('click', fn);
+      ctl.appendChild(b);
+    };
+    mkb('↑', 'Move up', idx === 0, () => {
+      pushHistory(); moveSource(s.id, -1); markDirty(); render(); renderSources(); });
+    mkb('↓', 'Move down', idx === rows.length - 1, () => {
+      pushHistory(); moveSource(s.id, 1); markDirty(); render(); renderSources(); });
+    mkb('rename', 'Rename this id everywhere it is cited', false, () => {
+      const neu = (prompt(`Rename [${s.id}] to:`, s.id) || '').trim();
+      if (!neu || neu === s.id) return;
+      if (!/^[A-Za-z0-9._-]+$/.test(neu)) { alert('Use letters, numbers, and . _ - only.'); return; }
+      if (parseSources().some(x => x.id === neu)) { alert(`[${neu}] already exists.`); return; }
+      pushHistory(); renameSource(s.id, neu); markDirty(); render(); renderSources();
+    });
+    id.appendChild(ctl);
+    const txt = document.createElement('input');
+    txt.className = 'srctext'; txt.value = s.text; txt.placeholder = 'citation text';
+    const url = document.createElement('input');
+    url.value = s.url; url.placeholder = 'https://…';
+    const del = document.createElement('button');
+    del.type = 'button'; del.className = 'srcdel'; del.textContent = 'Delete';
+    if (n) { del.disabled = true; del.title = `Cited in the prose — remove the [^${s.id}] refs first`; }
+    const commit = () => {
+      const t = txt.value.trim(), u = url.value.trim();
+      if (!t || !u) return;                       // never write a half-line
+      pushHistory(); updateSource(s.id, t, u); markDirty(); render();
+    };
+    txt.addEventListener('change', commit);       // fires on blur only when changed
+    url.addEventListener('change', commit);
+    del.addEventListener('click', () => {
+      if (!confirm(`Delete source [${s.id}]? This cannot be undone from here.`)) return;
+      pushHistory(); deleteSource(s.id); markDirty(); render(); renderSources();
+    });
+    row.append(id, txt, url, del);
+    list.appendChild(row);
+  });
+}
+$('sources').onclick = openSources;
+
+// --- sections: add, edit, reorder, move and delete whole prose sections -----
+// A section is an [[extra.<page>.<slug>]] overflow slot the renderer drops at
+// the end of its page (render_report.py's own EXTRA_PAGES list, which this
+// must match). Which pages exist is a property of the REPORT, not the editor
+// — set in the manifest as "pages": [["id","Label"], …]; this default is the
+// Budget Primer's own list, used when a manifest declares none, so the one
+// report that predates the field keeps working unmodified. boot() overwrites
+// this from M.pages the moment the manifest is known.
+let EXTRA_PAGES = [
+  ['basics', 'Budget Basics'], ['process', 'Budget Process'],
+  ['spent', 'How Money Is Spent'], ['categories', 'Spending Categories'],
+  ['cip', 'Capital Improvements'], ['onetime', 'One-Time & Emergency'],
+  ['funding', 'Funding the Budget'], ['taxes', 'Taxes'], ['whopays', 'Who Pays'],
+];
+let pendingEdit = null;    // a section to open for editing after the next render
+const pageOf = key => key.split('.')[1];
+// A whole block: the [[key]] line and its body, up to the next slot or EOF.
+// Anchored on a leading \n — extras always follow an earlier slot, never start
+// the file — so swaps and deletes never merge into a neighbour's line.
+const blockRe = k => new RegExp(`\\n\\[\\[${rxEsc(k)}\\]\\]\\n[\\s\\S]*?(?=\\n\\[\\[|$)`);
+const rawBlock = k => (source.match(blockRe(k)) || [''])[0];
+const extraKeys = page => [...source.matchAll(/\n\[\[(extra\.[^\]]+)\]\]/g)]
+  .map(m => m[1]).filter(k => k.startsWith(`extra.${page}.`));
+
+function addExtra(page, slug) {
+  const key = `extra.${page}.${slug}`;
+  const block = `\n\n[[${key}]]\n## New section\n\nWrite the section here.`;
+  const sibs = extraKeys(page);
+  if (sibs.length) source = source.replace(blockRe(sibs[sibs.length - 1]), m => m + block);
+  else source = source.replace(/\s*$/, '') + block + '\n';
+  return key;
+}
+function removeExtra(key) {
+  source = source.replace(blockRe(key), '').replace(/\n{3,}/g, '\n\n');
+}
+// Swap a section with its neighbour on the same page. Placeholders first, so
+// replacing the first block cannot clobber the text of the second.
+function moveExtra(key, dir) {
+  const keys = extraKeys(pageOf(key));
+  const i = keys.indexOf(key), j = i + dir;
+  if (i < 0 || j < 0 || j >= keys.length) return;
+  const a = keys[Math.min(i, j)], b = keys[Math.max(i, j)];
+  const ra = rawBlock(a), rb = rawBlock(b);
+  source = source.replace(blockRe(a), '\x00A\x00').replace(blockRe(b), '\x00B\x00')
+                 .replace('\x00A\x00', rb).replace('\x00B\x00', ra);
+}
+// Relocate a section to another page: the slot's <page> component decides the
+// page, so rewrite extra.<old>.<slug> -> extra.<new>.<slug> and drop the block
+// among the target page's extras. Slug kept, suffixed only on a clash.
+function moveSectionToPage(key, newPage) {
+  if (newPage === pageOf(key)) return;
+  const body = readSlot(key);
+  const slug = key.split('.').slice(2).join('.');
+  let newKey = `extra.${newPage}.${slug}`;
+  const base = newKey;
+  for (let n = 2; source.includes(`[[${newKey}]]`); n++) newKey = `${base}-${n}`;
+  removeExtra(key);
+  const block = `\n\n[[${newKey}]]\n${body}`;
+  const sibs = extraKeys(newPage);
+  if (sibs.length) source = source.replace(blockRe(sibs[sibs.length - 1]), m => m + block);
+  else source = source.replace(/\s*$/, '') + block + '\n';
+}
+
+$('add').onclick = () => {
+  if (editing) return;
+  const menu = EXTRA_PAGES.map(([, label], i) => `${i + 1}. ${label}`).join('\n');
+  const pick = prompt(`Add a new section to which page?\n\n${menu}\n\nEnter a number 1–${EXTRA_PAGES.length}:`);
+  if (pick === null) return;
+  const idx = parseInt(pick, 10) - 1;
+  if (!(idx >= 0 && idx < EXTRA_PAGES.length)) { $('stat').textContent = `"${pick}" is not a page number`; return; }
+  const [page, label] = EXTRA_PAGES[idx];
+  let slug = (prompt(`Short name for the section on "${label}" (letters, numbers, hyphens):`, '') || '')
+             .trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (!slug) return;
+  const base = slug;
+  for (let n = 2; source.includes(`[[extra.${page}.${slug}]]`); n++) slug = `${base}-${n}`;
+  pushHistory();
+  pendingEdit = addExtra(page, slug);
+  markDirty();
+  $('stat').textContent = `new section on ${label} — write it below`;
+  render();
+};
 
 function spliceAt(el, before, after = '') {
   const s = el.selectionStart ?? el.value.length;
@@ -4224,6 +4653,7 @@ function edit(d, key) {
   const blocks = [...d.querySelectorAll(`[data-slot="${key}"]`)];
   if (!blocks.length || editing) return;
   editing = true;
+  closeSources();   // its citation counts would go stale behind an edit
 
   const inline = blocks[0].dataset.inline === '1';
   const ta = d.createElement(inline ? 'input' : 'textarea');
@@ -4280,18 +4710,24 @@ function edit(d, key) {
 }
 
 // --- persistence -----------------------------------------------------------
-// The one credential: a fine-grained token, this repo only, Contents r/w. It
-// lives in this browser and never leaves it except to call GitHub. Committing
-// content.md is what rebuilds the site and pushes the same text to the doc.
+// The one credential: a fine-grained token, this repo only, Contents r/w (and
+// Pull requests r/w, for Publish). It lives in this browser and never leaves
+// it except to call GitHub. Saves go to a draft branch; only Publish — a
+// merged pull request — touches main, rebuilds the site and updates the doc.
 async function gh(path, opts = {}) {
-  const tok = localStorage.getItem('docsync-pat');
-  const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
-    ...opts,
-    headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json',
-               ...(opts.headers || {}) },
-  });
-  if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 160)}`);
-  return r.json();
+  for (let pass = 0; ; pass++) {
+    const tok = localStorage.getItem('docsync-pat');
+    const r = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
+      ...opts,
+      headers: { Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json',
+                 ...(opts.headers || {}) },
+    });
+    // A signed-in token expires after ~8h. One quiet refresh, then the retry;
+    // only if that fails does the failure reach the person.
+    if (r.status === 401 && pass === 0 && await refreshAuth(true)) continue;
+    if (!r.ok) throw new Error(`GitHub ${r.status}: ${(await r.text()).slice(0, 160)}`);
+    return r.json();
+  }
 }
 
 /**
@@ -4323,14 +4759,140 @@ async function verifyToken(tok) {
   return '';
 }
 
+// --- sign in with GitHub ---------------------------------------------------
+// The OAuth device flow needs no secret anywhere — only the App's public
+// client id. GitHub's login endpoints refuse cross-origin calls, so a tiny
+// relay (docs/primer/oauth-relay.js, ~40 lines, holds nothing) forwards the
+// two of them with CORS added. Configured per project in the manifest:
+//   "oauth": { "client_id": "Iv23…", "relay": "https://…workers.dev" }
+// Absent that config, the paste-a-token prompt below still does the job.
+const oauthOn = () => !!(M && M.oauth && M.oauth.client_id && M.oauth.relay);
+
+async function relay(path, body) {
+  const r = await fetch(M.oauth.relay + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ client_id: M.oauth.client_id, ...body }),
+  });
+  if (!r.ok) throw new Error(`sign-in relay ${r.status}`);
+  return r.json();
+}
+
+function storeAuth(j) {
+  localStorage.setItem('docsync-pat', j.access_token);
+  if (j.expires_in) localStorage.setItem('docsync-exp', String(Date.now() + j.expires_in * 1000));
+  else localStorage.removeItem('docsync-exp');
+  if (j.refresh_token) localStorage.setItem('docsync-refresh', j.refresh_token);
+  localStorage.removeItem('docsync-user');   // may be a different person now
+}
+
+function clearAuth() {
+  ['docsync-pat', 'docsync-exp', 'docsync-refresh', 'docsync-user']
+    .forEach(k => localStorage.removeItem(k));
+}
+
+/** Trade the refresh token for a fresh pair. force skips the expiry check —
+ *  that is gh()'s 401 path, where the token has proven stale regardless. */
+async function refreshAuth(force) {
+  const rt = localStorage.getItem('docsync-refresh');
+  if (!rt || !oauthOn()) return false;
+  const exp = +localStorage.getItem('docsync-exp') || 0;
+  if (!force && exp && Date.now() < exp - 120000) return false;
+  try {
+    const j = await relay('/device/token', { grant_type: 'refresh_token', refresh_token: rt });
+    if (!j.access_token) throw new Error(j.error || 'no token');
+    storeAuth(j);
+    return true;
+  } catch (e) {
+    clearAuth();               // a dead pair only blocks the next sign-in
+    return false;
+  }
+}
+
+/** The sign-in panel: a code to type at github.com, and a page that finishes
+ *  by itself. Resolves with the token, or null if the person backs out. */
+function signIn() {
+  return new Promise(resolve => {
+    const old = $('authpanel'); if (old) old.remove();
+    const p = document.createElement('div');
+    p.id = 'authpanel';
+    p.innerHTML =
+      '<header><b>SIGN IN WITH GITHUB</b><button type="button" class="x">Cancel</button></header>'
+      + '<div class="au-body"><p class="au-msg">getting your code…</p>'
+      + '<div class="au-code" hidden></div>'
+      + '<button type="button" class="au-open" hidden>Open GitHub</button>'
+      + '<p class="au-hint" hidden>Enter the code there and approve. '
+      + 'This page finishes on its own.</p>'
+      + '<p class="au-alt"><a href="#">use a paste-in token instead</a></p></div>';
+    document.body.appendChild(p);
+    p.style.top = ($('bar').getBoundingClientRect().bottom + 6) + 'px';
+    let stopped = false;
+    const done = v => { if (!stopped) { stopped = true; p.remove(); resolve(v); } };
+    p.querySelector('.x').onclick = () => done(null);
+    p.querySelector('.au-alt a').onclick = async e => {
+      e.preventDefault(); done(await askToken());
+    };
+    (async () => {
+      let d;
+      try { d = await relay('/device/code', {}); }
+      catch (e) {
+        p.querySelector('.au-msg').textContent =
+          'could not reach the sign-in relay — falling back to a paste-in token';
+        return setTimeout(async () => done(await askToken()), 1400);
+      }
+      const code = p.querySelector('.au-code');
+      code.textContent = d.user_code; code.hidden = false;
+      try { await navigator.clipboard.writeText(d.user_code);
+            p.querySelector('.au-msg').textContent = 'your code (already copied):'; }
+      catch (e) { p.querySelector('.au-msg').textContent = 'your code:'; }
+      const open = p.querySelector('.au-open');
+      open.hidden = p.querySelector('.au-hint').hidden = false;
+      open.onclick = () => window.open(d.verification_uri, '_blank');
+      let wait = (d.interval || 5) * 1000;
+      const until = Date.now() + (d.expires_in || 900) * 1000;
+      while (!stopped && Date.now() < until) {
+        await new Promise(r => setTimeout(r, wait));
+        if (stopped) return;
+        let j;
+        try {
+          j = await relay('/device/token',
+            { device_code: d.device_code,
+              grant_type: 'urn:ietf:params:oauth:grant-type:device_code' });
+        } catch (e) { continue; }               // a network blip is not a verdict
+        if (j.access_token) { storeAuth(j); return done(j.access_token); }
+        if (j.error === 'slow_down') wait += 5000;
+        else if (j.error === 'access_denied') {
+          p.querySelector('.au-msg').textContent = 'sign-in was declined on GitHub';
+          return setTimeout(() => done(null), 1600);
+        } else if (j.error && j.error !== 'authorization_pending') break;
+      }
+      if (!stopped) {
+        p.querySelector('.au-msg').textContent = 'the code expired — close this and try again';
+      }
+    })();
+  });
+}
+
+/** The one front door for credentials: a live token, refreshed if stale,
+ *  else GitHub sign-in, else the paste-a-token prompt. */
+async function ensureAuth() {
+  await refreshAuth(false);
+  const tok = localStorage.getItem('docsync-pat');
+  if (tok) return tok;
+  if (oauthOn()) return signIn();
+  return askToken();
+}
+
 async function askToken() {
   const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
-  const entered = prompt('Paste a GitHub fine-grained token\n\n' +
+  const entered = prompt('One-time setup: paste a GitHub fine-grained token\n\n' +
     'github.com -> Settings -> Developer settings -> Fine-grained tokens\n' +
     `Repository access: only ${REPO}\n` +
-    'Permissions -> Repository permissions -> Contents: Read and WRITE\n' +
-    '(Contents defaults to no access; Read-only is not enough.)\n\n' +
+    'Permissions -> Repository permissions:\n' +
+    '    Contents: Read and WRITE        (saving drafts)\n' +
+    '    Pull requests: Read and WRITE   (publishing)\n' +
+    '(Both default to no access; Read-only is not enough.)\n\n' +
     'Stored in this browser only.');
   if (!entered) return null;
   $('stat').textContent = 'checking the token…';
@@ -4340,9 +4902,216 @@ async function askToken() {
     return null;                       // not stored — a bad token helps nobody
   }
   localStorage.setItem('docsync-pat', entered.trim());
+  localStorage.removeItem('docsync-user');   // a new token may be a new person
   $('stat').textContent = 'token accepted';
   return entered.trim();
 }
+
+// The Token… button: swap credentials (a new collaborator on a shared machine,
+// or an expired token). It had no handler at all before this.
+$('tok').onclick = async () => {
+  clearAuth();
+  await ensureAuth();
+};
+
+/** Explain a GitHub failure in terms of the fix, not the status code. */
+function tokenWhy(e) {
+  const m = String(e.message);
+  if (m.includes('not accessible'))
+    return 'the token has no write access. github.com/settings/personal-access-tokens '
+      + `-> your token -> Repository access: ${REPO} -> Permissions -> Contents: `
+      + 'Read and write. Then try again.';
+  // Only discard on 401 (the token itself is bad). A 403 means the token is
+  // fine but under-permissioned — discarding it just makes you paste the
+  // same token again and get the same 403, forever.
+  if (m.match(/401/)) {
+    localStorage.removeItem('docsync-pat');
+    return 'the token was rejected — it may be expired or mistyped.';
+  }
+  return m;
+}
+
+// --- drafts: Save draft / Share / Publish ----------------------------------
+// Nothing here writes to main. Save commits your work — prose and layout in
+// ONE commit — to draft/<project>/<user>, a branch of your own. Share hands
+// out a link that renders that branch. Publish opens and merges a pull
+// request into main, the only step that changes the live report. Three verbs;
+// the git underneath stays out of sight.
+let draftBranch = new URLSearchParams(location.search).get('draft') || null;
+
+const showDraftBadge = () =>
+  { $('title').textContent = M.id + ' · draft: ' + draftBranch.split('/').pop(); };
+const draftUrl = () => location.origin + pageUrl({ draft: draftBranch });
+
+async function resolveDraft() {
+  if (local) { draftBranch = null; return; }
+  if (!draftBranch) {
+    // No link in the URL, but this browser saved a draft before? Pick it up
+    // rather than silently showing main — "my edits vanished" is the scariest
+    // bug an editor can have.
+    const u = localStorage.getItem('docsync-user');
+    if (localStorage.getItem('docsync-pat') && u) {
+      const b = `draft/${M.id}/${u}`;
+      try { await gh(`git/ref/heads/${b}`); draftBranch = b; } catch (e) { /* none */ }
+    }
+  }
+  if (draftBranch) {
+    history.replaceState(null, '', draftUrl());
+    showDraftBadge();
+  }
+}
+
+/** A draft file, fresh. The API sees a commit instantly; raw.githubusercontent
+ *  can lag minutes behind a push, so it is only the tokenless fallback. */
+async function fromBranch(path) {
+  if (localStorage.getItem('docsync-pat')) {
+    const j = await gh(`contents/${path}?ref=${encodeURIComponent(draftBranch)}`);
+    return new TextDecoder().decode(
+      Uint8Array.from(atob(j.content.replace(/\n/g, '')), c => c.charCodeAt(0)));
+  }
+  const r = await fetch(bust(`https://raw.githubusercontent.com/${REPO}/${draftBranch}/${path}`),
+                        { cache: 'no-store' });
+  if (!r.ok) throw new Error(`HTTP ${r.status} — ${path}@${draftBranch}`);
+  return r.text();
+}
+
+/** Who the token belongs to — names the draft branch and the commits. */
+async function ghUser() {
+  let u = localStorage.getItem('docsync-user');
+  if (u) return u;
+  const r = await fetch('https://api.github.com/user', {
+    headers: { Authorization: `Bearer ${localStorage.getItem('docsync-pat')}`,
+               Accept: 'application/vnd.github+json' },
+  });
+  if (!r.ok) throw new Error(`GitHub ${r.status} asking who this token belongs to`);
+  u = (await r.json()).login.toLowerCase();
+  localStorage.setItem('docsync-user', u);
+  return u;
+}
+
+async function ensureBranch(branch) {
+  try { await gh(`git/ref/heads/${branch}`); return; }
+  catch (e) { if (!String(e.message).match(/404/)) throw e; }
+  const main = await gh('git/ref/heads/main');
+  await gh('git/refs', { method: 'POST',
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: main.object.sha }) });
+}
+
+/** One commit for everything that changed — prose and layout land together or
+ *  not at all, unlike the old per-file PUTs that could interleave or half-land.
+ *  If someone else saved this draft between our read and our write, retry once
+ *  on their tip: the tree only names the files WE changed, so their work on
+ *  the other file rides along untouched. */
+async function commitToBranch(branch, files, message) {
+  for (let attempt = 0; ; attempt++) {
+    const base = (await gh(`git/ref/heads/${branch}`)).object.sha;
+    const tree = await gh('git/trees', { method: 'POST', body: JSON.stringify({
+      base_tree: (await gh(`git/commits/${base}`)).tree.sha,
+      tree: files.map(f => ({ path: f.path, mode: '100644', type: 'blob', content: f.content })),
+    }) });
+    const commit = await gh('git/commits', { method: 'POST', body: JSON.stringify({
+      message, tree: tree.sha, parents: [base] }) });
+    try {
+      await gh(`git/refs/heads/${branch}`, { method: 'PATCH',
+        body: JSON.stringify({ sha: commit.sha }) });
+      return commit.sha;
+    } catch (e) {
+      // Not a fast-forward: the branch moved under us. Once, quietly, retry.
+      if (attempt === 0 && String(e.message).match(/422|fast[- ]forward/i)) continue;
+      throw e;
+    }
+  }
+}
+
+/** Uploads (images) need a branch to land on before the editor's next Save;
+ *  make sure the draft exists and the URL points at it. */
+async function draftForUpload() {
+  const user = await ghUser();
+  if (!draftBranch) draftBranch = `draft/${M.id}/${user}`;
+  await ensureBranch(draftBranch);
+  history.replaceState(null, '', draftUrl());
+  showDraftBadge();
+  return draftBranch;
+}
+
+async function saveDraft() {
+  if (!await ensureAuth()) return false;
+  $('save').disabled = true;
+  $('stat').textContent = 'saving your draft…';
+  try {
+    const user = await ghUser();
+    if (!draftBranch) draftBranch = `draft/${M.id}/${user}`;
+    await ensureBranch(draftBranch);
+    const layoutText = JSON.stringify(layout, null, 2) + '\n';
+    const files = [];
+    if (source !== original) files.push({ path: M.content, content: source });
+    if (M.layout && layoutText !== layoutOrig) files.push({ path: M.layout, content: layoutText });
+    if (files.length) await commitToBranch(draftBranch, files, `${M.id}: draft by ${user}`);
+    original = source; layoutOrig = layoutText;
+    markDirty();
+    history.replaceState(null, '', draftUrl());   // a reload finds this draft
+    showDraftBadge();
+    $('stat').textContent = 'draft saved — yours only, not live. Share it for feedback, or Publish';
+    return true;
+  } catch (e) {
+    $('stat').textContent = 'save failed: ' + tokenWhy(e);
+    markDirty();
+    return false;
+  }
+}
+
+$('share').onclick = async () => {
+  if (dirty || !draftBranch) { if (!await saveDraft()) return; }
+  const url = draftUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+    $('stat').textContent = 'link copied — it shows this draft, not the live report';
+  } catch (e) {
+    prompt('Copy this draft link:', url);   // clipboard blocked: show it instead
+  }
+};
+
+$('publish').onclick = async () => {
+  if (dirty) { if (!await saveDraft()) return; }
+  if (!draftBranch) {
+    $('stat').textContent = 'nothing to publish yet — make an edit and Save draft first';
+    return;
+  }
+  if (!confirm('Make this draft the live report?\n\nEveryone will see it. '
+             + 'The live site (and the Google Doc) update in about two minutes.')) return;
+  if (!await ensureAuth()) return;
+  $('publish').disabled = true;
+  $('stat').textContent = 'publishing…';
+  try {
+    const user = await ghUser();
+    const owner = REPO.split('/')[0];
+    let pr = (await gh(`pulls?head=${owner}:${encodeURIComponent(draftBranch)}&state=open`))[0];
+    if (!pr) pr = await gh('pulls', { method: 'POST', body: JSON.stringify({
+      title: `${M.id}: publish draft by ${user}`, head: draftBranch, base: 'main',
+      body: 'Published from the draft editor.' }) });
+    await gh(`pulls/${pr.number}/merge`, { method: 'PUT',
+      body: JSON.stringify({ merge_method: 'squash' }) });
+    try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    draftBranch = null;
+    history.replaceState(null, '', pageUrl());
+    $('title').textContent = M.id;
+    markDirty();
+    $('stat').textContent = 'published ✓ — the live report updates in about two minutes';
+  } catch (e) {
+    const m = String(e.message);
+    $('stat').textContent =
+      m.match(/No commits between/i)
+        ? 'this draft already matches the live report — nothing to publish'
+      : m.match(/405|not mergeable|merge conflict/i)
+        ? 'the live report changed while you worked, and the two now overlap. '
+          + `Open github.com/${REPO}/pulls to look at the difference, or ask for help.`
+      : m.includes('not accessible')
+        ? 'the token cannot open pull requests. github.com/settings/personal-access-tokens '
+          + '-> your token -> Permissions -> Pull requests: Read and write. Then Publish again.'
+      : 'publish failed: ' + tokenWhy(e);
+  }
+  $('publish').disabled = false;
+};
 
 $('save').onclick = async () => {
   // Confirm, not block: prose has always been able to overflow a page and
@@ -4382,61 +5151,27 @@ $('save').onclick = async () => {
     return;
   }
 
-  if (!await askToken()) return;
-  $('save').disabled = true;
-  $('stat').textContent = 'saving…';
-  try {
-    // Prose and layout are separate files, so a text edit and a move are
-    // separate commits — each reviewable on its own.
-    const writes = [];
-    if (source !== original)
-      writes.push([M.content, source, `${M.id}: edit prose from the draft editor`]);
-    if (M.layout && layoutText !== layoutOrig)
-      writes.push([M.layout, layoutText, `${M.id}: move layout from the draft editor`]);
-
-    for (const [path, body, message] of writes) {
-      const cur = await gh(`contents/${path}?ref=main`).catch(() => ({}));
-      await gh(`contents/${path}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          message,
-          content: btoa(String.fromCharCode(...new TextEncoder().encode(body))),
-          ...(cur.sha ? { sha: cur.sha } : {}), branch: 'main',
-        }),
-      });
-    }
-    original = source; layoutOrig = layoutText; dirty = false;
-    $('revert').disabled = true;
-    $('save').classList.remove('dirty');
-    $('stat').textContent = 'saved — the site rebuilds in ~90s';
-  } catch (e) {
-    // "Resource not accessible" means the token is valid but was minted
-    // without write access — the default. Say the fix, not the status code.
-    const m = String(e.message);
-    const why = m.includes('not accessible')
-      ? 'the token has no write access. github.com/settings/personal-access-tokens '
-        + `-> your token -> Repository access: ${REPO} -> Permissions -> Contents: `
-        + 'Read and write. Then press Save again.'
-      : m.match(/401/) ? 'the token was rejected — it may be expired or mistyped.'
-      : m;
-    $('stat').textContent = 'save failed: ' + why;
-    $('save').disabled = false;
-    // Only discard on 401 (the token itself is bad). A 403 means the token is
-    // fine but under-permissioned — discarding it just makes you paste the
-    // same token again and get the same 403, forever.
-    if (m.match(/401/)) localStorage.removeItem('docsync-pat');
-  }
+  await saveDraft();   // to draft/<project>/<user> — never straight to main
 };
 
 $('revert').onclick = async () => {
+  // With nothing unsaved, Discard means the DRAFT itself: delete its branch
+  // and go back to the live report. (With unsaved edits it stays what it
+  // always was — throw away what you typed since the last save.)
+  if (!dirty && draftBranch && !local) {
+    if (!confirm('Throw away this saved draft?\n\nThe live report is untouched. '
+               + 'This cannot be undone.')) return;
+    if (!await ensureAuth()) return;
+    try { await gh(`git/refs/heads/${draftBranch}`, { method: 'DELETE' }); } catch (e) {}
+    location.href = pageUrl();           // reload clean, on the live content
+    return;
+  }
   if (!confirm('Discard your unsaved edits?')) return;
   source = original;
   layout = JSON.parse(layoutOrig || '{}');
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
-  dirty = false;
-  $('save').disabled = $('revert').disabled = true;
-  $('save').classList.remove('dirty');
+  markDirty();
   await render();
 };
 
@@ -4485,6 +5220,11 @@ async function doExport(fmt) {
 }
 
 addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
+// Registered here, not blocking boot() — the editor works with no service
+// worker at all (this is a progressive enhancement, not a dependency), and a
+// registration failure (an unsupported browser, a scope error) should never
+// stop the page from loading.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 boot().catch(e => { $('stat').textContent = 'failed to start: ' + e.message; });
 </script>
 </body>

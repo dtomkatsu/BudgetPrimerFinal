@@ -269,6 +269,38 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   a { color: var(--dark); text-decoration: underline; }
 }
 
+/* ---- print bleed & crop marks -------------------------------------------
+   Turned on only for an export chosen with "Bleed & crop marks": the renderer
+   puts .ds-bleed on <body> for that one render, so the published document is
+   byte- and pixel-identical when the class is absent (the named page and the
+   .ds-bleed rules are inert). The sheet grows by 0.125in on each side; the page
+   fills the whole sheet with its padding grown by the same 0.125in, so the
+   CONTENT keeps its exact position (padding-box size and place are unchanged),
+   the page background now bleeds to the sheet edge, and eight hairlines mark the
+   trim corners. Marks live INSIDE the page (inset:0) — content pushed into a
+   page's CSS margin is clipped away by the print engine, which is why they must
+   not sit in a margin. */
+@page bleed { size: 8.75in 11.25in; margin: 0; }
+@media print {
+  .ds-bleed .page {
+    page: bleed;
+    width: 8.75in; height: 11.25in; margin: 0;
+    padding: calc(0.75in + 0.125in) calc(0.62in + 0.125in) calc(0.9in + 0.125in);
+  }
+  .ds-bleed .page::after {     /* eight trim ticks, 0.125in in from each edge */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(#111,#111) left  0       top    0.125in / 0.12in 0.5pt no-repeat,
+      linear-gradient(#111,#111) left  0.125in top    0       / 0.5pt 0.12in no-repeat,
+      linear-gradient(#111,#111) right 0       top    0.125in / 0.12in 0.5pt no-repeat,
+      linear-gradient(#111,#111) right 0.125in top    0       / 0.5pt 0.12in no-repeat,
+      linear-gradient(#111,#111) left  0       bottom 0.125in / 0.12in 0.5pt no-repeat,
+      linear-gradient(#111,#111) left  0.125in bottom 0       / 0.5pt 0.12in no-repeat,
+      linear-gradient(#111,#111) right 0       bottom 0.125in / 0.12in 0.5pt no-repeat,
+      linear-gradient(#111,#111) right 0.125in bottom 0       / 0.5pt 0.12in no-repeat;
+  }
+}
+
 /* budget-tracker interlinks */
 .figcap-hint { color: #8AA39E; font-weight: 400; }
 .lk { cursor: pointer; }

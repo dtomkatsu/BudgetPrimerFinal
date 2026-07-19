@@ -321,6 +321,101 @@ def _alpha(v, where: str) -> float:
     return a
 
 
+# ---- fills: a solid hex, or a gradient ----------------------------------
+# A fill value is EITHER a hex string (unchanged — the byte-identity case) or a
+# gradient {type:"linear"|"radial", angle, stops:[{color, at}]}. Three helpers
+# turn that one value into the three forms the report needs — a CSS background,
+# an SVG paint (with its <defs>), and one representative colour for the contrast
+# test. All are module functions so the renderer, the tests, and the editor
+# (through Pyodide) share ONE definition; a JavaScript twin would drift.
+
+def _split_hex(hexc: str) -> tuple[str, float]:
+    """A #hex (3/4/6/8 digits) -> ('#rrggbb', alpha 0..1). SVG stops carry colour
+    and opacity separately, so an 8-digit fill has to be split."""
+    h = hexc.lstrip("#")
+    if len(h) in (3, 4):
+        h = "".join(c * 2 for c in h)
+    a = int(h[6:8], 16) / 255 if len(h) == 8 else 1.0
+    return "#" + h[:6], round(a, 4)
+
+
+def _fill(v, where: str):
+    """Validate a fill value — a hex or a gradient — and return it unchanged."""
+    if isinstance(v, str):
+        return _hex(v, where)
+    if isinstance(v, dict):
+        if v.get("type") not in ("linear", "radial"):
+            raise LayoutError(f"{where}: gradient 'type' must be 'linear' or 'radial'")
+        if v["type"] == "linear" and v.get("angle") is not None:
+            _num(v["angle"], f"{where}.angle")
+        stops = v.get("stops")
+        if not isinstance(stops, list) or len(stops) < 2:
+            raise LayoutError(f"{where}: a gradient needs two or more stops")
+        for j, st in enumerate(stops):
+            if not isinstance(st, dict):
+                raise LayoutError(f"{where}.stops[{j}]: expected a {{color, at}} object")
+            _hex(st.get("color"), f"{where}.stops[{j}].color")
+            _alpha(st.get("at"), f"{where}.stops[{j}].at")
+        return v
+    raise LayoutError(f"{where}: {v!r} is not a hex colour or a gradient")
+
+
+def _grad_vector(angle: float) -> tuple:
+    """CSS angle (0deg = up, clockwise) -> SVG objectBoundingBox x1,y1,x2,y2, the
+    last stop sitting toward the angle. y runs downward in SVG, hence -cos."""
+    rad = math.radians(angle)
+    dx, dy = math.sin(rad), -math.cos(rad)
+    return (round(.5 - .5 * dx, 4), round(.5 - .5 * dy, 4),
+            round(.5 + .5 * dx, 4), round(.5 + .5 * dy, 4))
+
+
+def fill_css(v) -> str:
+    """A fill value -> a CSS background value. A hex passes through verbatim, so a
+    solid fill emits exactly the bytes it did before."""
+    if not isinstance(v, dict):
+        return v
+    stops = ", ".join(f'{s["color"]} {round(s["at"] * 100, 3):g}%' for s in v["stops"])
+    if v["type"] == "radial":
+        return f"radial-gradient(circle, {stops})"
+    return f'linear-gradient({_num(v.get("angle", 0), "angle"):g}deg, {stops})'
+
+
+def fill_svg_paint(v, defid: str) -> tuple:
+    """A fill value -> (SVG paint, defs). A hex/None is (itself, '') — no defs,
+    so a solid shape is byte-identical."""
+    if not isinstance(v, dict):
+        return (v if v is not None else "none"), ""
+    body = ""
+    for s in v["stops"]:
+        six, a = _split_hex(s["color"])
+        body += (f'<stop offset="{round(s["at"] * 100, 3):g}%" stop-color="{six}"'
+                 f' stop-opacity="{a:g}"/>')
+    if v["type"] == "radial":
+        defs = f'<radialGradient id="{defid}" cx="0.5" cy="0.5" r="0.5">{body}</radialGradient>'
+    else:
+        x1, y1, x2, y2 = _grad_vector(v.get("angle", 0))
+        defs = (f'<linearGradient id="{defid}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">'
+                f'{body}</linearGradient>')
+    return f"url(#{defid})", defs
+
+
+def fill_repr(v) -> str:
+    """A fill value -> one #rrggbb for the contrast test. A gradient averages its
+    stops, each composited over white by its own alpha so a translucent stop reads
+    like it looks. A hex passes straight to is_light_bg, which composites itself."""
+    if not isinstance(v, dict):
+        return v
+    rs = gs = bs = 0.0
+    for s in v["stops"]:
+        six, a = _split_hex(s["color"])
+        r, g, b = (int(six[i:i + 2], 16) for i in (1, 3, 5))
+        rs += r * a + 255 * (1 - a)
+        gs += g * a + 255 * (1 - a)
+        bs += b * a + 255 * (1 - a)
+    n = len(v["stops"])
+    return "#" + "".join(f"{round(c / n):02x}" for c in (rs, gs, bs))
+
+
 def _check_shadow(sh, where: str) -> None:
     if not isinstance(sh, dict):
         raise LayoutError(f"{where}: expected a shadow object")
@@ -424,10 +519,12 @@ class Layout:
             for k in ("x", "y", "w", "h"):
                 _num(s.get(k), f"{where}.{k}")
             # These land verbatim inside SVG attributes: a malformed value
-            # does not error, it renders an invisible shape.
-            for k in ("fill", "stroke"):
-                if s.get(k) not in (None, "none"):
-                    _hex(s[k], f"{where}.{k}")
+            # does not error, it renders an invisible shape. Fill may be a
+            # gradient; stroke stays a solid hex.
+            if s.get("fill") not in (None, "none"):
+                _fill(s["fill"], f"{where}.fill")
+            if s.get("stroke") not in (None, "none"):
+                _hex(s["stroke"], f"{where}.stroke")
             if s.get("rot") is not None:
                 _num(s["rot"], f"{where}.rot")
             if s.get("alpha") is not None:
@@ -454,7 +551,7 @@ class Layout:
                 raise LayoutError(f"text '{key}': expected a style object")
             _check_text(st, f"text '{key}'")
         for el, c in self.fills.items():
-            _hex(c, f"fill '{el}'")
+            _fill(c, f"fill '{el}'")
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
@@ -556,7 +653,7 @@ class Layout:
             if "z" in b and not isinstance(b["z"], int):
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
             if b.get("fill"):
-                _hex(b["fill"], f"{where}.fill")
+                _fill(b["fill"], f"{where}.fill")
             if b.get("rot") is not None:
                 _num(b["rot"], f"{where}.rot")
             if b.get("alpha") is not None:
@@ -771,7 +868,7 @@ class Layout:
         if os.environ.get("DOCSYNC_EDIT"):
             bits.append(f'data-fill="{el_id}"')
         if self.refilled(el_id):
-            bits.append(f'style="background:{self.fills[el_id]}"')
+            bits.append(f'style="background:{fill_css(self.fills[el_id])}"')
         return (" " + " ".join(bits)) if bits else ""
 
     # ---- images ----------------------------------------------------------
@@ -834,7 +931,7 @@ class Layout:
                 # A background needs breathing room or the words sit on its
                 # edge; padding only when filled, so a plain box's text keeps
                 # sitting exactly where it was put.
-                css += f';background:{b["fill"]};padding:.08in .12in;border-radius:8px'
+                css += f';background:{fill_css(b["fill"])};padding:.08in .12in;border-radius:8px'
             if b.get("rot"):
                 css += f';transform:rotate({b["rot"]}deg)'
             if b.get("alpha") is not None:
@@ -866,7 +963,12 @@ class Layout:
 
     def _svg(self, shapes: list, z: int) -> str:
         body = "".join(self._shape(s) for s in shapes)
-        defs = ""
+        # One <defs> per layer, holding any gradient definitions and — as before —
+        # the arrowhead marker. With no gradient and no arrow the list is empty
+        # and defs is "", so a plain shape layer is byte-for-byte unchanged; with
+        # arrows only, the marker is exactly the string it was.
+        defbits = [fill_svg_paint(s.get("fill"), f"ds-fill-{s['id']}")[1]
+                   for s in shapes if isinstance(s.get("fill"), dict)]
         if any(s.get("kind") == "line" and s.get("ends") not in (None, "none")
                for s in shapes):
             # One arrowhead marker per layer. markerUnits="strokeWidth" scales
@@ -874,18 +976,21 @@ class Layout:
             # own colour (Chrome renders both screen and PDF here). The id
             # carries page and layer so two layers never fight over one def.
             pg = shapes[0].get("page")
-            defs = (f'<defs><marker id="ds-arr-{pg}-{z}" viewBox="0 0 10 10" '
-                    f'refX="8" refY="5" markerUnits="strokeWidth" markerWidth="7" '
-                    f'markerHeight="7" orient="auto-start-reverse">'
-                    f'<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>'
-                    f'</marker></defs>')
+            defbits.append(f'<marker id="ds-arr-{pg}-{z}" viewBox="0 0 10 10" '
+                           f'refX="8" refY="5" markerUnits="strokeWidth" markerWidth="7" '
+                           f'markerHeight="7" orient="auto-start-reverse">'
+                           f'<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>'
+                           f'</marker>')
+        defs = f'<defs>{"".join(defbits)}</defs>' if defbits else ""
         return (f'<svg class="shape-layer" style="position:absolute;left:0;top:0;'
                 f'width:{self.page_w}in;height:{self.page_h}in;pointer-events:none;'
                 f'z-index:{z}" viewBox="0 0 {self.page_w} {self.page_h}">{defs}{body}</svg>')
 
     def _shape(self, s: dict) -> str:
         x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
-        fill = s.get("fill", "none")
+        # A gradient fill becomes fill="url(#…)" and a <defs> entry that _svg
+        # collects; a hex/none stays verbatim, so a solid shape is byte-identical.
+        fill, _ = fill_svg_paint(s.get("fill"), f"ds-fill-{s['id']}")
         stroke = s.get("stroke", "none")
         sw = s.get("sw", 0.02)
         common = (f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}" '
