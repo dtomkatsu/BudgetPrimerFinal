@@ -269,3 +269,76 @@ rather than a reason to pre-empt.
 
 Same verdict for **Quill / Slate / Lexical**, and for the same root reason:
 they all own the document model, and here Python owns it.
+
+---
+
+## Icon sets (Iconoir, Lucide, Heroicons, Bootstrap Icons…) — Yes, via Iconify
+
+Adopted 2026-07-19. Roughly 16,000 icons across six permissively-licensed
+sets are searchable from the toolbar's **Icon** button.
+
+### Why one API instead of four libraries
+
+Vendoring the sets would mean four dependencies, four update paths, and
+megabytes of SVG in the repo to make a handful of glyphs reachable. The
+[Iconify API](https://api.iconify.design) indexes all of them behind one
+search endpoint and returns each icon's inner markup, so the integration is a
+`fetch` — no build step, no vendored assets, nothing to keep in sync. Sets
+wired up, all verified present with their licences:
+
+| prefix | set | licence | icons |
+|---|---|---|---|
+| `lucide` | Lucide | ISC | 1,748 |
+| `iconoir` | Iconoir | MIT | 1,671 |
+| `heroicons` | Heroicons | MIT | 1,288 |
+| `bi` | Bootstrap Icons | MIT | 2,078 |
+| `ph` | Phosphor | MIT | 9,072 |
+| `tabler` | Tabler | MIT | ~5,900 |
+
+Adding another set is one line in `ICON_SETS`.
+
+### The decision that matters: geometry is copied, not referenced
+
+A picked icon's `body` and `viewBox` are written **into `layout.json`**. It
+would have been less code to store `"lucide:house"` and resolve it at render
+time, and it would have been wrong twice over:
+
+- The PDF is printed by headless Chrome from built HTML, and the preview
+  renders under Pyodide. **Neither may assume a network.** A stored icon
+  renders offline forever; a referenced one would be a hole in the page the
+  first time the API was unreachable or the build ran in CI without egress.
+- An upstream set gets revised. A reference means a published report can
+  silently change shape months later; a copy cannot.
+
+This also keeps the existing invariant intact — `layout.json` is the single
+source of truth and Python draws everything — rather than introducing a
+second render path for one object type.
+
+### Recolouring falls out of how these sets are drawn
+
+They all draw in `currentColor`, which is exactly why they suit a
+palette-driven editor: the renderer nests an `<svg>` carrying
+`style="color:…"` from the shape's own `fill`, so the existing Fill control
+repaints the whole glyph with no icon-specific code. A gradient can't *be* a
+colour, so `icon_color()` lends its first stop rather than failing — the icon
+still lands in the palette. Icons take corner handles only: they scale as a
+whole, since stretching a glyph just distorts it.
+
+### Untrusted markup, and the two gates on it
+
+Icon markup comes from the internet and ends up inside the rendered page, so
+it is whitelisted on the way in (`iconSvgOk`, editor) **and** on the way out
+(`check_icon_svg`, `layout.py`). The duplication is deliberate: `layout.json`
+can be hand-edited or arrive from a branch, so the renderer cannot trust that
+the editor vetted anything. Refused: `<script>`, `on*=` handlers, `<image>`
+and `<a>` (remote fetches and `javascript:`), `<foreignObject>`, `<iframe>`,
+entity/doctype declarations, any tag outside a small SVG shape whitelist, and
+anything over 64KB. It **fails loudly** rather than stripping — a silently
+half-drawn icon is worse than a build that says why. The `viewBox` is checked
+to be four numbers, since it lands verbatim in an attribute where a stray
+quote would end it early.
+
+Pinned by `icons.spec.js` (search, set filter, alias resolution, placement,
+render + recolour, corner-only handles, every refusal case, empty results,
+offline) with the API mocked so the suite never calls out; and by
+`test_docsync.py` for the Python gate.

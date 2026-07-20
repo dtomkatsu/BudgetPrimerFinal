@@ -851,6 +851,46 @@ check("an 8-digit stop splits its alpha",
                                                   {"color": "#fff", "at": 1}]}, "d")[1],
       'stop-color="#2F3E46" stop-opacity="0.5')
 
+# ------------------------------------------------------------------- icons
+# An icon's geometry is copied into layout.json from an open-source set, so
+# markup from the internet reaches the rendered page. layout.py is the only
+# gate the RENDERER controls (layout.json can be hand-edited), so it checks
+# rather than trusts — and fails loudly instead of stripping, which would
+# leave a half-drawn icon nobody could explain.
+from docsync.layout import check_icon_svg, icon_color                # noqa: E402
+
+
+def check_icon_raises(name, body, expect):
+    try:
+        check_icon_svg(body, "shape #1")
+    except LayoutError as e:
+        if expect not in str(e):
+            FAILS.append(f"{name}\n  want error containing: {expect!r}\n  got: {e}")
+        return
+    FAILS.append(f"{name}\n  expected LayoutError containing {expect!r}, none raised")
+
+
+_ICON = '<g fill="none" stroke="currentColor"><path d="M3 10a2 2 0 0 1 .7-1.5"/></g>'
+check_eq("a plain drawing passes", check_icon_svg(_ICON, "s"), _ICON)
+check_icon_raises("a script tag is refused", "<script>alert(1)</script>", "not allowed")
+check_icon_raises("an event handler is refused", '<path onload="x" d="M0 0"/>', "not allowed")
+check_icon_raises("a remote image is refused", '<image href="http://e/x.png"/>', "not allowed")
+check_icon_raises("a javascript: link is refused", '<a href="javascript:1">x</a>', "not allowed")
+check_icon_raises("foreignObject is refused", "<foreignObject><b>x</b></foreignObject>",
+                  "not allowed")
+check_icon_raises("an unknown tag is refused", "<video/>", "not one of the allowed")
+check_icon_raises("empty markup is refused", "  ", "needs its 'svg'")
+check_icon_raises("absurd markup is refused", '<path d="' + "M0 0" * 20000 + '"/>',
+                  "refusing it")
+
+# currentColor is the whole reason these sets recolour cleanly: one CSS
+# property repaints the glyph. A gradient cannot BE a colour, so it lends its
+# first stop rather than failing — the icon still lands in the palette.
+check_eq("a solid fill is the icon's colour", icon_color("#B23A48"), "#B23A48")
+check_eq("a gradient lends its first stop",
+         icon_color({"type": "linear", "stops": [{"color": "#123456", "at": 0}]}), "#123456")
+check_eq("no fill falls back to the report's ink", icon_color(None), "#2F3E46")
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

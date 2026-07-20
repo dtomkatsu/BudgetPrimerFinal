@@ -271,6 +271,21 @@
          box-shadow:0 10px 32px rgba(20,30,35,.35); padding:12px; min-width:190px; }
   .pop-h { font:600 11px system-ui; letter-spacing:.7px; text-transform:uppercase;
            color:#7A8E92; margin:0 0 8px; }
+  /* The icon picker: a search field over a scrolling grid of results. Wider
+     than the other popovers because a grid of glyphs is what it is for. */
+  .pop-wide { width:340px; }
+  #icon-q, #icon-set { width:100%; box-sizing:border-box; font:13px system-ui;
+           padding:6px 8px; border:1px solid #C9D6CD; border-radius:6px;
+           background:#fff; color:var(--ink); }
+  #icon-set { margin-top:6px; font-size:12px; }
+  #icon-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:4px;
+           margin-top:8px; max-height:230px; overflow-y:auto; }
+  #icon-grid:empty { display:none; }
+  .icon-tile { display:flex; align-items:center; justify-content:center;
+           aspect-ratio:1; padding:0; border:1px solid transparent; border-radius:6px;
+           background:none; color:var(--ink); cursor:pointer; }
+  .icon-tile:hover { background:#EAF3EC; border-color:#95B7A2; }
+  .icon-note { font:11px system-ui; color:#7A8E92; margin:8px 0 0; }
   .swgrid { display:grid; grid-template-columns:repeat(5, 26px); gap:6px; }
   .sw { width:26px; height:26px; border:1px solid rgba(0,0,0,.16); border-radius:6px;
         cursor:pointer; padding:0; position:relative; }
@@ -383,6 +398,10 @@
       stroke-width="1.5"><rect x="1.2" y="3.4" width="8" height="8" rx="1.4"/>
       <circle cx="10" cy="4.4" r="2.9"/></svg>
     Shape</button>
+  <button id="icon" title="Search thousands of open-source icons and place one">
+    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linejoin="round"><path d="M7 1.6l1.7 3.4 3.8.55-2.75 2.68.65 3.77L7 10.22 3.6 12l.65-3.77L1.5 5.55l3.8-.55z"/></svg>
+    Icon</button>
   <button id="table" title="Add a table to the page in view">
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
@@ -446,6 +465,16 @@
     <button class="shp" data-k="arrow"><svg width="15" height="15" viewBox="0 0 15 15"
       fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
       d="M1.5 5.8h6.5V3.2l5.5 4.3-5.5 4.3V9.2H1.5z"/></svg>Arrow</button>
+  </div>
+  <div class="pop pop-wide" id="iconpop" hidden>
+    <p class="pop-h">Search open-source icons</p>
+    <input id="icon-q" type="search" placeholder="chart, house, arrow, people…"
+      autocomplete="off" spellcheck="false">
+    <select id="icon-set" title="Which icon set to search">
+      <option value="">All sets</option>
+    </select>
+    <div id="icon-grid"></div>
+    <p class="icon-note" id="icon-note"></p>
   </div>
 </div>
 <div id="context">
@@ -2260,7 +2289,13 @@ function handlesFor(el) {
   // uniformly, so their handles are the four corners (each drives the one
   // scale factor). A designed prose slot reflows on width alone — no height to
   // drag — so it gets both horizontal edges, east and west.
-  if (el.dataset.shape) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+  // An icon is a drawn glyph, not a box: stretching one only distorts it, so
+  // it takes the four corners like any other graphic and scales as a whole.
+  if (el.dataset.shape) {
+    const sh = (layout.shapes || []).find(s => s.id === el.dataset.shape);
+    if (sh && sh.kind === 'icon') return ['ne', 'nw', 'se', 'sw'];
+    return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+  }
   if (el.classList.contains('ds-textbox')) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   if (isGraphic(el)) return ['ne', 'nw', 'se', 'sw'];
   // A table is width-driven — its rows set the height — so it takes the two
@@ -2748,7 +2783,7 @@ function togglePop(pop, anchor) {
     document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
 addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #layers, #download'))
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers, #download'))
     document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
 });
 
@@ -5111,6 +5146,141 @@ async function restoreCachedDraft() {
   layout.shapes = layout.shapes || [];
   cachedRestored = true;
 }
+
+// ------------------------------------------------------------------- icons
+// Thousands of icons from the open-source sets — Iconoir, Lucide, Heroicons,
+// Bootstrap Icons, Phosphor, Tabler — searched through the Iconify API, which
+// indexes them all behind one endpoint. Nothing is vendored: this is a CDN
+// call at PICK time, like the Pyodide and fflate imports already here.
+//
+// What gets stored is the icon's GEOMETRY, not a reference to it. The PDF is
+// printed by headless Chrome from built HTML and the preview renders under
+// Pyodide — neither may assume a network. A picked icon therefore renders
+// offline forever, and cannot change under the report when a set is revised
+// upstream. layout.py re-checks the markup on the way out (layout.json can be
+// hand-edited); this is the same whitelist on the way in.
+const ICON_API = 'https://api.iconify.design';
+// Every one of these is permissively licensed (MIT/ISC/Apache) and designed
+// as single-colour strokes, so the report's own palette recolours them.
+const ICON_SETS = [
+  ['lucide', 'Lucide'], ['iconoir', 'Iconoir'], ['heroicons', 'Heroicons'],
+  ['bi', 'Bootstrap Icons'], ['ph', 'Phosphor'], ['tabler', 'Tabler'],
+];
+const ICON_TAGS_OK = new Set(['g', 'path', 'circle', 'ellipse', 'rect', 'line',
+  'polyline', 'polygon', 'defs', 'clipPath', 'mask', 'use', 'title', 'desc',
+  'symbol', 'linearGradient', 'radialGradient', 'stop']);
+const ICON_BANNED = /<\s*(script|foreignObject|image|iframe|a|animate|animateTransform|set|handler)\b|\bon[a-z]+\s*=|javascript:|<!ENTITY|<!DOCTYPE/i;
+
+/** True when this markup is a plain drawing and nothing else. Mirrors
+ *  layout.py's check_icon_svg — deliberately duplicated rather than trusted
+ *  from one side, because each end is reachable without the other. */
+function iconSvgOk(body) {
+  if (typeof body !== 'string' || !body.trim() || body.length > 64000) return false;
+  if (ICON_BANNED.test(body)) return false;
+  return (body.match(/<\s*\/?\s*([A-Za-z][A-Za-z0-9]*)/g) || [])
+    .every(m => ICON_TAGS_OK.has(m.replace(/[<\/\s]/g, '')));
+}
+
+const iconCache = new Map();          // "prefix:name" -> {body, vb}
+let iconSeq = 0;                      // bumps per search; late replies are dropped
+
+/** Fetch the geometry for a page of results, one request per set. */
+async function iconBodies(ids) {
+  const want = ids.filter(i => !iconCache.has(i));
+  const byPrefix = new Map();
+  want.forEach(i => {
+    const [p, n] = i.split(':');
+    if (!byPrefix.has(p)) byPrefix.set(p, []);
+    byPrefix.get(p).push(n);
+  });
+  await Promise.all([...byPrefix].map(async ([prefix, names]) => {
+    try {
+      const r = await fetch(`${ICON_API}/${prefix}.json?icons=${names.join(',')}`);
+      const j = await r.json();
+      const w = j.width || 24, h = j.height || 24;
+      // An alias points at another icon's geometry; resolve it or the tile
+      // comes back empty.
+      const real = n => (j.aliases && j.aliases[n] && j.aliases[n].parent) || n;
+      names.forEach(n => {
+        const ic = j.icons && j.icons[real(n)];
+        if (!ic || !iconSvgOk(ic.body)) return;
+        iconCache.set(`${prefix}:${n}`, {
+          body: ic.body,
+          vb: `${ic.left || 0} ${ic.top || 0} ${ic.width || w} ${ic.height || h}`,
+        });
+      });
+    } catch (e) { /* one set failing must not empty the whole grid */ }
+  }));
+}
+
+async function iconSearch(q) {
+  const grid = $('icon-grid'), note = $('icon-note');
+  const mine = ++iconSeq;
+  if (!q.trim()) { grid.textContent = ''; note.textContent = ''; return; }
+  note.textContent = 'searching…';
+  const set = $('icon-set').value;
+  const prefixes = set || ICON_SETS.map(([p]) => p).join(',');
+  let ids = [];
+  try {
+    const r = await fetch(`${ICON_API}/search?query=${encodeURIComponent(q)}`
+                        + `&limit=60&prefixes=${prefixes}`);
+    ids = (await r.json()).icons || [];
+  } catch (e) {
+    if (mine === iconSeq) note.textContent = 'icon search needs a connection — offline right now';
+    return;
+  }
+  await iconBodies(ids);
+  if (mine !== iconSeq) return;                 // a newer search already ran
+  grid.textContent = '';
+  const found = ids.filter(i => iconCache.has(i));
+  found.forEach(id => {
+    const { body, vb } = iconCache.get(id);
+    const b = document.createElement('button');
+    b.className = 'icon-tile';
+    b.title = id;
+    b.innerHTML = `<svg viewBox="${vb}" width="22" height="22">${body}</svg>`;
+    b.addEventListener('click', () => addIcon(id));
+    grid.appendChild(b);
+  });
+  note.textContent = found.length
+    ? `${found.length} icons — click one to place it`
+    : `nothing matched "${q}"`;
+}
+
+async function addIcon(id) {
+  const it = iconCache.get(id);
+  if (!it) return;
+  $('iconpop').hidden = true;
+  const page = visiblePageId();
+  pushHistory();
+  const sid = freeShapeId('icon');
+  // Square, and the report's own primary — an icon lands in the palette
+  // rather than as a black sticker to be recoloured afterwards. Its markup
+  // draws in currentColor, so the Fill control recolours the whole glyph.
+  layout.shapes.push({ id: sid, page, kind: 'icon', x: 1, y: 1, w: 0.6, h: 0.6,
+                       icon: id, vb: it.vb, svg: it.body,
+                       fill: '#52796F', z: 3 });
+  setSel($('out').contentDocument, [sid]);
+  markDirty();
+  await render();
+  $('stat').textContent = `${id} placed on page ${page} — drag to size, recolour with Fill`;
+}
+
+$('icon').onclick = () => {
+  const sel = $('icon-set');
+  if (sel.options.length === 1) {
+    ICON_SETS.forEach(([p, label]) => sel.add(new Option(label, p)));
+  }
+  togglePop($('iconpop'), $('icon'));
+  if (!$('iconpop').hidden) $('icon-q').focus();
+};
+let iconTimer = null;
+const iconDebounced = () => {
+  clearTimeout(iconTimer);
+  iconTimer = setTimeout(() => iconSearch($('icon-q').value), 220);
+};
+$('icon-q').addEventListener('input', iconDebounced);
+$('icon-set').addEventListener('change', () => iconSearch($('icon-q').value));
 
 $('shape').onclick = () => togglePop($('shapepop'), $('shape'));
 document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('click', async () => {

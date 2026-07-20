@@ -38,8 +38,67 @@ from .content import block_html, md_inline
 # different page passes its own size in — this is a default, not a law. It is
 # the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
-KINDS = ("rect", "ellipse", "line", "triangle", "arrow")
+KINDS = ("rect", "ellipse", "line", "triangle", "arrow", "icon")
 LINE_ENDS = ("none", "start", "end", "both")
+
+# --- icons ---------------------------------------------------------------
+# An icon is picked from an open-source set (Iconoir, Lucide, Heroicons,
+# Bootstrap Icons… via the Iconify API) and its GEOMETRY is copied into
+# layout.json — not a reference to it. That is deliberate: the PDF is printed
+# by headless Chrome from built HTML, and the preview renders under Pyodide,
+# neither of which may assume a network. A stored icon renders offline
+# forever, and cannot change under the report when an upstream set is
+# revised.
+#
+# The flip side is that markup from the internet ends up inside the rendered
+# page, so it is checked here as well as in the editor: layout.json can be
+# hand-edited, and this is the only gate the renderer itself controls.
+# Whitelist, and a hard failure — never a silent strip, which would leave a
+# half-drawn icon nobody can explain.
+ICON_TAGS = {
+    "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon",
+    "defs", "clipPath", "mask", "use", "title", "desc", "symbol",
+    "linearGradient", "radialGradient", "stop",
+}
+ICON_BANNED = re.compile(
+    r"<\s*(script|foreignObject|image|iframe|a|animate|animateTransform|set|handler)\b"
+    r"|\bon[a-z]+\s*=|javascript:|<!ENTITY|<!DOCTYPE", re.I)
+_ICON_TAG_RE = re.compile(r"<\s*/?\s*([A-Za-z][A-Za-z0-9]*)")
+_VIEWBOX_RE = re.compile(r"^\s*-?[\d.]+(\s+-?[\d.]+){3}\s*$")
+
+
+def check_icon_svg(body: str, where: str) -> str:
+    """The icon's inner markup, or a hard failure explaining what was wrong."""
+    if not isinstance(body, str) or not body.strip():
+        raise LayoutError(f"{where}: an icon needs its 'svg' markup")
+    if len(body) > 64_000:
+        raise LayoutError(f"{where}: icon markup is {len(body)} bytes — far past "
+                          f"anything an icon needs; refusing it")
+    m = ICON_BANNED.search(body)
+    if m:
+        raise LayoutError(f"{where}: icon markup contains {m.group(0)!r}, which is "
+                          f"not allowed in an icon")
+    for tag in _ICON_TAG_RE.findall(body):
+        if tag not in ICON_TAGS:
+            raise LayoutError(f"{where}: icon markup uses <{tag}>, which is not one "
+                              f"of the allowed SVG shape tags")
+    return body
+
+
+def icon_color(fill) -> str:
+    """The colour an icon's `currentColor` resolves to.
+
+    Icon sets draw in `currentColor` precisely so one CSS property recolours
+    the whole glyph — that is what makes them palette-aware here. A gradient
+    cannot be a colour, so a gradient fill contributes its first stop rather
+    than failing: the icon still lands in the report's palette.
+    """
+    if isinstance(fill, dict):
+        stops = fill.get("stops") or []
+        return stops[0].get("color", "#2F3E46") if stops else "#2F3E46"
+    if isinstance(fill, str) and fill != "none":
+        return fill
+    return "#2F3E46"
 
 # Fonts a report may ask for, with the weights Google will actually serve. An
 # allowlist, not free text: a typo'd family falls back to sans-serif in the PDF
@@ -554,6 +613,14 @@ class Layout:
             if s.get("ends") is not None and s["ends"] not in LINE_ENDS:
                 raise LayoutError(f"{where}: ends {s['ends']!r} must be one of "
                                   f"{', '.join(LINE_ENDS)}")
+            if s.get("kind") == "icon":
+                check_icon_svg(s.get("svg"), where)
+                vb = s.get("vb", "0 0 24 24")
+                # The viewBox lands verbatim in an SVG attribute; four numbers
+                # or nothing, so a stray quote cannot end the attribute early.
+                if not isinstance(vb, str) or not _VIEWBOX_RE.match(vb):
+                    raise LayoutError(f"{where}: viewBox {vb!r} must be four numbers, "
+                                      f"like '0 0 24 24'")
             _z(s)          # a bad layer must fail at load, not mid-render
         for el, p in self.positions.items():
             if "z" in p and not isinstance(p["z"], int):
@@ -1100,6 +1167,25 @@ class Layout:
         if s.get("dash"):
             d = s["dash"]
             common += f' stroke-dasharray="{" ".join(str(v) for v in d)}"'
+        if s["kind"] == "icon":
+            # A nested <svg> so the icon's own viewBox does the scaling: the
+            # glyph fits the box in inches whatever grid it was drawn on.
+            # `common` is not reused — its fill/stroke would say nothing here
+            # (the markup paints itself in currentColor) and its data-shape is
+            # re-emitted below so the editor still finds one node per shape.
+            bits = [f'x="{x}"', f'y="{y}"', f'width="{w}"', f'height="{h}"',
+                    f'viewBox="{s.get("vb", "0 0 24 24")}"',
+                    f'data-shape="{s["id"]}"', 'overflow="visible"']
+            css = [f'color:{icon_color(s.get("fill"))}']
+            if s.get("shadow"):
+                css.append(shape_shadow_css(s["shadow"]))
+            bits.append(f'style="{";".join(css)}"')
+            if s.get("rot"):
+                bits.append(f'transform="rotate({s["rot"]} '
+                            f'{round(x + w / 2, 4)} {round(y + h / 2, 4)})"')
+            if s.get("alpha") is not None:
+                bits.append(f'opacity="{s["alpha"]:g}"')
+            return f'<svg {" ".join(bits)}>{s.get("svg", "")}</svg>'
         if s["kind"] == "rect":
             r = s.get("r", 0)
             return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" {common}/>'
