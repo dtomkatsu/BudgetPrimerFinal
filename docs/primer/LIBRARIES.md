@@ -146,3 +146,121 @@ Ranked by value / effort.
   group/lock logic. Replacing it is a large rewrite of correct code for
   marginal benefit. (Worth knowing they existed *before* that layer was built;
   not worth swapping now.)
+
+---
+
+## ProseMirror / Tiptap — No for the prose editors, with one real niche
+
+Assessed 2026-07-19, after slot/box/cell editing moved from a raw `<textarea>`
+of markdown to a `contenteditable` surface (`mdToHtml`/`htmlToMd` +
+`buildTools` in `edit.html`). That change is what makes the question live: the
+editor now *is* a small rich-text editor, so the obvious move is to stop
+hand-rolling one.
+
+### The objections that don't hold
+
+Worth clearing these first, because they are the usual reflexes and both are
+wrong here:
+
+- **"Too heavy."** Measured, not guessed: ProseMirror core (view, model,
+  state, transform, keymap, history, commands) is **~65KB gzipped** from
+  esm.sh. Next to the ~30MB Pyodide runtime this editor already downloads,
+  that is noise.
+- **"No build step."** Every `prosemirror-*` package and `@tiptap/core` ships
+  `"type": "module"` with an ESM `module` entry and resolves through esm.sh as
+  a plain `import()` — the same mechanism `fflate` and `idb-keyval` already
+  use here. Offline is a solved problem too: `sw.js` already precaches
+  Pyodide, so it could cache these.
+
+So the decision turns on fit, not cost.
+
+### Why it's still wrong for the prose editors
+
+**Python is the renderer, and its markdown is a deliberately small custom
+subset.** `content.py`'s `md_inline()` handles exactly four things — images,
+`https?://` links, `**bold**`, `*italic*` — plus `[^id]` footnotes resolved
+document-wide, and `block_html()` adds only flat `- `/`N. ` lists and
+`#`/`##` headings. `prosemirror-markdown` parses CommonMark via markdown-it,
+which is a strictly larger grammar.
+
+That gap is not cosmetic — it breaks the one guarantee this editor exists to
+provide. Probed against the current serializer, all of these are correctly
+left as **literal text**, because that is exactly what Python will render:
+
+| typed | current editor | why |
+|---|---|---|
+| `_under_` | literal `_under_` | `md_inline` only matches `*`, never `_` |
+| `` `code` `` | literal | no code spans in the grammar |
+| `> quote` | literal | no blockquotes |
+| `[rel](assets/x.png)` | literal | links must be `https?://` |
+| `- a` / `  - nested` | flat two-item list | `block_html` has no nesting |
+
+Under ProseMirror's default markdown these would each become *real* editor
+structure — italic, code, a blockquote, a link, a nested list — and then
+render as literal text in the PDF. The editor would confidently show
+something the report cannot produce. Restricting a PM schema and a markdown-it
+instance back down to exactly this subset is possible, but it is
+*re-implementing the work that already exists*, on top of a dependency, and
+leaves two grammars to keep in sync with `content.py` instead of one.
+
+**What we'd actually be buying is small.** Probed on the real editor, the
+structural editing PM is famous for getting right is already correct here,
+because Chromium's own `contenteditable` does it and `htmlToMd` normalizes the
+result:
+
+- Enter mid-`<li>` splits the list properly → `- alpha` / `- X` / `- beta`.
+- Backspace merging a paragraph into one ending in a footnote chip keeps the
+  chip intact → `one[^zz]two`. Chromium leaves a junk `<span style=…>` behind,
+  but the serializer's unknown-wrapper fallback drops it on commit, so nothing
+  reaches `content.md`.
+
+### The two things that are genuinely weak (and are cheap to fix without PM)
+
+1. **No paste handling at all** — there is no `paste` listener, so pasting
+   from Word or Google Docs is pure browser default. Nothing corrupts
+   (`htmlToMd` keeps text + `b`/`i`/`a`/`img` and strips the rest at commit),
+   but pasted headings, tables and nested lists flatten *silently and
+   invisibly* until the edit is committed. The fix is ~15 lines and is
+   strictly better than what PM gives by default: intercept `paste`, run the
+   clipboard HTML through `htmlToMd` → `mdToHtml`, and insert that — so what
+   lands on the page is, by construction, exactly what will render.
+
+2. **`document.execCommand` is deprecated** — used in three places (bold,
+   italic, `insertLineBreak`). This is the one real long-term risk, and it is
+   the strongest pro-PM argument. It is bounded, though: Chromium is the only
+   engine this tool targets (the PDF path already hardcodes a Chrome binary),
+   and if it ever breaks, replacing two toggles with hand-rolled `Range`
+   splitting is tens of lines, not a rewrite.
+
+### Where it WOULD be appropriate
+
+Two places, neither of them today:
+
+1. **Text boxes (`editBox`), if they ever need formatting the report's prose
+   doesn't have.** They are the strongest candidate for a specific reason: a
+   text box's content lives in **`layout.json`, not `content.md`** — it is the
+   editor's own data, not the report's authored prose, and it never reaches
+   the bound Google Doc. So it is the one surface whose storage format could
+   change without touching the authored text. If boxes ever need per-run
+   colour/size, alignment, or nested lists (i.e. real design-tool text), the
+   coherent move is to store **ProseMirror JSON** for box content and teach
+   `layout.py` to render that to HTML — replacing `block_html` for boxes only.
+   That contains the blast radius to one feature and keeps `content.md`'s
+   grammar untouched. Until boxes actually need that, it is a large change for
+   formatting nobody has asked for.
+
+2. **Multi-user simultaneous editing.** If two people ever need to edit one
+   draft at once, `prosemirror-collab` plus its transaction/rebase model is
+   the industry answer and hand-rolling operational transforms is not a
+   reasonable undertaking. Note this would be a much deeper change than the
+   editor alone — the save path is a git commit to a draft branch, not a
+   shared document server.
+
+**Verdict: don't adopt now.** Add the paste handler instead — it closes the
+one real gap, for ~15 lines and no dependency. Revisit ProseMirror if text
+boxes grow real design-tool typography, or if collaborative editing is ever
+wanted; and treat `execCommand` breaking in Chromium as the trigger to
+reconsider rather than a reason to pre-empt.
+
+Same verdict for **Quill / Slate / Lexical**, and for the same root reason:
+they all own the document model, and here Python owns it.
