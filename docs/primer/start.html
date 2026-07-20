@@ -34,6 +34,19 @@
     padding:8px 16px; font:600 13px system-ui; cursor:pointer; }
   #new:hover { background:var(--deep); }
   #new:disabled { opacity:.5; cursor:default; }
+  .ghost { background:none; color:#fff; border:1px solid rgba(255,255,255,.45);
+    border-radius:6px; padding:8px 14px; font:600 13px system-ui; cursor:pointer; }
+  .ghost:hover { border-color:#fff; background:rgba(255,255,255,.08); }
+  .sec-h { font-size:13px; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--deep); margin:34px 0 12px; }
+  .rfile { display:flex; align-items:center; gap:12px; background:#fff;
+    border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:8px; }
+  .rfile b { font-weight:600; }
+  .rfile .path { flex:1; color:#7A8E92; font-size:12px; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .rfile button { border:1px solid var(--line); background:#fff; border-radius:6px;
+    padding:5px 12px; font:13px system-ui; cursor:pointer; }
+  .rfile button:hover { border-color:var(--sage); }
   main { max-width:960px; margin:0 auto; padding:28px 24px 60px; }
   #grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
     gap:16px; }
@@ -73,11 +86,16 @@
 <header>
   <h1>Draft editor</h1>
   <span class="sub" id="hstat">loading your reports…</span>
+  <button id="open-html" class="ghost">Open HTML…</button>
   <button id="new" disabled>+ New report</button>
 </header>
 <main>
   <div id="grid"></div>
   <p id="empty" hidden>No reports yet — start one with "+ New report".</p>
+  <section id="recent-wrap" hidden>
+    <h2 class="sec-h">Recent files</h2>
+    <div id="recent"></div>
+  </section>
 </main>
 <p id="stat"></p>
 
@@ -118,6 +136,162 @@ async function loadRegistry() {
 }
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+// --- opening a file from disk ------------------------------------------------
+// The File System Access API gives a real handle, not a one-shot copy: it can
+// be READ BACK later and stored in IndexedDB, which is what makes a genuine
+// "Recent files" list possible rather than a list of names you cannot reopen.
+// Permission does not survive a session, so reopening re-asks — quietly if the
+// browser still trusts the grant, with a click if not.
+//
+// Chromium only (as is the file_handlers manifest entry that lets the OS launch
+// this app WITH a document). Same browser the PDF path already assumes.
+const RECENT_KEY = 'ds-recent-files';
+const fsOk = () => typeof window.showOpenFilePicker === 'function';
+
+let idb = null;
+async function store() {
+  if (!idb) idb = await import('https://cdn.jsdelivr.net/npm/idb-keyval@6.3.0/+esm');
+  return idb;
+}
+async function recentList() {
+  try { return (await (await store()).get(RECENT_KEY)) || []; } catch (e) { return []; }
+}
+async function recentAdd(handle) {
+  try {
+    const kv = await store();
+    const list = (await kv.get(RECENT_KEY)) || [];
+    const same = await Promise.all(list.map(e => e.handle.isSameEntry
+      ? e.handle.isSameEntry(handle).catch(() => false) : false));
+    const kept = list.filter((_, i) => !same[i]);
+    kept.unshift({ name: handle.name, handle, at: Date.now() });
+    await kv.set(RECENT_KEY, kept.slice(0, 12));
+  } catch (e) { /* a Recent list that fails to record is not worth an error */ }
+  renderRecent();
+}
+
+async function renderRecent() {
+  const host = $('recent'), wrap = $('recent-wrap');
+  if (!fsOk()) { wrap.hidden = true; return; }
+  const list = await recentList();
+  if (!list.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  host.innerHTML = '';
+  list.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'rfile';
+    const when = new Date(entry.at);
+    row.innerHTML = `<b>${esc(entry.name)}</b>`
+      + `<span class="path">${when.toLocaleDateString()} ${when.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+    const open = document.createElement('button');
+    open.textContent = 'Open';
+    open.addEventListener('click', () => openHandle(entry.handle));
+    row.appendChild(open);
+    host.appendChild(row);
+  });
+}
+
+/** Re-granting permission on a stored handle. Chrome drops the grant between
+ *  sessions, so a Recent entry is a request, not a key. */
+async function ensureRead(handle) {
+  const opts = { mode: 'read' };
+  if ((await handle.queryPermission(opts)) === 'granted') return true;
+  return (await handle.requestPermission(opts)) === 'granted';
+}
+
+async function openHandle(handle) {
+  if (!await ensureRead(handle)) {
+    $('stat').textContent = 'permission denied for that file';
+    return;
+  }
+  const file = await handle.getFile();
+  await recentAdd(handle);
+  await importHtmlFile(file, handle);
+}
+
+async function pickHtml() {
+  if (!fsOk()) {
+    $('stat').textContent = 'opening files needs a Chromium browser (Chrome or Edge)';
+    return;
+  }
+  let handle;
+  try {
+    [handle] = await window.showOpenFilePicker({
+      types: [{ description: 'Web page', accept: { 'text/html': ['.html', '.htm'] } }],
+      multiple: false,
+    });
+  } catch (e) { return; }                       // the picker was dismissed
+  await openHandle(handle);
+}
+
+/** Load the page in a hidden iframe at the design width and let the BROWSER
+ *  lay it out — then read the geometry back. The alternative is implementing
+ *  a CSS engine.
+ *
+ *  A file: URL has no base for its own relative CSS/images, so the markup is
+ *  served to the frame as a blob and given a <base> pointing at wherever the
+ *  editor is; anything the page pulls from its own folder will not resolve,
+ *  which the import reports rather than hides. */
+const DESIGN_W = 1200;
+async function importHtmlFile(file, handle) {
+  $('stat').textContent = `reading ${file.name}…`;
+  const html = await file.text();
+
+  const frame = document.createElement('iframe');
+  frame.setAttribute('sandbox', 'allow-same-origin');   // no scripts: a static, deterministic DOM
+  frame.style.cssText = `position:fixed;left:-99999px;top:0;width:${DESIGN_W}px;height:2000px;border:0`;
+  document.body.appendChild(frame);
+  const done = new Promise(r => { frame.onload = r; });
+  frame.srcdoc = html;
+  await done;
+  await new Promise(r => setTimeout(r, 600));           // webfonts and images settle
+
+  const doc = frame.contentDocument;
+  // Grow the frame to the full document so nothing is measured while clipped.
+  const full = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+  frame.style.height = full + 'px';
+  await new Promise(r => setTimeout(r, 250));
+
+  const m = await import('./htmlimport.js');
+  const pageW = DESIGN_W / m.DPI;
+  const extracted = m.extractDoc(doc, { pageId: 1, pageW });
+  frame.remove();
+
+  const total = extracted.boxes.length + extracted.shapes.length + extracted.tables.length;
+  if (!total) {
+    $('stat').textContent = `${file.name}: nothing visible to import`;
+    return;
+  }
+  const title = (doc.title || file.name.replace(/\.html?$/i, '')).trim();
+  const { layout, content } = m.toProjectFiles(extracted, title);
+  sessionStorage.setItem('ds-import', JSON.stringify({
+    name: file.name, title, layout, content,
+    page: { w: pageW, h: extracted.heightIn },
+    counts: { boxes: extracted.boxes.length, shapes: extracted.shapes.length,
+              tables: extracted.tables.length, images: extracted.images.length },
+  }));
+  $('stat').textContent = `${file.name}: ${extracted.boxes.length} text, `
+    + `${extracted.shapes.length} shapes, ${extracted.tables.length} tables `
+    + `— ${extracted.heightIn.toFixed(1)}in tall. Creating the project…`;
+  openModal();
+  $('np-name').value = title;
+  $('np-slug').value = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '').slice(0, 40) || 'imported-page';
+}
+
+$('open-html').addEventListener('click', pickHtml);
+
+// The OS launching this app WITH a file (double-click, or Open With) arrives
+// here — the manifest's file_handlers entry is what registers it.
+if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
+  launchQueue.setConsumer(async params => {
+    if (!params.files || !params.files.length) return;
+    const handle = params.files[0];
+    await recentAdd(handle);
+    await importHtmlFile(await handle.getFile(), handle);
+  });
+}
+renderRecent();
 
 function renderGrid() {
   const ids = Object.keys(REGISTRY);

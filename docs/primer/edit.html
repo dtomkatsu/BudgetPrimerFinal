@@ -517,6 +517,8 @@
     <p class="pop-h">Download this draft</p>
     <button class="shp" id="dl-pdf">PDF — the whole report</button>
     <button class="shp" id="dl-png">PNG — every page (.zip)</button>
+    <button class="shp" id="dl-html">HTML — one self-contained file</button>
+    <button class="shp" id="dl-sqsp">HTML for Squarespace — paste-in block</button>
     <button class="shp" id="dl-src">Source — files &amp; images (.zip)</button>
     <label style="margin-top:6px;padding-top:8px;border-top:1px solid #EEF2EF">
       <input type="checkbox" id="dl-marks">Bleed &amp; crop marks (PDF)</label>
@@ -7528,6 +7530,187 @@ $('download').onclick = () => {
 $('dl-pdf').onclick = () => doExport('pdf');
 $('dl-png').onclick = () => doExport('png');
 $('dl-src').onclick = () => downloadSource();
+$('dl-html').onclick = () => exportHtml(false);
+$('dl-sqsp').onclick = () => exportHtml(true);
+
+// --- HTML export ---------------------------------------------------------
+// What you see in the editor IS the renderer's HTML — the iframe holds the
+// real thing, not a preview of it. So an export that matches the editor is
+// not a conversion: it is the same render, minus the editing scaffolding
+// (DOCSYNC_EDIT stamps data-slot/data-el hooks that must not ship) and with
+// everything it referenced pulled inline so the file stands alone.
+async function renderClean() {
+  py.globals.set('SRC', source);
+  py.globals.set('LAYOUT', JSON.stringify(layout, null, 2));
+  py.globals.set('CONTENT', M.content);
+  py.globals.set('LAYOUT_PATH', M.layout || '');
+  py.globals.set('RENDER', M.render);
+  py.globals.set('OUT', M.out);
+  return py.runPythonAsync(`
+import sys, os, io, runpy, contextlib
+os.environ.pop('DOCSYNC_EDIT', None)        # the published bytes, not the editable ones
+open('/repo/' + CONTENT, 'w').write(SRC)
+if LAYOUT_PATH: open('/repo/' + LAYOUT_PATH, 'w').write(LAYOUT)
+for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
+with contextlib.redirect_stdout(io.StringIO()):
+    runpy.run_path('/repo/' + RENDER, run_name='__main__')
+open('/repo/' + OUT).read()
+`);
+}
+
+const asDataUrl = async url => {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(url);
+  const blob = await r.blob();
+  return new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.readAsDataURL(blob);
+  });
+};
+
+/** Pull every external reference into the document itself: stylesheets as
+ *  <style>, images as data: URIs. A file that reaches for assets/ is only
+ *  identical while it sits next to them — and a Squarespace block never
+ *  does. Session uploads already live in memory as data URLs. */
+async function inlineEverything(doc) {
+  for (const link of [...doc.querySelectorAll('link[rel~="stylesheet"]')]) {
+    try {
+      const css = await (await fetch(withBase(link.getAttribute('href')))).text();
+      const st = doc.createElement('style');
+      st.textContent = css;
+      link.replaceWith(st);
+    } catch (e) { /* leave the <link>: a broken style beats a broken export */ }
+  }
+  for (const img of [...doc.querySelectorAll('img')]) {
+    const src = img.getAttribute('src') || '';
+    if (/^(data:|https?:)/i.test(src)) continue;
+    try {
+      img.setAttribute('src', localImages.get(src) || await asDataUrl(withBase(src)));
+    } catch (e) { /* keep the relative path rather than lose the image tag */ }
+  }
+}
+
+/** Prefix every selector so pasted CSS cannot reach the host page — and,
+ *  just as important, so the host's CSS cannot reach in. Squarespace styles
+ *  h1/p/a globally; without scoping, a pasted block inherits them and stops
+ *  looking like what the editor showed. @media/@supports recurse; @font-face
+ *  and @keyframes are left alone (they name things, they do not select). */
+function scopeCss(css, sel) {
+  // Comments first, or they are read as part of the next selector: a
+  // Google-Fonts sheet puts /* latin */ before every @font-face, and each one
+  // came out as "#wrap /* latin */ @font-face{…}" — invalid, and it took the
+  // font with it.
+  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const out = [];
+  let i = 0;
+  while (i < css.length) {
+    const open = css.indexOf('{', i);
+    if (open === -1) { out.push(css.slice(i)); break; }
+    const head = css.slice(i, open).trim();
+    // Find this rule's matching close brace, counting nesting.
+    let depth = 1, j = open + 1;
+    while (j < css.length && depth) {
+      if (css[j] === '{') depth++;
+      else if (css[j] === '}') depth--;
+      j++;
+    }
+    const body = css.slice(open + 1, j - 1);
+    if (/^@(media|supports|layer|container)/i.test(head)) {
+      out.push(`${head}{${scopeCss(body, sel)}}`);
+    } else if (head.startsWith('@')) {
+      out.push(`${head}{${body}}`);                       // font-face, keyframes
+    } else {
+      const heads = head.split(',').map(h => {
+        h = h.trim();
+        if (!h) return h;
+        // :root/html/body are the document itself — inside a block, that is
+        // the wrapper.
+        if (/^(:root|html|body)$/i.test(h)) return sel;
+        return `${sel} ${h}`;
+      }).filter(Boolean).join(',');
+      out.push(`${heads}{${body}}`);
+    }
+    i = j;
+  }
+  return out.join('');
+}
+
+async function exportHtml(forSquarespace) {
+  const label = forSquarespace ? 'Squarespace block' : 'HTML';
+  $('stat').textContent = `building ${label}…`;
+  try {
+    const raw = await renderClean();
+    const doc = new DOMParser().parseFromString(raw, 'text/html');
+    await inlineEverything(doc);
+
+    let out, name;
+    if (!forSquarespace) {
+      out = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+      name = (M.id || 'report') + '.html';
+    } else {
+      // A Squarespace code block is a FRAGMENT living inside someone else's
+      // page, so: no <html>/<head>/<body>, styles scoped to a wrapper, and —
+      // the part that actually preserves the design — the wrapper is scaled
+      // rather than reflowed. This document is absolutely positioned at a
+      // fixed page width; letting it reflow would not be "the same page,
+      // responsive", it would be a different page. Scaling keeps every
+      // relationship exact and simply fits it to the column.
+      const uid = 'dsx-' + Math.random().toString(36).slice(2, 8);
+      const w = (M.page && M.page.w) || 8.5;
+      const css = [...doc.querySelectorAll('style')].map(n => n.textContent).join('\n');
+      doc.querySelectorAll('style, script, link').forEach(n => n.remove());
+      out = `<!-- Exported from the draft editor. Paste into a Squarespace
+     Code Block. Styles are scoped to #${uid}, so nothing here can affect the
+     rest of the page and the page's own CSS cannot reach in. The block is
+     SCALED to its column, not reflowed: this document is placed at a fixed
+     ${w}in width, so scaling is what keeps it identical. -->
+<div id="${uid}" class="dsx-wrap">
+<style>
+#${uid}.dsx-wrap { all:initial; display:block; width:100%; overflow:hidden; }
+#${uid} .dsx-scale { transform-origin:top left; }
+#${uid} * { box-sizing:border-box; }
+${scopeCss(css, '#' + uid)}
+</style>
+<div class="dsx-scale">
+${doc.body.innerHTML}
+</div>
+<script>
+(function(){
+  var w = document.getElementById('${uid}');
+  var inner = w.querySelector('.dsx-scale');
+  var DESIGN = ${w} * 96;                       // the width everything was placed at
+  function fit(){
+    var s = Math.min(1, w.clientWidth / DESIGN);
+    inner.style.transform = 'scale(' + s + ')';
+    // The wrapper must take the SCALED height or the block leaves a gap
+    // below it the size of the shrink.
+    inner.style.width = DESIGN + 'px';
+    w.style.height = (inner.scrollHeight * s) + 'px';
+  }
+  fit();
+  addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(w);
+})();
+<\/script>
+</div>
+`;
+      name = (M.id || 'report') + '-squarespace.html';
+    }
+
+    const blob = new Blob([out], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    $('stat').textContent = `downloaded ${name}`;
+  } catch (e) {
+    $('stat').textContent = `${label} export failed: ` + (e.message || e);
+  } finally {
+    await render();          // put the editable scaffolding back
+  }
+}
 
 // A "source" download: the two authored files (content.md + layout.json) plus
 // any images uploaded this session, zipped in the browser via fflate — an ~8kB
