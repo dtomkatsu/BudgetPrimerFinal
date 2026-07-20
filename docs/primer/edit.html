@@ -937,7 +937,9 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
 function nodeToMdInline(node) {
   let out = '';
   node.childNodes.forEach(n => {
-    if (n.nodeType === Node.TEXT_NODE) { out += n.nodeValue; return; }
+    // Zero-width spaces are caret scaffolding (insertBreak drops one after a
+    // <br> so the new line is reachable). They are never content.
+    if (n.nodeType === Node.TEXT_NODE) { out += n.nodeValue.replace(/​/g, ''); return; }
     if (n.nodeType !== Node.ELEMENT_NODE) return;
     if (n.classList && n.classList.contains('ds-fnchip')) { out += `[^${n.dataset.fnId}]`; return; }
     const tag = n.tagName;
@@ -989,6 +991,155 @@ function boldItalicBlocked(d, which) {
     if (e.classList && e.classList.contains('ds-edit')) break;
   }
   return false;
+}
+
+// --- bold / italic, without execCommand ---------------------------------
+// document.execCommand is deprecated: it still works in Chromium, but it is
+// unspecified, unmaintained, and free to change under us. These three do the
+// same jobs on Ranges — the whole reason it is only three is that the
+// grammar is small (see content.py's md_inline: bold, italic, and nothing
+// that nests).
+//
+// extractContents() is what makes this short: it SPLITS partially-selected
+// ancestors on the way out. Selecting "wor" inside <b>hello world</b> hands
+// back <b>wor</b> and leaves <b>hello </b><b>ld</b> behind — so unbolding is
+// "extract, strip the tag, put it back", with the awkward half-covered case
+// already handled.
+const MARK_TAGS = { b: ['B', 'STRONG'], i: ['I', 'EM'] };
+
+function hasMarkAncestor(node, tags, host) {
+  for (let e = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+       e && e !== host.parentElement; e = e.parentElement) {
+    if (e.tagName && tags.includes(e.tagName)) return true;
+    if (e === host) break;
+  }
+  return false;
+}
+
+/** Is every word in the selection already inside this mark? Decides whether
+ *  the button turns the mark on or off, and whether it draws as active. */
+function markActive(d, host, tag) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return false;
+  const tags = MARK_TAGS[tag];
+  const r = sel.getRangeAt(0);
+  if (r.collapsed) return hasMarkAncestor(r.startContainer, tags, host);
+  const w = d.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+  let seen = 0;
+  while (w.nextNode()) {
+    const n = w.currentNode;
+    if (!n.nodeValue.trim() || !sel.containsNode(n, true)) continue;
+    seen++;
+    if (!hasMarkAncestor(n, tags, host)) return false;
+  }
+  return seen > 0;
+}
+
+/** The mark element wholly CONTAINING the range, if there is one.
+ *
+ *  This is the case extractContents cannot help with. It splits ancestors
+ *  that are only partly covered, but a mark the range sits entirely inside
+ *  is the common ancestor, not a partly-covered one — so extracting from
+ *  inside <b>hello world</b> hands back a bare "wor" and leaves the <b>
+ *  whole. Un-bolding part of a run therefore has to split the run by hand.
+ */
+function containingMark(host, r, tags) {
+  let n = r.commonAncestorContainer;
+  if (n.nodeType === Node.TEXT_NODE) n = n.parentElement;
+  for (; n && n !== host; n = n.parentElement) {
+    if (n.tagName && tags.includes(n.tagName)) return n;
+  }
+  return null;
+}
+
+/** Split `mark` around `r` and drop the covered middle out of it:
+ *  <b>hello world</b> + "wor" -> <b>hello </b>wor<b>ld</b>.
+ *  Returns the now-unmarked nodes. */
+function splitMarkOut(d, mark, r) {
+  // Tail first: extracting it cannot disturb the range's START, whereas
+  // taking the head first would move the end offset out from under us.
+  const tailR = d.createRange();
+  tailR.selectNodeContents(mark);
+  tailR.setStart(r.endContainer, r.endOffset);
+  const tail = tailR.extractContents();
+
+  const headR = d.createRange();
+  headR.selectNodeContents(mark);
+  headR.setEnd(r.startContainer, r.startOffset);
+  const head = headR.extractContents();
+
+  const out = d.createDocumentFragment();
+  if (head.textContent) { const c = mark.cloneNode(false); c.appendChild(head); out.appendChild(c); }
+  const mid = [];
+  while (mark.firstChild) { mid.push(mark.firstChild); out.appendChild(mark.firstChild); }
+  if (tail.textContent) { const c = mark.cloneNode(false); c.appendChild(tail); out.appendChild(c); }
+  mark.replaceWith(out);
+  return mid;
+}
+
+function toggleMark(d, host, tag) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  if (r.collapsed) return;              // no "pending mark" state; select first
+  const tags = MARK_TAGS[tag];
+  const off = markActive(d, host, tag);
+
+  let inserted;
+  const inside = off ? containingMark(host, r, tags) : null;
+  if (inside) {
+    inserted = splitMarkOut(d, inside, r);
+  } else {
+    const frag = r.extractContents();
+    // Either way the mark inside the selection goes: turning it OFF is the
+    // point, and turning it ON must not nest <b> in <b> (which would
+    // serialize to ****doubled**** stars and render as literal asterisks).
+    frag.querySelectorAll(tags.join(',')).forEach(el => el.replaceWith(...el.childNodes));
+    if (off) {
+      inserted = [...frag.childNodes];
+      r.insertNode(frag);
+    } else {
+      const wrap = d.createElement(tag);
+      wrap.appendChild(frag);
+      r.insertNode(wrap);
+      inserted = [wrap];
+    }
+  }
+  // Splitting can leave an empty half behind.
+  host.querySelectorAll('b, strong, i, em, a').forEach(el => {
+    if (!el.textContent && !el.querySelector('img, .ds-chip')) el.remove();
+  });
+  // Deliberately no normalize(): merging adjacent text nodes would invalidate
+  // the references below, and htmlToMd concatenates them anyway.
+  inserted = inserted.filter(n => n.isConnected);
+  if (inserted.length) {
+    const nr = d.createRange();
+    nr.setStartBefore(inserted[0]);
+    nr.setEndAfter(inserted[inserted.length - 1]);
+    sel.removeAllRanges();
+    sel.addRange(nr);
+  }
+  host.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/** Shift+Enter in a table cell: a real line break at the caret. */
+function insertBreak(d, host) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  r.deleteContents();
+  const br = d.createElement('br');
+  r.insertNode(br);
+  // A trailing <br> is invisible until something follows it — the zero-width
+  // space gives the caret a line to land on, and serializing trims it away.
+  const pad = d.createTextNode('​');
+  br.after(pad);
+  const nr = d.createRange();
+  nr.setStart(pad, 1);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+  host.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 /** Save the current selection's Range if it sits inside `host` — captured
@@ -1124,14 +1275,19 @@ function buildTools(d, host, key, opts = {}) {
     btn('Cite', 'Insert a footnote reference', () => cite(d, host, bar));
     btn('Image', 'Upload an image and place it here', () => image(d, host));
     const boldBtn = btn('Bold', 'Bold the selection', () => {
-      host.focus(); d.execCommand('bold'); host.dispatchEvent(new Event('input', { bubbles: true }));
+      host.focus(); toggleMark(d, host, 'b');
     });
     const italicBtn = btn('Italic', 'Italicize the selection', () => {
-      host.focus(); d.execCommand('italic'); host.dispatchEvent(new Event('input', { bubbles: true }));
+      host.focus(); toggleMark(d, host, 'i');
     });
+    // The buttons say what the selection already IS, not just what they do —
+    // the only way to tell bold text from a heavy font once the raw ** is
+    // gone from the page.
     const refreshBI = () => {
       boldBtn.disabled = boldItalicBlocked(d, 'bold');
       italicBtn.disabled = boldItalicBlocked(d, 'italic');
+      boldBtn.classList.toggle('on', !boldBtn.disabled && markActive(d, host, 'b'));
+      italicBtn.classList.toggle('on', !italicBtn.disabled && markActive(d, host, 'i'));
     };
     d.addEventListener('selectionchange', refreshBI);
     refreshBI();
@@ -2686,7 +2842,7 @@ function editCell(d, td) {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     // Enter commits (a cell is usually one line); Shift+Enter for a real newline.
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
-    else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); d.execCommand('insertLineBreak'); }
+    else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); insertBreak(d, host); }
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
   });
 }
@@ -5356,6 +5512,10 @@ function wire() {
     .ds-tools button { font:11px system-ui; padding:3px 9px; border:1px solid #B9C9BE;
                        background:#fff; color:#2F3E46; border-radius:4px; cursor:pointer; }
     .ds-tools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
+    .ds-tools button:disabled { opacity:.45; cursor:not-allowed; }
+    .ds-tools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }
+    /* Pressed = the selection already carries this mark. */
+    .ds-tools button.on { background:#2F3E46; color:#fff; border-color:#2F3E46; }
     .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
     .ds-cite { flex-basis:100%; margin-top:4px; }
     .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }
