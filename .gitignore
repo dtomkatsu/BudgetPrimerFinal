@@ -80,3 +80,4 @@ local_settings.py
 
 # Project specific
 budget_processing.log
+.import-lab/

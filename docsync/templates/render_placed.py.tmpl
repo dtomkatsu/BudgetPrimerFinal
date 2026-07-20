@@ -1,0 +1,97 @@
+"""Renderer for a PLACED document — one whose content is positioned objects
+rather than flowing prose.
+
+The scaffold behind "New report" renders prose: C.extras() in order, down the
+page. That is the right shape for something written, and the wrong shape for
+something imported, where every word already has a place the browser put it.
+So this template renders the other half of the editor's model — the half the
+"+ Page" button uses — and nothing else:
+
+    L.layer(page)        shapes, in one <svg> per z-layer
+    L.text_boxes(page)   free text boxes, absolutely placed, markdown inside
+    L.tables_html(page)  tables
+
+All of that comes from layout.json, so this file never changes as the
+document is edited: dragging a box, recolouring a shape and adding a page all
+write layout.json, and this reads it. content.md holds only the title and the
+citation list every project must have.
+
+Page size ({W}in x {H}in) is baked in at creation, in the CSS below — see the
+comment on PAGE_SIZES in start.html for why a project does not read it back
+out of its manifest at render time.
+"""
+from pathlib import Path
+import os
+import sys
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent                # .../projects/<slug>/
+REPO = ROOT.parent.parent         # /repo, where the shared docsync/ package lives
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from docsync.content import Content
+from docsync.layout import Layout
+
+_LAYOUT = Path(os.environ.get("DOCSYNC_LAYOUT") or (ROOT / "layout.json"))
+_CONTENT = Path(os.environ.get("DOCSYNC_CONTENT") or (ROOT / "content.md"))
+_OUT = Path(os.environ.get("DOCSYNC_OUT") or (ROOT / "web" / "index.html"))
+
+L = Layout(_LAYOUT, page=({W}, {H}))
+C = Content(_CONTENT, styles=L)
+
+PAGES = {PAGE_IDS}
+
+body = "".join(
+    f'<section class="page" data-page="{{pid}}"{{L.fill_attr(f"page.{{pid}}")}}>'
+    f'{{L.layer(pid)}}{{L.text_boxes(pid)}}{{L.tables_html(pid)}}'
+    f'</section>'
+    for pid in PAGES
+)
+body = C.fn.resolve(body)
+
+notes = C.fn.endnotes()
+endnotes = "".join(
+    f'<li id="en{{i + 1}}">{{txt}} <a href="{{url}}">{{url}}</a></li>'
+    for i, (txt, url) in enumerate(notes)
+)
+
+html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{C.text("title")}}</title>
+<style>
+  :root {{{{ --page-w: {W}in; --page-h: {H}in; }}}}
+  body {{{{ margin:0; background:#D6E0D2; font:15px/1.5 system-ui, sans-serif;
+         color:#2F3E46; }}}}
+  /* position:relative is load-bearing: every imported object is placed
+     absolutely against its page, so the page has to be the containing block
+     or the whole document would stack at the window's origin. */
+  .page {{{{ width:var(--page-w); min-height:var(--page-h); margin:24px auto;
+          background:#fff; box-shadow:0 4px 18px rgba(0,0,0,.12);
+          position:relative; overflow:hidden; box-sizing:border-box; }}}}
+  .ds-textbox p {{{{ margin:0 0 .5em; }}}}
+  .ds-textbox p:last-child {{{{ margin-bottom:0; }}}}
+  .ds-table {{{{ border-collapse:collapse; }}}}
+  .ds-table td, .ds-table th {{{{ border:1px solid #C9D6CD; padding:4px 7px;
+          text-align:left; }}}}
+  .endnotes {{{{ font-size:13px; color:#52796F; }}}}
+  @media print {{{{
+    @page {{{{ size: {W}in {H}in; margin: 0; }}}}
+    body {{{{ background:#fff; }}}}
+    .page {{{{ box-shadow:none; margin:0; width:{W}in; height:{H}in;
+             page-break-after:always; }}}}
+  }}}}
+</style>
+</head>
+<body>
+{{body}}
+{{f'<section class="page"><ol class="endnotes">{{endnotes}}</ol></section>' if endnotes else ''}}
+</body>
+</html>
+"""
+
+_OUT.parent.mkdir(parents=True, exist_ok=True)
+_OUT.write_text(html)
+print(f"wrote {{_OUT}} ({{len(html):,}} bytes, {{len(PAGES)}} pages)")
