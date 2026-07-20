@@ -4,12 +4,10 @@
 // updateSource/renameSource/moveSource/deleteSource). Local-mode, no GitHub.
 const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtures/editor-test');
 
-// toc.author (the "Author: …" byline) is a plain [data-slot] outside any
-// movable [data-el] object, so a single click opens it for editing — most
-// prose blocks in this report live inside a positioned text/callout object
-// and need a double-click instead (see wire()'s [data-slot] wiring). Picking
-// a slot that's reliably single-click-editable keeps this test independent
-// of the report's own layout.
+// toc.author (the "Author: …" byline). Like every movable text in the
+// report it now sits inside a [data-el] object, so a single click selects
+// it for dragging and a DOUBLE click opens the words — the same split
+// headings and callouts use (see wire()'s [data-slot] wiring).
 const EDITABLE_SLOT = 'toc.author';
 
 /** Click into an editable prose block, open the Cite panel, and add a
@@ -18,7 +16,7 @@ const EDITABLE_SLOT = 'toc.author';
 async function addSourceViaUi(page, id, text, url) {
   const frame = page.frameLocator('#out');
   const block = frame.locator(`[data-slot="${EDITABLE_SLOT}"]`);
-  await block.click();
+  await block.dblclick({ force: true });
   await frame.locator('.ds-tools button', { hasText: 'Cite' }).click();
   await frame.locator('.ds-cite select').selectOption('__new');
   // The dsForm dialog opens in the parent doc; fill all three fields at once.

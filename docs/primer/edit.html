@@ -4417,7 +4417,14 @@ function dragify(d) {
       // never moves" left it with no grab handle at all. Editing the words is
       // now a double-click (bound on each slot below), Canva's own split. Real
       // controls inside still work: a link, the year picker.
-      if (e.target.closest('a, button, input, select, textarea, summary')) return;
+      //
+      // An endnote is the exception that proves it: it is mostly its own URL,
+      // so honouring the link would leave the entry with almost no grabbable
+      // surface — the reason dragging one "did nothing" nine times in ten.
+      // Following a citation link matters less here than being able to move
+      // the citation, and the link still works in the published report.
+      const ctl = e.target.closest('a, button, input, select, textarea, summary');
+      if (ctl && !(ctl.tagName === 'A' && (el.dataset.el || '').startsWith('endnote.'))) return;
       e.preventDefault();
       e.stopPropagation();
       const id = idOf(el);
@@ -4610,6 +4617,7 @@ function startDrag(d, el, e0) {
   const DEAD_PX = 4;
   let started = false, cloned = false;
   let Ps, starts, group, glines, at;
+  let lastPt = { x: e0.clientX, y: e0.clientY };   // where the drop landed
 
   const begin = () => {
     started = true;
@@ -4637,6 +4645,7 @@ function startDrag(d, el, e0) {
   // buy nothing and cost a frame of lag. It also stops firing in a hidden
   // document, which turns a drag into a silent no-op.
   const move = e => {
+    lastPt = { x: e.clientX, y: e.clientY };
     if (!started) {
       if (Math.abs(e.clientX - grab.x) < DEAD_PX
           && Math.abs(e.clientY - grab.y) < DEAD_PX) return;
@@ -4673,12 +4682,67 @@ function startDrag(d, el, e0) {
     d.defaultView.setTimeout(() =>
       members.forEach(m => m.classList.remove('ds-settling')), 160);
     d.body.classList.remove('ds-grabbing');
+    // An endnote REORDERS rather than parks: it is one row of a numbered list,
+    // and a citation floating loose over the page while still numbered in
+    // sequence would say something the report does not mean. Drop it where it
+    // reads, and the list (and every <sup> marker pointing into it) renumbers.
+    if (members.length === 1 && (idOf(members[0]) || '').startsWith('endnote.')) {
+      const moved = reorderEndnote(d, members[0], lastPt);
+      if (moved) markDirty(); else past.pop();   // no change: no undo entry
+      clearGuides(d);
+      await render();                            // snaps it back into the flow
+      return;
+    }
     Ps.forEach((P, i) => P.commit(at[i]));
     if (cloned) await render();            // clones need real, wired nodes
     else paintSel(d);
   };
   d.addEventListener('mousemove', move);
   d.addEventListener('mouseup', up);
+}
+
+/** Where a point falls in the endnotes list's READING order: which column
+ *  first, then how far down it. The list is two columns in print and one on
+ *  a narrow screen, so the column edges are read off the entries themselves
+ *  rather than assumed — a hard-coded 2 would put every drop in column 0 the
+ *  moment the CSS collapsed. */
+function readingKey(colEdges, x, y) {
+  let col = 0;
+  colEdges.forEach((edge, i) => { if (x >= edge - 6) col = i; });
+  return [col, y];
+}
+const beforeKey = (a, b) => a[0] !== b[0] ? a[0] < b[0] : a[1] < b[1];
+
+/** Drop an endnote among its neighbours: work out where it now reads, and
+ *  write that order to layout.json. Numbering itself stays the renderer's
+ *  job (content.py's Footnotes) — this only records the order it should use,
+ *  so a dragged citation renumbers everywhere at once, markers included.
+ *  Returns whether anything actually moved. */
+function reorderEndnote(d, el, pt) {
+  const id = (el.dataset.el || '').slice('endnote.'.length);
+  const all = [...d.querySelectorAll('[data-el^="endnote."]')];
+  const ids = all.map(li => (li.dataset.el || '').slice('endnote.'.length));
+  if (!id || ids.length < 2) return false;
+  // An endnote never parks: reordering IS the move, so any stale position
+  // (from an older build that allowed one) goes rather than fighting the flow.
+  if (layout.positions && layout.positions['endnote.' + id]) {
+    delete layout.positions['endnote.' + id];
+  }
+  const others = all.filter(li => li !== el);
+  const edges = [...new Set(others.map(li => Math.round(li.getBoundingClientRect().left)))]
+    .sort((a, b) => a - b);
+  const dropKey = readingKey(edges, pt.x, pt.y);
+  let idx = 0;
+  others.forEach(li => {
+    const r = li.getBoundingClientRect();
+    if (beforeKey(readingKey(edges, r.left, r.top + r.height / 2), dropKey)) idx++;
+  });
+  const rest = ids.filter(i => i !== id);
+  const next = [...rest.slice(0, idx), id, ...rest.slice(idx)];
+  if (next.join(' ') === ids.join(' ')) return false;
+  layout.endnotes = next;
+  $('stat').textContent = `endnote [${id}] moved to #${idx + 1} — the list renumbered`;
+  return true;
 }
 
 /** Keyboard drag: focus, Space to pick up, arrows to move, Space to drop. */
@@ -5730,10 +5794,12 @@ $('add').onclick = async () => {
 /** True Canva-style editing: a contenteditable surface that shows exactly
  *  what the report renders (mdToHtml/htmlToMd, see above), not a boxed
  *  textarea full of raw markdown. allowMd is a conservative denylist — the
- *  only slots that don't go through content.py's md_inline today are the
- *  cover title/year (see render_report.py); everything else already
- *  supports bold/italic/links and should keep offering them. */
-const RICH_PLAINTEXT_SLOTS = new Set(['cover.title', 'cover.year']);
+ *  slots that don't go through content.py's md_inline are the ones the
+ *  renderer builds from C.lines()/C.text() and escapes itself (see
+ *  render_report.py); everything else already supports bold/italic/links
+ *  and should keep offering them. Offering formatting on a plain slot would
+ *  "work" in the editor and then render literal ** after a save. */
+const RICH_PLAINTEXT_SLOTS = new Set(['cover.title', 'cover.year', 'toc.copyright']);
 
 function edit(d, key) {
 

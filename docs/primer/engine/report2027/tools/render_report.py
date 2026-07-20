@@ -658,13 +658,12 @@ def callout_open(key):
 
 
 def endnote_link(n, sid, txt, url):
-    # Independently movable, like any other designed element (L.attr/spacer)
-    # — the <ol>'s numbering is DOM-order based, so dragging one entry never
-    # renumbers its neighbours. data-el uses the source id, not the number:
-    # n is citation order and can shift when a source is added/removed, but
-    # a moved endnote's saved position must keep tracking the SAME source.
-    eid = f"endnote.{sid}"
-    return (f'{L.spacer(eid)}<li id="en{n}"{L.attr(eid)}>{txt} '
+    # data-el makes the entry draggable; dragging one REORDERS the list (see
+    # Layout.endnote_order and the editor's reorderEndnote) rather than
+    # parking it somewhere absolute, so no spacer is needed — an endnote
+    # never leaves the flow. Keyed by source id, not by n: the number is
+    # whatever the current order says, but the identity has to stay put.
+    return (f'<li id="en{n}"{L.attr(f"endnote.{sid}")}>{txt} '
             f'<a href="{url}">{url}</a></li>')
 
 ONE_TIME_BULLETS = C.list("onetime.cards.onetime.bullets")
@@ -779,7 +778,7 @@ pages.append(f"""
  <div class="cover-inner">
   {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
-  {L.spacer("cover.title")}<h1 class="cover-title"{L.attr("cover.title")}><span{C.slot_attr("cover.title")}>{_cover_title}</span></h1>
+  {L.spacer("cover.title")}<h1 class="cover-title"{L.attr("cover.title")}>{C.slot_span("cover.title", _cover_title)}</h1>
   {L.spacer("cover.year")}<div class="cover-year"{L.attr("cover.year")}>{C.t("cover.year")}</div>
  </div>
 </section>""")
@@ -791,7 +790,7 @@ pages.append(f"""
   {L.spacer("toc.logo")}<div class="logo-lockup light"{L.attr("toc.logo")}><img class="logo-img" src="assets/appleseed-logo-white.svg"
    alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
-  <p class="toc-author">{C.t("toc.author")}</p>
+  {L.spacer("toc.author")}<p class="toc-author"{L.attr("toc.author")}>{C.t("toc.author")}</p>
  </div>
  {C.html("toc.mission1", "mission")}
  {C.html("toc.mission2", "mission")}
@@ -802,7 +801,7 @@ pages.append(f"""
   <div><span>Funding the Budget</span><span>{pageno(9)}</span></div>
   <div><span>Endnotes</span><span>{pageno(12)}</span></div>
  </div>
- <p class="copyright">{"<br>".join(esc(l) for l in C.lines("toc.copyright"))}</p>
+ {L.spacer("toc.copyright")}<p class="copyright"{L.attr("toc.copyright")}>{C.slot_span("toc.copyright", "<br>".join(esc(l) for l in C.lines("toc.copyright")))}</p>
  {L.layer(2)}{L.text_boxes(2)}{L.tables_html(2)}{folio(2)}
 </section>""")
 
@@ -838,7 +837,7 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.4")}>
  {L.spacer("process.h2")}<h2 class="sub"{L.attr("process.h2")}>{C.t("process.h2")}</h2>
  {C.html("process.p1")}
- <p class="figcap"><b>Figure 1.</b> {C.t("process.fig1.caption")}</p>
+ {L.spacer("process.fig1.caption")}<p class="figcap"{L.attr("process.fig1.caption")}><b>Figure 1.</b> {C.t("process.fig1.caption")}</p>
  <div class="lifecycle-wrap">
   {fig1_lifecycle()}
   {lifecycle_callouts()}
@@ -858,7 +857,7 @@ pages.append(f"""
   {card(C.t("spent.cards.onetime.title", esc=True), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True, key="spent.cards.onetime.bullets")}
  </div>
  {C.html("spent.p3")}
- <p class="figcap"><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
+ {L.spacer("spent.table1.caption")}<p class="figcap"{L.attr("spent.table1.caption")}><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
  {table1_for(2027)}
  {table1_for(2026)}
 {C.extras("spent")} {L.layer(5)}{L.text_boxes(5)}{L.tables_html(5)}{folio(5)}
@@ -869,7 +868,7 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.6")}>
  {L.spacer("categories.h2")}<h2 class="sub"{L.attr("categories.h2")}>{C.t("categories.h2")}</h2>
  {L.spacer("categories.h3")}<h3 class="sub2"{L.attr("categories.h3")}>{C.t("categories.h3")}</h3>
- <p class="figcap"><b>Figure 2.</b> {C.t("categories.fig2.caption")} {fy_picker("fig2")}
+ {L.spacer("categories.fig2.caption")}<p class="figcap"{L.attr("categories.fig2.caption")}><b>Figure 2.</b> {C.t("categories.fig2.caption")} {fy_picker("fig2")}
  <span class="noprint figcap-hint">{C.t("categories.fig2.hint", esc=True)}</span></p>
  {fig2_chart_for(2027)}
  {fig2_chart_for(2026)}
@@ -902,7 +901,7 @@ pages.append(f"""
   </div>
  </details>
  {L.spacer("cip.h3")}<h3 class="sub2"{L.attr("cip.h3")}>{C.t("cip.h3")}</h3>
- <p class="figcap"><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
+ {L.spacer("cip.fig3.caption")}<p class="figcap"{L.attr("cip.fig3.caption")}><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
  <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
@@ -926,7 +925,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
- <p class="figcap"><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
+ {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
  {C.html("funding.p1")}
  <div class="cards3">
@@ -941,7 +940,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.10")}>
  {L.spacer("taxes.h2")}<h2 class="sub"{L.attr("taxes.h2")}>{C.t("taxes.h2")}</h2>
- <p class="figcap"><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
+ {L.spacer("taxes.fig5.caption")}<p class="figcap"{L.attr("taxes.fig5.caption")}><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
   {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets")}
@@ -985,7 +984,13 @@ by_id[12] = f"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
 
-body = C.fn.resolve("".join(stamp_page(by_id[pid], pid) for pid in PAGE_ORDER))
+_assembled = "".join(stamp_page(by_id[pid], pid) for pid in PAGE_ORDER)
+# Endnotes are numbered by first appearance, unless the editor has dragged
+# one past another on the Endnotes page — then layout.json carries the order
+# it should read in. Seeded BEFORE resolve(), which numbers refs as it walks
+# and so cannot be reordered after the fact.
+C.fn.order_by(L.endnote_order(), C.fn.cited(_assembled))
+body = C.fn.resolve(_assembled)
 
 missing_src = C.fn.unused()
 if missing_src:

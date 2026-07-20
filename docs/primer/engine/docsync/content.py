@@ -190,6 +190,25 @@ class Footnotes:
             self.order.append(sid)
         return self.order.index(sid) + 1
 
+    @staticmethod
+    def cited(html: str) -> list[str]:
+        """Every [^id] in the text, first appearance first, without numbering
+        anything. The pre-pass that lets an explicit order be applied BEFORE
+        resolve() starts handing out numbers — resolve() assigns them as it
+        walks, so by the time it has seen a ref it is too late to reorder."""
+        return list(dict.fromkeys(re.findall(r"\[\^([^\]]+)\]", html)))
+
+    def order_by(self, preferred: list[str], cited: list[str]) -> None:
+        """Seed the numbering from an explicit order (the editor's drag-to-
+        reorder on the Endnotes page), keeping first-appearance order for
+        everything the override does not name.
+
+        Only CITED ids are seeded: an id numbered here would otherwise count
+        as used, and a source nothing cites has to keep failing the build.
+        """
+        lead = [s for s in preferred if s in cited and s in self.sources]
+        self.order = lead + [s for s in cited if s not in lead and s in self.sources]
+
     def resolve(self, html: str) -> str:
         """Replace [^id] runs with <sup>N</sup> (adjacent refs share one <sup>,
         thin-space separated, matching the primer's multi-ref style)."""
@@ -271,6 +290,19 @@ class Content:
         """
         slot = f' data-slot="{key}"' if os.environ.get("DOCSYNC_EDIT") else ""
         return slot + self._style(key)
+
+    def slot_span(self, key: str, inner: str) -> str:
+        """Wrap markup the CALLER built in the editor's slot span.
+
+        For a slot whose element must carry something else — a movable
+        heading's own data-el, which cannot share the tag with data-slot
+        without one style attribute silently eating the other. Same
+        discipline as t(): the span exists only when it carries something
+        (the editor's hook, or a style someone set), so published and
+        unstyled the bytes are exactly the markup that came in.
+        """
+        attr = self.slot_attr(key)
+        return f"<span{attr}>{inner}</span>" if attr else inner
 
     def t(self, key: str, esc: bool = False) -> str:
         """text(), but tagged for the editor when DOCSYNC_EDIT is set.

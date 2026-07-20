@@ -93,4 +93,33 @@ test.describe('movable headings', () => {
     const pos = await page.evaluate(() => (layout.positions || {})['basics.h1']);
     expect(pos).toBeUndefined();
   });
+
+  // Standalone lines of text — the byline, the copyright, a figure caption —
+  // are placed things too, not just headings. They were the last text in the
+  // report a click could edit but not move.
+  for (const id of ['toc.author', 'toc.copyright', 'process.fig1.caption']) {
+    test(`${id} is a movable object, not just editable text`, async ({ page }) => {
+      const frame = page.frameLocator('#out');
+      const el = frame.locator(`[data-el="${id}"]`);
+      await expect(el).toHaveCount(1);
+      await el.scrollIntoViewIfNeeded();
+      await el.click();
+      await expect(frame.locator('.ds-edit')).toHaveCount(0);   // selects, not text-edit
+      await expect(page.locator('#ar-count')).toHaveText(id);
+
+      const box = await el.boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 30, { steps: 8 });
+      await page.mouse.up();
+      await page.waitForTimeout(400);
+
+      // y, not x: a full-width line (the copyright) has no horizontal room —
+      // placer clamps it back to 0 — so vertical is the axis that always
+      // proves the drag landed.
+      const pos = await page.evaluate(k => layout.positions[k], id);
+      expect(pos).toBeTruthy();
+      expect(pos.y).toBeGreaterThan(0);
+    });
+  }
 });

@@ -486,7 +486,18 @@ class Layout:
         # Everything page-keyed — shapes, boxes, fills, layers — stays keyed by
         # identity, so reordering never re-homes anyone's work.
         self.pages = raw.get("pages") or {}
+        # An explicit endnote order, by source id. Endnotes are numbered by
+        # first appearance in the prose; dragging one past another on the
+        # Endnotes page records an override here instead of rewriting the
+        # refs in the text. Partial by design — ids listed here lead, in this
+        # order, and anything else keeps its first-appearance place after
+        # them. An id that is no longer cited is simply ignored.
+        self.endnotes = raw.get("endnotes") or []
         self._validate()
+
+    def endnote_order(self) -> list:
+        """The editor's endnote order override (ids), or [] for none."""
+        return [e for e in self.endnotes if isinstance(e, str)]
 
     def _validate(self):
         for el, p in self.positions.items():
