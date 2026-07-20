@@ -134,12 +134,16 @@
   #stage { flex:1; min-height:0; overflow:auto; position:relative; background:#EDF1EE; }
   #out { border:0; display:block; width:1200px; height:100%;
          transform-origin:0 0; background:#EDF1EE; }
-  /* Page rail: numbered chips down the left, drag to reorder, eye to hide. */
-  #rail { width:118px; flex:none; overflow-y:auto; background:var(--chrome);
-          border-right:1px solid var(--line); padding:10px 8px; }
+  /* Page rail: numbered chips ACROSS THE BOTTOM, drag to reorder, eye to
+     hide. It sat down the left until the left column became a panel host —
+     a filmstrip is the more natural read for page order anyway. */
+  #rail { flex:none; display:flex; align-items:center; gap:7px;
+          overflow-x:auto; overflow-y:hidden; background:var(--chrome);
+          border-top:1px solid var(--line); padding:8px 10px; scrollbar-width:thin; }
+  #rail-list { display:flex; align-items:center; gap:7px; }
   #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
-          color:var(--dim); padding:2px 4px 8px; }
-  .chip { position:relative; display:flex; align-items:center; gap:7px; margin:0 0 7px;
+          color:var(--dim); flex:none; padding-right:4px; }
+  .chip { position:relative; display:flex; align-items:center; gap:7px; flex:none;
           padding:7px 8px; border:1px solid var(--ctl-line); border-radius:8px;
           background:var(--ctl); color:var(--txt); cursor:pointer; font:12px system-ui;
           transition:border-color .12s, opacity .12s; }
@@ -147,7 +151,8 @@
   .chip.on { border-color:var(--sage); background:#4B5B68; }
   .chip.hidden-pg { opacity:.4; }
   .chip.blank { border-style:dashed; }
-  .chip.drag-over { border-color:var(--sage); border-top-width:3px; }
+  /* Horizontal now, so the insertion marker is a LEFT edge, not a top one. */
+  .chip.drag-over { border-color:var(--sage); border-left-width:3px; }
   .chip-n { font:700 12px ui-monospace,monospace; min-width:20px; }
   .chip-lab { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
           font-size:11px; color:var(--dim); }
@@ -158,10 +163,67 @@
           font-size:12px; }
   .chip-eye:hover { opacity:1; }
   #rail-add { display:flex; align-items:center; justify-content:center; gap:6px;
-          width:100%; margin-top:2px; padding:8px; border:1px dashed var(--ctl-line);
+          flex:none; padding:8px 12px; border:1px dashed var(--ctl-line);
           border-radius:8px; background:none; color:var(--dim); cursor:pointer;
           font:12px system-ui; }
   #rail-add:hover { border-color:var(--sage); color:var(--txt); }
+  .chip-lab { max-width:110px; }
+
+  /* -- the left panel: a tool's full surface, where a popover would be
+     cramped. Light, because it is a content surface rather than chrome. */
+  #side { width:288px; flex:none; display:flex; flex-direction:column;
+          background:#fff; color:var(--ink); border-right:1px solid #C9D6CD; }
+  #side[hidden] { display:none; }
+  #side-head { display:flex; align-items:center; justify-content:space-between;
+          padding:14px 16px 10px; font:600 15px system-ui; }
+  #side-x { border:0; background:none; font-size:17px; line-height:1; cursor:pointer;
+          color:#52796F; padding:2px 4px; }
+  #side-x:hover { color:var(--ink); }
+  #side-body { flex:1; min-height:0; overflow-y:auto; padding:0 16px 18px; }
+  #side-body h4 { display:flex; align-items:center; gap:7px; font:600 12.5px system-ui;
+          margin:16px 0 9px; color:var(--ink); }
+  #side-search { width:100%; box-sizing:border-box; font:13px system-ui;
+          padding:8px 10px; border:1px solid #C9D6CD; border-radius:8px; }
+  .cgrid { display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; }
+  .cdot { aspect-ratio:1; border-radius:50%; border:1px solid rgba(0,0,0,.14);
+          padding:0; cursor:pointer; }
+  .cdot.on { outline:2px solid #6B9E78; outline-offset:2px; }
+  .cdot.plus { background:conic-gradient(#f66,#fd6,#6f6,#6ff,#66f,#f6f,#f66);
+          display:flex; align-items:center; justify-content:center; position:relative; }
+  .cdot.plus::after { content:'+'; position:absolute; inset:4px; border-radius:50%;
+          background:#fff; color:var(--ink); font:600 15px system-ui;
+          display:flex; align-items:center; justify-content:center; }
+  .cdot.none { background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M1 9L9 1%27 stroke=%27%23C0392B%27/%3E%3C/svg%3E") center/100% no-repeat; }
+  .cdot.eye { background:#fff; font-size:13px; }
+  .side-note { font:11.5px system-ui; color:#7A8E92; margin:8px 0 0; }
+
+  /* -- the picker: SV square, hue rail, hex. Canva's own arrangement. */
+  #cpick { border:1px solid #C9D6CD; border-radius:10px; padding:12px;
+           margin:10px 0 4px; box-shadow:0 6px 20px rgba(20,30,35,.10); }
+  .cp-tabs { display:flex; gap:16px; margin-bottom:10px; }
+  .cp-tab { border:0; background:none; font:600 13px system-ui; color:#7A8E92;
+            padding:0 0 6px; cursor:pointer; border-bottom:2px solid transparent; }
+  .cp-tab.on { color:var(--ink); border-bottom-color:#6B9E78; }
+  #cp-sv { position:relative; height:132px; border-radius:8px; cursor:crosshair;
+           touch-action:none; }
+  #cp-hue { position:relative; height:14px; border-radius:99px; margin-top:12px;
+            cursor:pointer; touch-action:none;
+            background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00); }
+  .cp-knob { position:absolute; width:16px; height:16px; border-radius:50%;
+             border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.3);
+             transform:translate(-50%,-50%); pointer-events:none; }
+  .cp-row { display:flex; align-items:center; gap:8px; margin-top:12px; }
+  #cp-hex { flex:1; min-width:0; font:13px ui-monospace,monospace; padding:8px 10px;
+            border:1px solid #C9D6CD; border-radius:8px; text-transform:uppercase; }
+  #cp-swatch { width:26px; height:26px; border-radius:50%; flex:none;
+               border:1px solid rgba(0,0,0,.18); }
+  #cp-eye { flex:none; border:1px solid #C9D6CD; border-radius:8px; background:#fff;
+            cursor:pointer; padding:7px 9px; font-size:13px; }
+  .cp-stops { display:flex; align-items:center; gap:8px; margin-top:10px; }
+  .cp-stop { width:26px; height:26px; border-radius:50%; cursor:pointer;
+             border:1px solid rgba(0,0,0,.18); }
+  .cp-stop.on { outline:2px solid #6B9E78; outline-offset:2px; }
+  #cp-angle { width:100%; margin-top:4px; }
 
   /* -- the context row: ONE fixed-height slot that holds either the type
      toolbar (text) or the arrange strip (elements), and never collapses.
@@ -679,14 +741,24 @@
 </div>
 </div>
 <div id="work">
-  <div id="rail" hidden>
-    <div id="rail-head">Pages</div>
-    <div id="rail-list"></div>
-    <button id="rail-add" title="Insert a blank page after the one in view">
-      <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor"
-        stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>Page</button>
-  </div>
+  <!-- The left column is a PANEL host now: whatever the current tool needs a
+       lot of room for (colour, today) opens here instead of in a popover that
+       a 46px row would clip. Pages moved to the bottom strip. -->
+  <aside id="side" hidden>
+    <div id="side-head">
+      <span id="side-title">Color</span>
+      <button id="side-x" title="Close">✕</button>
+    </div>
+    <div id="side-body"></div>
+  </aside>
   <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
+</div>
+<div id="rail" hidden>
+  <span id="rail-head">Pages</span>
+  <div id="rail-list"></div>
+  <button id="rail-add" title="Insert a blank page after the one in view">
+    <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>Page</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
@@ -3580,6 +3652,12 @@ function arrangeBar(d) {
   const canFill = !!fillId && (layout.shapes.some(s => s.id === fillId) || !!boxOf(fillId) || !!svgMarkEl(fillId));
   $('ar-fill').hidden = !canFill;
   if (!canFill) $('ar-fillpop').hidden = true;
+  // An open colour panel follows the selection, and closes when there is
+  // nothing single-selected left for it to be about.
+  if (!$('side').hidden) {
+    if (canFill) { if (sideFillId !== fillId) openColorPanel(fillId); }
+    else if (!selIds.size) closeSide();
+  }
   if (canFill) {
     const ft = fillTargets(fillId);
     $('ar-fillbar').style.background = fillPreview(ft.get());
@@ -4668,40 +4746,17 @@ function fillPreview(v) {
   return 'linear-gradient(90deg,#e66,#6b9e78,#66e)';   // no fill set
 }
 
-// Recolour a shape or text box straight from the toolbar. Reuses fillTargets()
-// (the same routing right-click uses) and the shared palette + eyedropper.
+// The colour button opens the LEFT PANEL. Colour needs a search, the design's
+// own colours, a few dozen defaults and a picker — none of which fits in a
+// popover hanging off a 46px row, which is why that column stopped holding
+// pages and started holding whatever the current tool actually needs.
 $('ar-fill').addEventListener('click', () => {
   const d = $('out').contentDocument;
   const els = selEls(d);
   if (els.length !== 1) return;
-  const id = idOf(els[0]);
-  const ft = fillTargets(id);
-  const grid = $('ar-swgrid');
-  grid.innerHTML = '';
-  (M.palette || []).forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'sw'; b.dataset.c = c.toUpperCase(); b.style.background = c; b.title = c;
-    if ((ft.get() || '').toString().toUpperCase() === c.toUpperCase()) b.classList.add('on');
-    b.addEventListener('click', async () => {
-      $('ar-fillpop').hidden = true;
-      pushHistory(); ft.set(c); markDirty(); await render(); paintSel($('out').contentDocument);
-    });
-    grid.appendChild(b);
-  });
-  const host = $('ar-fill-extras'); host.innerHTML = '';
-  colorExtras(document, host, (ft.get() || '').toString(), async c => {
-    $('ar-fillpop').hidden = true;
-    pushHistory(); ft.set(c); markDirty(); await render(); paintSel($('out').contentDocument);
-  });
-  const reset = $('ar-fillreset');
-  reset.hidden = !ft.resettable;
-  reset.textContent = ft.resetLabel || 'Reset colour';
-  reset.onclick = async () => {
-    $('ar-fillpop').hidden = true;
-    pushHistory(); ft.set(null); markDirty(); await render(); paintSel($('out').contentDocument);
-  };
-  togglePop($('ar-fillpop'), $('ar-fill'));
+  openColorPanel(idOf(els[0]));
 });
+
 
 // Border: colour, weight, dash — the layerMenu's shape styling, surfaced on
 // the strip where Canva keeps it.
@@ -4844,6 +4899,358 @@ $('ar-fxbtn').addEventListener('click', () => {
 // Position: the geometry machinery — align, distribute, layer, group, the
 // inch inputs — parked behind one button, as Canva parks it.
 $('ar-pos').addEventListener('click', () => togglePop($('ar-pospop'), $('ar-pos')));
+
+// ------------------------------------------------------- the colour panel
+// Colour needs more room than a 46px row's popover can give: a search, the
+// colours already in the design, a couple of dozen defaults, and a picker.
+// So it opens the LEFT PANEL — which is what that column is for now, the
+// pages having moved to the bottom strip.
+//
+// Everything writes through fillTargets(id), the same routing right-click and
+// the toolbar swatch already use, so a shape, a text box, a page and a
+// recolourable logo all work without the panel knowing which it has.
+
+// hex <-> hsv, for the SV square and the hue rail.
+function hexToRgb(h) {
+  h = (h || '').replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h.slice(0, 6), 16);
+  return Number.isNaN(n) ? null : { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255 };
+}
+const to2 = v => Math.round(v).toString(16).padStart(2, '0');
+const rgbToHex = (r, g, b) => '#' + to2(r) + to2(g) + to2(b);
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return { h, s: mx ? d / mx : 0, v: mx };
+}
+function hsvToHex(h, sat, v) {
+  const c = v * sat, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  const t = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][Math.floor(h / 60) % 6];
+  return rgbToHex((t[0] + m) * 255, (t[1] + m) * 255, (t[2] + m) * 255);
+}
+
+// Canva-ish defaults. Named so the search box can find "blue" as well as a
+// hex — the palette from docsync.yml still leads, since those are the
+// report's own colours.
+const SOLID_DEFAULTS = [
+  ['black', '#000000'], ['charcoal', '#3F4A4F'], ['grey', '#6E7B80'], ['grey', '#9AA6A9'],
+  ['grey', '#B9C3C5'], ['light grey', '#DDE3E2'], ['white', '#FFFFFF'],
+  ['red', '#E23B3B'], ['red', '#E5645C'], ['pink', '#F062A0'], ['pink', '#D9A8E0'],
+  ['purple', '#A961D8'], ['purple', '#7B5BE0'], ['purple', '#4B2FD1'],
+  ['teal', '#2F7F8F'], ['blue', '#3FA9D4'], ['cyan', '#7FE0E0'], ['blue', '#5AA9F0'],
+  ['blue', '#4A6FE8'], ['navy', '#1B3A8C'], ['navy', '#141C6B'],
+  ['green', '#3FAE68'], ['green', '#7CC262'], ['lime', '#C6EE73'], ['yellow', '#F4D06A'],
+  ['orange', '#F0B45E'], ['orange', '#EE8B4E'], ['orange', '#E8712F'],
+];
+const GRAD_DEFAULTS = [
+  ['black', ['#2B2B2B', '#000000'], 180], ['grey', ['#E6E6E6', '#4A4A4A'], 180],
+  ['white', ['#FFFFFF', '#D8D8D8'], 180], ['green', ['#B7E06B', '#7CC262'], 180],
+  ['gold', ['#6B5A16', '#C9A227'], 180], ['sunset', ['#8E6FB0', '#E8C46A'], 135],
+  ['navy', ['#141C6B', '#0B1030'], 180], ['ice', ['#DCEFF7', '#9FC7E8'], 180],
+  ['red', ['#E8542F', '#D63A2A'], 180], ['berry', ['#D9558E', '#7B5BE0'], 135],
+  ['violet', ['#7B5BE0', '#4A6FE8'], 135], ['ocean', ['#2F4A8F', '#3FA9D4'], 135],
+  ['sky', ['#6FA8E8', '#9AD0E8'], 135], ['teal', ['#2F7F8F', '#5AC8C8'], 135],
+  ['forest', ['#4A7FB0', '#3FAE68'], 135], ['moss', ['#2F7F6F', '#7CC262'], 135],
+  ['lagoon', ['#5AC8C8', '#7CC262'], 135], ['amber', ['#F0B45E', '#EE8B4E'], 135],
+  ['blush', ['#F062A0', '#F4D06A'], 135], ['pearl', ['#F7E8F0', '#DCEFF7'], 135],
+  ['orchid', ['#A961D8', '#5AA9F0'], 135],
+];
+const gradOf = (stops, angle) => ({
+  type: 'linear', angle,
+  stops: stops.map((c, i) => ({ color: c, at: i / (stops.length - 1) })),
+});
+
+let sideFillId = null;          // whose colour the panel is editing
+
+function closeSide() {
+  $('side').hidden = true;
+  sideFillId = null;
+}
+
+function openColorPanel(id) {
+  sideFillId = id;
+  $('side').hidden = false;
+  $('side-title').textContent = 'Color';
+  const body = $('side-body');
+  body.innerHTML = '';
+
+  // fillTargets() is a SNAPSHOT — its `resettable` is computed when it is
+  // called. Re-reading it on every repaint is what makes "None" appear the
+  // moment a colour exists to clear, instead of staying stuck on whatever
+  // was true when the panel opened.
+  const apply = async v => {
+    pushHistory(); fillTargets(id).set(v); markDirty();
+    await render();
+    paintSel($('out').contentDocument);
+    // Refresh which swatch reads as current — but NOT by rebuilding the
+    // panel, which would tear down an open picker the user is still using.
+    if (!$('side').hidden && sideFillId === id && !body.querySelector('#cpick')) {
+      renderSections(q.value);
+    }
+  };
+  const h4 = text => { const h = document.createElement('h4'); h.textContent = text; body.appendChild(h); return h; };
+  const grid = () => { const g = document.createElement('div'); g.className = 'cgrid'; body.appendChild(g); return g; };
+  const dot = (host, bg, title, cls, onClick) => {
+    const b = document.createElement('button');
+    b.className = 'cdot' + (cls ? ' ' + cls : '');
+    if (bg) b.style.background = bg;
+    b.title = title;
+    b.addEventListener('click', onClick);
+    host.appendChild(b);
+    return b;
+  };
+
+  // --- search: a name, or a hex typed straight in -------------------------
+  const q = document.createElement('input');
+  q.id = 'side-search';
+  q.type = 'search';
+  q.placeholder = 'Try "blue" or "#00c4cc"';
+  q.autocomplete = 'off';
+  body.appendChild(q);
+
+  const results = document.createElement('div');
+  body.appendChild(results);
+
+  const renderSections = term => {
+    const ft = fillTargets(id);
+    const cur = ft.get();
+    const curHex = typeof cur === 'string' ? cur.toUpperCase() : '';
+    results.innerHTML = '';
+    const t = (term || '').trim().toLowerCase();
+    const hexHit = /^#?[0-9a-f]{3}$|^#?[0-9a-f]{6}$/i.test(t)
+      ? '#' + t.replace('#', '').toUpperCase() : null;
+
+    if (t) {
+      // Filtered view: an exact hex first, then every named default matching.
+      const host = document.createElement('div');
+      results.appendChild(host);
+      const head = document.createElement('h4');
+      head.textContent = 'Matches';
+      results.insertBefore(head, host);
+      const g = document.createElement('div'); g.className = 'cgrid'; results.appendChild(g);
+      if (hexHit) dot(g, hexHit, hexHit, '', () => apply(hexHit));
+      SOLID_DEFAULTS.filter(([n, c]) => n.includes(t) || c.toLowerCase().includes(t))
+        .forEach(([n, c]) => dot(g, c, `${n} ${c}`, c.toUpperCase() === curHex ? 'on' : '', () => apply(c)));
+      GRAD_DEFAULTS.filter(([n]) => n.includes(t)).forEach(([n, st, a]) =>
+        dot(g, cssFill(gradOf(st, a)), `${n} gradient`, '', () => apply(gradOf(st, a))));
+      if (!g.children.length) {
+        const none = document.createElement('p');
+        none.className = 'side-note';
+        none.textContent = `nothing matched "${term}"`;
+        results.appendChild(none);
+      }
+      return;
+    }
+
+    // --- this element's own colours ---------------------------------------
+    const shead = document.createElement('h4');
+    shead.textContent = ft.label === 'Colour' ? 'Artwork colour' : ft.label + ' colours';
+    results.appendChild(shead);
+    const own = document.createElement('div'); own.className = 'cgrid'; results.appendChild(own);
+    dot(own, '', 'Custom colour or gradient', 'plus', () => togglePicker(id));
+    if (hasEyeDropper()) {
+      const e = dot(own, '', 'Pick a colour from anywhere on screen', 'eye', () => eyedrop(apply));
+      e.textContent = '⦿';
+    }
+    if (ft.resettable) dot(own, '', ft.resetLabel || 'None', 'none', () => apply(null));
+    if (cur) dot(own, cssFill(cur), 'Current', 'on', () => {});
+
+    // --- what the design already uses -------------------------------------
+    const inUse = colorsInUse();
+    if (inUse.length) {
+      const uh = document.createElement('h4');
+      uh.textContent = 'Colors in this design';
+      results.appendChild(uh);
+      const ug = document.createElement('div'); ug.className = 'cgrid'; results.appendChild(ug);
+      inUse.forEach(c => dot(ug, c, c, c === curHex ? 'on' : '', () => apply(c)));
+    }
+
+    // --- the report's own palette, then the generic defaults ---------------
+    if ((M.palette || []).length) {
+      const ph = document.createElement('h4');
+      ph.textContent = 'Report palette';
+      results.appendChild(ph);
+      const pg = document.createElement('div'); pg.className = 'cgrid'; results.appendChild(pg);
+      M.palette.forEach(c => dot(pg, c, c, c.toUpperCase() === curHex ? 'on' : '', () => apply(c)));
+    }
+    const dh = document.createElement('h4');
+    dh.textContent = 'Default solid colors';
+    results.appendChild(dh);
+    const dg = document.createElement('div'); dg.className = 'cgrid'; results.appendChild(dg);
+    SOLID_DEFAULTS.forEach(([n, c]) =>
+      dot(dg, c, `${n} ${c}`, c.toUpperCase() === curHex ? 'on' : '', () => apply(c)));
+
+    const gh = document.createElement('h4');
+    gh.textContent = 'Default gradient colors';
+    results.appendChild(gh);
+    const gg = document.createElement('div'); gg.className = 'cgrid'; results.appendChild(gg);
+    GRAD_DEFAULTS.forEach(([n, st, a]) =>
+      dot(gg, cssFill(gradOf(st, a)), `${n} gradient`, '', () => apply(gradOf(st, a))));
+  };
+
+  let timer = null;
+  q.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => renderSections(q.value), 120);
+  });
+  renderSections('');
+
+  // --- the picker: Solid | Gradient, SV square, hue rail, hex -------------
+  function togglePicker(fid) {
+    const open = body.querySelector('#cpick');
+    if (open) { open.remove(); return; }
+    const ftl = fillTargets(fid);
+    const start = ftl.get();
+    const isGrad = !!start && typeof start === 'object';
+    // Editing state: a gradient is a list of stops with one selected; a solid
+    // is the degenerate case of that, so both drive the same square.
+    let mode = isGrad ? 'grad' : 'solid';
+    let stops = isGrad ? start.stops.map(x => ({ ...x }))
+                       : [{ color: (typeof start === 'string' && start) || '#6B9E78', at: 0 },
+                          { color: '#2F3E46', at: 1 }];
+    let angle = isGrad ? (start.angle ?? 180) : 180;
+    let si = 0;                                  // which stop the square edits
+    let hsv = rgbToHsv(...Object.values(hexToRgb(stops[0].color) || { r: 107, g: 158, b: 120 }));
+
+    const wrap = document.createElement('div');
+    wrap.id = 'cpick';
+    wrap.innerHTML = `
+      <div class="cp-tabs">
+        <button class="cp-tab" data-m="solid">Solid color</button>
+        <button class="cp-tab" data-m="grad">Gradient</button>
+      </div>
+      <div id="cp-sv"><span class="cp-knob" id="cp-svknob"></span></div>
+      <div id="cp-hue"><span class="cp-knob" id="cp-hueknob" style="top:50%"></span></div>
+      <div class="cp-stops" id="cp-stops" hidden></div>
+      <input id="cp-angle" type="range" min="0" max="360" step="15" hidden>
+      <div class="cp-row">
+        <span id="cp-swatch"></span>
+        <input id="cp-hex" spellcheck="false" maxlength="7">
+        <button id="cp-eye" title="Pick a colour from anywhere on screen">⦿</button>
+      </div>`;
+    // Anchor it under the swatch row it belongs to, not at the panel's end.
+    results.insertBefore(wrap, results.children[2] || null);
+
+    const $$ = sel => wrap.querySelector(sel);
+    const sv = $$('#cp-sv'), hue = $$('#cp-hue');
+    const svk = $$('#cp-svknob'), huek = $$('#cp-hueknob');
+    const hex = $$('#cp-hex'), swatch = $$('#cp-swatch');
+    if (!hasEyeDropper()) $$('#cp-eye').hidden = true;
+
+    const value = () => mode === 'solid'
+      ? stops[si].color
+      : { type: 'linear', angle, stops: stops.map(x => ({ ...x })) };
+
+    const paint = (commit) => {
+      const c = hsvToHex(hsv.h, hsv.s, hsv.v);
+      stops[si].color = c;
+      sv.style.background =
+        `linear-gradient(to top, #000, transparent), `
+        + `linear-gradient(to right, #fff, ${hsvToHex(hsv.h, 1, 1)})`;
+      svk.style.left = (hsv.s * 100) + '%';
+      svk.style.top = ((1 - hsv.v) * 100) + '%';
+      svk.style.background = c;
+      huek.style.left = (hsv.h / 360 * 100) + '%';
+      huek.style.background = hsvToHex(hsv.h, 1, 1);
+      if (document.activeElement !== hex) hex.value = c.toUpperCase();
+      swatch.style.background = mode === 'solid' ? c : cssFill(value());
+      wrap.querySelectorAll('.cp-stop').forEach((n, i) => {
+        n.style.background = stops[i].color;
+        n.classList.toggle('on', i === si);
+      });
+      if (commit) apply(value());
+    };
+
+    const buildStops = () => {
+      const host = $$('#cp-stops');
+      host.hidden = mode !== 'grad';
+      $$('#cp-angle').hidden = mode !== 'grad';
+      host.innerHTML = '';
+      if (mode !== 'grad') return;
+      stops.forEach((st, i) => {
+        const b = document.createElement('button');
+        b.className = 'cp-stop' + (i === si ? ' on' : '');
+        b.style.background = st.color;
+        b.title = `Stop ${i + 1}`;
+        b.addEventListener('click', () => {
+          si = i;
+          hsv = rgbToHsv(...Object.values(hexToRgb(stops[i].color)));
+          paint(false);
+          buildStops();
+        });
+        host.appendChild(b);
+      });
+    };
+
+    wrap.querySelectorAll('.cp-tab').forEach(t => {
+      t.classList.toggle('on', t.dataset.m === mode);
+      t.addEventListener('click', () => {
+        mode = t.dataset.m;
+        si = 0;
+        hsv = rgbToHsv(...Object.values(hexToRgb(stops[0].color)));
+        wrap.querySelectorAll('.cp-tab').forEach(x => x.classList.toggle('on', x.dataset.m === mode));
+        buildStops();
+        paint(true);
+      });
+    });
+
+    // Dragging the square / rail: pointer capture so a fast drag that leaves
+    // the box keeps tracking, which is the difference between "a picker" and
+    // "a picker that fights you".
+    const track = (el, onAt) => {
+      const move = ev => {
+        const r = el.getBoundingClientRect();
+        onAt(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)),
+             Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)));
+        paint(false);
+      };
+      el.addEventListener('pointerdown', ev => {
+        el.setPointerCapture(ev.pointerId);
+        move(ev);
+        const up = () => {
+          el.removeEventListener('pointermove', move);
+          el.removeEventListener('pointerup', up);
+          paint(true);
+        };
+        el.addEventListener('pointermove', move);
+        el.addEventListener('pointerup', up);
+      });
+    };
+    track(sv, (x, y) => { hsv.s = x; hsv.v = 1 - y; });
+    track(hue, x => { hsv.h = x * 360; });
+
+    hex.addEventListener('input', () => {
+      const rgb = hexToRgb(hex.value);
+      if (!rgb || !/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex.value.trim())) return;
+      hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      paint(false);
+    });
+    hex.addEventListener('change', () => paint(true));
+    $$('#cp-eye').addEventListener('click', () => eyedrop(c => {
+      const rgb = hexToRgb(c);
+      if (!rgb) return;
+      hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      paint(true);
+    }));
+    $$('#cp-angle').value = angle;
+    $$('#cp-angle').addEventListener('input', e => { angle = +e.target.value; paint(false); });
+    $$('#cp-angle').addEventListener('change', () => paint(true));
+
+    buildStops();
+    paint(false);
+  }
+}
+
+$('side-x').addEventListener('click', closeSide);
+
 
 // The Canva text bar's own B / I / lists, acting on the open editor's live
 // selection down in the iframe. mousedown is prevented so focus (and with it

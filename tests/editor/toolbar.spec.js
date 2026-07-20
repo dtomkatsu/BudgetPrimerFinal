@@ -115,7 +115,7 @@ test.describe('contextual toolbar', () => {
     await expect(fill).toHaveAttribute('title', 'Colour');
 
     await fill.click();
-    await page.locator('#ar-swgrid .sw[data-c="#2F3E46"]').click();
+    await page.locator('#side-body .cdot[title="#2F3E46"]').first().click();
     await page.waitForTimeout(1500);
 
     expect(await page.evaluate(() => layout.fill['cover.logo'])).toBe('#2F3E46');
@@ -127,8 +127,8 @@ test.describe('contextual toolbar', () => {
 
     // And "Original artwork" puts the plain <img> back.
     await page.evaluate(() => setSel($('out').contentDocument, ['cover.logo']));
-    await fill.click();
-    await page.locator('#ar-fillreset', { hasText: 'Original artwork' }).click();
+    await page.waitForTimeout(300);
+    await page.locator('#side-body .cdot.none').click();
     await page.waitForTimeout(1500);
     await expect(frame.locator('[data-el="cover.logo"] img.logo-img')).toHaveCount(1);
   });

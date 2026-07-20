@@ -28,12 +28,13 @@ test.describe('shapes', () => {
     // Creating selects the shape, so the arrange row + Fill button are live.
     await expect(page.locator('#ar-fill')).toBeVisible();
 
+    // Fill opens the left panel now — colour outgrew a popover.
     await page.click('#ar-fill');
-    await expect(page.locator('#ar-fillpop')).toBeVisible();
-    // Pick the first palette swatch that differs from the current sage.
-    const swatch = page.locator('#ar-swgrid .sw').first();
-    const chosen = (await swatch.getAttribute('data-c')).toLowerCase();
+    await expect(page.locator('#side')).toBeVisible();
+    const swatch = page.locator('#side-body .cgrid .cdot[title^="#"]').first();
+    const chosen = (await swatch.getAttribute('title')).toLowerCase();
     await swatch.click();
+    await page.waitForTimeout(900);
 
     const rect = page.frameLocator('#out').locator('rect[data-shape]').first();
     await expect(rect).toHaveAttribute('fill', new RegExp(chosen, 'i'));
