@@ -48,6 +48,17 @@ test.describe('installable shell', () => {
     expect(swSource).toMatch(/index\.html/);
   });
 
+  test('the editor page itself is network-first, never served one build stale', async ({ page }) => {
+    const swSource = await (await page.request.get('sw.js')).text();
+    // Stale-while-revalidate on edit.html meant every visit ran the PREVIOUS
+    // build — shipped fixes looked absent until the visit after next. The
+    // pages now wait for the network and use the cache only as the offline
+    // fallback; the version bump evicts every existing stale shell.
+    expect(swSource).toMatch(/isShellPage/);
+    expect(swSource).toMatch(/\(edit\|start\)\\\.html/);
+    expect(swSource).not.toMatch(/primer-shell-v1/);
+  });
+
   test('start.html renders a project card per registry entry, linking into the editor', async ({ page }) => {
     await page.goto('start.html');
     const registry = await (await page.request.get('projects.json')).json();

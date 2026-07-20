@@ -7,10 +7,17 @@
  * 1. Pyodide's CDN (cdn.jsdelivr.net/pyodide/<version>/…) — cache-first,
  *    forever. The version is IN the URL, so a pin never goes stale; a Pyodide
  *    upgrade is a new URL, which is simply a cache miss the first time.
- * 2. This app's own shell (this page, the editor, its CSS/icons/manifest) —
- *    stale-while-revalidate. Boots instantly from cache; a newer deploy is
- *    fetched in the background and used on the NEXT load, never blocking
- *    this one.
+ * 2. This app's own shell, split by what staleness costs:
+ *    - The HTML pages (edit.html, start.html) — NETWORK-FIRST, cache as the
+ *      offline fallback. These carried stale-while-revalidate at first, and
+ *      it was a bug factory: the file changes daily, so every single visit
+ *      ran the PREVIOUS build — fixes looked unshipped, and "clear the
+ *      caches" nuked the Pyodide store alongside it, forcing a ~40MB
+ *      refetch that read as the whole app hanging. A local dev server makes
+ *      the network hit free; deployed, one round-trip per open is nothing
+ *      against running week-old code.
+ *    - Icons and the manifest — stale-while-revalidate. They change rarely
+ *      and a stale icon costs nothing.
  * 3. Everything that is actual report data or a write (engine/*, the GitHub
  *    API, drafts) — network-only. Caching a stale content.md would make a
  *    collaborator's real edit invisible; that failure mode is worse than
@@ -19,7 +26,7 @@
  * Bump CACHE_VERSION on any shell change that should evict old entries
  * outright rather than wait for revalidation (e.g. a renamed file).
  */
-const CACHE_VERSION = 'primer-shell-v1';
+const CACHE_VERSION = 'primer-shell-v2';
 const PYODIDE_CACHE = 'primer-pyodide-v1';
 
 const SHELL_FILES = [
@@ -59,6 +66,9 @@ const isPyodide = url => url.hostname === 'cdn.jsdelivr.net' && url.pathname.inc
 // have the worker intercept their next visit to the report page too — a
 // stale copy of what a reader actually came here to read is a much worse
 // failure than "the app shell recaches its own five files."
+// The app's own pages: fresh wins, cache is the offline fallback (tier 2).
+const isShellPage = url => /\/(edit|start)\.html$/.test(url.pathname);
+
 const isNetworkOnly = url =>
   url.hostname === 'api.github.com' ||
   url.hostname === 'raw.githubusercontent.com' ||
@@ -94,7 +104,9 @@ self.addEventListener('fetch', event => {
           if (res.ok) cache.put(req, res.clone());
           return res;
         }).catch(() => hit);                      // offline: fall back to what we had
-        return hit || network;
+        // Pages wait for the network so a deploy is live on the very next
+        // open; everything else boots from cache and revalidates behind.
+        return isShellPage(url) ? network : (hit || network);
       })
     );
   }

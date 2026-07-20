@@ -590,7 +590,7 @@
         stroke-width="1.3" stroke-dasharray="2 1.4"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
         <rect x="7" y="7" width="5.5" height="5.5" rx="1"/></svg></button>
   </span>
-  <button id="ar-dup" title="Duplicate (⌘D) — shapes and text boxes">
+  <button id="ar-dup" title="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
       <path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg></button>
@@ -3406,8 +3406,8 @@ function showMini(d, els) {
     bar.appendChild(b);
     return b;
   };
-  const dupDisabled = ![...selIds].every(id => layout.shapes.some(s => s.id === id) || boxOf(id));
-  btn(dupDisabled ? 'Duplicate — only shapes and text boxes can be duplicated; a designed element exists once, by design'
+  const dupDisabled = ![...selIds].every(id => dupModeOf(d, id));
+  btn(dupDisabled ? 'Duplicate — an endnote reorders instead: drag it up or down the list'
                   : 'Duplicate (⌘D)',
     '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/><path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg>',
     () => duplicateSel(d),
@@ -3468,7 +3468,7 @@ function arrangeBar(d) {
   $('ar-del').disabled = !n || [...selIds].every(isLocked);
   $('ar-dh').disabled = $('ar-dv').disabled = n < 3;
   $('ar-dup').disabled = !n || ![...selIds].every(id =>
-    layout.shapes.some(s => s.id === id) || boxOf(id));
+    dupModeOf($('out').contentDocument, id));
   $('ar-group').disabled = !canGroup();
   $('ar-ungroup').disabled = !canUngroup();
   $('ar-lock').disabled = !n;
@@ -3677,13 +3677,64 @@ const freeShapeId = kind => {
   return `s${n}-${kind}`;
 };
 
-/** Duplicate the selection's shapes and boxes, offset a fifth of an inch.
- *  Designed elements are skipped: there is exactly one of each by design. */
+/** What Duplicate can honestly offer for this id.
+ *  'clone'  — a real second instance (shapes, text boxes, tables).
+ *  'asBox'  — a designed element; the copy is a floating TEXT BOX carrying
+ *             the same words (or the same image), because a designed element
+ *             exists exactly once — but what a person duplicating one wants
+ *             is almost never a second heading slot, it is that content,
+ *             loose, to restyle and move. Canva's own semantics.
+ *  null     — nothing sane to offer (an endnote: it is one row of a numbered
+ *             list, and reordering — not duplication — is its drag story). */
+function dupModeOf(d, id) {
+  if ((id || '').startsWith('endnote.')) return null;
+  if (layout.shapes.some(s => s.id === id) || boxOf(id) || tableOf(id)) return 'clone';
+  const el = d && d.querySelector(`[data-el="${CSS.escape(id)}"]`);
+  if (!el) return null;
+  const img = el.tagName === 'IMG' ? el : el.querySelector('img');
+  if (img && img.getAttribute('src')) return 'asBox';
+  if (el.dataset.slot || el.querySelector('[data-slot]')) return 'asBox';
+  return (el.innerText || '').trim() ? 'asBox' : null;
+}
+
+/** Duplicate the selection, offset a fifth of an inch. Shapes, boxes and
+ *  tables clone outright; a designed element hands back its content as a
+ *  text box (see dupModeOf). */
 async function duplicateSel(d) {
   const copies = [];
+  let asBoxCount = 0;
+  const dupDesigned = id => {
+    const el = d.querySelector(`[data-el="${CSS.escape(id)}"]`);
+    if (!el) return;
+    const pg = el.closest('section[data-page]');
+    const pid = pg ? (/^\d+$/.test(pg.dataset.page) ? +pg.dataset.page : pg.dataset.page)
+                   : visiblePageId();
+    const bx = pg ? inchBox(el, pg) : { x: 1, y: 1, w: 3, h: 1 };
+    const img = el.tagName === 'IMG' ? el : el.querySelector('img');
+    let md;
+    if (img && img.getAttribute('src')) {
+      md = `![${img.getAttribute('alt') || ''}](${img.getAttribute('src')})`;
+    } else {
+      // The element's own authored text, from content.md — the DOM's version
+      // has footnote markers and editor scaffolding baked in.
+      const keys = [...new Set([el.dataset.slot,
+        ...[...el.querySelectorAll('[data-slot]')].map(n => n.dataset.slot)].filter(Boolean))];
+      const parts = keys.map(k => readSlot(k)).filter(Boolean);
+      md = parts.length ? parts.join('\n\n') : (el.innerText || '').trim();
+    }
+    if (!md) return;
+    const nid = freeBoxId();
+    boxes().push({ id: nid, page: pid, md,
+      x: Math.min(bx.x + 0.2, PAGE_W_IN - 1),
+      y: Math.min(bx.y + 0.2, PAGE_H_IN - 0.4),
+      w: Math.max(0.8, Math.min(bx.w, PAGE_W_IN - 0.4)), z: 3 });
+    copies.push('text.' + nid);
+    asBoxCount++;
+  };
   const dup = id => {
     const sh = layout.shapes.find(s => s.id === id);
     const b = boxOf(id);
+    const t = tableOf(id);
     if (sh) {
       const nid = freeShapeId(sh.kind);
       layout.shapes.push({ ...sh, id: nid,
@@ -3696,6 +3747,14 @@ async function duplicateSel(d) {
         x: Math.min(b.x + 0.2, PAGE_W_IN - Math.min(b.w, PAGE_W_IN)),
         y: Math.min(b.y + 0.2, PAGE_H_IN - 0.4) });
       copies.push('text.' + nid);
+    } else if (t) {
+      const nid = freeTableId();
+      tables().push({ ...clone(t), id: nid,
+        x: Math.min(t.x + 0.2, PAGE_W_IN - Math.min(t.w, PAGE_W_IN)),
+        y: Math.min(t.y + 0.2, PAGE_H_IN - 0.4) });
+      copies.push('table.' + nid);
+    } else if (dupModeOf(d, id) === 'asBox') {
+      dupDesigned(id);
     }
   };
   if (!selIds.size) return;
@@ -3713,7 +3772,9 @@ async function duplicateSel(d) {
   setSel(d, copies);                       // the copies become the selection
   markDirty();
   await render();
-  $('stat').textContent = `duplicated ${copies.length} element${copies.length > 1 ? 's' : ''}`;
+  $('stat').textContent = asBoxCount
+    ? `duplicated ${copies.length} — a designed element's copy is a floating text box`
+    : `duplicated ${copies.length} element${copies.length > 1 ? 's' : ''}`;
 }
 
 // ----------------------------------------------------------- clipboard
