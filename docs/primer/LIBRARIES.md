@@ -216,14 +216,18 @@ result:
 
 ### The two things that are genuinely weak (and are cheap to fix without PM)
 
-1. **No paste handling at all** — there is no `paste` listener, so pasting
-   from Word or Google Docs is pure browser default. Nothing corrupts
-   (`htmlToMd` keeps text + `b`/`i`/`a`/`img` and strips the rest at commit),
-   but pasted headings, tables and nested lists flatten *silently and
-   invisibly* until the edit is committed. The fix is ~15 lines and is
-   strictly better than what PM gives by default: intercept `paste`, run the
-   clipboard HTML through `htmlToMd` → `mdToHtml`, and insert that — so what
-   lands on the page is, by construction, exactly what will render.
+1. **No paste handling at all — since fixed.** There was no `paste`
+   listener, so pasting from Word or Google Docs was pure browser default.
+   Nothing corrupted (`htmlToMd` keeps text + `b`/`i`/`a`/`img` and strips
+   the rest at commit), but pasted headings, tables and nested lists
+   flattened *silently and invisibly* until the edit was committed.
+   `pasteClean()` now intercepts `paste` on all three surfaces and runs the
+   clipboard HTML through `htmlToMd` → `mdToHtml` before inserting it, so
+   what lands on the page is, by construction, exactly what will render —
+   strictly better than PM's default behaviour, in ~50 lines and no
+   dependency. A plain-text target (the cover title, an endnote) takes the
+   text literally, so pasted `**stars**` stay stars. Pinned by
+   `paste.spec.js`.
 
 2. **`document.execCommand` is deprecated** — used in three places (bold,
    italic, `insertLineBreak`). This is the one real long-term risk, and it is
@@ -256,11 +260,12 @@ Two places, neither of them today:
    editor alone — the save path is a git commit to a draft branch, not a
    shared document server.
 
-**Verdict: don't adopt now.** Add the paste handler instead — it closes the
-one real gap, for ~15 lines and no dependency. Revisit ProseMirror if text
-boxes grow real design-tool typography, or if collaborative editing is ever
-wanted; and treat `execCommand` breaking in Chromium as the trigger to
-reconsider rather than a reason to pre-empt.
+**Verdict: don't adopt.** The paste gap — the one concrete thing this
+assessment turned up — is closed, without a dependency and with better
+fidelity than the default. Revisit ProseMirror if text boxes grow real
+design-tool typography, or if collaborative editing is ever wanted; and
+treat `execCommand` breaking in Chromium as the trigger to reconsider
+rather than a reason to pre-empt.
 
 Same verdict for **Quill / Slate / Lexical**, and for the same root reason:
 they all own the document model, and here Python owns it.

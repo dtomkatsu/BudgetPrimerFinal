@@ -1024,6 +1024,74 @@ function insertNodeAt(d, host, range, node) {
   host.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+/** Paste what the report can actually render, and nothing else.
+ *
+ * Left to the browser, pasting from Word or Google Docs drops their whole
+ * markup into the page — headings, tables, nested lists, colour spans. None
+ * of that survives: htmlToMd keeps text plus b/i/a/img and drops the rest,
+ * so the structure vanishes at COMMIT, silently, long after the paste
+ * looked like it worked. Better to be honest immediately — run the clipboard
+ * through the same round-trip a save would, and insert that. What lands on
+ * the page is then, by construction, exactly what will render.
+ *
+ * A plain-text target (the cover title, an endnote) takes the text only:
+ * there is no markdown there to parse, so pasted **stars** must stay stars.
+ */
+function pasteClean(d, host, e, { allowLists = false, inline = false, allowMd = true } = {}) {
+  const cb = e.clipboardData;
+  if (!cb) return;                       // no clipboard access: let the browser try
+  e.preventDefault();
+  const html = allowMd ? cb.getData('text/html') : '';
+  const text = cb.getData('text/plain') || '';
+
+  let md;
+  if (html) {
+    // Normalize through the report's own grammar: parse the foreign markup
+    // down to markdown, which discards anything content.py could not emit.
+    const tmp = d.createElement('div');
+    tmp.innerHTML = html;
+    tmp.querySelectorAll('script, style, meta, link').forEach(n => n.remove());
+    md = htmlToMd(tmp, { allowLists, inline });
+  } else {
+    md = text;
+  }
+  if (!md) return;
+
+  if (!allowMd) {
+    // Plain-text slot: insert literally, newlines and all.
+    const r = saveRange(d, host);
+    insertNodeAt(d, host, r, d.createTextNode(inline ? md.replace(/\s*\n\s*/g, ' ') : md));
+    return;
+  }
+
+  // Build the nodes the same way opening the editor would, so pasted content
+  // is indistinguishable from content that was already there.
+  const frag = d.createDocumentFragment();
+  const holder = d.createElement('div');
+  holder.innerHTML = mdToHtml(md, { allowLists, inline });
+  // Inline targets (a heading, a table cell) have no blocks to paste INTO —
+  // flatten to one run rather than dropping <p>s inside a <span>.
+  if (inline) {
+    holder.querySelectorAll('p, li, h2, h3').forEach((b, i) => {
+      if (i) b.before(d.createTextNode(' '));
+      b.replaceWith(...b.childNodes);
+    });
+  }
+  while (holder.firstChild) frag.appendChild(holder.firstChild);
+
+  const r = saveRange(d, host) || (() => {
+    const rr = d.createRange(); rr.selectNodeContents(host); rr.collapse(false); return rr;
+  })();
+  r.deleteContents();                    // a paste DOES replace the selection
+  const last = frag.lastChild;
+  r.insertNode(frag);
+  if (last) { r.setStartAfter(last); r.collapse(true); }
+  const sel = d.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(r);
+  host.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 /**
  * Link and cite, acting on the open editor's selection.
  *
@@ -2613,6 +2681,7 @@ function editCell(d, td) {
     await render();
   };
   host.addEventListener('blur', () => { if (!modalOpen) finish(true); });
+  host.addEventListener('paste', e => pasteClean(d, host, e, { inline: true }));
   host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     // Enter commits (a cell is usually one line); Shift+Enter for a real newline.
@@ -2705,6 +2774,7 @@ function editBox(d, el) {
     if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
+  host.addEventListener('paste', e => pasteClean(d, host, e, { allowLists: true }));
   host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
@@ -5883,6 +5953,7 @@ function edit(d, key) {
     if (tools && e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
+  host.addEventListener('paste', e => pasteClean(d, host, e, { allowLists, inline, allowMd }));
   host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
