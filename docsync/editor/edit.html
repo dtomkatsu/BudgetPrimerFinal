@@ -46,6 +46,9 @@
   #brand svg { display:block; }
   #stat { flex:1; min-width:180px; opacity:.9; overflow:hidden;
           text-overflow:ellipsis; white-space:nowrap; }
+  /* A boot failure is the one status the row must not quietly ellipsis away:
+     it is the only thing on screen telling you why nothing works. */
+  #stat.err { opacity:1; color:#FFD9D4; font-weight:600; cursor:help; }
   .ds-id { font:11.5px ui-monospace,monospace; color:var(--dim);
            background:rgba(255,255,255,.07); padding:2px 8px; border-radius:99px; }
   #fit { background:#C0392B; color:#fff; padding:3px 10px; border-radius:99px;
@@ -6919,7 +6922,29 @@ addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 // registration failure (an unsupported browser, a scope error) should never
 // stop the page from loading.
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-boot().catch(e => { $('stat').textContent = 'failed to start: ' + e.message; });
+// "Failed to fetch" is what the browser says for every network failure, and
+// it names none of them. The common one by far, locally, is that the dev
+// server is not running — and the service worker makes that case genuinely
+// confusing: edit.html itself comes from cache, so the page RENDERS and only
+// its engine files (network-only, deliberately) fail. Say which it is.
+boot().catch(async e => {
+  const netErr = e instanceof TypeError || /fetch/i.test(e.message || '');
+  let msg = 'failed to start: ' + e.message;
+  if (netErr) {
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    let serverUp = false;
+    try { serverUp = (await fetch('/__ping', { cache: 'no-store' })).ok; } catch (err) {}
+    if (isLocal && !serverUp) {
+      msg = 'the dev server is not running — start it with: make -C report2027 live '
+          + '(this page came from the offline cache, which is why it still drew)';
+    } else if (!navigator.onLine) {
+      msg = 'no connection — the editor needs one to load a report';
+    }
+  }
+  $('stat').textContent = msg;
+  $('stat').title = msg;          // the row ellipsises; hover gets all of it
+  $('stat').classList.add('err');
+});
 </script>
 </body>
 </html>
