@@ -132,6 +132,24 @@ test.describe('icon picker', () => {
     await expect(frame.locator('.ds-handles .ds-h-e')).toHaveCount(0);
   });
 
+  test('a plain click anywhere on an icon selects it — not just its thin strokes', async ({ page }) => {
+    // The icon's [data-shape] is a wrapper svg that paints nothing itself;
+    // under visiblePainted it had near-zero hit area, so clicks sailed
+    // through to whatever sat beneath and the icon read as unselectable.
+    // pointer-events:bounding-box makes the whole placed box the target.
+    await search(page, 'house');
+    await page.locator('.icon-tile[title="lucide:house"]').click();
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => clearSel($('out').contentDocument));
+
+    const id = await page.evaluate(() => layout.shapes.find(s => s.kind === 'icon').id);
+    const box = await page.frameLocator('#out').locator(`[data-shape="${id}"]`).boundingBox();
+    // Dead centre of the glyph's box — transparent pixels on a stroke icon.
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => [...selIds])).toContain(id);
+  });
+
   test('markup that is not a plain drawing is refused, never placed', async ({ page }) => {
     const verdicts = await page.evaluate(() => ({
       ok: iconSvgOk('<path d="M0 0h4"/>'),

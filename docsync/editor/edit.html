@@ -172,12 +172,26 @@
   #context { height:46px; flex:none; background:var(--chrome2);
           border-bottom:1px solid var(--line); }
   #type, #arrange { display:flex; gap:6px; align-items:center;
+          justify-content:safe center;   /* Canva's centered strip */
           flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
           padding:0 14px; height:100%; box-sizing:border-box;
           background:var(--chrome2); scrollbar-width:thin; }
   #type > *, #arrange > * { flex:none; }
   /* display:flex would silently beat the hidden attribute's display:none */
+  #ar-fxbtn, #ar-pos { font:12.5px system-ui; padding:4px 11px; }
+  .ar-slide { display:flex; align-items:center; gap:8px; font:11px system-ui;
+              color:#52796F; margin-top:8px; width:100%; }
+  .ar-slide input[type=range] { flex:1; }
+  .ar-dashrow { display:flex; gap:6px; margin-top:8px; }
+  .ar-dashrow button { font:11px system-ui; padding:3px 9px; border:1px solid #B9C9BE;
+              background:#fff; color:#2F3E46; border-radius:4px; cursor:pointer; }
+  .ar-dashrow button.on { background:#2F3E46; color:#fff; border-color:#2F3E46; }
+  #ar-pospop { width:430px; }
+  .ar-posrows { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
   #type[hidden], #arrange[hidden] { display:none; }
+  /* Same trap one level down: a styled button's display beats the hidden
+     attribute's UA display:none, so a "hidden" control kept rendering. */
+  #type [hidden], #arrange [hidden] { display:none !important; }
   #type select, #type input[type=number], #arrange input[type=number] {
           font:12.5px system-ui; height:29px; padding:0 7px; box-sizing:border-box;
           border:1px solid var(--ctl-line); border-radius:7px; background:var(--ctl);
@@ -490,6 +504,18 @@
     <button id="ty-down" title="Smaller">−</button><input id="ty-size" type="number"
       min="6" max="200" step="0.5"><button id="ty-up" title="Bigger">+</button>
   </span>
+  <span class="ty-seg" id="ty-marks" hidden title="Formatting — applies to the selected words">
+    <button id="ty-mb" title="Bold the selection"><b>B</b></button>
+    <button id="ty-mi" title="Italicise the selection"><i>I</i></button>
+    <button id="ty-mul" title="Bulleted list"><svg width="14" height="14" viewBox="0 0 14 14"
+      stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3.5h7M5 7h7M5 10.5h7"/>
+      <circle cx="2.2" cy="3.5" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="2.2" cy="7" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="2.2" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg></button>
+    <button id="ty-mol" title="Numbered list"><svg width="14" height="14" viewBox="0 0 14 14"
+      stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5.5 3.5h7M5.5 7h7M5.5 10.5h7"/>
+      <path d="M1.5 2.6l1-.6v3" stroke-width="1.1"/><path d="M1.2 8.4c1.6-1.6 2.2.6.2 1.6h2" stroke-width="1.1" fill="none"/></svg></button>
+  </span>
   <span class="ty-sep"></span>
   <button id="ty-i" title="Italic"><svg width="14" height="14" viewBox="0 0 14 14"
     fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -542,7 +568,34 @@
 <div id="arrange" hidden>
   <span class="ar-count" id="ar-count"></span>
   <span class="ty-sep"></span>
-  <span class="ty-seg" title="Align horizontally (to the page; to the selection when several)">
+  <button id="ar-border" title="Border — colour, weight, dash" hidden>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.5"><rect x="2" y="2" width="10" height="10" rx="2" stroke-dasharray="3 2"/></svg></button>
+  <div class="pop" id="ar-borderpop" hidden>
+    <p class="pop-h">Border</p>
+    <div class="swgrid" id="ar-bswgrid"></div>
+    <label class="ar-slide">weight<input id="ar-bw" type="range" min="0" max="0.08" step="0.005"></label>
+    <div class="ar-dashrow" id="ar-dashrow"></div>
+  </div>
+  <button id="ar-alpha" title="Transparency" hidden>
+    <svg width="14" height="14" viewBox="0 0 14 14"><defs><pattern id="chk" width="4" height="4"
+      patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="currentColor" opacity=".55"/>
+      <rect x="2" y="2" width="2" height="2" fill="currentColor" opacity=".55"/></pattern></defs>
+      <rect x="1.5" y="1.5" width="11" height="11" rx="2" fill="url(#chk)"/></svg></button>
+  <div class="pop" id="ar-alphapop" hidden>
+    <p class="pop-h">Transparency</p>
+    <label class="ar-slide"><input id="ar-alphain" type="range" min="0.1" max="1" step="0.05"></label>
+  </div>
+  <button id="ar-fxbtn" hidden>Effects</button>
+  <div class="pop" id="ar-fxpop" hidden>
+    <p class="pop-h">Effects</p>
+    <div id="ar-fxbody"></div>
+  </div>
+  <button id="ar-pos">Position</button>
+  <div class="pop pop-wide" id="ar-pospop" hidden>
+    <p class="pop-h">Position &amp; arrange</p>
+    <div class="ar-posrows">
+<span class="ty-seg" title="Align horizontally (to the page; to the selection when several)">
     <button class="ar-al" data-al="left" title="Align left"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 1.5v11M4.5 4.5h7M4.5 9.5h4.5"/></svg></button>
@@ -593,6 +646,17 @@
         stroke-width="1.3" stroke-dasharray="2 1.4"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
         <rect x="7" y="7" width="5.5" height="5.5" rx="1"/></svg></button>
   </span>
+  <span class="ty-sep" id="ar-possep"></span>
+  <label class="ar-pos" title="Left edge, inches">X<input id="ar-x" type="number" step="0.01"></label>
+  <label class="ar-pos" title="Top edge, inches">Y<input id="ar-y" type="number" step="0.01"></label>
+  <label class="ar-pos" title="Width, inches" id="ar-wwrap">W<input id="ar-w" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Height, inches" id="ar-hwrap">H<input id="ar-h" type="number" step="0.01" min="0.1"></label>
+  <label class="ar-pos" title="Scale, percent" id="ar-swrap">⤢<input id="ar-scale" type="number" step="1" min="20" max="500"></label>
+  <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
+  <span class="ar-lab" id="ar-hint"></span>
+    </div>
+  </div>
+  <span class="ty-sep"></span>
   <button id="ar-dup" title="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
@@ -612,14 +676,6 @@
     <div id="ar-fill-extras"></div>
     <button class="sw-default" id="ar-fillreset" hidden>No background</button>
   </div>
-  <span class="ty-sep" id="ar-possep"></span>
-  <label class="ar-pos" title="Left edge, inches">X<input id="ar-x" type="number" step="0.01"></label>
-  <label class="ar-pos" title="Top edge, inches">Y<input id="ar-y" type="number" step="0.01"></label>
-  <label class="ar-pos" title="Width, inches" id="ar-wwrap">W<input id="ar-w" type="number" step="0.01" min="0.1"></label>
-  <label class="ar-pos" title="Height, inches" id="ar-hwrap">H<input id="ar-h" type="number" step="0.01" min="0.1"></label>
-  <label class="ar-pos" title="Scale, percent" id="ar-swrap">⤢<input id="ar-scale" type="number" step="1" min="20" max="500"></label>
-  <label class="ar-pos" title="Rotation, degrees">⟳<input id="ar-rot" type="number" step="1" min="-180" max="180"></label>
-  <span class="ar-lab" id="ar-hint"></span>
 </div>
 </div>
 <div id="work">
@@ -1174,6 +1230,24 @@ function insertBreak(d, host) {
   host.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+// The open rich editor, if any — what the chrome's #ty-marks group acts on.
+// mousedown on the group is prevented so the iframe keeps focus AND its
+// selection; without that, pressing Bold up in the chrome would first blur
+// the editor, which commits and destroys the very element being formatted.
+let richHost = null, richOpts = {};
+function syncMarksBar() {
+  const seg = $('ty-marks');
+  if (!seg) return;
+  const on = !!richHost && richOpts.allowMd !== false;
+  seg.hidden = !on;
+  if (on) {
+    $('ty-mul').hidden = $('ty-mol').hidden = !richOpts.allowLists;
+  }
+  // Slot-level italic/underline read confusingly beside selection-level
+  // marks — while editing, the selection is the truth.
+  $('ty-i').hidden = $('ty-u').hidden = on;
+}
+
 /** Save the current selection's Range if it sits inside `host` — captured
  *  before a modal (dsForm/dsPrompt/file picker) steals focus, so an insert
  *  flow (Cite -&gt; new source, Image upload) can land back at the right
@@ -1320,6 +1394,10 @@ function buildTools(d, host, key, opts = {}) {
       italicBtn.disabled = boldItalicBlocked(d, 'italic');
       boldBtn.classList.toggle('on', !boldBtn.disabled && markActive(d, host, 'b'));
       italicBtn.classList.toggle('on', !italicBtn.disabled && markActive(d, host, 'i'));
+      // The chrome's own B/I (the Canva text bar) mirror the same state.
+      const mb = $('ty-mb'), mi = $('ty-mi');
+      if (mb) { mb.disabled = boldBtn.disabled; mb.classList.toggle('on', boldBtn.classList.contains('on')); }
+      if (mi) { mi.disabled = italicBtn.disabled; mi.classList.toggle('on', italicBtn.classList.contains('on')); }
     };
     d.addEventListener('selectionchange', refreshBI);
     refreshBI();
@@ -1658,6 +1736,16 @@ function showLocalImages(d) {
 // tiles, callouts, pages, Table 1's rows — so a new report teaches the editor
 // by marking its page, not by editing it. Shapes and text boxes carry their
 // colour in their own objects, so they route there instead of layout.fill.
+/** A designed element whose artwork is a local SVG (the logos): the renderer
+ *  can inline and repaint it, so it is a real colour target — unlike a JPEG,
+ *  where a "fill" could only ever paint a box behind the pixels. */
+function svgMarkEl(id) {
+  const d = $('out').contentDocument;
+  const el = d && d.querySelector(`[data-el="${CSS.escape(id)}"]`);
+  if (!el) return null;
+  return el.querySelector('img[src$=".svg"], svg.logo-img') ? el : null;
+}
+
 function fillTargets(id) {
   const sh = layout.shapes.find(s => s.id === id);
   if (sh) return {
@@ -1675,13 +1763,14 @@ function fillTargets(id) {
     resettable: !!b.fill,
     resetLabel: 'No background',
   };
+  const mark = svgMarkEl(id);
   return {
-    label: id.startsWith('page.') ? 'Page colour' : 'Fill',
+    label: mark ? 'Colour' : id.startsWith('page.') ? 'Page colour' : 'Fill',
     get: () => layout.fill && layout.fill[id],
     set: c => { layout.fill = layout.fill || {};
                 if (c) layout.fill[id] = c; else delete layout.fill[id]; },
     resettable: !!(layout.fill && layout.fill[id]),
-    resetLabel: 'Reset colour',
+    resetLabel: mark ? 'Original artwork' : 'Reset colour',
   };
 }
 
@@ -1952,7 +2041,7 @@ function layerMenu(d, el, e) {
     return;
   }
 
-  const canFill = !!(el.dataset.fill || el.dataset.shape || boxOf(id));
+  const canFill = !!(el.dataset.fill || el.dataset.shape || boxOf(id) || svgMarkEl(id));
   if (canFill) {
     fillRow(d, m, id);
     if (!surface) {
@@ -2949,6 +3038,9 @@ function editBox(d, el) {
   hint.textContent = `text.${b.id} — not in the Google Doc. Click away to render, Esc to cancel.`;
   wrap.append(host, tools, hint);
   el.replaceWith(wrap);
+  richHost = host;
+  richOpts = { allowLists: true, allowMd: true };
+  syncMarksBar();
   host.focus();
   const r = d.createRange(); r.selectNodeContents(host);
   const s = d.getSelection(); s.removeAllRanges(); s.addRange(r);
@@ -2956,6 +3048,7 @@ function editBox(d, el) {
     if (host.dataset.done) return;
     host.dataset.done = '1';
     editing = false;
+    richHost = null; syncMarksBar();
     tools.remove();
     if (keep) {
       const newVal = htmlToMd(host, { allowLists: true });
@@ -3484,14 +3577,24 @@ function arrangeBar(d) {
   // Fill control: one selected shape or text box carries its own colour, so it
   // gets a Fill swatch right here in the toolbar (no more right-click needed).
   const fillId = one ? idOf(one) : null;
-  const canFill = !!fillId && (layout.shapes.some(s => s.id === fillId) || !!boxOf(fillId));
+  const canFill = !!fillId && (layout.shapes.some(s => s.id === fillId) || !!boxOf(fillId) || !!svgMarkEl(fillId));
   $('ar-fill').hidden = !canFill;
   if (!canFill) $('ar-fillpop').hidden = true;
   if (canFill) {
     const ft = fillTargets(fillId);
     $('ar-fillbar').style.background = fillPreview(ft.get());
-    $('ar-fill').title = ft.label + ' colour';
+    $('ar-fill').title = ft.label.includes('olour') ? ft.label : ft.label + ' colour';
   }
+  // The rest of the Canva strip, by what the selection can actually take:
+  // border and effects need a shape/box behind them; transparency needs any
+  // store to keep the alpha in (a designed element grows one when moved).
+  const oneSh = fillId && layout.shapes.find(x => x.id === fillId);
+  $('ar-border').hidden = !oneSh || ['line', 'icon'].includes(oneSh.kind);
+  $('ar-alpha').hidden = !fillId || !(storeOf(fillId) || (layout.positions || {})[fillId]);
+  $('ar-fxbtn').hidden = !fillId || !(oneSh || boxOf(fillId));
+  if ($('ar-border').hidden) $('ar-borderpop').hidden = true;
+  if ($('ar-alpha').hidden) $('ar-alphapop').hidden = true;
+  if ($('ar-fxbtn').hidden) $('ar-fxpop').hidden = true;
   if (!one) return;
   const page = one.closest('section.page') || d.querySelector('section.page');
   const b = inchBox(one, page);
@@ -4599,6 +4702,163 @@ $('ar-fill').addEventListener('click', () => {
   };
   togglePop($('ar-fillpop'), $('ar-fill'));
 });
+
+// Border: colour, weight, dash — the layerMenu's shape styling, surfaced on
+// the strip where Canva keeps it.
+$('ar-border').addEventListener('click', () => {
+  const d = $('out').contentDocument;
+  const els = selEls(d);
+  if (els.length !== 1) return;
+  const shp = layout.shapes.find(x => x.id === idOf(els[0]));
+  if (!shp) return;
+  const commit = async () => { markDirty(); await render(); paintSel($('out').contentDocument); };
+  const grid = $('ar-bswgrid');
+  grid.innerHTML = '';
+  const strokePaint = async c => {
+    $('ar-borderpop').hidden = true;
+    pushHistory();
+    shp.stroke = c;
+    if (c !== 'none' && (shp.sw ?? 0) < 0.005) shp.sw = 0.02;
+    await commit();
+  };
+  const none = document.createElement('button');
+  none.className = 'sw';
+  none.style.cssText = 'background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M1 9L9 1%27 stroke=%27%23C0392B%27/%3E%3C/svg%3E")';
+  none.title = 'No border';
+  none.addEventListener('click', () => strokePaint('none'));
+  grid.appendChild(none);
+  (M.palette || []).forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'sw' + (c.toUpperCase() === (shp.stroke || '').toUpperCase() ? ' on' : '');
+    b.style.background = c; b.title = c;
+    b.addEventListener('click', () => strokePaint(c));
+    grid.appendChild(b);
+  });
+  const bw = $('ar-bw');
+  bw.value = shp.sw ?? 0.02;
+  bw.onpointerdown = () => pushHistory();
+  bw.oninput = () => {
+    shp.sw = +bw.value;
+    const node = d.querySelector(`[data-shape="${CSS.escape(shp.id)}"]`);
+    if (node) node.setAttribute('stroke-width', bw.value);
+  };
+  bw.onchange = commit;
+  const presets = { Solid: null, Dashed: [0.08, 0.05], Dotted: [0.02, 0.04] };
+  const cur = !shp.dash ? 'Solid' : (shp.dash[0] <= 0.03 ? 'Dotted' : 'Dashed');
+  const drow = $('ar-dashrow');
+  drow.innerHTML = '';
+  Object.keys(presets).forEach(kk => {
+    const b = document.createElement('button');
+    b.textContent = kk;
+    b.classList.toggle('on', kk === cur);
+    b.addEventListener('click', async () => {
+      pushHistory();
+      if (presets[kk]) shp.dash = presets[kk]; else delete shp.dash;
+      $('ar-borderpop').hidden = true;
+      await commit();
+    });
+    drow.appendChild(b);
+  });
+  togglePop($('ar-borderpop'), $('ar-border'));
+});
+
+// Transparency: one slider, alpha in the element's own store — the same
+// number the right-click menu drives.
+$('ar-alpha').addEventListener('click', () => {
+  const d = $('out').contentDocument;
+  const els = selEls(d);
+  if (els.length !== 1) return;
+  const el = els[0], id = idOf(el);
+  const ain = $('ar-alphain');
+  ain.value = (storeOf(id) || (layout.positions || {})[id] || {}).alpha ?? 1;
+  ain.onpointerdown = () => pushHistory();
+  ain.oninput = () => {
+    const st = ensureStore(d, el);
+    const v = +ain.value;
+    if (v >= 0.999) delete st.alpha; else st.alpha = v;
+    if (el.dataset.shape) {
+      v >= 0.999 ? el.removeAttribute('opacity') : el.setAttribute('opacity', v);
+    } else {
+      el.style.opacity = v >= 0.999 ? '' : v;
+    }
+  };
+  ain.onchange = async () => { markDirty(); await render(); paintSel($('out').contentDocument); };
+  togglePop($('ar-alphapop'), $('ar-alpha'));
+});
+
+// Effects: a shadow, for now — add, tune, remove. Same store the right-click
+// menu writes (shape.shadow / box.shadow).
+$('ar-fxbtn').addEventListener('click', () => {
+  const d = $('out').contentDocument;
+  const els = selEls(d);
+  if (els.length !== 1) return;
+  const id = idOf(els[0]);
+  const owner = layout.shapes.find(x => x.id === id) || boxOf(id);
+  if (!owner) return;
+  const body = $('ar-fxbody');
+  const commit = async () => { markDirty(); await render(); paintSel($('out').contentDocument); };
+  const build = () => {
+    body.innerHTML = '';
+    if (!owner.shadow) {
+      const add = document.createElement('button');
+      add.id = 'ar-fx-add';
+      add.className = 'sw-default';
+      add.textContent = 'Add shadow';
+      add.addEventListener('click', async () => {
+        pushHistory();
+        owner.shadow = { offset: 0.06, direction: 135, blur: 0.08, alpha: 0.35 };
+        build(); await commit();
+      });
+      body.appendChild(add);
+      return;
+    }
+    const mk = (label, key, min, max, step) => {
+      const w = document.createElement('label');
+      w.className = 'ar-slide';
+      w.textContent = label;
+      const r = document.createElement('input');
+      r.type = 'range'; r.min = min; r.max = max; r.step = step;
+      r.value = owner.shadow[key];
+      r.addEventListener('pointerdown', () => pushHistory());
+      r.addEventListener('input', () => { owner.shadow[key] = +r.value; });
+      r.addEventListener('change', commit);
+      w.appendChild(r);
+      body.appendChild(w);
+    };
+    mk('offset', 'offset', 0, 0.3, 0.01);
+    mk('angle', 'direction', 0, 360, 15);
+    mk('blur', 'blur', 0, 0.3, 0.01);
+    mk('depth', 'alpha', 0, 1, 0.05);
+    const rm = document.createElement('button');
+    rm.className = 'sw-default';
+    rm.textContent = 'Remove shadow';
+    rm.addEventListener('click', async () => {
+      pushHistory(); delete owner.shadow; build(); await commit();
+    });
+    body.appendChild(rm);
+  };
+  build();
+  togglePop($('ar-fxpop'), $('ar-fxbtn'));
+});
+
+// Position: the geometry machinery — align, distribute, layer, group, the
+// inch inputs — parked behind one button, as Canva parks it.
+$('ar-pos').addEventListener('click', () => togglePop($('ar-pospop'), $('ar-pos')));
+
+// The Canva text bar's own B / I / lists, acting on the open editor's live
+// selection down in the iframe. mousedown is prevented so focus (and with it
+// the selection, and the not-yet-committed edit) never leaves the editor.
+$('ty-marks').addEventListener('mousedown', e => e.preventDefault());
+const richDo = fn => {
+  if (!richHost) return;
+  const d = $('out').contentDocument;
+  richHost.focus();
+  fn(d);
+};
+$('ty-mb').addEventListener('click', () => richDo(d => toggleMark(d, richHost, 'b')));
+$('ty-mi').addEventListener('click', () => richDo(d => toggleMark(d, richHost, 'i')));
+$('ty-mul').addEventListener('click', () => richDo(d => toggleListRich(d, richHost, false)));
+$('ty-mol').addEventListener('click', () => richDo(d => toggleListRich(d, richHost, true)));
 
 // ------------------------------------------------------------------ moving
 // No modes. A box is draggable by its own chrome; the text inside it is not.
@@ -5766,6 +6026,12 @@ function wire() {
        as noise. Selection draws its own exact overlay ring instead. */
     svg.shape-layer { pointer-events:none; }
     svg.shape-layer [data-shape] { pointer-events:auto; }
+    /* An icon's [data-shape] is a WRAPPER svg that paints nothing itself —
+       its glyph is thin strokes inside. Under visiblePainted (what auto
+       means) the wrapper has near-zero hit area, so clicks sail through to
+       whatever sits beneath and the icon reads as unselectable. bounding-box
+       makes the whole placed rectangle the target, like a filled rect's. */
+    svg.shape-layer svg[data-shape] { pointer-events:bounding-box; }
     /* Selected: a steady ring. Distinct from hover's dashed suggestion and
        from lifted's elevation — three states, three silhouettes. */
     .ds-sel { outline:2px solid #6B9E78 !important; outline-offset:2px; }
@@ -6310,6 +6576,9 @@ function edit(d, key) {
   if (tools) { after.after(tools); after = tools; }
   if (hint) after.after(hint);
   blocks.slice(1).forEach(b => b.remove());
+  richHost = host;
+  richOpts = { allowLists, allowMd };
+  syncMarksBar();
 
   host.focus();
   const selRange = d.createRange();
@@ -6322,6 +6591,7 @@ function edit(d, key) {
     if (host.dataset.done) return;
     host.dataset.done = '1';
     editing = false;
+    richHost = null; syncMarksBar();
     if (tools) tools.remove();
     if (keep) {
       const newVal = !allowMd ? (inline ? host.textContent : host.innerText)

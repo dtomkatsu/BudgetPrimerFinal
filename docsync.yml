@@ -36,6 +36,10 @@ bindings:
       page: [8.5, 11]                # inches
       margins: [0.62, 0.75]          # side, top — the text column, for snapping
       engine:                        # everything else the renderer reads
+        # The logo SVGs ride along so a recolour (svg_img in render_report.py,
+        # which inlines the file) renders in the browser preview too.
+        - report2027/web/assets/appleseed-logo.svg
+        - report2027/web/assets/appleseed-logo-white.svg
         - report2027/data/report_data.json
         - report2027/manual/obligated_costs.json
         - docs/js/departments_act175_fy2027.json

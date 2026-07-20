@@ -14,7 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from docsync.content import Content, ContentError  # noqa: E402
-from docsync.layout import Layout, LayoutError, fill_css, fill_repr  # noqa: E402
+from docsync.layout import (Layout, LayoutError, check_icon_svg,  # noqa: E402
+                            fill_css, fill_repr, icon_color)
 
 HERE = Path(__file__).resolve().parent.parent
 # Input/output paths default to the working tree, so an ordinary render (CLI,
@@ -657,6 +658,46 @@ def callout_open(key):
     return f'{L.spacer(cid)} <div class="{cls}"{L.attr(cid, bg)}{L.fill_tag(cid)}>'
 
 
+def svg_img(el_id, src, cls, alt):
+    """An <img> whose SVG can be recoloured from the editor.
+
+    Unrecoloured it is exactly the <img> tag it always was — byte-identical
+    published output. Once the editor sets layout.fill[el_id], the asset file
+    is INLINED with every painted fill swapped to currentColor and the chosen
+    colour on the wrapper, because no colour can cross an <img> boundary: the
+    file is a separate document there, styled only by its own bytes.
+
+    The asset is read from disk, which works everywhere this renders: the PDF
+    build has the checkout, and docsync.yml stages the logo files into the
+    editor's Pyodide filesystem. A monochrome mark recolours faithfully; the
+    guard against surprises is check_icon_svg, the same gate icons pass — an
+    asset that fails it (or is missing) falls back to the plain <img> rather
+    than half-rendering.
+    """
+    plain = f'<img class="{cls}" src="{src}" alt="{alt}">'
+    if not L.refilled(el_id):
+        return plain
+    try:
+        raw = (HERE / "web" / src).read_text()
+    except OSError:
+        return plain
+    m = re.search(r"<svg\b[^>]*>", raw)
+    vb = re.search(r'viewBox="([^"]+)"', raw)
+    if not m or not vb:
+        return plain
+    inner = raw[m.end():raw.rfind("</svg>")]
+    try:
+        check_icon_svg(inner, el_id)
+    except LayoutError:
+        return plain
+    inner = re.sub(r'fill="(?!none)[^"]*"', 'fill="currentColor"', inner)
+    color = icon_color(L.fill(el_id))
+    wh = re.search(r'width="([\d.]+)"\s+height="([\d.]+)"', raw)
+    size = f' width="{wh.group(1)}" height="{wh.group(2)}"' if wh else ""
+    return (f'<svg class="{cls}" viewBox="{vb.group(1)}"{size} role="img" '
+            f'style="color:{color}" aria-label="{alt}">{inner}</svg>')
+
+
 def endnote_link(n, sid, txt, url):
     # data-el makes the entry draggable; dragging one REORDERS the list (see
     # Layout.endnote_order and the editor's reorderEndnote) rather than
@@ -776,8 +817,7 @@ pages.append(f"""
  {L.layer(1)}{L.text_boxes(1)}{L.tables_html(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
  <div class="ribbon r3"></div><div class="ribbon r4"></div>
  <div class="cover-inner">
-  {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}><img class="logo-img" src="assets/appleseed-logo.svg"
-   alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
+  {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}>{svg_img("cover.logo", "assets/appleseed-logo.svg", "logo-img", "Hawaiʻi Appleseed — Center for Law &amp; Economic Justice")}</div>
   {L.spacer("cover.title")}<h1 class="cover-title"{L.attr("cover.title")}>{C.slot_span("cover.title", _cover_title)}</h1>
   {L.spacer("cover.year")}<div class="cover-year"{L.attr("cover.year")}>{C.t("cover.year")}</div>
  </div>
@@ -787,8 +827,7 @@ pages.append(f"""
 pages.append(f"""
 <section class="page toc-page"{L.fill_attr(f"page.2")}>
  <div class="toc-head">
-  {L.spacer("toc.logo")}<div class="logo-lockup light"{L.attr("toc.logo")}><img class="logo-img" src="assets/appleseed-logo-white.svg"
-   alt="Hawaiʻi Appleseed — Center for Law &amp; Economic Justice"></div>
+  {L.spacer("toc.logo")}<div class="logo-lockup light"{L.attr("toc.logo")}>{svg_img("toc.logo", "assets/appleseed-logo-white.svg", "logo-img", "Hawaiʻi Appleseed — Center for Law &amp; Economic Justice")}</div>
   <p class="toc-link"><a href="https://hiappleseed.org">www.hiappleseed.org</a></p>
   {L.spacer("toc.author")}<p class="toc-author"{L.attr("toc.author")}>{C.t("toc.author")}</p>
  </div>

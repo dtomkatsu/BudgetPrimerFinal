@@ -8,6 +8,8 @@
     "engine/report2027/tools/render_report.py": "report2027/tools/render_report.py",
     "engine/report2027/content.md": "report2027/content.md",
     "engine/report2027/layout.json": "report2027/layout.json",
+    "engine/report2027/web/assets/appleseed-logo.svg": "report2027/web/assets/appleseed-logo.svg",
+    "engine/report2027/web/assets/appleseed-logo-white.svg": "report2027/web/assets/appleseed-logo-white.svg",
     "engine/report2027/data/report_data.json": "report2027/data/report_data.json",
     "engine/report2027/manual/obligated_costs.json": "report2027/manual/obligated_costs.json",
     "engine/docs/js/departments_act175_fy2027.json": "docs/js/departments_act175_fy2027.json",
