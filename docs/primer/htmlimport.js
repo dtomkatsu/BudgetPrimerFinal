@@ -56,6 +56,46 @@ export function iconBodyOk(body) {
     .every(m => ICON_TAGS_OK.has(m.replace(/[<\/\s]/g, '')));
 }
 
+// Mirrors layout.py's KINDS whitelist for Layout._validate().
+const SHAPE_KINDS = new Set(['rect', 'ellipse', 'line', 'triangle', 'arrow', 'icon']);
+const VIEWBOX_RE = /^\s*-?[\d.]+(\s+-?[\d.]+){3}\s*$/;
+
+/**
+ * Re-check a traced layout right before it is committed — not just here at
+ * trace time. Between extractDoc() producing this object and createProject()
+ * writing it into a commit, it sits in sessionStorage, a place a devtools
+ * session or a future code path could put something else. This is the one
+ * gate the commit itself controls, so it fails hard and loud rather than
+ * quietly stripping — same philosophy as layout.py's check_icon_svg, whose
+ * whitelist this reuses verbatim.
+ */
+export function assertLayoutSafe(layout) {
+  const shapes = (layout && layout.shapes) || [];
+  const seen = new Set();
+  shapes.forEach((s, i) => {
+    const where = `shape #${i + 1}`;
+    if (!s.id) throw new Error(`${where}: needs an id`);
+    if (seen.has(s.id)) throw new Error(`${where}: duplicate id '${s.id}'`);
+    seen.add(s.id);
+    if (!SHAPE_KINDS.has(s.kind)) {
+      throw new Error(`${where}: kind '${s.kind}' is not allowed`);
+    }
+    for (const k of ['x', 'y', 'w', 'h']) {
+      if (typeof s[k] !== 'number' || !Number.isFinite(s[k])) {
+        throw new Error(`${where}.${k}: '${s[k]}' is not a number`);
+      }
+    }
+    if (s.kind === 'icon') {
+      if (!iconBodyOk(s.svg)) {
+        throw new Error(`${where}: icon markup did not pass the safety check — refusing to import it`);
+      }
+      if (typeof s.vb !== 'string' || !VIEWBOX_RE.test(s.vb)) {
+        throw new Error(`${where}: icon viewBox '${s.vb}' must be four numbers`);
+      }
+    }
+  });
+}
+
 const clamp01 = v => Math.min(1, Math.max(0, v));
 const round3 = v => Math.round(v * 1000) / 1000;
 

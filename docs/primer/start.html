@@ -701,7 +701,6 @@ async function fetchText(url) {
 async function createProject(name, slug, sizeKey) {
   const repo = currentRepo();
   if (!repo) throw new Error('no project in the registry names a repo yet — cannot create one');
-  if (!await askToken(repo)) throw new Error('cancelled — no token');
 
   // An import staged by "Open HTML…" brings its own page size (the source
   // page's measured height), its own layout.json, and a renderer that draws
@@ -709,6 +708,18 @@ async function createProject(name, slug, sizeKey) {
   let imported = null;
   try { imported = JSON.parse(sessionStorage.getItem('ds-import') || 'null'); }
   catch (e) { imported = null; }
+
+  // Re-check right here, at the commit — not just back when extractDoc()
+  // traced it. sessionStorage sits in between, and nothing downstream should
+  // have to trust that a browser tab's memory wasn't tampered with. Throws
+  // before the token prompt or any network call, so a bad import never
+  // reaches the repo.
+  if (imported) {
+    const m = await import('./htmlimport.js');
+    m.assertLayoutSafe(imported.layout);
+  }
+
+  if (!await askToken(repo)) throw new Error('cancelled — no token');
 
   const size = imported ? imported.page : (PAGE_SIZES[sizeKey] || PAGE_SIZES.letter);
   const renderPy = imported ? placedTemplate(size.w, size.h)
