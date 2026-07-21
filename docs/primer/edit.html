@@ -37,15 +37,6 @@
   body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif;
          display:flex; flex-direction:column; }
 
-  /* -- hover tooltips ------------------------------------------------------ */
-  #tt { position:fixed; z-index:10000; background:var(--ink); color:var(--txt);
-        font:12px/1.3 system-ui, sans-serif; padding:4px 8px; border-radius:5px;
-        pointer-events:none; white-space:nowrap; box-shadow:0 2px 10px rgba(0,0,0,.3); }
-  #tt::after { content:""; position:absolute; left:50%; margin-left:-4px;
-               border:4px solid transparent; }
-  #tt:not(.above)::after { bottom:100%; border-bottom-color:var(--ink); }
-  #tt.above::after { top:100%; border-top-color:var(--ink); }
-
   /* -- top bar ----------------------------------------------------------- */
   #bar { position:relative; display:flex; gap:8px; align-items:center; padding:8px 14px;
          background:var(--chrome); color:var(--txt); flex-wrap:wrap;
@@ -477,35 +468,35 @@
   <select id="proj" hidden title="Switch project"></select>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
-  <button id="text" aria-label="Add a text box to the page in view">
+  <button id="text" title="Add a text box to the page in view">
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.6" stroke-linecap="round"><path d="M2 3.2V2h10v1.2M7 2v10M5.2 12h3.6"/></svg>
     Text</button>
-  <button id="shape" aria-label="Add a shape to the page in view">
+  <button id="shape" title="Add a shape to the page in view">
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.5"><rect x="1.2" y="3.4" width="8" height="8" rx="1.4"/>
       <circle cx="10" cy="4.4" r="2.9"/></svg>
     Shape</button>
-  <button id="icon" aria-label="Search thousands of open-source icons and place one">
+  <button id="icon" title="Search thousands of open-source icons and place one">
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linejoin="round"><path d="M7 1.6l1.7 3.4 3.8.55-2.75 2.68.65 3.77L7 10.22 3.6 12l.65-3.77L1.5 5.55l3.8-.55z"/></svg>
     Icon</button>
-  <button id="table" aria-label="Add a table to the page in view">
+  <button id="table" title="Add a table to the page in view">
     <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
       <path d="M1.5 5.5h11M1.5 9h11M5.5 2v10"/></svg>
     Table</button>
-  <button id="tok" aria-label="Check or replace the GitHub token used to save">Token…</button>
+  <button id="tok" title="Check or replace the GitHub token used to save">Token…</button>
   <span id="zoom" title="Zoom">
     <button data-z="fit">Fit</button><button data-z="1">100</button><button
       data-z="1.25">125</button><button data-z="1.5">150</button>
   </span>
-  <button id="guides" aria-label="Rulers and snap guides — drag from a ruler to add one">
+  <button id="guides" title="Rulers and snap guides — drag from a ruler to add one">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.3"><rect x="1.5" y="1.5" width="11" height="11" rx="1"/>
       <path d="M1.5 4.5h2M1.5 7h3M1.5 9.5h2M4.5 1.5v2M7 1.5v3M9.5 1.5v2"
         stroke-linecap="round"/></svg></button>
-  <button id="layers" aria-label="Layers — this page's objects in stacking order; drag to restack">
+  <button id="layers" title="Layers — this page's objects in stacking order; drag to restack">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.3" stroke-linejoin="round"><path d="M7 1.8L12.6 4.6 7 7.4 1.4 4.6z"/>
       <path d="M1.4 7.2L7 10l5.6-2.8M1.4 9.8L7 12.6l5.6-2.8"/></svg></button>
@@ -513,15 +504,15 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
-  <button id="add" aria-label="Add a new prose section to a page">+ Section</button>
-  <button id="sources" aria-label="View, edit, reorder and remove citations">Sources</button>
-  <button id="undo" disabled aria-label="Undo (⌘Z)">↶</button>
-  <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
+  <button id="add" title="Add a new prose section to a page">+ Section</button>
+  <button id="sources" title="View, edit, reorder and remove citations">Sources</button>
+  <button id="undo" disabled title="Undo (⌘Z)">↶</button>
+  <button id="redo" disabled title="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save draft</button>
-  <button id="share" disabled aria-label="Copy a link that shows this draft to anyone">Share</button>
-  <button id="publish" disabled aria-label="Make this draft the live report">Publish</button>
-  <button id="download" aria-label="Download the report as a PDF or per-page PNGs">Download ▾</button>
+  <button id="share" disabled title="Copy a link that shows this draft to anyone">Share</button>
+  <button id="publish" disabled title="Make this draft the live report">Publish</button>
+  <button id="download" title="Download the report as a PDF or per-page PNGs">Download ▾</button>
   <div class="pop" id="downloadpop" hidden>
     <p class="pop-h">Download this draft</p>
     <button class="shp" id="dl-pdf">PDF — the whole report</button>
@@ -574,39 +565,39 @@
   <select id="ty-font" title="Font"></select>
   <select id="ty-weight" title="Weight"></select>
   <span class="ty-step" title="Size (px)">
-    <button id="ty-down" aria-label="Smaller">−</button><input id="ty-size" type="number"
-      min="6" max="200" step="0.5"><button id="ty-up" aria-label="Bigger">+</button>
+    <button id="ty-down" title="Smaller">−</button><input id="ty-size" type="number"
+      min="6" max="200" step="0.5"><button id="ty-up" title="Bigger">+</button>
   </span>
   <span class="ty-seg" id="ty-marks" hidden title="Formatting — applies to the selected words">
-    <button id="ty-mb" aria-label="Bold the selection"><b>B</b></button>
-    <button id="ty-mi" aria-label="Italicise the selection"><i>I</i></button>
-    <button id="ty-mul" aria-label="Bulleted list"><svg width="14" height="14" viewBox="0 0 14 14"
+    <button id="ty-mb" title="Bold the selection"><b>B</b></button>
+    <button id="ty-mi" title="Italicise the selection"><i>I</i></button>
+    <button id="ty-mul" title="Bulleted list"><svg width="14" height="14" viewBox="0 0 14 14"
       stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3.5h7M5 7h7M5 10.5h7"/>
       <circle cx="2.2" cy="3.5" r="1" fill="currentColor" stroke="none"/>
       <circle cx="2.2" cy="7" r="1" fill="currentColor" stroke="none"/>
       <circle cx="2.2" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg></button>
-    <button id="ty-mol" aria-label="Numbered list"><svg width="14" height="14" viewBox="0 0 14 14"
+    <button id="ty-mol" title="Numbered list"><svg width="14" height="14" viewBox="0 0 14 14"
       stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5.5 3.5h7M5.5 7h7M5.5 10.5h7"/>
       <path d="M1.5 2.6l1-.6v3" stroke-width="1.1"/><path d="M1.2 8.4c1.6-1.6 2.2.6.2 1.6h2" stroke-width="1.1" fill="none"/></svg></button>
   </span>
   <span class="ty-sep"></span>
-  <button id="ty-i" aria-label="Italic"><svg width="14" height="14" viewBox="0 0 14 14"
+  <button id="ty-i" title="Italic"><svg width="14" height="14" viewBox="0 0 14 14"
     fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
     <path d="M6 2h5M3 12h5M8.5 2l-3 10"/></svg></button>
-  <button id="ty-u" aria-label="Underline"><svg width="14" height="14" viewBox="0 0 14 14"
+  <button id="ty-u" title="Underline"><svg width="14" height="14" viewBox="0 0 14 14"
     fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
     <path d="M3.5 1.8v4.7a3.5 3.5 0 0 0 7 0V1.8M2.5 12.4h9"/></svg></button>
   <span class="ty-seg">
-    <button class="ty-al" data-a="left" aria-label="Align left"><svg width="14" height="14"
+    <button class="ty-al" data-a="left" title="Align left"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 3h10M2 6h6M2 9h10M2 12h6"/></svg></button>
-    <button class="ty-al" data-a="center" aria-label="Align centre"><svg width="14" height="14"
+    <button class="ty-al" data-a="center" title="Align centre"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 3h10M4 6h6M2 9h10M4 12h6"/></svg></button>
-    <button class="ty-al" data-a="right" aria-label="Align right"><svg width="14" height="14"
+    <button class="ty-al" data-a="right" title="Align right"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 3h10M6 6h6M2 9h10M6 12h6"/></svg></button>
-    <button class="ty-al" data-a="justify" aria-label="Justify"><svg width="14" height="14"
+    <button class="ty-al" data-a="justify" title="Justify"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 3h10M2 6h10M2 9h10M2 12h10"/></svg></button>
   </span>
@@ -615,14 +606,14 @@
     <option value="lower">aa</option><option value="title">Aa Bb</option>
   </select>
   <span class="ty-sep"></span>
-  <button id="ty-colorbtn" aria-label="Text colour"><span class="A">A</span><span
+  <button id="ty-colorbtn" title="Text colour"><span class="A">A</span><span
     class="Abar" id="ty-Abar"></span></button>
-  <button id="ty-spacebtn" aria-label="Letter spacing and line height"><svg width="14"
+  <button id="ty-spacebtn" title="Letter spacing and line height"><svg width="14"
     height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
     stroke-linecap="round"><path d="M2 2v10M12 2v10M4.6 7h4.8M4.6 7l1.5-1.5M4.6 7l1.5 1.5M9.4 7L7.9 5.5M9.4 7l-1.5 1.5"/></svg></button>
   <select id="ty-fx" title="Effect"></select>
   <span id="ty-fxp"></span>
-  <button id="ty-reset" aria-label="Put this text back the way the report designed it">Reset</button>
+  <button id="ty-reset" title="Put this text back the way the report designed it">Reset</button>
   <div class="pop" id="ty-colorpop" hidden>
     <p class="pop-h">Text colour</p>
     <div class="swgrid" id="ty-swgrid"></div>
@@ -641,7 +632,7 @@
 <div id="arrange" hidden>
   <span class="ar-count" id="ar-count"></span>
   <span class="ty-sep"></span>
-  <button id="ar-border" aria-label="Border — colour, weight, dash" hidden>
+  <button id="ar-border" title="Border — colour, weight, dash" hidden>
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.5"><rect x="2" y="2" width="10" height="10" rx="2" stroke-dasharray="3 2"/></svg></button>
   <div class="pop" id="ar-borderpop" hidden>
@@ -650,7 +641,7 @@
     <label class="ar-slide">weight<input id="ar-bw" type="range" min="0" max="0.08" step="0.005"></label>
     <div class="ar-dashrow" id="ar-dashrow"></div>
   </div>
-  <button id="ar-alpha" aria-label="Transparency" hidden>
+  <button id="ar-alpha" title="Transparency" hidden>
     <svg width="14" height="14" viewBox="0 0 14 14"><defs><pattern id="chk" width="4" height="4"
       patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="currentColor" opacity=".55"/>
       <rect x="2" y="2" width="2" height="2" fill="currentColor" opacity=".55"/></pattern></defs>
@@ -669,52 +660,52 @@
     <p class="pop-h">Position &amp; arrange</p>
     <div class="ar-posrows">
 <span class="ty-seg" title="Align horizontally (to the page; to the selection when several)">
-    <button class="ar-al" data-al="left" aria-label="Align left"><svg width="14" height="14"
+    <button class="ar-al" data-al="left" title="Align left"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 1.5v11M4.5 4.5h7M4.5 9.5h4.5"/></svg></button>
-    <button class="ar-al" data-al="hcenter" aria-label="Align horizontal centre"><svg width="14"
+    <button class="ar-al" data-al="hcenter" title="Align horizontal centre"><svg width="14"
       height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5"
       stroke-linecap="round"><path d="M7 1.5v11M3.5 4.5h7M4.75 9.5h4.5"/></svg></button>
-    <button class="ar-al" data-al="right" aria-label="Align right"><svg width="14" height="14"
+    <button class="ar-al" data-al="right" title="Align right"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M12 1.5v11M2.5 4.5h7M5 9.5h4.5"/></svg></button>
   </span>
   <span class="ty-seg" title="Align vertically (to the page; to the selection when several)">
-    <button class="ar-al" data-al="top" aria-label="Align top"><svg width="14" height="14"
+    <button class="ar-al" data-al="top" title="Align top"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M1.5 2h11M4.5 4.5v7M9.5 4.5v4.5"/></svg></button>
-    <button class="ar-al" data-al="vcenter" aria-label="Align vertical centre"><svg width="14"
+    <button class="ar-al" data-al="vcenter" title="Align vertical centre"><svg width="14"
       height="14" viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5"
       stroke-linecap="round"><path d="M1.5 7h11M4.5 3.5v7M9.5 4.75v4.5"/></svg></button>
-    <button class="ar-al" data-al="bottom" aria-label="Align bottom"><svg width="14" height="14"
+    <button class="ar-al" data-al="bottom" title="Align bottom"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M1.5 12h11M4.5 2.5v7M9.5 5v4.5"/></svg></button>
   </span>
   <span class="ty-seg" title="Distribute evenly (three or more)">
-    <button id="ar-dh" aria-label="Distribute horizontally"><svg width="14" height="14"
+    <button id="ar-dh" title="Distribute horizontally"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M1.5 2v10M12.5 2v10M7 4.5v5"/></svg></button>
-    <button id="ar-dv" aria-label="Distribute vertically"><svg width="14" height="14"
+    <button id="ar-dv" title="Distribute vertically"><svg width="14" height="14"
       viewBox="0 0 14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M2 1.5h10M2 12.5h10M4.5 7h5"/></svg></button>
   </span>
   <span class="ty-sep"></span>
   <span class="ty-seg" title="Layer">
-    <button id="ar-front" aria-label="Bring to front (⌘⌥])"><svg width="14" height="14"
+    <button id="ar-front" title="Bring to front (⌘⌥])"><svg width="14" height="14"
       viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"
       stroke-linejoin="round"><rect x="4" y="1.5" width="8.5" height="8.5" rx="1"
       fill="currentColor" fill-opacity=".35"/><path d="M1.5 5.5v6a1 1 0 0 0 1 1h6"/></svg></button>
-    <button id="ar-back" aria-label="Send to back (⌘⌥[)"><svg width="14" height="14"
+    <button id="ar-back" title="Send to back (⌘⌥[)"><svg width="14" height="14"
       viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"
       stroke-linejoin="round"><rect x="1.5" y="4" width="8.5" height="8.5" rx="1"
       fill="currentColor" fill-opacity=".35"/><path d="M5.5 1.5h6a1 1 0 0 1 1 1v6"/></svg></button>
   </span>
   <span class="ty-seg" title="Group / ungroup">
-    <button id="ar-group" aria-label="Group (⌘G) — the selection moves as one">
+    <button id="ar-group" title="Group (⌘G) — the selection moves as one">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
         stroke-width="1.3"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
         <rect x="7" y="7" width="5.5" height="5.5" rx="1" fill="currentColor" fill-opacity=".3"/></svg></button>
-    <button id="ar-ungroup" aria-label="Ungroup (⌘⇧G)">
+    <button id="ar-ungroup" title="Ungroup (⌘⇧G)">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
         stroke-width="1.3" stroke-dasharray="2 1.4"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
         <rect x="7" y="7" width="5.5" height="5.5" rx="1"/></svg></button>
@@ -730,18 +721,18 @@
     </div>
   </div>
   <span class="ty-sep"></span>
-  <button id="ar-dup" aria-label="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
+  <button id="ar-dup" title="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
       <path d="M12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5"/></svg></button>
-  <button id="ar-lock" aria-label="Lock — a locked element cannot be dragged">
+  <button id="ar-lock" title="Lock — a locked element cannot be dragged">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="6" width="9" height="6"
       rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg></button>
-  <button id="ar-del" aria-label="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
+  <button id="ar-del" title="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
-  <button id="ar-fill" aria-label="Fill colour" hidden><span class="A">◆</span><span
+  <button id="ar-fill" title="Fill colour" hidden><span class="A">◆</span><span
     class="Abar" id="ar-fillbar"></span></button>
   <div class="pop" id="ar-fillpop" hidden>
     <p class="pop-h" id="ar-fillhead">Fill</p>
@@ -758,7 +749,7 @@
   <aside id="side" hidden>
     <div id="side-head">
       <span id="side-title">Color</span>
-      <button id="side-x" aria-label="Close">✕</button>
+      <button id="side-x" title="Close">✕</button>
     </div>
     <div id="side-body"></div>
   </aside>
@@ -767,7 +758,7 @@
 <div id="rail" hidden>
   <span id="rail-head">Pages</span>
   <div id="rail-list"></div>
-  <button id="rail-add" aria-label="Insert a blank page after the one in view">
+  <button id="rail-add" title="Insert a blank page after the one in view">
     <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor"
       stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>Page</button>
 </div>
@@ -1453,7 +1444,7 @@ function buildTools(d, host, key, opts = {}) {
     const b = d.createElement('button');
     b.type = 'button';
     b.textContent = label;
-    b.setAttribute('aria-label', title);
+    b.title = title;
     b.addEventListener('click', fn);
     bar.appendChild(b);
     return b;
@@ -3578,7 +3569,7 @@ function showMini(d, els) {
   const allLocked = [...selIds].every(isLocked);
   const btn = (title, svg, fn, disabled = false) => {
     const b = d.createElement('button');
-    b.setAttribute('aria-label', title);
+    b.title = title;
     b.innerHTML = svg;
     b.disabled = disabled;
     b.addEventListener('click', e => { e.stopPropagation(); fn(); });
@@ -3653,7 +3644,7 @@ function arrangeBar(d) {
   $('ar-lock').disabled = !n;
   const locked = n > 0 && [...selIds].every(isLocked);
   $('ar-lock').classList.toggle('on', locked);
-  $('ar-lock').setAttribute('aria-label', locked ? 'Unlock' : 'Lock — a locked element cannot be dragged');
+  $('ar-lock').title = locked ? 'Unlock' : 'Lock — a locked element cannot be dragged';
   // The numbers panel: one element, typed placement in inches.
   const one = n === 1 && d ? selEls(d)[0] : null;
   document.querySelectorAll('.ar-pos, #ar-possep').forEach(x => { x.hidden = !one; });
@@ -3672,8 +3663,7 @@ function arrangeBar(d) {
   if (canFill) {
     const ft = fillTargets(fillId);
     $('ar-fillbar').style.background = fillPreview(ft.get());
-    $('ar-fill').setAttribute('aria-label',
-      ft.label.includes('olour') ? ft.label : ft.label + ' colour');
+    $('ar-fill').title = ft.label.includes('olour') ? ft.label : ft.label + ' colour';
   }
   // The rest of the Canva strip, by what the selection can actually take:
   // border and effects need a shape/box behind them; transparency needs any
@@ -4314,7 +4304,7 @@ function chip(pid, pos, label, isHidden) {
   // Show/hide (designed only) or delete (blank).
   if (isBlank) {
     const x = document.createElement('button');
-    x.className = 'chip-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Delete this blank page');
+    x.className = 'chip-x'; x.textContent = '×'; x.title = 'Delete this blank page';
     x.addEventListener('click', async e => {
       e.stopPropagation();
       // A blank page has no content.md tie to "un-hide" back to — unlike a
@@ -4358,7 +4348,7 @@ function chip(pid, pos, label, isHidden) {
     const eye = document.createElement('button');
     eye.className = 'chip-eye';
     eye.textContent = isHidden ? '𐄂' : '👁';
-    eye.setAttribute('aria-label', isHidden ? 'Show this page' : 'Hide this page from the report');
+    eye.title = isHidden ? 'Show this page' : 'Hide this page from the report';
     eye.addEventListener('click', async e => {
       e.stopPropagation();
       pushHistory();
@@ -5146,7 +5136,7 @@ function openColorPanel(id) {
       <div class="cp-row">
         <span id="cp-swatch"></span>
         <input id="cp-hex" spellcheck="false" maxlength="7">
-        <button id="cp-eye" aria-label="Pick a colour from anywhere on screen">⦿</button>
+        <button id="cp-eye" title="Pick a colour from anywhere on screen">⦿</button>
       </div>`;
     // Anchor it under the swatch row it belongs to, not at the panel's end.
     results.insertBefore(wrap, results.children[2] || null);
@@ -6090,69 +6080,6 @@ addEventListener('keydown', e => {
   }
 });
 
-// --- hover tooltips ---------------------------------------------------------
-// Native `title` never shows on a disabled button — which is exactly the
-// common case for Duplicate/Lock/Delete before anything is selected — and
-// otherwise is slow and OS-styled rather than on-brand. This is a small chip
-// instead, keyed off aria-label (so the accessible name is unchanged) and
-// delegated (so a button added later needs no extra wiring). Long labels
-// carry a " — " explanation for screen readers; the chip shows only the part
-// before it, matching how a person would say the button's name out loud.
-// Shared between this document (the chrome) and the draft iframe (its own
-// floating mini toolbar), which is why it takes `doc` rather than closing
-// over one — the iframe gets a fresh document, and so a fresh call, on
-// every render.
-function wireTooltips(doc) {
-  const win = doc.defaultView;
-  const chip = doc.createElement('div');
-  chip.id = 'tt';
-  chip.hidden = true;
-  doc.body.appendChild(chip);
-  let target = null, timer = null;
-  const shortLabel = s => { const i = s.indexOf(' — '); return i === -1 ? s : s.slice(0, i); };
-
-  function place() {
-    const r = target.getBoundingClientRect();
-    const cr = chip.getBoundingClientRect();
-    let x = r.left + r.width / 2 - cr.width / 2;
-    x = Math.max(4, Math.min(x, win.innerWidth - cr.width - 4));
-    let y = r.bottom + 7, above = false;
-    if (y + cr.height > win.innerHeight - 4) { y = r.top - cr.height - 7; above = true; }
-    chip.style.left = x + 'px';
-    chip.style.top = y + 'px';
-    chip.classList.toggle('above', above);
-  }
-  function show() {
-    if (!target) return;
-    chip.textContent = shortLabel(target.getAttribute('aria-label') || '');
-    chip.hidden = false;
-    place();
-  }
-  function hide() {
-    clearTimeout(timer); timer = null; target = null;
-    chip.hidden = true;
-  }
-  doc.addEventListener('mouseover', e => {
-    const b = e.target.closest('button[aria-label]');
-    if (b === target) return;
-    hide();
-    if (b) { target = b; timer = setTimeout(show, 400); }
-  });
-  doc.addEventListener('mousedown', hide);
-  // :focus-visible, not just focus: a click focuses the button too, and
-  // without this check that focus immediately re-showed the tooltip the
-  // same mousedown had just dismissed. Keyboard (Tab) focus is the case
-  // this exists for.
-  doc.addEventListener('focusin', e => {
-    const b = e.target.closest('button[aria-label]');
-    if (b && b.matches(':focus-visible')) { target = b; show(); }
-  });
-  doc.addEventListener('focusout', hide);
-  win.addEventListener('blur', hide);
-  win.addEventListener('resize', () => { if (!chip.hidden) place(); });
-}
-wireTooltips(document);
-
 async function boot() {
   await loadRegistry();
   M = JSON.parse(await get(withBase('engine/manifest.json')));
@@ -6708,19 +6635,8 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
     .ds-xtools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
     .ds-xtools button.del:hover { background:#c2703a; border-color:#c2703a; }
     .ds-xtools button:disabled { opacity:.35; cursor:default; }
-    .ds-xtools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }
-    /* Hover chip for the floating mini toolbar's icon-only buttons — same
-       look as the chrome's own, reimplemented here because this stylesheet
-       (not the chrome's) is what this document actually has. */
-    #tt { position:fixed; z-index:10000; background:#2F3E46; color:#EDF2EF;
-          font:12px/1.3 system-ui, sans-serif; padding:4px 8px; border-radius:5px;
-          pointer-events:none; white-space:nowrap; box-shadow:0 2px 10px rgba(0,0,0,.3); }
-    #tt::after { content:""; position:absolute; left:50%; margin-left:-4px;
-                 border:4px solid transparent; }
-    #tt:not(.above)::after { bottom:100%; border-bottom-color:#2F3E46; }
-    #tt.above::after { top:100%; border-top-color:#2F3E46; }`;
+    .ds-xtools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }`;
   d.head.appendChild(css);
-  wireTooltips(d);
 
   const seen = new Set();
   d.querySelectorAll('[data-slot]').forEach(el => {
@@ -6753,7 +6669,7 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
     ctl.addEventListener('mousedown', e => e.preventDefault());
     const mk = (label, title, cls, fn) => {
       const b = d.createElement('button');
-      b.type = 'button'; b.textContent = label; b.setAttribute('aria-label', title);
+      b.type = 'button'; b.textContent = label; b.title = title;
       if (cls) b.className = cls;
       b.addEventListener('click', e => { e.stopPropagation(); if (!editing && !b.disabled) fn(); });
       ctl.appendChild(b);
