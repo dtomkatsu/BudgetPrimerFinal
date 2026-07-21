@@ -67,6 +67,11 @@
                 background:var(--ctl); color:var(--txt); border:1px solid var(--ctl-line);
                 border-radius:7px; padding:5px 12px; cursor:pointer; height:29px;
                 transition:background .12s, border-color .12s; }
+  /* The flex rule above beats [hidden]'s own (non-!important) display:none —
+     Share/Publish/Push all render anyway once "hidden" is only an attribute.
+     Pre-existing (Share/Publish never had a test asserting the local-mode
+     hidden state to catch it); found while wiring Push. */
+  #bar button[hidden] { display:none; }
   #bar button:hover { border-color:var(--sage); background:#4B5B68; }
   #bar button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
                          background:var(--ctl); }
@@ -128,6 +133,13 @@
   #save:hover { background:var(--deep); border-color:var(--deep); }
   #save.dirty { background:#C2703A; border-color:#C2703A; }
   #save.dirty:hover { background:#A85E2F; }
+  /* Push is its OWN button, not folded into Save — several local Saves can
+     pile up before you choose to publish them, so whether there is anything
+     TO push is independent of whether the editor currently has unsaved
+     words in it (#save's own dirty state). .pending only lights up once
+     there is a real commit sitting here that GitHub does not have. */
+  #push.pending { background:#3B6FA0; border-color:#3B6FA0; color:#fff; font-weight:600; }
+  #push.pending:hover { background:#2F5A85; border-color:#2F5A85; }
   #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
   #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
   #proj { font:12.5px system-ui; background:var(--ctl); color:#E8EDE6;
@@ -519,6 +531,7 @@
   <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
   <button id="revert" disabled>Discard</button>
   <button id="save" disabled>Save draft</button>
+  <button id="push" hidden disabled aria-label="Send commits saved locally to GitHub">Push</button>
   <button id="share" disabled aria-label="Copy a link that shows this draft to anyone">Share</button>
   <button id="publish" disabled aria-label="Make this draft the live report">Publish</button>
   <button id="download" aria-label="Download the report as a PDF or per-page PNGs">Download ▾</button>
@@ -6284,24 +6297,49 @@ async function boot() {
 
 // ---------------------------------------------------------------- live mode
 // Served by tools/serve.py, the editor is LOCAL-FIRST: the files on disk are
-// the truth. Save writes them and pushes (git, not the GitHub API), and a live
-// stream tells us when the files changed underneath us — because you asked
+// the truth. Save writes them and commits locally (git, not the GitHub API);
+// Push is the separate, explicit trip to GitHub. A live stream tells us when
+// the files changed underneath us — because you asked
 // Claude to edit them. We adopt that change and keep whatever you were editing,
 // as long as the two are different files. Same file, both edited: you choose.
 let local = false;
 
 let liveVer = -1;
 
+/** The Push button's whole state lives here: how many local commits GitHub
+ *  does not have yet. Called from every source of that number — the initial
+ *  ping, the SSE stream, the 1.5s poll, and the direct response to a Save or
+ *  a Push — so the button is never stale for longer than one of those beats,
+ *  and updates even when nothing else about the page changed (a rebuild
+ *  version bump is not required, unlike onBump below).
+ */
+function setPushState(ahead) {
+  if (typeof ahead !== 'number') return;
+  const b = $('push');
+  b.disabled = ahead === 0;
+  b.classList.toggle('pending', ahead > 0);
+  b.textContent = ahead > 0 ? `Push (${ahead})` : 'Push';
+  b.setAttribute('aria-label', ahead > 0
+    ? `Send ${ahead} commit${ahead > 1 ? 's' : ''} saved locally to GitHub`
+    : 'Nothing saved locally is waiting to go to GitHub');
+}
+
 async function detectLocal() {
   try {
     const r = await fetch('/__ping', { cache: 'no-store' });
     local = r.ok;
-    if (r.ok) { try { liveVer = (await r.json()).v; } catch (e) {} }
+    if (r.ok) { try {
+      const j = await r.json();
+      liveVer = j.v;
+      setPushState(j.ahead);
+    } catch (e) {} }
   } catch (e) { local = false; }
   if (!local) return;
-  // Local mode is the dev loop: files on disk are the truth, git pushes them.
+  // Local mode is the dev loop: files on disk are the truth, and a Save
+  // commits them here — Push is the separate, explicit trip to GitHub.
   // Draft branches and PRs belong to the hosted editor, so those verbs hide.
   $('share').hidden = $('publish').hidden = true;
+  $('push').hidden = false;
   $('save').textContent = 'Save';
   $('title').textContent = M.id + ' · live';
   $('stat').textContent = 'live — edits here and from Claude land in the same files';
@@ -6310,7 +6348,8 @@ async function detectLocal() {
   // when the browser keeps it open, and a 1.5s poll catches it when the stream
   // drops (a proxy, a sleep, a browser that stalls EventSource). Both funnel
   // through onBump, which acts ONLY on a real version change, so they never
-  // double-fire.
+  // double-fire — ahead is read every time regardless, since it can move
+  // (a Push, a save from another tab) without the build itself changing.
   const onBump = async (v, err) => {
     if (err) { $('stat').textContent = 'build failed on disk — see the terminal'; return; }
     if (v === liveVer) return;
@@ -6321,12 +6360,14 @@ async function detectLocal() {
     const es = new EventSource('/__events');
     es.onmessage = ev => {
       let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
+      setPushState(d.ahead);
       onBump(d.v, d.error);
     };
   } catch (e) { /* no EventSource: the poll below still works */ }
   setInterval(async () => {
     try {
       const d = await (await fetch('/__ping', { cache: 'no-store' })).json();
+      setPushState(d.ahead);
       onBump(d.v);
     } catch (e) { /* server stopped; leave the last render up */ }
   }, 1500);
@@ -7655,11 +7696,13 @@ $('save').onclick = async () => {
   }
   const layoutText = JSON.stringify(layout, null, 2) + '\n';
 
-  // Live mode: write the files on disk through the local server and let git
-  // push them. No token in the browser — your own git credentials do it.
+  // Live mode: write the files on disk through the local server and commit
+  // them there LOCALLY. Never pushes on its own — Push is its own button,
+  // so a Save can never surprise-trigger a GitHub Actions run or send
+  // something to the shared repo before you meant to.
   if (local) {
     $('save').disabled = true;
-    $('stat').textContent = 'saving to disk and pushing…';
+    $('stat').textContent = 'saving to disk…';
     try {
       const r = await fetch('/__save', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -7674,6 +7717,7 @@ $('save').onclick = async () => {
       $('revert').disabled = true;
       $('save').classList.remove('dirty');
       $('stat').textContent = j.message || 'saved';
+      setPushState(j.ahead);
     } catch (e) {
       $('stat').textContent = 'save failed: ' + e.message;
       $('save').disabled = false;
@@ -7682,6 +7726,25 @@ $('save').onclick = async () => {
   }
 
   await saveDraft();   // to draft/<project>/<user> — never straight to main
+};
+
+// Push: send whatever is committed locally (one Save, or several since the
+// last Push) to GitHub. Independent of Save's own dirty state on purpose —
+// several local Saves can pile up with nothing currently unsaved in the
+// editor, and this is what sends all of them at once.
+$('push').onclick = async () => {
+  $('push').disabled = true;
+  $('stat').textContent = 'pushing…';
+  try {
+    const r = await fetch('/__push', { method: 'POST' });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'push failed');
+    $('stat').textContent = j.message || 'pushed';
+    setPushState(j.ahead);
+  } catch (e) {
+    $('stat').textContent = 'push failed: ' + e.message;
+    setPushState(1);          // still ahead — the try again path stays lit
+  }
 };
 
 $('revert').onclick = async () => {

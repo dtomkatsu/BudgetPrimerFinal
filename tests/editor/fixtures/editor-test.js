@@ -1,12 +1,12 @@
 // Shared fixtures for the draft-editor suite.
 //
-// Safety net: EVERY test — no exceptions — gets /__save and /__export blocked
-// before it can navigate. Those two endpoints are served by the real
-// report2027/tools/serve.py dev server and, unmocked, run actual `git commit`
-// + `git push origin HEAD:main` against this machine's real GitHub remote (see
-// serve.py's _save()). A single spec that forgets to mock them would push a
-// test commit to the live repo. Blocking happens here, once, so no individual
-// spec file can opt out by omission.
+// Safety net: EVERY test — no exceptions — gets /__save, /__push and /__export
+// blocked before it can navigate. Those three endpoints are served by the real
+// report2027/tools/serve.py dev server and, unmocked, run actual `git commit` /
+// `git push origin HEAD` + `HEAD:main` against this machine's real GitHub
+// remote (see serve.py's _save()/_push()). A single spec that forgets to mock
+// them would push a test commit to the live repo. Blocking happens here, once,
+// so no individual spec file can opt out by omission.
 //
 // Routes are registered on the BROWSER CONTEXT, not the page: a page-level
 // page.route() races the very first requests of an immediately-following
@@ -19,7 +19,10 @@ const { FakeGitHub } = require('./fake-github');
 
 async function blockDangerousLocalEndpoints(context) {
   await context.route('**/__save', route => route.fulfill({
-    json: { ok: true, message: 'blocked in tests — no real save/push happens here' },
+    json: { ok: true, message: 'blocked in tests — no real save/push happens here', ahead: 0 },
+  }));
+  await context.route('**/__push', route => route.fulfill({
+    json: { ok: true, message: 'blocked in tests — no real save/push happens here', ahead: 0 },
   }));
   await context.route('**/__export', route => route.fulfill({
     status: 200,

@@ -36,7 +36,9 @@ Pyodide, and on **Save** writes back to GitHub.
 Two save modes:
 
 - **Local dev** — POSTs `{content, layout}` to `/__save` on the dev server,
-  which commits and pushes. No token. (Only when the editor is served by that
+  which commits LOCALLY only. No token. A separate **Push** button (`/__push`)
+  sends whatever is committed to GitHub, on your own schedule — several local
+  saves can land before one push. (Only when the editor is served by that
   server.)
 - **GitHub** — the real path. Uses a **fine-grained PAT** kept in
   `localStorage['docsync-pat']`. On Save it builds a list of changed files

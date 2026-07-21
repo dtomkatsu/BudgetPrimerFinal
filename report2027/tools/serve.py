@@ -3,8 +3,9 @@
 
 The loop this exists for: edit the report — by hand in content.md / layout.json,
 or by asking Claude to — and see it in the browser in about a second. No commit,
-no CI wait. When you press Save in the draft editor, the files are written and
-pushed; GitHub Pages deploys.
+no CI wait. Save in the draft editor writes the files and commits LOCALLY;
+Push is a separate, explicit step that sends it to GitHub, so a save can never
+surprise-trigger a deploy or a GitHub Actions run.
 
     make -C report2027 live          # http://localhost:8010/primer/edit.html
 
@@ -48,7 +49,7 @@ WATCH = [
     "docsync/*.py", "docsync/editor/edit.html",
     "docs/js/departments_act175_fy2027.json", "docs/js/historical_trends.json",
 ]
-# The two files the editor edits, and the branch the save endpoint pushes to.
+# The two files the editor edits, and the branch _push sends them to.
 CONTENT = ROOT / "report2027" / "content.md"
 LAYOUT = ROOT / "report2027" / "layout.json"
 DEPLOY_BRANCH = "main"
@@ -59,6 +60,18 @@ _cond = threading.Condition()
 _version = 0                    # bumps on every successful rebuild
 _error = None                  # last build error, or None
 _mtimes: dict[str, float] = {}
+
+
+def _ahead() -> int:
+    """Commits sitting on this machine that origin does not have yet — what a
+    Push would send. 0 whenever there is nothing to push, including if HEAD
+    has no upstream (a detached checkout) rather than raising."""
+    r = subprocess.run(["git", "-C", str(ROOT), "rev-list", "--count", "@{u}..HEAD"],
+                        capture_output=True, text=True)
+    try:
+        return int(r.stdout.strip())
+    except ValueError:
+        return 0
 
 
 def _snapshot() -> dict:
@@ -170,7 +183,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.split("?")[0] == "/__ping":
-            return self._json(200, {"ok": True, "v": _version})
+            return self._json(200, {"ok": True, "v": _version, "ahead": _ahead()})
         if self.path.split("?")[0] == "/__events":
             return self._sse()
         # Inject the live-reloader into served pages — except the editor, which
@@ -218,8 +231,12 @@ class Handler(SimpleHTTPRequestHandler):
                     _cond.wait_for(lambda: _version != seen or _error is not None,
                                    timeout=20)
                     v, err = _version, _error
-                # A heartbeat keeps proxies from closing an idle stream.
-                payload = {"v": v} if not err else {"v": v, "error": err}
+                # A heartbeat keeps proxies from closing an idle stream. ahead
+                # rides along so a Save elsewhere (another tab, another Claude
+                # session) updates every open editor's Push button too.
+                payload = {"v": v, "ahead": _ahead()}
+                if err:
+                    payload["error"] = err
                 self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode())
                 self.wfile.flush()
                 seen = v
@@ -228,7 +245,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
-        if path not in ("/__save", "/__export"):
+        if path not in ("/__save", "/__push", "/__export"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
@@ -238,14 +255,14 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/__export":
             return self._export(req)                 # writes its own response
         try:
-            msg = self._save(req)
-            return self._json(200, {"ok": True, "message": msg, "v": _version})
+            msg = self._push() if path == "/__push" else self._save(req)
+            return self._json(200, {"ok": True, "message": msg, "v": _version, "ahead": _ahead()})
         except Exception as e:                       # noqa: BLE001 — report it
-            return self._json(200, {"ok": False, "error": str(e)})
+            return self._json(200, {"ok": False, "error": str(e), "ahead": _ahead()})
 
     # ---- export: render the editor's CURRENT draft to a file and stream it ---
     # The editor posts its in-memory content + layout, so you download exactly
-    # what is on screen — unsaved edits and all — without a Save (which pushes)
+    # what is on screen — unsaved edits and all — without a Save (which commits)
     # and without touching content.md / layout.json. render_report.py takes the
     # draft from temp files via DOCSYNC_CONTENT/LAYOUT and writes a throwaway
     # HTML into web/ (so its relative primer.css/js/assets links resolve); Chrome
@@ -372,8 +389,11 @@ class Handler(SimpleHTTPRequestHandler):
         return buf.getvalue()
 
     def _save(self, req) -> str:
-        """Write what changed to disk, rebuild, and push. Local git credentials
-        do the push, so no token lives in the browser."""
+        """Write what changed to disk, rebuild, and commit LOCALLY. Never
+        pushes on its own — that is a separate, explicit action (_push) the
+        editor's Push button asks for, so a save can never surprise-trigger a
+        GitHub Actions run (build.yml watches for pushes to main) or race a
+        push you were not ready to make yet."""
         wrote = []
         if req.get("content") is not None:
             CONTENT.write_text(req["content"]); wrote.append("content.md")
@@ -383,7 +403,7 @@ class Handler(SimpleHTTPRequestHandler):
             return "nothing to save"
         rebuild("save")                              # so the built page is current
         if _error:
-            raise RuntimeError("the draft does not build — nothing was pushed:\n" + _error)
+            raise RuntimeError("the draft does not build — nothing was saved:\n" + _error)
         # Commit ONLY these paths — never whatever else happens to be staged.
         # A path-scoped commit ignores the rest of the index, so an unrelated
         # `git add` elsewhere can never ride along on a Save.
@@ -395,8 +415,26 @@ class Handler(SimpleHTTPRequestHandler):
             return "already up to date"
         _git("commit", "-m", "primer: edit from the live editor (" + ", ".join(wrote) + ")",
              "--", *paths)
-        _git("push", "origin", "HEAD")                       # this branch
-        _git("push", "origin", f"HEAD:{DEPLOY_BRANCH}")      # -> deploy
+        return "saved locally — Push when you're ready to publish"
+
+    def _push(self) -> str:
+        """Send whatever is committed locally (one Save, or several) to
+        GitHub: the current branch, and fast-forward the deploy branch to
+        match. Two separate remote refs, so either can independently reject a
+        non-fast-forward — most commonly build.yml's own bot commit landing on
+        main between saves — and that failure is reported plainly rather than
+        as raw git stderr, since the fix (ask for a reconcile) is the same
+        every time."""
+        try:
+            _git("push", "origin", "HEAD")                       # this branch
+            _git("push", "origin", f"HEAD:{DEPLOY_BRANCH}")      # -> deploy
+        except RuntimeError as e:
+            if "rejected" in str(e) or "fetch first" in str(e):
+                raise RuntimeError(
+                    "push rejected — the remote has commits this machine doesn't "
+                    "(often build.yml's own rebuild). Ask Claude to reconcile it, "
+                    "or run: git fetch && git merge origin/" + DEPLOY_BRANCH) from e
+            raise
         return "pushed — GitHub Pages deploys in about a minute"
 
 
@@ -413,7 +451,7 @@ def main():
     url = f"http://localhost:{PORT}/primer/edit.html"
     print(f"\n  Budget Primer — live at {url}")
     print(f"  editing report2027/content.md + report2027/layout.json")
-    print(f"  Save in the editor writes those files and pushes to {DEPLOY_BRANCH}.\n")
+    print(f"  Save writes those files and commits locally; Push sends it to {DEPLOY_BRANCH}.\n")
     if os.environ.get("PRIMER_OPEN", "1") == "1":
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
