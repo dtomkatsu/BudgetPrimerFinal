@@ -42,6 +42,17 @@ test.describe('imported project scaffold', () => {
     expect(Object.keys(prose.files).some(k => k.includes('layout.json'))).toBe(false);
   });
 
+  test('the manifest carries a deploy branch — its own, or main by default', async ({ page }) => {
+    const [dflt, custom] = await page.evaluate(() => [
+      JSON.parse(manifestTemplate('demo', 'o/r', { w: 8.5, h: 11 }, false)),
+      JSON.parse(manifestTemplate('demo', 'o/r', { w: 8.5, h: 11 }, false, 'production')),
+    ]);
+    // Absent = main, so a project that never asked keeps publishing where it
+    // always did; present = whatever the repo actually deploys from.
+    expect(dflt.branch).toBe('main');
+    expect(custom.branch).toBe('production');
+  });
+
   test('a staged import is what createProject builds from', async ({ page }) => {
     // Stand in for a real trace, then read back what createProject would
     // commit — without letting it reach the network.
@@ -59,6 +70,7 @@ test.describe('imported project scaffold', () => {
       // Capture the tree instead of pushing it.
       const seen = { blobs: 0, tree: null };
       window.gh = async (repo, path, opts) => {
+        if (path === '') return { permissions: { push: true } };   // token can write
         if (path === 'git/ref/heads/main') return { object: { sha: 'base' } };
         if (path.startsWith('git/commits/')) return { tree: { sha: 't0' } };
         if (path === 'git/blobs') { seen.blobs++; return { sha: 'blob' + seen.blobs }; }
@@ -102,5 +114,37 @@ test.describe('imported project scaffold', () => {
     // The import is spent — a reload must not scaffold it twice.
     expect(built.leftover).toBeNull();
     expect(built.pending).toBe(0);
+  });
+
+  test('a tampered import is refused before any commit', async ({ page }) => {
+    // sessionStorage sits between extractDoc() tracing a page and
+    // createProject() committing it — this stands in for that gap being
+    // abused (devtools, a future bug, anything) rather than a real trace.
+    const result = await page.evaluate(async () => {
+      sessionStorage.setItem('ds-import', JSON.stringify({
+        name: 'src.html', title: 'Imported Page',
+        layout: { boxes: [],
+                  shapes: [{ id: 'g1', page: 1, kind: 'icon', x: 1, y: 1, w: 1, h: 1,
+                             vb: '0 0 24 24', svg: '<path onclick="alert(1)"/>' }],
+                  tables: [], positions: {}, fill: {} },
+        content: '[[title]]\nImported Page\n\n[[sources]]\n[x]: y — https://e.com\n',
+        page: { w: 8.5, h: 11 },
+        counts: { boxes: 0, shapes: 1, tables: 0, images: 0 },
+      }));
+      let calls = 0;
+      window.gh = async () => { calls++; return {}; };
+      window.currentRepo = () => 'o/r';
+      window.askToken = async () => true;
+      let message = null;
+      try { await createProject('Imported Page', 'imported-page', 'letter'); }
+      catch (e) { message = e.message; }
+      return { message, calls, leftover: sessionStorage.getItem('ds-import') };
+    });
+
+    expect(result.message).toMatch(/safety check/);
+    // Rejected before askToken/gh ever ran — nothing was committed.
+    expect(result.calls).toBe(0);
+    // Not spent — the caller can show the error and let the person try again.
+    expect(result.leftover).not.toBeNull();
   });
 });

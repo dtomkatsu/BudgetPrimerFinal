@@ -162,9 +162,11 @@ class FakeGitHub {
       const pr = this.pulls.find(p => p.number === n);
       if (!pr) return route.fulfill({ status: 404, json: { message: 'Not Found' } });
       pr.open = false;
-      // Merging fast-forwards main to the head branch's tip, like squash-merge would.
+      // Merging fast-forwards the PR's BASE branch to the head branch's tip,
+      // like a squash-merge would — the base is whatever the PR targeted, not
+      // always main (a project may deploy from production, gh-pages, …).
       const headSha = this.refs.get(pr.head);
-      if (headSha) { this.refs.set('main', headSha); this._materialize('main', headSha); }
+      if (headSha) { this.refs.set(pr.base, headSha); this._materialize(pr.base, headSha); }
       return route.fulfill({ json: { merged: true, sha: headSha } });
     }
 

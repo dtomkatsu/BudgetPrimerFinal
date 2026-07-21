@@ -38,6 +38,7 @@ class Editor:
     assets: Path | None = None        # uploaded images land here
     palette: list = None              # the report's own colours, offered first
     layout: Path | None = None        # the overrides file, if the report has one
+    branch: str = "main"              # the deploy branch drafts fork from / publish to
 
 
 @dataclass
@@ -132,6 +133,7 @@ def _editor(e: dict | None, where: str) -> Editor | None:
         assets=ROOT / e["assets"] if e.get("assets") else None,
         palette=list(e.get("palette") or []),
         layout=ROOT / e["layout"] if e.get("layout") else None,
+        branch=e.get("branch") or "main",
     )
 
 

@@ -87,6 +87,7 @@
   <h1>Draft editor</h1>
   <span class="sub" id="hstat">loading your reports…</span>
   <button id="open-html" class="ghost">Open HTML…</button>
+  <button id="connect" class="ghost">Connect a repo…</button>
   <button id="new" disabled>+ New report</button>
 </header>
 <main>
@@ -101,8 +102,14 @@
 
 <div id="modal-bg">
   <div id="modal">
-    <header><h2>New report</h2></header>
+    <header><h2 id="np-title">New report</h2></header>
     <div class="body">
+      <label>Repo (owner/name)
+        <input id="np-repo" placeholder="owner/repository" autocomplete="off" spellcheck="false">
+      </label>
+      <label>Deploy branch
+        <input id="np-branch" placeholder="main" autocomplete="off" spellcheck="false">
+      </label>
       <label>Title
         <input id="np-name" placeholder="e.g. Housing Report 2027" autocomplete="off">
       </label>
@@ -665,7 +672,7 @@ print(f"wrote {_OUT} ({len(html):,} bytes)")
 `;
 }
 
-function manifestTemplate(slug, repo, size, placed) {
+function manifestTemplate(slug, repo, size, placed, branch) {
   const files = {
     "engine/docsync/content.py": "docsync/content.py",
     "engine/docsync/normalise.py": "docsync/normalise.py",
@@ -679,6 +686,7 @@ function manifestTemplate(slug, repo, size, placed) {
   return JSON.stringify({
     id: slug,
     repo,
+    branch: branch || 'main',
     files,
     render: `projects/${slug}/tools/render_report.py`,
     content: `projects/${slug}/content.md`,
@@ -698,9 +706,11 @@ async function fetchText(url) {
   return r.text();
 }
 
-async function createProject(name, slug, sizeKey) {
-  const repo = currentRepo();
-  if (!repo) throw new Error('no project in the registry names a repo yet — cannot create one');
+async function createProject(name, slug, sizeKey, branch, repo) {
+  repo = repo || currentRepo();    // an explicit repo lets a project live in one this editor never saw
+  branch = branch || 'main';       // the deploy branch this project scaffolds onto and publishes to
+  if (!repo) throw new Error('name a repo (owner/name) to create a project in');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`"${repo}" is not owner/name`);
 
   // An import staged by "Open HTML…" brings its own page size (the source
   // page's measured height), its own layout.json, and a renderer that draws
@@ -720,6 +730,19 @@ async function createProject(name, slug, sizeKey) {
   }
 
   if (!await askToken(repo)) throw new Error('cancelled — no token');
+
+  // Fail early and clearly, before writing anything: the token must be able to
+  // WRITE this repo, and the deploy branch must already exist (that is where
+  // the scaffold commit lands). A 404 here usually means the token cannot see
+  // the repo at all — the same message covers "wrong name" and "no access".
+  let info;
+  try { info = await gh(repo, ''); }
+  catch (e) { throw new Error(`cannot reach ${repo} with this token — check the name and that the token has access (${e.message})`); }
+  if (!(info.permissions && info.permissions.push)) {
+    throw new Error(`the token can read ${repo} but not write it — grant Contents: write`);
+  }
+  try { await gh(repo, `git/ref/heads/${branch}`); }
+  catch (e) { throw new Error(`branch "${branch}" does not exist in ${repo} — create it first, or use the repo's default branch`); }
 
   const size = imported ? imported.page : (PAGE_SIZES[sizeKey] || PAGE_SIZES.letter);
   const renderPy = imported ? placedTemplate(size.w, size.h)
@@ -741,7 +764,7 @@ async function createProject(name, slug, sizeKey) {
     { path: `docs/primer/projects/${slug}/engine/docsync/layout.py`, content: layoutPy },
     { path: `docs/primer/projects/${slug}/engine/projects/${slug}/content.md`, content: contentMd },
     { path: `docs/primer/projects/${slug}/engine/projects/${slug}/tools/render_report.py`, content: renderPy },
-    { path: `docs/primer/projects/${slug}/engine/manifest.json`, content: manifestTemplate(slug, repo, size, !!imported) },
+    { path: `docs/primer/projects/${slug}/engine/manifest.json`, content: manifestTemplate(slug, repo, size, !!imported, branch) },
   ];
   if (imported) {
     // The traced objects, and the copy the editor loads before any draft
@@ -752,13 +775,13 @@ async function createProject(name, slug, sizeKey) {
                  content: layoutJson });
   }
 
-  const nextRegistry = { ...REGISTRY, [slug]: { name, base: `projects/${slug}`, repo } };
+  const nextRegistry = { ...REGISTRY, [slug]: { name, base: `projects/${slug}`, repo, branch } };
   files.push({ path: 'docs/primer/projects.json', content: JSON.stringify(nextRegistry, null, 2) + '\n' });
 
   // One commit for the whole scaffold — a report is either fully there to
   // open, or (on any failure before the ref update) not created at all;
   // there is no half-created state for a later load to trip over.
-  const base = (await gh(repo, 'git/ref/heads/main')).object.sha;
+  const base = (await gh(repo, `git/ref/heads/${branch}`)).object.sha;
   // Images are bytes, and a tree entry's `content` is text only — so each one
   // becomes a base64 blob first and rides the tree by sha. They go to the
   // project's real assets/ AND to the staged copy the editor serves from.
@@ -781,7 +804,7 @@ async function createProject(name, slug, sizeKey) {
   }) });
   const commit = await gh(repo, 'git/commits', { method: 'POST', body: JSON.stringify({
     message: `primer: scaffold new report "${name}" (${slug})`, tree: tree.sha, parents: [base] }) });
-  await gh(repo, 'git/refs/heads/main', { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+  await gh(repo, `git/refs/heads/${branch}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
   REGISTRY = nextRegistry;
   // The import is spent — a reload must not scaffold it a second time.
   sessionStorage.removeItem('ds-import');
@@ -795,28 +818,39 @@ $('np-name').addEventListener('input', () => {
 });
 $('np-slug').addEventListener('input', () => { $('np-slug').dataset.touched = '1'; });
 
-function openModal() {
+// One modal, two doors. "+ New report" prefills the repo you already use, so
+// the common case is just a title. "Connect a repo…" clears the repo and
+// focuses it, because the whole point there is to point somewhere new.
+function openModal(opts = {}) {
+  const connect = !!opts.connect;
+  $('np-title').textContent = connect ? 'Connect a repo' : 'New report';
+  $('np-repo').value = connect ? '' : currentRepo();
+  $('np-branch').value = 'main';
   $('np-name').value = ''; $('np-slug').value = ''; $('np-slug').dataset.touched = '';
   $('np-size').value = 'letter';
   $('np-err').textContent = '';
   $('modal-bg').classList.add('open');
-  $('np-name').focus();
+  (connect ? $('np-repo') : $('np-name')).focus();
 }
 function closeModal() { $('modal-bg').classList.remove('open'); }
-$('new').onclick = openModal;
+$('new').onclick = () => openModal();
+$('connect').onclick = () => openModal({ connect: true });
 $('np-cancel').onclick = closeModal;
 $('modal-bg').addEventListener('click', e => { if (e.target === $('modal-bg')) closeModal(); });
 
 $('np-create').onclick = async () => {
   const name = $('np-name').value.trim();
   const slug = slugify($('np-slug').value || name);
+  const repo = $('np-repo').value.trim();
+  const branch = $('np-branch').value.trim() || 'main';
+  if (!repo) { $('np-err').textContent = 'name the repo (owner/name) to create this in'; return; }
   if (!name || !slug) { $('np-err').textContent = 'a title and a short id are both needed'; return; }
   if (REGISTRY[slug]) { $('np-err').textContent = `"${slug}" already exists — pick another id`; return; }
   $('np-create').disabled = true;
   $('np-err').textContent = '';
-  $('stat').textContent = `creating "${name}"…`;
+  $('stat').textContent = `creating "${name}" in ${repo}…`;
   try {
-    await createProject(name, slug, $('np-size').value);
+    await createProject(name, slug, $('np-size').value, branch, repo);
     $('stat').textContent = `"${name}" created — opening it…`;
     location.href = `edit.html?project=${encodeURIComponent(slug)}`;
   } catch (e) {

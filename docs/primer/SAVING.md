@@ -28,7 +28,8 @@ phased plan.
 ## 1. How saving works today
 
 The editor (`docs/primer/edit.html`) loads a per-project **manifest**
-(`engine/manifest.json`: `id`, `repo`, and the paths of `content.md` /
+(`engine/manifest.json`: `id`, `repo`, `branch` — the deploy branch drafts fork
+from and publish to, defaulting to `main` — and the paths of `content.md` /
 `layout.json`), renders the report locally through the real Python renderer via
 Pyodide, and on **Save** writes back to GitHub.
 

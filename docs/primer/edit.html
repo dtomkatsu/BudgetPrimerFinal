@@ -786,6 +786,7 @@
 // this editor.
 let M = null;                          // the manifest
 let REPO = '';                         // owner/name we save to
+let BRANCH = 'main';                    // the deploy branch drafts fork from and publish to
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
@@ -6157,6 +6158,7 @@ async function boot() {
   await loadRegistry();
   M = JSON.parse(await get(withBase('engine/manifest.json')));
   REPO = M.repo || '';
+  BRANCH = M.branch || 'main';
   if (M.pages && M.pages.length) EXTRA_PAGES = M.pages;
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
@@ -7410,9 +7412,11 @@ async function ghUser() {
 async function ensureBranch(branch) {
   try { await gh(`git/ref/heads/${branch}`); return; }
   catch (e) { if (!String(e.message).match(/404/)) throw e; }
-  const main = await gh('git/ref/heads/main');
+  // Fork from the project's own deploy branch, not a hardcoded main — a repo
+  // this project lives in may deploy from gh-pages, production, or any name.
+  const src = await gh(`git/ref/heads/${BRANCH}`);
   await gh('git/refs', { method: 'POST',
-    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: main.object.sha }) });
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: src.object.sha }) });
 }
 
 /** One commit for everything that changed — prose and layout land together or
@@ -7508,7 +7512,7 @@ $('publish').onclick = async () => {
     const owner = REPO.split('/')[0];
     let pr = (await gh(`pulls?head=${owner}:${encodeURIComponent(draftBranch)}&state=open`))[0];
     if (!pr) pr = await gh('pulls', { method: 'POST', body: JSON.stringify({
-      title: `${M.id}: publish draft by ${user}`, head: draftBranch, base: 'main',
+      title: `${M.id}: publish draft by ${user}`, head: draftBranch, base: BRANCH,
       body: 'Published from the draft editor.' }) });
     await gh(`pulls/${pr.number}/merge`, { method: 'PUT',
       body: JSON.stringify({ merge_method: 'squash' }) });

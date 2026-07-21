@@ -112,7 +112,7 @@ test.describe('contextual toolbar', () => {
     await page.waitForTimeout(200);
     const fill = page.locator('#ar-fill');
     await expect(fill).toBeVisible();
-    await expect(fill).toHaveAttribute('title', 'Colour');
+    await expect(fill).toHaveAttribute('aria-label', 'Colour');
 
     await fill.click();
     await page.locator('#side-body .cdot[title="#2F3E46"]').first().click();

@@ -1,6 +1,7 @@
 {
   "id": "budget-primer",
   "repo": "dtomkatsu/BudgetPrimerFinal",
+  "branch": "main",
   "files": {
     "engine/docsync/content.py": "docsync/content.py",
     "engine/docsync/normalise.py": "docsync/normalise.py",

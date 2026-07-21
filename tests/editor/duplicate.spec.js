@@ -16,7 +16,7 @@ async function select(page, id) {
 }
 
 const miniDup = page => page.frameLocator('#out')
-  .locator('.ds-mini button[title^="Duplicate"]');
+  .locator('.ds-mini button[aria-label^="Duplicate"]');
 
 test.describe('duplicate', () => {
   test.beforeEach(async ({ page }) => {
@@ -89,7 +89,7 @@ test.describe('duplicate', () => {
     expect(id).toBeTruthy();
     await select(page, id);
     await expect(miniDup(page)).toBeDisabled();
-    await expect(miniDup(page)).toHaveAttribute('title', /reorders instead/);
+    await expect(miniDup(page)).toHaveAttribute('aria-label', /reorders instead/);
     await expect(page.locator('#ar-dup')).toBeDisabled();
   });
 });

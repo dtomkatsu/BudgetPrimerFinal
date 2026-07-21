@@ -59,6 +59,7 @@ def manifest(b: Binding) -> dict:
     return {
         "id": b.id,
         "repo": None,               # filled by --repo, or the editor asks
+        "branch": e.branch,         # deploy branch drafts fork from / publish to
         "files": files,
         "render": rel(e.render),
         "content": rel(b.content),
