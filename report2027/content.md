@@ -141,7 +141,7 @@ Prep of proposed exec budget
 # HOW MONEY IS SPENT
 
 [[spent.p1]]
-Government spending is essential for the economy, especially in times of crisis. The executive branch alone employs over 47,000 workers, not including contractors.[^workforce-profile] These workers are responsible for running Hawaiʻi's departments and agencies—a task that is only made possible with billions of dollars in funding.
+Government spending is essential for the economy, especially in times of crisis. The executive branch alone employs over 47,000 workers, not including contractors.[^workforce-profile] These employees are in charge of Hawaiʻi's departments and agencies—a task that is only made possible with billions of dollars in funding.
 
 [[spent.p2]]
 There are three types of spending: operating, capital improvement, and one-time/emergency appropriations.
@@ -324,13 +324,13 @@ Projected Hawaiʻi State Tax Revenue,
 Percentage of Income Paid in State and Local Taxes by Household Income Quintile (2024)[^itep-whopays]
 
 [[whopays.p1]]
-In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched-thin income on state and local taxes compared to wealthy families. This is due almost entirely to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
+In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is due almost entirely to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
 [[whopays.callout.title]]
 ### Tax Credits
 
 [[whopays.callout.p1]]
-Tax credits are an effective tool available to lawmakers that are designed to lower or even eliminate the tax liability owed to the state by people or businesses. The purpose of these tax credits is to stimulate the economy by reducing costs either for businesses or struggling families that need help purchasing their basic necessities.
+Tax credits can lower or even eliminate the taxes that people or businesses owe to the state. These tax credits stimulate the economy by reducing costs either for businesses or struggling families that need help purchasing their basic necessities.
 
 [[whopays.callout.p2]]
 In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Renewable Energy Technologies Tax Credit and Film/Media Production Credit.
