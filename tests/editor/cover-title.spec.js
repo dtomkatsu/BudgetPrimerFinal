@@ -28,11 +28,13 @@ test.describe('editable cover title', () => {
     await ta.evaluate(el => { el.textContent = 'HAWAII\nSTATE\nBUDGET'; });
     await ta.evaluate(el => el.blur());
 
-    // The rendered title reflects the edit, still stacked with <br>.
+    // The rendered title reflects the edit, still stacked with <br>. Polling
+    // assertions, not a one-shot count: the re-render loads in a hidden twin
+    // and swaps in when ready, so the committed h1 (the one WITH the <br>s)
+    // only exists after the swap — a snapshot could catch the old document.
     const after = frame.locator('h1.cover-title');
     await expect(after).toContainText('STATE');
-    const brs = await after.evaluate(el => el.querySelectorAll('br').length);
-    expect(brs).toBe(2);   // three lines -> two <br>
+    await expect(after.locator('br')).toHaveCount(2);   // three lines -> two <br>
   });
 
   test('the cover year is editable too', async ({ page }) => {

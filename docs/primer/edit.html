@@ -2971,8 +2971,12 @@ function editCell(d, td) {
   const finish = async keep => {
     if (host.dataset.done) return; host.dataset.done = '1';
     editing = false;
+    const newVal = keep ? htmlToMd(host, { inline: true }) : null;
+    // De-editorify immediately — see edit()'s finish: the old document stays
+    // visible while the re-render loads, and a live editor there is a trap.
+    host.contentEditable = 'false';
+    host.classList.remove('ds-cell-edit');
     if (keep) {
-      const newVal = htmlToMd(host, { inline: true });
       if (newVal !== ((t.rows[ri] && t.rows[ri][ci]) || '')) {
         pushHistory(); t.rows[ri][ci] = newVal; markDirty();
       }
@@ -3065,8 +3069,13 @@ function editBox(d, el) {
     host.dataset.done = '1';
     editing = false;
     richHost = null; syncMarksBar();
+    const newVal = keep ? htmlToMd(host, { allowLists: true }) : null;
+    // De-editorify immediately — the old document stays visible during the
+    // buffered re-render, and a lingering live editor swallows interactions
+    // meant for the new one (see edit()'s finish).
+    host.contentEditable = 'false';
+    host.classList.remove('ds-edit');
     if (keep) {
-      const newVal = htmlToMd(host, { allowLists: true });
       if (newVal.trim() && newVal !== b.md) { b.md = newVal.trim(); markDirty(); }
     }
     await render();
@@ -3120,6 +3129,9 @@ function editEndnote(d, li, sid) {
     if (wrap.dataset.done) return;
     wrap.dataset.done = '1';
     editing = false;
+    // De-editorify immediately — see edit()'s finish: the old document stays
+    // visible while the re-render loads, and live inputs there are a trap.
+    txt.disabled = url.disabled = true;
     if (keep) {
       const t = txt.value.trim(), u = url.value.trim();
       if (t && u && (t !== s.text || u !== s.url)) {
@@ -6361,7 +6373,36 @@ async function _pull() {
   }
 }
 
+/** SINGLE-FLIGHT with a trailing rerun. Two overlapping renders — an Escape's
+ *  re-render racing the next +Section's, a live-reload bump racing a commit —
+ *  interleave in Pyodide and can finish OUT OF ORDER, letting an older
+ *  document clobber a newer one (observed: a just-added section vanishing and
+ *  `editing` wedged true because the swap orphaned its open editor). Only one
+ *  render runs at a time; calls that land mid-flight coalesce into ONE rerun
+ *  after it (source/layout are globals, so the rerun sees all of it), and
+ *  every caller's await resolves only after a render that included its state.
+ */
+let renderRunning = false, renderAgain = false, renderWaiters = [];
 async function render() {
+  if (renderRunning) {
+    renderAgain = true;
+    await new Promise(r => renderWaiters.push(r));
+    return;
+  }
+  renderRunning = true;
+  try {
+    do {
+      renderAgain = false;
+      await renderOnce();
+    } while (renderAgain);
+  } finally {
+    renderRunning = false;
+    const ws = renderWaiters; renderWaiters = [];
+    ws.forEach(r => r());
+  }
+}
+
+async function renderOnce() {
   $('stat').textContent = 'rendering…';
   py.globals.set('SRC', source);
   py.globals.set('LAYOUT', JSON.stringify(layout, null, 2));
@@ -6408,7 +6449,12 @@ open('/repo/' + OUT).read()
   // until the swap, so every $('out') lookup during the load still resolves to
   // the visible document; the moment it loads, the ids change hands and wire()
   // runs against the new one.
-  if (pendingFrame) { pendingFrame.remove(); pendingFrame = null; }
+  if (pendingFrame) {
+    // A newer render supersedes a twin still loading — and RESOLVES its
+    // promise, or whoever awaited that render() would hang forever.
+    pendingFrame.remove(); pendingFrame = null;
+    if (pendingResolve) { pendingResolve(); pendingResolve = null; }
+  }
   const old = $('out');
   const nu = old.cloneNode(false);
   nu.removeAttribute('id');
@@ -6417,30 +6463,40 @@ open('/repo/' + OUT).read()
   nu.style.position = 'absolute';       // keep it out of the stage's layout
   nu.style.inset = '0';
   pendingFrame = nu;
-  // onload before srcdoc: assigning srcdoc starts the load, so wiring the
-  // handler afterwards is a race the editor loses by silently going inert.
-  nu.onload = () => {
-    if (pendingFrame !== nu) return;    // a newer render superseded this one
-    pendingFrame = null;
-    old.remove();
-    nu.id = 'out';
-    nu.style.visibility = '';
-    nu.style.position = '';
-    nu.style.inset = '';
-    wire();
-    const se = nu.contentDocument.scrollingElement;
-    if (se) se.scrollTop = scrollTopWas;
-  };
-  // srcdoc BEFORE insertion: a bare iframe added to the DOM loads about:blank
-  // and fires onload for IT — the swap then ran against an empty document and
-  // the real load was ignored as superseded, leaving the page rendered but
-  // completely inert. With srcdoc already set there is exactly one load.
-  nu.srcdoc = html;
-  old.parentNode.appendChild(nu);
+  // render() RESOLVES ONLY AFTER THE SWAP: callers do `await render()` and
+  // then immediately touch $('out')'s document — selection paints, status
+  // lines, tests. Resolving at srcdoc-assignment (load still in flight) let
+  // all of that run against the old, dying document.
+  await new Promise(resolve => {
+    pendingResolve = resolve;
+    // onload before srcdoc: assigning srcdoc starts the load, so wiring the
+    // handler afterwards is a race the editor loses by silently going inert.
+    nu.onload = () => {
+      if (pendingFrame !== nu) return;  // superseded; its promise already resolved
+      pendingFrame = null; pendingResolve = null;
+      old.remove();
+      nu.id = 'out';
+      nu.style.visibility = '';
+      nu.style.position = '';
+      nu.style.inset = '';
+      wire();
+      const se = nu.contentDocument.scrollingElement;
+      if (se) se.scrollTop = scrollTopWas;
+      resolve();
+    };
+    // srcdoc BEFORE insertion: a bare iframe added to the DOM loads
+    // about:blank and fires onload for IT — the swap then ran against an
+    // empty document and the real load was ignored as superseded, leaving
+    // the page rendered but completely inert. With srcdoc already set there
+    // is exactly one load.
+    nu.srcdoc = html;
+    old.parentNode.appendChild(nu);
+  });
   $('stat').textContent = dirty ? 'unsaved changes'
                                 : 'click selects and drags · double-click edits text';
 }
 let pendingFrame = null;              // the hidden twin mid-load, if any
+let pendingResolve = null;            // its render()'s resolver, for supersede
 
 function wire() {
   const d = $('out').contentDocument;
@@ -7133,9 +7189,17 @@ function edit(d, key) {
     host.dataset.done = '1';
     editing = false;
     richHost = null; syncMarksBar();
+    const newVal = keep
+      ? (!allowMd ? (inline ? host.textContent : host.innerText)
+                  : htmlToMd(host, { allowLists, inline }))
+      : null;
+    // The old document stays VISIBLE while the re-render loads its twin —
+    // so this editor must stop being one right now. Left editable, it kept
+    // swallowing the next interaction (a click, an Escape) into a document
+    // already scheduled for the bin.
+    host.contentEditable = 'false';
+    host.classList.remove('ds-edit', 'ds-inline');
     if (keep) {
-      const newVal = !allowMd ? (inline ? host.textContent : host.innerText)
-                               : htmlToMd(host, { allowLists, inline });
       if (newVal.trim() !== readSlot(key)) {
         writeSlot(key, newVal);
         dirty = source !== original || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
