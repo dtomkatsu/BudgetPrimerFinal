@@ -8,17 +8,25 @@
 // render, editing either surface can never leave the other stale. Local mode.
 const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtures/editor-test');
 
-const EDITABLE_SLOT = 'toc.author';   // double-click to edit, see sources.spec.js
 
+/** Add a brand-new source through the real UI flow. The inline toolbar (and
+ *  its Cite button) is gone — citing now rides RIGHT-CLICK in a block prose
+ *  editor ("Add endnote here…", the endnoteMenu), which opens the same
+ *  <dialog> form (id + citation text + URL). Each call adds its own throwaway
+ *  section to cite from, since inline one-liners take no footnotes. */
+let citeCounter = 0;
 async function addSourceViaUi(page, id, text, url) {
   const frame = page.frameLocator('#out');
-  const block = frame.locator(`[data-slot="${EDITABLE_SLOT}"]`);
-  await block.dblclick({ force: true });
-  await frame.locator('.ds-tools button', { hasText: 'Cite' }).click();
-  await frame.locator('.ds-cite select').selectOption('__new');
+  await page.click('#add');
+  await fillDialog(page, { page: 'basics', slug: 'cite-' + (++citeCounter) });
+  await submitDialog(page);
+  const host = frame.locator('.ds-edit');
+  await host.waitFor({ state: 'visible' });
+  await host.click({ button: 'right' });
+  await frame.locator('.ds-menu button', { hasText: 'Add endnote here' }).click();
+  // The dsForm dialog opens in the parent doc; fill all three fields at once.
   await fillDialog(page, { id, text, url });
   await submitDialog(page);
-  await frame.locator('.ds-cite').waitFor({ state: 'detached' });
   await frame.locator('.ds-edit').evaluate(el => el.blur());
   await frame.locator('.ds-edit').waitFor({ state: 'detached' });
   await frame.locator('.page').first().waitFor({ state: 'visible' });

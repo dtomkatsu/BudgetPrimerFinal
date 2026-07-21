@@ -71,6 +71,7 @@
   #modal header h2 { margin:0; font-size:14px; color:#fff; }
   #modal .body { padding:16px; display:flex; flex-direction:column; gap:12px; }
   #modal label { font-size:12px; color:#5B6E66; display:flex; flex-direction:column; gap:5px; }
+  #modal label[hidden] { display:none; }   /* the flex rule above beats [hidden]'s default */
   #modal input, #modal select { font:14px system-ui; padding:8px 10px;
     border:1px solid var(--line); border-radius:6px; background:#fff; }
   #modal .row { display:flex; gap:8px; justify-content:flex-end; }
@@ -87,6 +88,7 @@
   <h1>Draft editor</h1>
   <span class="sub" id="hstat">loading your reports…</span>
   <button id="open-html" class="ghost">Open HTML…</button>
+  <button id="adopt" class="ghost">Adopt existing…</button>
   <button id="connect" class="ghost">Connect a repo…</button>
   <button id="new" disabled>+ New report</button>
 </header>
@@ -110,13 +112,16 @@
       <label>Deploy branch
         <input id="np-branch" placeholder="main" autocomplete="off" spellcheck="false">
       </label>
-      <label>Title
+      <label id="np-path-l" hidden>Path to the project in the repo
+        <input id="np-path" placeholder="docs/primer" autocomplete="off" spellcheck="false">
+      </label>
+      <label><span id="np-name-l">Title</span>
         <input id="np-name" placeholder="e.g. Housing Report 2027" autocomplete="off">
       </label>
-      <label>Short id (used in the URL and file paths)
+      <label id="np-slug-l">Short id (used in the URL and file paths)
         <input id="np-slug" placeholder="housing-report-2027" autocomplete="off">
       </label>
-      <label>Page size
+      <label id="np-size-l">Page size
         <select id="np-size">
           <option value="letter" selected>Letter — 8.5 × 11 in</option>
           <option value="a4">A4 — 8.27 × 11.69 in</option>
@@ -706,6 +711,72 @@ async function fetchText(url) {
   return r.text();
 }
 
+// The registry (projects.json) is THIS editor's own file — it lives in, and is
+// served from, the host repo, whatever repo a given project's files live in.
+// So it always commits here, even when the project it names lives elsewhere.
+function hostBranch() {
+  const def = Object.values(REGISTRY).find(p => !(p.base || '')) || Object.values(REGISTRY)[0];
+  return (def && def.branch) || 'main';
+}
+async function commitRegistry(nextRegistry, message) {
+  const repo = currentRepo(), branch = hostBranch();
+  if (!await askToken(repo)) throw new Error('cancelled — no token');
+  const content = JSON.stringify(nextRegistry, null, 2) + '\n';
+  const base = (await gh(repo, `git/ref/heads/${branch}`)).object.sha;
+  const tree = await gh(repo, 'git/trees', { method: 'POST', body: JSON.stringify({
+    base_tree: (await gh(repo, `git/commits/${base}`)).tree.sha,
+    tree: [{ path: 'docs/primer/projects.json', mode: '100644', type: 'blob', content }],
+  }) });
+  const commit = await gh(repo, 'git/commits', { method: 'POST', body: JSON.stringify({
+    message, tree: tree.sha, parents: [base] }) });
+  await gh(repo, `git/refs/heads/${branch}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+}
+
+// Register a project whose files ALREADY exist in a repo — the counterpart to
+// scaffolding one. Nothing is written into the project's own repo; the only
+// change is a new entry in the host registry, learned from the project's own
+// staged manifest so its deploy target and page size come from the project,
+// not from guesses.
+async function adoptProject(repo, branch, path, displayName) {
+  repo = (repo || '').trim();
+  branch = (branch || 'main').trim();
+  path = (path || 'docs/primer').trim().replace(/^\/+|\/+$/g, '');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`"${repo}" is not owner/name`);
+  if (!await askToken(repo)) throw new Error('cancelled — no token');
+
+  // The staged manifest, straight from the repo (Contents API, so a private
+  // repo works without its Pages being public). Its presence is the proof this
+  // path really holds a docsync project.
+  const mpath = `${path}/engine/manifest.json`;
+  let manifest;
+  try {
+    const res = await gh(repo, `contents/${mpath}?ref=${encodeURIComponent(branch)}`);
+    manifest = JSON.parse(decodeURIComponent(escape(atob(res.content))));
+  } catch (e) {
+    throw new Error(`no docsync project at ${repo}@${branch}:${path} — expected ${mpath} (${e.message})`);
+  }
+  const slug = manifest.id || path.split('/').pop();
+  if (REGISTRY[slug]) throw new Error(`"${slug}" is already in your list`);
+
+  // Where the editor FETCHES this project's engine at runtime. Same repo as
+  // this editor → a path next to it; another repo → that repo's Pages URL,
+  // which the editor can read cross-origin (Pages sends CORS) — that repo must
+  // have Pages enabled.
+  let base;
+  if (repo === currentRepo()) {
+    base = path.replace(/^docs\/primer\/?/, '').replace(/^\/+|\/+$/g, '');
+  } else {
+    const [owner, name] = repo.split('/');
+    base = `https://${owner}.github.io/${name}/${path}`;
+  }
+
+  const entry = { name: displayName || manifest.name || slug,
+                  base, repo: manifest.repo || repo, branch: manifest.branch || branch };
+  await commitRegistry({ ...REGISTRY, [slug]: entry }, `primer: adopt existing project "${slug}"`);
+  REGISTRY = { ...REGISTRY, [slug]: entry };
+  return slug;
+}
+
 async function createProject(name, slug, sizeKey, branch, repo) {
   repo = repo || currentRepo();    // an explicit repo lets a project live in one this editor never saw
   branch = branch || 'main';       // the deploy branch this project scaffolds onto and publishes to
@@ -775,8 +846,18 @@ async function createProject(name, slug, sizeKey, branch, repo) {
                  content: layoutJson });
   }
 
-  const nextRegistry = { ...REGISTRY, [slug]: { name, base: `projects/${slug}`, repo, branch } };
-  files.push({ path: 'docs/primer/projects.json', content: JSON.stringify(nextRegistry, null, 2) + '\n' });
+  // Where the editor fetches this project at runtime. Its files land in `repo`
+  // under docs/primer/projects/<slug>/; if that IS the host repo, a path next
+  // to the editor reaches them, otherwise it is that repo's Pages URL (the
+  // same cross-origin path adoption uses).
+  const isHost = repo === currentRepo();
+  const runBase = isHost ? `projects/${slug}`
+    : `https://${repo.split('/')[0]}.github.io/${repo.split('/')[1]}/docs/primer/projects/${slug}`;
+  const nextRegistry = { ...REGISTRY, [slug]: { name, base: runBase, repo, branch } };
+  // projects.json is the HOST editor's file. It rides the scaffold commit only
+  // when the project lives in the host repo; for another repo it commits to the
+  // host separately (below), because that is where this editor reads it from.
+  if (isHost) files.push({ path: 'docs/primer/projects.json', content: JSON.stringify(nextRegistry, null, 2) + '\n' });
 
   // One commit for the whole scaffold — a report is either fully there to
   // open, or (on any failure before the ref update) not created at all;
@@ -805,6 +886,9 @@ async function createProject(name, slug, sizeKey, branch, repo) {
   const commit = await gh(repo, 'git/commits', { method: 'POST', body: JSON.stringify({
     message: `primer: scaffold new report "${name}" (${slug})`, tree: tree.sha, parents: [base] }) });
   await gh(repo, `git/refs/heads/${branch}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+  // A cross-repo project's files are now in place; register it in the host's
+  // own projects.json so this editor lists and opens it.
+  if (!isHost) await commitRegistry(nextRegistry, `primer: register "${slug}" (${repo})`);
   REGISTRY = nextRegistry;
   // The import is spent — a reload must not scaffold it a second time.
   sessionStorage.removeItem('ds-import');
@@ -818,32 +902,64 @@ $('np-name').addEventListener('input', () => {
 });
 $('np-slug').addEventListener('input', () => { $('np-slug').dataset.touched = '1'; });
 
-// One modal, two doors. "+ New report" prefills the repo you already use, so
-// the common case is just a title. "Connect a repo…" clears the repo and
-// focuses it, because the whole point there is to point somewhere new.
+// One modal, three doors. "+ New report" prefills the repo you already use, so
+// the common case is just a title. "Connect a repo…" clears the repo to point
+// somewhere new and scaffold a fresh project. "Adopt existing…" registers a
+// project whose files ALREADY exist in a repo — no scaffold, no overwrite; it
+// reads that project's manifest to learn what it is.
+let modalMode = 'new';
 function openModal(opts = {}) {
-  const connect = !!opts.connect;
-  $('np-title').textContent = connect ? 'Connect a repo' : 'New report';
-  $('np-repo').value = connect ? '' : currentRepo();
+  modalMode = opts.adopt ? 'adopt' : opts.connect ? 'connect' : 'new';
+  const adopt = modalMode === 'adopt';
+  $('np-title').textContent =
+    adopt ? 'Adopt an existing project' : modalMode === 'connect' ? 'Connect a repo' : 'New report';
+  $('np-repo').value = modalMode === 'new' ? currentRepo() : '';
   $('np-branch').value = 'main';
+  $('np-path').value = 'docs/primer';
   $('np-name').value = ''; $('np-slug').value = ''; $('np-slug').dataset.touched = '';
   $('np-size').value = 'letter';
   $('np-err').textContent = '';
+  // Adopt asks where the project lives and (optionally) what to call it; a
+  // scaffold asks for an id and a page size, which adoption reads instead.
+  $('np-path-l').hidden = !adopt;
+  $('np-slug-l').hidden = adopt;
+  $('np-size-l').hidden = adopt;
+  $('np-name-l').textContent = adopt ? 'Display name (optional)' : 'Title';
+  $('np-create').textContent = adopt ? 'Adopt' : 'Create';
   $('modal-bg').classList.add('open');
-  (connect ? $('np-repo') : $('np-name')).focus();
+  (modalMode === 'new' ? $('np-name') : $('np-repo')).focus();
 }
 function closeModal() { $('modal-bg').classList.remove('open'); }
 $('new').onclick = () => openModal();
 $('connect').onclick = () => openModal({ connect: true });
+$('adopt').onclick = () => openModal({ adopt: true });
 $('np-cancel').onclick = closeModal;
 $('modal-bg').addEventListener('click', e => { if (e.target === $('modal-bg')) closeModal(); });
 
 $('np-create').onclick = async () => {
-  const name = $('np-name').value.trim();
-  const slug = slugify($('np-slug').value || name);
   const repo = $('np-repo').value.trim();
   const branch = $('np-branch').value.trim() || 'main';
-  if (!repo) { $('np-err').textContent = 'name the repo (owner/name) to create this in'; return; }
+  if (!repo) { $('np-err').textContent = 'name the repo (owner/name)'; return; }
+
+  if (modalMode === 'adopt') {
+    const path = $('np-path').value.trim() || 'docs/primer';
+    $('np-create').disabled = true;
+    $('np-err').textContent = '';
+    $('stat').textContent = `looking for a project in ${repo}…`;
+    try {
+      const slug = await adoptProject(repo, branch, path, $('np-name').value.trim());
+      $('stat').textContent = `adopted "${slug}" — opening it…`;
+      location.href = `edit.html?project=${encodeURIComponent(slug)}`;
+    } catch (e) {
+      $('np-err').textContent = e.message;
+      $('stat').textContent = '';
+      $('np-create').disabled = false;
+    }
+    return;
+  }
+
+  const name = $('np-name').value.trim();
+  const slug = slugify($('np-slug').value || name);
   if (!name || !slug) { $('np-err').textContent = 'a title and a short id are both needed'; return; }
   if (REGISTRY[slug]) { $('np-err').textContent = `"${slug}" already exists — pick another id`; return; }
   $('np-create').disabled = true;

@@ -42,8 +42,11 @@ const md = page => page.evaluate(() => {
   return htmlToMd(host, { allowLists: true });
 });
 
+// The inline toolbar under the text is gone (it pushed the page around while
+// an edit was open) — Bold/Italic live on the CHROME bar now, kept in sync
+// with the edit selection by wireMarkState().
 const clickTool = (page, label) =>
-  page.frameLocator('#out').locator('.ds-tools button', { hasText: label }).click();
+  page.locator(label === 'Bold' ? '#ty-mb' : '#ty-mi').click();
 
 test.describe('bold / italic (no execCommand)', () => {
   test.beforeEach(async ({ page }) => {
@@ -90,7 +93,7 @@ test.describe('bold / italic (no execCommand)', () => {
   test('the button shows whether the selection is already marked', async ({ page }) => {
     const ta = await openSection(page);
     await ta.evaluate(el => { el.innerHTML = '<p>plain <b>strong</b></p>'; });
-    const boldBtn = page.frameLocator('#out').locator('.ds-tools button', { hasText: 'Bold' });
+    const boldBtn = page.locator('#ty-mb');
 
     await selectChars(page, 0, 5);             // "plain"
     await expect(boldBtn).not.toHaveClass(/\bon\b/);
@@ -110,8 +113,7 @@ test.describe('bold / italic (no execCommand)', () => {
     // Inside the bold run, Italic is refused — md_inline cannot round-trip
     // ***both***, so the UI must not offer it.
     await selectChars(page, 4, 7);
-    await expect(page.frameLocator('#out')
-      .locator('.ds-tools button', { hasText: 'Italic' })).toBeDisabled();
+    await expect(page.locator('#ty-mi')).toBeDisabled();
   });
 
   test('Shift+Enter in a table cell inserts a real line break', async ({ page }) => {

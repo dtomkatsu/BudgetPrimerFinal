@@ -39,7 +39,9 @@ test.describe('connect a repo', () => {
         if (path === 'git/commits') return { sha: 'c1' };
         return {};
       };
-      window.currentRepo = () => 'me/usual';       // NOT where this one goes
+      // Same repo as the editor host, so it stays one atomic commit with the
+      // registry inside it. (The cross-repo split is covered in adopt-project.)
+      window.currentRepo = () => 'other/housing-repo';
       window.askToken = async () => true;
       await createProject('Housing', 'housing', 'letter', 'release', 'other/housing-repo');
       const pj = seen.tree.find(t => t.path === 'docs/primer/projects.json');

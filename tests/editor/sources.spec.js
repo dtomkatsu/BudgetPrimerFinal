@@ -8,21 +8,25 @@ const { test, expect, gotoEditor, fillDialog, submitDialog } = require('./fixtur
 // report it now sits inside a [data-el] object, so a single click selects
 // it for dragging and a DOUBLE click opens the words — the same split
 // headings and callouts use (see wire()'s [data-slot] wiring).
-const EDITABLE_SLOT = 'toc.author';
 
-/** Click into an editable prose block, open the Cite panel, and add a
- *  brand-new source through the real "+ new source…" flow — now one <dialog>
- *  form (id + citation text + URL), the only UI path that creates a source. */
+/** Add a brand-new source through the real UI flow. The inline toolbar (and
+ *  its Cite button) is gone — citing now rides RIGHT-CLICK in a block prose
+ *  editor ("Add endnote here…", the endnoteMenu), which opens the same
+ *  <dialog> form (id + citation text + URL). Each call adds its own throwaway
+ *  section to cite from, since inline one-liners take no footnotes. */
+let citeCounter = 0;
 async function addSourceViaUi(page, id, text, url) {
   const frame = page.frameLocator('#out');
-  const block = frame.locator(`[data-slot="${EDITABLE_SLOT}"]`);
-  await block.dblclick({ force: true });
-  await frame.locator('.ds-tools button', { hasText: 'Cite' }).click();
-  await frame.locator('.ds-cite select').selectOption('__new');
+  await page.click('#add');
+  await fillDialog(page, { page: 'basics', slug: 'cite-' + (++citeCounter) });
+  await submitDialog(page);
+  const host = frame.locator('.ds-edit');
+  await host.waitFor({ state: 'visible' });
+  await host.click({ button: 'right' });
+  await frame.locator('.ds-menu button', { hasText: 'Add endnote here' }).click();
   // The dsForm dialog opens in the parent doc; fill all three fields at once.
   await fillDialog(page, { id, text, url });
   await submitDialog(page);
-  await frame.locator('.ds-cite').waitFor({ state: 'detached' });
   // Blur (not Escape) to COMMIT the edit — Escape's finish(false) would
   // discard the [^id] reference spliceAt() just inserted, leaving the source
   // added but never actually cited.

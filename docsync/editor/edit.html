@@ -1002,7 +1002,25 @@ async function loadRegistry() {
 const rxEsc = k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const slotRe = k => new RegExp(`((?:^|\\n)\\[\\[${rxEsc(k)}\\]\\]\\n)([\\s\\S]*?)(?=\\n\\[\\[|$)`);
 const readSlot  = k => (source.match(slotRe(k)) || [,,''])[2].trim();
-const writeSlot = (k, v) => { source = source.replace(slotRe(k), (m, head) => head + v.trim() + '\n'); };
+// The renderer's own rule for a sources line (content.py parse_sources): a
+// malformed line there fails the whole BUILD, hours later and far from its
+// cause — the "25-2027/" incident was one stray URL fragment on its own line.
+// So the sources slot is validated AT THE WRITE: a value that would not build
+// is refused loudly right here, naming the bad line, and nothing changes.
+const SOURCE_LINE_RE = /^\[[^\]]+\]:\s*.*?\s+—\s+\S+\s*$/;
+const badSourceLines = v => v.split('\n').map(l => l.trim()).filter(Boolean)
+  .filter(l => !SOURCE_LINE_RE.test(l));
+const writeSlot = (k, v) => {
+  if (k === 'sources') {
+    const bad = badSourceLines(v);
+    if (bad.length) {
+      console.warn('refused malformed sources line(s):', bad);
+      $('stat').textContent = `refused a malformed sources line: "${bad[0].slice(0, 70)}" — nothing was saved`;
+      return;
+    }
+  }
+  source = source.replace(slotRe(k), (m, head) => head + v.trim() + '\n');
+};
 
 // --- markdown <-> rich text --------------------------------------------
 // The contenteditable edit surface shows exactly what the report will
@@ -1440,62 +1458,24 @@ function pasteClean(d, host, e, { allowLists = false, inline = false, allowMd = 
  * editor first, which commits and re-renders, so the button would act on an
  * element that no longer exists.
  */
-/** host: the contenteditable surface. opts: {allowMd, allowLists} — gate
- *  which buttons make sense for this slot's grammar (see mdToHtml/htmlToMd:
- *  a plain-text slot never goes through md_inline, and only block_html()
- *  targets support lists). */
-function buildTools(d, host, key, opts = {}) {
-  const { allowMd = true, allowLists = false } = opts;
-  const bar = d.createElement('div');
-  bar.className = 'ds-tools';
-  bar.addEventListener('mousedown', e => e.preventDefault());
-
-  const btn = (label, title, fn) => {
-    const b = d.createElement('button');
-    b.type = 'button';
-    b.textContent = label;
-    b.setAttribute('aria-label', title);
-    b.addEventListener('click', fn);
-    bar.appendChild(b);
-    return b;
-  };
-
-  if (allowMd) {
-    btn('Link', 'Turn the selection into a link (⌘K)', () => link(d, host));
-    btn('Cite', 'Insert a footnote reference', () => cite(d, host, bar));
-    btn('Image', 'Upload an image and place it here', () => image(d, host));
-    const boldBtn = btn('Bold', 'Bold the selection', () => {
-      host.focus(); toggleMark(d, host, 'b');
-    });
-    const italicBtn = btn('Italic', 'Italicize the selection', () => {
-      host.focus(); toggleMark(d, host, 'i');
-    });
-    // The buttons say what the selection already IS, not just what they do —
-    // the only way to tell bold text from a heavy font once the raw ** is
-    // gone from the page.
-    const refreshBI = () => {
-      boldBtn.disabled = boldItalicBlocked(d, 'bold');
-      italicBtn.disabled = boldItalicBlocked(d, 'italic');
-      boldBtn.classList.toggle('on', !boldBtn.disabled && markActive(d, host, 'b'));
-      italicBtn.classList.toggle('on', !italicBtn.disabled && markActive(d, host, 'i'));
-      // The chrome's own B/I (the Canva text bar) mirror the same state.
-      const mb = $('ty-mb'), mi = $('ty-mi');
-      if (mb) { mb.disabled = boldBtn.disabled; mb.classList.toggle('on', boldBtn.classList.contains('on')); }
-      if (mi) { mi.disabled = italicBtn.disabled; mi.classList.toggle('on', italicBtn.classList.contains('on')); }
-    };
-    d.addEventListener('selectionchange', refreshBI);
-    refreshBI();
-    if (allowLists) {
-      btn('• List', 'Bulleted list (toggle on the selected paragraphs)', () => toggleListRich(d, host, false));
-      btn('1. List', 'Numbered list (toggle on the selected paragraphs)', () => toggleListRich(d, host, true));
-    }
-  }
-
-  const note = d.createElement('span');
-  note.className = 'ds-tools-key';
-  note.textContent = key;
-  bar.appendChild(note);
-  return bar;
+/** The chrome's B/I say what the selection already IS, not just what they do
+ *  — the only way to tell bold text from a heavy font once the raw ** is gone
+ *  from the page. Wired per document (each render replaces the iframe's
+ *  document wholesale, so wire() installs it fresh each time); it acts only
+ *  while a rich editor is actually open. This state used to live on an inline
+ *  toolbar under the text; that bar had height, and its height shoved the
+ *  page around for as long as an edit was open, so the buttons live in the
+ *  chrome now and the editing surface is just the words. */
+function wireMarkState(d) {
+  d.addEventListener('selectionchange', () => {
+    if (!richHost || richOpts.allowMd === false) return;
+    const mb = $('ty-mb'), mi = $('ty-mi');
+    if (!mb || !mi) return;
+    mb.disabled = boldItalicBlocked(d, 'bold');
+    mi.disabled = boldItalicBlocked(d, 'italic');
+    mb.classList.toggle('on', !mb.disabled && markActive(d, richHost, 'b'));
+    mi.classList.toggle('on', !mi.disabled && markActive(d, richHost, 'i'));
+  });
 }
 
 async function link(d, host) {
@@ -1535,6 +1515,10 @@ async function newSourceAt(d, host, range) {
     if (sourceIds().includes(id)) return `[${id}] already exists — pick it from the list.`;
     if (!vals.text.trim()) return 'Citation text is required.';
     if (!vals.url.trim()) return 'A source URL is required.';
+    // The sources line format ends "— url" with no spaces in the url; a space
+    // here would be refused at the write (see writeSlot's gate) AFTER the
+    // citation chip was already placed — catch it while the form is open.
+    if (/\s/.test(vals.url.trim())) return 'The URL cannot contain spaces.';
     return '';
   } });
   if (!r) return null;
@@ -1551,32 +1535,6 @@ function makeFnChip(d, id) {
   chip.dataset.fnId = id;
   chip.textContent = `[^${id}]`;
   return chip;
-}
-
-/** Cite an existing source, or add one and cite it. */
-function cite(d, host, bar) {
-  const old = bar.querySelector('.ds-cite');
-  if (old) { old.remove(); return; }
-  const range = saveRange(d, host);
-
-  const panel = d.createElement('div');
-  panel.className = 'ds-cite';
-  const sel = d.createElement('select');
-  sel.innerHTML = '<option value="">— cite an existing source —</option>'
-    + sourceIds().map(id => `<option value="${id}">[${id}] ${
-        (sourceText(id) || '').slice(0, 60)}</option>`).join('')
-    + '<option value="__new">+ new source…</option>';
-  sel.addEventListener('mousedown', e => e.stopPropagation());  // let it open
-  sel.addEventListener('change', async () => {
-    const v = sel.value;
-    if (!v) return;
-    if (v === '__new') await newSourceAt(d, host, range);
-    else insertNodeAt(d, host, range, makeFnChip(d, v));
-    panel.remove();
-  });
-  panel.appendChild(sel);
-  bar.appendChild(panel);
-  sel.focus();
 }
 
 /** The right-click endnote menu, shown over the prose editor at the caret.
@@ -1770,32 +1728,6 @@ async function uploadImageFile(d, onDone) {
     }
   });
   inp.click();
-}
-
-function image(d, host) {
-  const range = saveRange(d, host);
-  const inline = host.dataset.richMode === 'inline';
-  uploadImageFile(d, async (path, name) => {
-    const alt = (await dsPrompt('Describe the image (alt text)', name, { title: 'Image alt text' })) || name;
-    const img = d.createElement('img');
-    img.className = 'inline-img';
-    img.contentEditable = 'false';
-    img.src = path;
-    img.alt = alt;
-    if (inline) {
-      insertNodeAt(d, host, range, img);
-    } else {
-      // block_html() gives an image its own paragraph — match that, rather
-      // than dropping it mid-sentence.
-      const p = d.createElement('p');
-      p.appendChild(img);
-      const at = range && host.contains(range.commonAncestorContainer)
-        ? blockAncestor(host, range.commonAncestorContainer) : null;
-      if (at && at.parentElement === host) at.after(p); else host.appendChild(p);
-      host.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    $('stat').textContent = `${name} uploaded — it renders below`;
-  });
 }
 
 /** Show just-uploaded images before they are deployed: the page resolves
@@ -3116,14 +3048,14 @@ function editBox(d, el) {
   host.className = 'ds-edit';
   host.dataset.richMode = 'block';
   host.innerHTML = mdToHtml(b.md, { allowLists: true });
-  const tools = buildTools(d, host, `text.${b.id}`, { allowMd: true, allowLists: true });
-  const hint = d.createElement('p');
-  hint.className = 'ds-hint';
-  hint.textContent = `text.${b.id} — not in the Google Doc. Click away to render, Esc to cancel.`;
-  wrap.append(host, tools, hint);
+  // Just the words — no toolbar or hint row under them (they added height and
+  // shoved the page around; see edit()). Chrome bar has B/I/lists, ⌘K links,
+  // right-click cites.
+  wrap.append(host);
   el.replaceWith(wrap);
   richHost = host;
   richOpts = { allowLists: true, allowMd: true };
+  showType(`text.${b.id}`);   // the chrome row carries B/I/lists now — raise it
   syncMarksBar();
   host.focus();
   const r = d.createRange(); r.selectNodeContents(host);
@@ -3133,16 +3065,14 @@ function editBox(d, el) {
     host.dataset.done = '1';
     editing = false;
     richHost = null; syncMarksBar();
-    tools.remove();
     if (keep) {
       const newVal = htmlToMd(host, { allowLists: true });
       if (newVal.trim() && newVal !== b.md) { b.md = newVal.trim(); markDirty(); }
     }
     await render();
   };
-  host.addEventListener('blur', e => {
+  host.addEventListener('blur', () => {
     if (modalOpen) return;
-    if (e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
   host.addEventListener('paste', e => pasteClean(d, host, e, { allowLists: true }));
@@ -3181,11 +3111,7 @@ function editEndnote(d, li, sid) {
   url.className = 'ds-en-url';
   url.value = s.url;
   url.placeholder = 'https://…';
-  const hint = d.createElement('p');
-  hint.className = 'ds-hint';
-  hint.textContent = `[${sid}] — this is the same source the Sources panel edits. `
-                   + `Click away to save, Esc to cancel.`;
-  wrap.append(txt, url, hint);
+  wrap.append(txt, url);   // two fields, nothing else — no hint row pushing the list
   li.replaceWith(wrap);
   txt.focus();
   txt.select();
@@ -5692,10 +5618,11 @@ function startDrag(d, el, e0) {
     // sequence would say something the report does not mean. Drop it where it
     // reads, and the list (and every <sup> marker pointing into it) renumbers.
     if (members.length === 1 && (idOf(members[0]) || '').startsWith('endnote.')) {
-      const moved = reorderEndnote(d, members[0], lastPt);
+      const moved = reorderEndnote(d, members[0]);
       if (moved) markDirty(); else past.pop();   // no change: no undo entry
       clearGuides(d);
       await render();                            // snaps it back into the flow
+      if (moved) $('stat').textContent = moved;  // after render, so it survives
       return;
     }
     Ps.forEach((P, i) => P.commit(at[i]));
@@ -5722,8 +5649,8 @@ const beforeKey = (a, b) => a[0] !== b[0] ? a[0] < b[0] : a[1] < b[1];
  *  write that order to layout.json. Numbering itself stays the renderer's
  *  job (content.py's Footnotes) — this only records the order it should use,
  *  so a dragged citation renumbers everywhere at once, markers included.
- *  Returns whether anything actually moved. */
-function reorderEndnote(d, el, pt) {
+ *  Returns the status message to show, or false if nothing moved. */
+function reorderEndnote(d, el) {
   const id = (el.dataset.el || '').slice('endnote.'.length);
   const all = [...d.querySelectorAll('[data-el^="endnote."]')];
   const ids = all.map(li => (li.dataset.el || '').slice('endnote.'.length));
@@ -5736,18 +5663,41 @@ function reorderEndnote(d, el, pt) {
   const others = all.filter(li => li !== el);
   const edges = [...new Set(others.map(li => Math.round(li.getBoundingClientRect().left)))]
     .sort((a, b) => a - b);
-  const dropKey = readingKey(edges, pt.x, pt.y);
-  let idx = 0;
-  others.forEach(li => {
-    const r = li.getBoundingClientRect();
-    if (beforeKey(readingKey(edges, r.left, r.top + r.height / 2), dropKey)) idx++;
-  });
+  // Measure by the DRAGGED ENTRY'S OWN EDGES, not the pointer, and
+  // directionally. Entries run 70-100px tall; the old pointer-vs-midpoint
+  // rule meant a one-row move needed the POINTER dragged a full row's height
+  // -- the entry could sit visually on top of its neighbour and still snap
+  // back, which read as the feature not working. The standard list feel:
+  // moving UP swaps once the entry's TOP edge crosses the neighbour above's
+  // midpoint; moving DOWN once its BOTTOM edge crosses the one below's --
+  // about half a row of travel either way. Two counts, one per leading
+  // edge, and the direction (against the entry's own resting index) picks
+  // which one is meant.
+  const er = el.getBoundingClientRect();
+  const cx = er.left + er.width / 2;
+  const countBefore = key => {
+    let n = 0;
+    others.forEach(li => {
+      const r = li.getBoundingClientRect();
+      if (beforeKey(readingKey(edges, r.left, r.top + r.height / 2), key)) n++;
+    });
+    return n;
+  };
+  const idxTop = countBefore(readingKey(edges, cx, er.top));
+  const idxBot = countBefore(readingKey(edges, cx, er.bottom));
+  const origIdx = ids.indexOf(id);       // its resting slot, in reading order
+  const idx = idxTop < origIdx ? idxTop         // leading with the top: moving up
+            : idxBot > origIdx ? idxBot         // leading with the bottom: down
+            : origIdx;                          // neither edge crossed: stay
   const rest = ids.filter(i => i !== id);
   const next = [...rest.slice(0, idx), id, ...rest.slice(idx)];
-  if (next.join(' ') === ids.join(' ')) return false;
+  if (next.join(' ') === ids.join(' ')) return false;
   layout.endnotes = next;
-  $('stat').textContent = `endnote [${id}] moved to #${idx + 1} — the list renumbered`;
-  return true;
+  // The message is RETURNED, not shown here: the caller re-renders next,
+  // and render() overwrites the status line — shown from here it flashed
+  // for one frame and vanished, so the feedback that a drag worked never
+  // landed.
+  return `endnote [${id}] moved to #${idx + 1} — the list renumbered`;
 }
 
 /** Keyboard drag: focus, Space to pick up, arrows to move, Space to drop. */
@@ -6404,6 +6354,7 @@ function wire() {
   contextify(d);
   wireCells(d);
   keysFor(d);
+  wireMarkState(d);            // chrome B/I state tracks the edit selection
   applyZoom();
   reportFit(d);
   paintSel(d);                 // the selection is ids, so it survives a render
@@ -6465,15 +6416,16 @@ function wire() {
        reflows whatever's next to it. */
     .ds-edit { font:inherit; line-height:inherit; color:inherit; outline:2px solid #6B9E78;
                outline-offset:3px; border-radius:4px; background:transparent; cursor:text; }
-    .ds-edit p { margin:0 0 .8em; }
-    .ds-edit p:last-child { margin-bottom:0; }
+    /* No margin overrides on the paragraphs inside: the page's own <p>
+       rules apply, so the block is EXACTLY the height it was before the
+       double-click and nothing below it moves. (A hardcoded .8em here was
+       an ~11px height change on every open — a visible push.) */
     .ds-edit:focus { outline-color:#4F7A5C; }
     table.ds-table td[data-cell], table.ds-table th[data-cell] { cursor:text; }
     table.ds-table td[data-cell]:hover, table.ds-table th[data-cell]:hover { background:#EAF3EC; }
     .ds-cell-edit { display:inline-block; min-width:1.5em; min-height:1em;
                font:inherit; color:inherit; line-height:inherit; outline:2px solid #6B9E78;
                outline-offset:1px; border-radius:2px; background:transparent; cursor:text; }
-    .ds-hint { font:11px system-ui; color:#52796F; margin:3px 0 10px; }
     /* display:inline (not inline-block) would let an EMPTY field collapse to
        a zero-size, unclickable box — inline-block with a floor keeps it a
        real target even before anything is typed. */
@@ -6485,18 +6437,6 @@ function wire() {
     .ds-endnote-edit input { display:block; width:100%; box-sizing:border-box; font:inherit;
                color:inherit; margin:0 0 4px; padding:2px 4px; border:2px solid #6B9E78;
                border-radius:3px; background:#fff; }
-    .ds-tools { display:flex; gap:5px; align-items:center; flex-wrap:wrap;
-                margin:5px 0 0; font:11px system-ui; }
-    .ds-tools button { font:11px system-ui; padding:3px 9px; border:1px solid #B9C9BE;
-                       background:#fff; color:#2F3E46; border-radius:4px; cursor:pointer; }
-    .ds-tools button:hover { background:#6B9E78; color:#fff; border-color:#6B9E78; }
-    .ds-tools button:disabled { opacity:.45; cursor:not-allowed; }
-    .ds-tools button:disabled:hover { background:#fff; color:#2F3E46; border-color:#B9C9BE; }
-    /* Pressed = the selection already carries this mark. */
-    .ds-tools button.on { background:#2F3E46; color:#fff; border-color:#2F3E46; }
-    .ds-tools-key { color:#8B9A90; margin-left:auto; font:10px ui-monospace,monospace; }
-    .ds-cite { flex-basis:100%; margin-top:4px; }
-    .ds-cite select { font:11px system-ui; padding:3px; max-width:100%; }
     /* The cursor is the whole affordance. A movable object grabs; its own
        words grab too, because a single click moves the object and a double
        click opens the words. Only a STANDALONE slot — the body prose, not
@@ -6817,7 +6757,10 @@ const citeCount = id =>
   (source.match(new RegExp(`\\[\\^${rxEsc(id)}\\]`, 'g')) || []).length;
 
 function updateSource(id, text, url) {
-  writeSlot('sources', readSlot('sources').replace(srcLineRe(id), `[${id}]: ${text} — ${url}`));
+  // Replacer FUNCTION, not string: citation text is user-typed, and in a
+  // string replacement `$&`/`$'`/$` are live — a citation containing one
+  // would splice chunks of the sources block into itself.
+  writeSlot('sources', readSlot('sources').replace(srcLineRe(id), () => `[${id}]: ${text} — ${url}`));
 }
 function deleteSource(id) {
   writeSlot('sources', readSlot('sources')
@@ -6828,9 +6771,10 @@ function deleteSource(id) {
 // and the [old]: line. Numbering is by first appearance, so only the stable id
 // changes — the footnote numbers do not.
 function renameSource(oldId, neu) {
+  // Replacer functions — a user-typed id is not a place for $-patterns.
   source = source
-    .replace(new RegExp(`\\[\\^${rxEsc(oldId)}\\]`, 'g'), `[^${neu}]`)
-    .replace(new RegExp(`^\\[${rxEsc(oldId)}\\]:`, 'm'), `[${neu}]:`);
+    .replace(new RegExp(`\\[\\^${rxEsc(oldId)}\\]`, 'g'), () => `[^${neu}]`)
+    .replace(new RegExp(`^\\[${rxEsc(oldId)}\\]:`, 'm'), () => `[${neu}]:`);
 }
 // Reorder the declaration list. Endnote NUMBERS follow first appearance in the
 // prose, so this reorders the [[sources]] list and the Cite dropdown while the
@@ -6971,8 +6915,11 @@ function moveExtra(key, dir) {
   if (i < 0 || j < 0 || j >= keys.length) return;
   const a = keys[Math.min(i, j)], b = keys[Math.max(i, j)];
   const ra = rawBlock(a), rb = rawBlock(b);
+  // Replacer functions on the re-insert: rb/ra are whole authored sections,
+  // and a section containing `$&` or `` $` `` in a string replacement would
+  // splice the surrounding document into itself.
   source = source.replace(blockRe(a), '\x00A\x00').replace(blockRe(b), '\x00B\x00')
-                 .replace('\x00A\x00', rb).replace('\x00B\x00', ra);
+                 .replace('\x00A\x00', () => rb).replace('\x00B\x00', () => ra);
 }
 // Relocate a section to another page: the slot's <page> component decides the
 // page, so rewrite extra.<old>.<slug> -> extra.<new>.<slug> and drop the block
@@ -7054,25 +7001,21 @@ function edit(d, key) {
       host.querySelectorAll(':scope > p').forEach(p => p.classList.add(...extraClass));
   }
 
-  let hint = null;
-  if (!inline) {
-    hint = d.createElement('p');
-    hint.className = 'ds-hint';
-    hint.textContent = allowMd
-      ? `${key} — select text, then Bold/Italic/Link/Cite from the toolbar. `
-        + `Blank line = new paragraph. Click away to render, Esc to cancel.`
-      : `${key} — plain text (no formatting here). Click away to render, Esc to cancel.`;
-  }
-
-  const tools = allowMd ? buildTools(d, host, key, { allowMd, allowLists }) : null;
-
+  // The host replaces the block ONE FOR ONE — no toolbar row, no hint line
+  // stacked under it. Anything extra inserted here has height, and that
+  // height shoves everything below the block down for as long as the editor
+  // is open; editing in place must not reflow the page around the words.
+  // Formatting lives in the chrome bar (B/I/lists appear there while a rich
+  // editor is open — syncMarksBar), links on ⌘K, endnotes on right-click.
   blocks[0].replaceWith(host);
-  let after = host;
-  if (tools) { after.after(tools); after = tools; }
-  if (hint) after.after(hint);
   blocks.slice(1).forEach(b => b.remove());
   richHost = host;
   richOpts = { allowLists, allowMd };
+  // The chrome type row is where B/I/lists live now — raise it no matter how
+  // this editor was opened. The click path already did (showType before
+  // edit()), but a section fresh from "+ Section" opened via pendingEdit with
+  // the row still hidden, leaving no formatting controls anywhere.
+  showType(key);
   syncMarksBar();
 
   host.focus();
@@ -7087,7 +7030,6 @@ function edit(d, key) {
     host.dataset.done = '1';
     editing = false;
     richHost = null; syncMarksBar();
-    if (tools) tools.remove();
     if (keep) {
       const newVal = !allowMd ? (inline ? host.textContent : host.innerText)
                                : htmlToMd(host, { allowLists, inline });
@@ -7100,16 +7042,11 @@ function edit(d, key) {
     }
     await render();
   };
-  host.addEventListener('blur', e => {
-    // cite()'s "+ new source…" flow calls sel.focus() to move focus into the
-    // panel it just opened — a blur like any other, but finishing the edit
-    // over it would remove `tools` (and the freshly appended .ds-cite panel
-    // inside it) before a person could ever use it. Only finish when focus is
-    // truly leaving the toolbar, not moving to a control within it. Likewise a
-    // modal dialog (Cite → new source, image alt) steals focus while it is
-    // open; committing the edit under it would act on a detached element.
+  host.addEventListener('blur', () => {
+    // A modal dialog (right-click Cite → new source, ⌘K link) steals focus
+    // while it is open; committing the edit under it would act on a detached
+    // element. Any other blur means the edit is over.
     if (modalOpen) return;
-    if (tools && e.relatedTarget && tools.contains(e.relatedTarget)) return;
     finish(true);
   });
   host.addEventListener('paste', e => pasteClean(d, host, e, { allowLists, inline, allowMd }));

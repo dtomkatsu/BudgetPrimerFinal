@@ -34,7 +34,7 @@ test.describe('lists', () => {
   test('the numbered-list button renders an <ol>', async ({ page }) => {
     const frame = page.frameLocator('#out');
     const ta = await addSectionAndEdit(page, 'num-list', ['first', 'second', 'third']);
-    await frame.locator('.ds-tools button', { hasText: '1. List' }).click();
+    await page.locator('#ty-mol').click();   // chrome bar — the inline toolbar is gone
     // Converted to a real <ol> right in the editor…
     await expect(ta.locator('ol > li')).toHaveCount(3);
     // …and after COMMITTING the edit (blur, not Escape which discards), the
@@ -48,7 +48,7 @@ test.describe('lists', () => {
   test('the bullet-list button renders a <ul>, and toggles back off', async ({ page }) => {
     const frame = page.frameLocator('#out');
     const ta = await addSectionAndEdit(page, 'bul-list', ['apple', 'banana']);
-    const bulletBtn = frame.locator('.ds-tools button', { hasText: '• List' });
+    const bulletBtn = page.locator('#ty-mul');   // chrome bar — the inline toolbar is gone
 
     await bulletBtn.click();
     await expect(ta.locator('ul > li')).toHaveCount(2);
