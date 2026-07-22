@@ -65,12 +65,12 @@
   #zoom { display:none !important; }
 
   /* Left tool rail — Canva-style: a narrow column of icon-over-label buttons. */
-  #leftrail { flex:none; width:74px; background:var(--chrome2);
+  #leftrail { flex:none; width:64px; background:var(--chrome2);
               border-right:1px solid var(--line); display:flex; flex-direction:column;
-              align-items:stretch; gap:2px; padding:8px 6px; overflow-y:auto; }
+              align-items:stretch; gap:2px; padding:8px 5px; overflow-y:auto; }
   #leftrail button { display:flex; flex-direction:column; align-items:center; gap:6px;
                      background:none; border:0; color:var(--txt); cursor:pointer;
-                     padding:10px 4px; border-radius:9px; font:600 11px system-ui;
+                     padding:10px 3px; border-radius:9px; font:600 10.5px system-ui;
                      transition:background .12s; }
   #leftrail button:hover { background:var(--ctl); }
   #leftrail button.on { background:var(--sage); color:#fff; }
@@ -4508,13 +4508,24 @@ const VIEW_W = 1200;
 let zoomChoice = '';
 try { zoomChoice = localStorage.getItem('ds-zoom') || ''; } catch (e) { /* file: */ }
 
-function applyZoom() {
+let curScale = 1;   // the scale in effect; changed ONLY by an explicit zoom/Fit,
+                    // never by a window resize.
+
+// recompute=true derives the scale from the current zoom choice (a zoom button,
+// Fit, or the first paint). A window RESIZE calls it with false: the report keeps
+// the scale you set and only its centring/height re-fit to the new pane — making
+// the window bigger no longer makes the VIEW bigger; that is what zoom and Fit
+// are for.
+function applyZoom(recompute = true) {
   const out = $('out'), stage = $('stage');
   const availW = stage.clientWidth;
-  let s = zoomChoice === 'fit' || !zoomChoice
-    ? Math.min(availW / VIEW_W, zoomChoice === 'fit' ? 10 : 1)
-    : +zoomChoice;
-  s = Math.max(0.25, Math.min(2, Math.round(s * 1000) / 1000));
+  if (recompute) {
+    let s = zoomChoice === 'fit' || !zoomChoice
+      ? Math.min(availW / VIEW_W, zoomChoice === 'fit' ? 10 : 1)
+      : +zoomChoice;
+    curScale = Math.max(0.25, Math.min(2, Math.round(s * 1000) / 1000));
+  }
+  const s = curScale;
   out.style.width = VIEW_W + 'px';
   out.style.height = (stage.clientHeight / s) + 'px';
   out.style.transform = s === 1 ? '' : `scale(${s})`;
@@ -4536,7 +4547,7 @@ document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click
 let rsT = null;
 addEventListener('resize', () => {
   clearTimeout(rsT);
-  rsT = setTimeout(applyZoom, 120);
+  rsT = setTimeout(() => applyZoom(false), 120);   // re-layout, never re-zoom
 });
 
 // ----------------------------------------------------------------- guides
