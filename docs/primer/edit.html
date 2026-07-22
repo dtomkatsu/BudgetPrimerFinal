@@ -3305,11 +3305,21 @@ function computedType(key) {
   // A slot by data-slot; a text box by data-el (its words carry no slot).
   const el = $('out').contentDocument.querySelector(
     `[data-slot="${key}"], [data-el="${key}"]`);
-  if (!el) return { size: 16, leading: 1.45 };
+  if (!el) return { size: 16, leading: 1.45, family: '', weight: 400 };
   const cs = el.ownerDocument.defaultView.getComputedStyle(el);
   const size = parseFloat(cs.fontSize) || 16;
   const lh = parseFloat(cs.lineHeight);
-  return { size, leading: lh ? +(lh / size).toFixed(2) : 1.45 };
+  // The primary family in the rendered stack, unquoted and matched to an
+  // offered font — so the dropdown can name what the text ACTUALLY is when no
+  // override is set, the way the size field shows the real size. A family the
+  // report uses but the picker does not offer stays '' (a blank, honest label).
+  const rawFam = (cs.fontFamily || '').split(',')[0].trim().replace(/^["']|["']$/g, '');
+  const family = fonts[rawFam] ? rawFam
+    : Object.keys(fonts).find(f => f.toLowerCase() === rawFam.toLowerCase()) || '';
+  const fw = cs.fontWeight;
+  const weight = fw === 'normal' ? 400 : fw === 'bold' ? 700
+    : Number.isFinite(parseInt(fw, 10)) ? parseInt(fw, 10) : 400;
+  return { size, leading: lh ? +(lh / size).toFixed(2) : 1.45, family, weight };
 }
 
 function showType(key) {
@@ -3324,8 +3334,12 @@ function showType(key) {
   const el = $('out').contentDocument.querySelector(`[data-slot="${key}"]`);
   const inSvg = !!(el && el.closest('svg'));
   document.querySelectorAll('.ty-al').forEach(b => b.hidden = inSvg);
-  $('ty-font').value = st.font || '';
-  fillWeights(st.font, st.weight);
+  // Name the font the text renders in — the override if one is set, otherwise
+  // the real rendered family — so the dropdown never shows a bare "font" for
+  // text that plainly has one. Weight follows the same rule.
+  const shownFont = st.font || real.family || '';
+  $('ty-font').value = shownFont;
+  fillWeights(shownFont, st.weight ?? (shownFont ? real.weight : null));
   // The stepper shows the REAL size as a placeholder when none is set: what
   // you would be stepping from, not a blank.
   $('ty-size').value = st.size ?? '';
