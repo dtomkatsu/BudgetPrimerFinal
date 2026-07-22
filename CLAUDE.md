@@ -29,6 +29,13 @@ remembered in `report2027/layout.json`.
   title icon) are not graphics — leave those inline. `graphic()` is for
   free-standing things the user should be able to move on their own.
 
+**New visuals are SEPARATE primitives, grouped — never fused.** A labelled
+box = a `shapes` rect + a `boxes` text box in layout.json + a `groups` entry
+(`["<shapeId>", "text.<boxId>"]`) so they move together until the user hits
+Ungroup (⌘⇧G). Never bake sentences inside an SVG or fuse text + background
+into one div — the user must be able to detach the text. Full schema and
+rules: the `report-editor` skill.
+
 The mechanism, if you need to extend it: `graphic()` wraps the SVG in
 `<span class="ds-graphic" data-el=...>`; `.ds-graphic` CSS in
 `report2027/web/primer.css` makes the SVG fill the wrapper; the editor's

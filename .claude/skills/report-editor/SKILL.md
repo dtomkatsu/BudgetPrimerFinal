@@ -35,6 +35,43 @@ A glyph that belongs *inside* another element (a card-title icon) can also be
 made movable — pass `icon_id=` to `card()`, which routes it through `graphic()`.
 Small fixed glyphs that shouldn't move stay inline.
 
+## Composing NEW visual elements: separate primitives, grouped — never fused
+
+When the user asks for a new visual (a labelled box, a badge over a shape, a
+diagram with a caption), **build it from separate objects and group them** —
+do NOT fuse text and background into one element. A fused composite (one div
+holding both, or words baked inside an SVG) moves only as a unit and the user
+can never pull the text off the shape; a group moves as one **by default** but
+Ungroup (⌘⇧G) detaches the pieces. That difference is the point.
+
+The primitives, all authored directly in `report2027/layout.json`:
+
+```jsonc
+{
+  "shapes": [                       // background panel / accent
+    {"id": "funding.note.bg", "page": 9, "kind": "rect",
+     "x": 1.0, "y": 7.2, "w": 3.2, "h": 1.1, "fill": "#E8EDE6", "r": 0.12}
+  ],
+  "boxes": [                        // the words — md is markdown
+    {"id": "funding.note", "page": 9, "x": 1.15, "y": 7.35, "w": 2.9,
+     "md": "**Note:** special funds are earmarked.", "style": {"size": 11}}
+  ],
+  "groups": [                       // travel together until the user Ungroups
+    ["funding.note.bg", "text.funding.note"]
+  ]
+}
+```
+
+- In `groups` entries (and everywhere the editor names things), a shape is its
+  **bare id** (`funding.note.bg`) and a text box is **`text.<id>`**
+  (`text.funding.note`).
+- Pure art/diagram → `graphic()` in render_report.py; **keep prose OUT of the
+  SVG** (labels intrinsic to the art, like axis ticks, are fine — sentences and
+  captions are not). Caption → its own text box, grouped with the graphic.
+- The report's designed content tiles (`card()`, callouts) are deliberate
+  composites — their text lives in content.md and syncs through the pipeline.
+  Leave them as they are unless the user explicitly asks to decompose one.
+
 ## Making OTHER elements editable
 
 Everything editable shares one hook: **`{L.spacer(el_id)}` before the element +
