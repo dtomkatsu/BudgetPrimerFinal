@@ -22,6 +22,7 @@ import json
 import os
 import shutil
 import signal
+import socket
 import subprocess
 import tempfile
 import threading
@@ -444,10 +445,35 @@ def _git(*args):
         raise RuntimeError(f"git {args[0]} failed:\n{(r.stdout + r.stderr).strip()[-1500:]}")
 
 
+class _IPv6Server(ThreadingHTTPServer):
+    # macOS resolves `localhost` to BOTH 127.0.0.1 and ::1, and per RFC 6724 a
+    # browser tries ::1 FIRST. Binding IPv4 only left ::1:PORT dead, so Chrome/
+    # Safari stalled on the IPv6 attempt while curl (which picked IPv4) worked —
+    # the classic "curl loads it, the browser spins" split. We listen on BOTH
+    # loopback addresses so it doesn't matter which the browser picks.
+    address_family = socket.AF_INET6
+
+
+def _serve_forever(servers):
+    """serve_forever on the first socket in the calling thread, the rest in
+    daemon threads. All share one Handler, so a Save/Push on either family hits
+    the same build state."""
+    for s in servers[1:]:
+        threading.Thread(target=s.serve_forever, daemon=True).start()
+    servers[0].serve_forever()
+
+
 def main():
     rebuild("startup")
     threading.Thread(target=watcher, daemon=True).start()
-    srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    # Two loopback listeners (IPv4 + IPv6), NOT a dual-stack `::` bind — the save/
+    # push/export endpoints must stay off the LAN. If IPv6 loopback is somehow
+    # unavailable, fall back to IPv4-only rather than refuse to start.
+    servers = [ThreadingHTTPServer(("127.0.0.1", PORT), Handler)]
+    try:
+        servers.append(_IPv6Server(("::1", PORT), Handler))
+    except OSError as e:
+        print(f"  (IPv6 loopback unavailable: {e}; serving IPv4 only)")
     url = f"http://localhost:{PORT}/primer/edit.html"
     print(f"\n  Budget Primer — live at {url}")
     print(f"  editing report2027/content.md + report2027/layout.json")
@@ -455,7 +481,7 @@ def main():
     if os.environ.get("PRIMER_OPEN", "1") == "1":
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
-        srv.serve_forever()
+        _serve_forever(servers)
     except KeyboardInterrupt:
         print("\n  stopped")
 
