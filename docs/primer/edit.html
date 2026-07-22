@@ -6401,21 +6401,39 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  try {
-    const es = new EventSource('/__events');
-    es.onmessage = ev => {
-      let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
-      setPushState(d.ahead);
-      onBump(d.v, d.error);
-    };
-  } catch (e) { /* no EventSource: the poll below still works */ }
-  setInterval(async () => {
+  // A BACKGROUND tab must hold no connection. Chromium allows six HTTP/1.1
+  // connections per origin, and an SSE stream occupies one for as long as the
+  // tab lives — so six forgotten primer tabs deadlock the whole origin: the
+  // next page load queues for a slot that never frees, and "localhost isn't
+  // loading" with a perfectly healthy server. The stream (and the poll) run
+  // only while the tab is visible; coming back does one catch-up ping, which
+  // adopts anything missed exactly as the stream would have.
+  let es = null;
+  const openStream = () => {
+    if (es) return;
+    try {
+      es = new EventSource('/__events');
+      es.onmessage = ev => {
+        let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
+        setPushState(d.ahead);
+        onBump(d.v, d.error);
+      };
+    } catch (e) { /* no EventSource: the poll below still works */ }
+  };
+  const closeStream = () => { if (es) { es.close(); es = null; } };
+  const catchUp = async () => {
     try {
       const d = await (await fetch('/__ping', { cache: 'no-store' })).json();
       setPushState(d.ahead);
       onBump(d.v);
     } catch (e) { /* server stopped; leave the last render up */ }
-  }, 1500);
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) closeStream();
+    else { catchUp(); openStream(); }
+  });
+  if (!document.hidden) openStream();
+  setInterval(() => { if (!document.hidden) catchUp(); }, 1500);
 }
 
 let pulling = false;

@@ -131,16 +131,28 @@ RELOAD_JS = """
     banner.textContent='build failed — the preview is the last good version\\n\\n'+msg;
   }
   function clear(){ if(banner){ banner.remove(); banner=null; } }
-  try{
-    var es=new EventSource('/__events');
-    es.onmessage=function(e){
-      var d=JSON.parse(e.data||'{}');
-      if(d.error){ show(d.error); return; }
-      clear();
-      if(last===undefined){ last=d.v; return; }
-      if(d.v!==last) location.reload();
-    };
-  }catch(e){}
+  // Background tabs hold NO stream: Chromium caps an origin at six HTTP/1.1
+  // connections, and each open SSE pins one until the tab dies — a handful of
+  // forgotten preview tabs starves the pool and new loads hang forever. The
+  // stream runs only while visible; on return, one ping catches a missed build.
+  var es=null;
+  function handle(e){
+    var d=JSON.parse(e.data||'{}');
+    if(d.error){ show(d.error); return; }
+    clear();
+    if(last===undefined){ last=d.v; return; }
+    if(d.v!==last) location.reload();
+  }
+  function open(){ if(es) return;
+    try{ es=new EventSource('/__events'); es.onmessage=handle; }catch(e){} }
+  function close(){ if(es){ es.close(); es=null; } }
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){ close(); return; }
+    fetch('/__ping',{cache:'no-store'}).then(function(r){return r.json();})
+      .then(function(d){ if(last!==undefined&&d.v!==last) location.reload(); else open(); })
+      .catch(open);
+  });
+  if(!document.hidden) open();
 })();
 </script>
 """
