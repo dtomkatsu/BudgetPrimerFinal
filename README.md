@@ -1,3 +1,14 @@
+## The draft editor lives in its own repo
+
+The browser WYSIWYG editor (`docs/primer/`, `docsync/`) is developed in
+**[dtomkatsu/primer-editor](https://github.com/dtomkatsu/primer-editor)**, not
+here. This repo vendors a synced snapshot so its local fast-loop
+(`make -C report2027 live`) keeps working offline.
+
+- **Edit editor code** → do it in `primer-editor`.
+- **Pull the latest editor here** → `./scripts/sync-editor.sh` (then commit).
+- **Edit the report itself** (prose, layout) → here, as always.
+
 ### Watch Mode (Auto Rebuild + Validate)
 Regenerate reports and run validations automatically when key files change.
 
