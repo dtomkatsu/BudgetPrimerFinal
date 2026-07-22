@@ -44,7 +44,7 @@ Copyright © 2026 Hawaiʻi Appleseed Center for Law & Economic Justice. All righ
 # BUDGET BASICS
 
 [[basics.p1]]
-**THE INVESTMENTS** that Hawaiʻi's government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage budget and policy decisions that improve the lives of Hawaiʻi's people.
+**THE INVESTMENTS** that Hawaiʻi's government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage policy decisions that lift up Hawaiʻi's working families.
 
 [[basics.p2]]
 The state budget funds Hawaiʻi's three government branches: the Legislature; the Judiciary; and the Executive. A small portion funds the Office of Hawaiian Affairs (OHA) as well. More than 99 percent of the state budget goes toward funding the executive branch.
@@ -75,7 +75,7 @@ The state budget funds Hawaiʻi's three government branches: the Legislature; th
 
 [[basics.branch.oha.bullets]]
 - Responsible for improving the wellbeing of Native Hawaiians.
-- Semi-independent state agency
+- Semi-independent state agency.
 
 [[process.h2]]
 ## Budget Process
