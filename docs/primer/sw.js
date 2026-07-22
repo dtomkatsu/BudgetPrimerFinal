@@ -26,7 +26,7 @@
  * Bump CACHE_VERSION on any shell change that should evict old entries
  * outright rather than wait for revalidation (e.g. a renamed file).
  */
-const CACHE_VERSION = 'primer-shell-v3';
+const CACHE_VERSION = 'primer-shell-v4';
 const PYODIDE_CACHE = 'primer-pyodide-v1';
 
 const SHELL_FILES = [
