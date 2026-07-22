@@ -98,6 +98,21 @@ test.describe('local Save vs Push', () => {
     await expect(page.locator('#push')).toBeEnabled();   // still there to retry
   });
 
+  test('a hung /__save times out with a clear error instead of a dead spinner', async ({ page, context }) => {
+    // A wedged server (a build stuck in a loop, git blocked on a credential
+    // prompt) must not leave Save spinning forever — postLocal aborts the
+    // request at its ceiling. Drive postLocal directly with a short ceiling
+    // against a /__save route that never fulfils.
+    await gotoWithAhead(page, context, 0);
+    await context.route('**/__save', () => { /* never fulfil -> hang */ });
+    const msg = await page.evaluate(async () => {
+      try { await postLocal('/__save', { content: 'x' }, 1500); return 'NO-TIMEOUT'; }
+      catch (e) { return e.message; }
+    });
+    expect(msg).toMatch(/timed out after 1\.5s/);
+    expect(msg).toMatch(/live server still running/);
+  });
+
   test('setPushState ignores a non-numeric ahead (a mocked/blocked response)', async ({ page, context }) => {
     // The test-safety mock (blockDangerousLocalEndpoints) returns ahead: 0
     // explicitly, but any caller passing undefined must not crash or blank

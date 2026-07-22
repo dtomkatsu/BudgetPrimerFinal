@@ -7702,6 +7702,31 @@ $('publish').onclick = async () => {
   $('publish').disabled = false;
 };
 
+/** POST to a local endpoint with a hard ceiling, so the UI can NEVER hang
+ *  forever on "saving…". A save writes a file, rebuilds (~1s) and commits, so
+ *  30s is orders of magnitude of headroom; blow past it and something is
+ *  genuinely wedged (a build in an infinite loop, git waiting on a credential
+ *  prompt it will never get, a dead server) — surface that as a real, cleared
+ *  error instead of a spinner that outlives the session. AbortController, not
+ *  AbortSignal.timeout(), for the older Chromium the PDF path pins. */
+async function postLocal(path, body, ms = 30000) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), ms);
+  try {
+    const r = await fetch(path, {
+      method: 'POST', signal: ac.signal,
+      ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+    });
+    return await r.json();
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error(`timed out after ${ms / 1000}s — is the live server still running? `
+        + `(check the terminal for a stuck build or a git credential prompt)`);
+    }
+    throw e;
+  } finally { clearTimeout(t); }
+}
+
 $('save').onclick = async () => {
   // Confirm, not block: prose has always been able to overflow a page and
   // nothing stopped it. Turning a pre-existing, permitted edit into a hard
@@ -7722,14 +7747,10 @@ $('save').onclick = async () => {
     $('save').disabled = true;
     $('stat').textContent = 'saving to disk…';
     try {
-      const r = await fetch('/__save', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: source !== original ? source : null,
-          layout: (M.layout && layoutText !== layoutOrig) ? layoutText : null,
-        }),
+      const j = await postLocal('/__save', {
+        content: source !== original ? source : null,
+        layout: (M.layout && layoutText !== layoutOrig) ? layoutText : null,
       });
-      const j = await r.json();
       if (!j.ok) throw new Error(j.error || 'save failed');
       original = source; layoutOrig = layoutText; dirty = false;
       $('revert').disabled = true;
@@ -7738,7 +7759,7 @@ $('save').onclick = async () => {
       setPushState(j.ahead);
     } catch (e) {
       $('stat').textContent = 'save failed: ' + e.message;
-      $('save').disabled = false;
+      $('save').disabled = false;    // always recoverable — never a dead spinner
     }
     return;
   }
@@ -7754,8 +7775,7 @@ $('push').onclick = async () => {
   $('push').disabled = true;
   $('stat').textContent = 'pushing…';
   try {
-    const r = await fetch('/__push', { method: 'POST' });
-    const j = await r.json();
+    const j = await postLocal('/__push', null);
     if (!j.ok) throw new Error(j.error || 'push failed');
     $('stat').textContent = j.message || 'pushed';
     setPushState(j.ahead);
