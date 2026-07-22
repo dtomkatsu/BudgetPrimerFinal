@@ -1,176 +1,140 @@
 ---
 name: report-editor
-description: How to add or change elements in the Hawaiʻi Budget Primer report so they stay editable in the draft editor — SVGs/graphics/diagrams the user can move & resize, plus text, headings, shapes, images, colours. Use whenever adding, drawing, or restyling anything on a report page in this repo (report2027/), or when the user says an element "should be movable / resizable / editable."
+description: How to build or change ANY report served by the docsync draft editor so its elements stay user-editable — movable/resizable SVGs and graphics, detachable cards, text, shapes, images, groups, citations. Use when adding, drawing, or restyling anything in a report bound in docsync.yml, or when the user says an element "should be movable / resizable / editable." In this repo that means report2027/.
 ---
 
-# Editing the Budget Primer so elements stay user-editable
+# Building reports the draft editor can edit
 
-This repo's report is rendered by `report2027/tools/render_report.py` and edited
-live in the **docsync draft editor**. The editor can move, resize, rotate,
-recolour and re-layer elements — but ONLY elements rendered through the right
-helper. Raw markup is frozen: the editor has no hook to select it. Your job when
-adding anything is to render it so the user can grab it.
+Reports bound in `docsync.yml` render through their own `render_report.py` and
+are edited live in the **docsync draft editor** (`docsync/editor/edit.html`).
+The editor can move, resize, rotate, recolour, group and re-layer elements —
+but ONLY elements rendered through the right hook. Raw markup is frozen: the
+editor has no handle to select it. When you add anything, render it so the
+user can grab it.
 
-## The one rule for SVGs / graphics / diagrams
+## The shared building blocks: `docsync.blocks`
+
+Every project can import the engine's helpers — they are staged into the
+browser engine automatically:
+
+```python
+from docsync.blocks import graphic, card, is_light_bg
+
+# A movable/resizable/rotatable inline SVG. viewBox REQUIRED; w = default
+# width in inches (until the user resizes; then layout.json wins).
+{graphic(L, "page1.diagram", '<svg viewBox="0 0 200 120">…</svg>', w=2.4)}
+
+# A coloured tile: bold title + bullets, both content.md slots. detachable=True
+# renders title/bullets as their own movables (seed a default group, below).
+{card(C, L, "page1.card.title", "page1.card.bullets", "#52796F",
+      detachable=True, min_h=1.8)}
+```
+
+- `L` is the project's `Layout`, `C` its `Content` — every renderer has both.
+- `el_id`s must be unique and STABLE (`<page>.<name>`): they key layout.json;
+  renaming one orphans wherever the user dragged it.
+- Helpers are zero-stylesheet (styles inlined), so they work in a minimal
+  scaffolded renderer with no CSS of its own.
+- A project MAY keep bespoke equivalents (the Budget Primer's `card()` is
+  CSS-styled); the *behavioural* hooks (`ds-graphic`, `ds-detachable`,
+  `data-el`/`data-slot`) are what the editor reads either way.
+
+## The one rule for SVGs / graphics
 
 **Any free-standing SVG, diagram, icon-lockup, badge, or drawn graphic MUST go
-through `graphic()`** — never a bare `<svg>` in the markup.
+through `graphic()`** — never a bare `<svg>` in the markup. Glyphs that live
+inside another element and shouldn't move on their own stay inline.
 
-```python
-# report2027/tools/render_report.py
-{graphic("funding.flow", '<svg viewBox="0 0 200 120" ...>...</svg>', w=2.4)}
-```
+## Making other elements editable
 
-- `el_id` — unique and **stable** (`<page>.<name>`). It's the key in
-  `layout.json`; renaming it orphans wherever the user dragged/sized it.
-- The SVG **must carry a `viewBox`** (it scales to fill the wrapper width).
-  Use real `fill`/`stroke` colours — inline SVG is recolourable from the editor.
-- `w` — default width in inches; it applies only until the user resizes, then
-  `layout.json`'s width wins (a rebuild never clobbers their sizing).
+Everything editable shares one hook: `{L.spacer(el_id)}` before the element +
+`{L.attr(el_id)}` on its tag stamps `data-el` (edit mode only) and applies any
+layout.json position/size override.
 
-The result: the user clicks it, drags to reposition, scales proportionally from
-any corner, rotates, and layers it — placement remembered in `layout.json`.
-
-A glyph that belongs *inside* another element (a card-title icon) can also be
-made movable — pass `icon_id=` to `card()`, which routes it through `graphic()`.
-Small fixed glyphs that shouldn't move stay inline.
-
-## Composing NEW visual elements: separate primitives, grouped — never fused
-
-When the user asks for a new visual (a labelled box, a badge over a shape, a
-diagram with a caption), **build it from separate objects and group them** —
-do NOT fuse text and background into one element. A fused composite (one div
-holding both, or words baked inside an SVG) moves only as a unit and the user
-can never pull the text off the shape; a group moves as one **by default** but
-Ungroup (⌘⇧G) detaches the pieces. That difference is the point.
-
-The primitives, all authored directly in `report2027/layout.json`:
-
-```jsonc
-{
-  "shapes": [                       // background panel / accent
-    {"id": "funding.note.bg", "page": 9, "kind": "rect",
-     "x": 1.0, "y": 7.2, "w": 3.2, "h": 1.1, "fill": "#E8EDE6", "r": 0.12}
-  ],
-  "boxes": [                        // the words — md is markdown
-    {"id": "funding.note", "page": 9, "x": 1.15, "y": 7.35, "w": 2.9,
-     "md": "**Note:** special funds are earmarked.", "style": {"size": 11}}
-  ],
-  "groups": [                       // travel together until the user Ungroups
-    ["funding.note.bg", "text.funding.note"]
-  ]
-}
-```
-
-- In `groups` entries (and everywhere the editor names things), a shape is its
-  **bare id** (`funding.note.bg`) and a text box is **`text.<id>`**
-  (`text.funding.note`).
-- Pure art/diagram → `graphic()` in render_report.py; **keep prose OUT of the
-  SVG** (labels intrinsic to the art, like axis ticks, are fine — sentences and
-  captions are not). Caption → its own text box, grouped with the graphic.
-- The report's designed content tiles (`card()`, callouts) are deliberate
-  composites — their text lives in content.md and syncs through the pipeline.
-  Leave them as they are unless the user explicitly asks to decompose one.
-
-### Decomposing an existing content card
-
-If the user wants a `card()` tile's pieces to come apart, pass
-`detachable=True, min_h=<tile height in inches>` to that `card()` call, and seed
-its default group in `layout.json` `groups`:
-
-```python
-{card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"),
-      DARK, key="spent.cards.operating.bullets", detachable=True, min_h=1.83)}
-```
-```jsonc
-"groups": [["card.<key>", "<base>.title", "<key>"]]   // <base> = key without ".bullets"
-```
-
-The tile, title, and bullets become three movable objects laid out exactly as
-before by default, moving as one until the user Ungroups — then each can be
-pulled out. The title/bullet text STAYS in content.md (still editable prose).
-`min_h` keeps the tile a visible panel after its text is dragged out (measure
-the tile's rendered height first). The pieces are grabbable because the
-renderer marks them `ds-detachable` (exempt from the "nested = part of parent"
-rule). Guarded by `tests/editor/detachable-card.spec.js` in primer-editor.
-
-## Making OTHER elements editable
-
-Everything editable shares one hook: **`{L.spacer(el_id)}` before the element +
-`{L.attr(el_id)}` on its tag** stamps `data-el` (edit mode only) and applies any
-`layout.json` position/size override. The editor then moves/resizes it.
-
-| Want | Use | Handles the user gets |
+| Want | Use | The user gets |
 |---|---|---|
-| Free-standing SVG/graphic | `graphic(el_id, svg, w=)` | move, 4-corner proportional resize, rotate |
-| Editable prose / heading / caption | `L.attr(el_id)` on the tag + a `data-slot` span (see `C.slot_span`, `C.t`) | click-to-edit text; drag; width resize |
-| Photo / raster image | `img_el(el_id, cls, src, alt)` | move, corner resize, rotate, crop, filter, replace |
-| Coloured tile with bullets | `card(title, bullets, bg, key=, icon=, icon_id=)` | recolour, move; icon movable if `icon_id` given |
-| Rectangle / ellipse / line | added from the editor's Shape button → stored in `layout.json` `shapes` | move, resize, restyle |
+| Free-standing SVG/graphic | `blocks.graphic(L, id, svg, w=)` | move, 4-corner proportional resize, rotate |
+| Coloured tile with text | `blocks.card(C, L, …, detachable=)` | recolour, move; pieces pull apart if detachable |
+| Editable prose / heading | `L.attr(el_id)` on the tag + a slot (`C.t`, `C.slot_span`) | click-to-edit text; drag; width resize |
+| Photo / raster image | an `<img>` with `L.attr` (see the primer's `img_el`) | move, corner resize, rotate, crop, replace |
+| Rect / ellipse / line / text box / table | user adds from the editor; stored in layout.json | move, resize, restyle |
 
-`el_id` convention is `<page>.<name>` (e.g. `spent.table1.caption`). Reuse an
-existing id only if you mean the same element.
+## Composing NEW visuals: separate primitives, grouped — never fused
+
+Build a labelled box from a layout.json `shapes` rect + a `boxes` text box +
+a `groups` entry (`["<shapeId>", "text.<boxId>"]`): it moves as one until the
+user hits Ungroup (⌘⇧G) and detaches the text. Never bake sentences inside an
+SVG or fuse text + background into one div. For a `card(detachable=True)`,
+seed the default group `["card.<bullets_key>", "<title_key>", "<bullets_key>"]`.
+
+## layout.json is an OVERRIDES layer
+
+The renderer's design is the default; layout.json only speaks where the user
+moved/resized/recoloured something (`positions`, `shapes`, `boxes`, `tables`,
+`groups`, `endnote_order`). An empty file = the pristine design. Don't
+hand-place by guessing inches — set a sensible default in the renderer and let
+the user drag.
 
 ## Moving cited text (footnotes travel with it)
 
-A citation is the literal token `[^source-id]` in the markdown. Move the
-sentence WITH its token — into another slot, or a text box's `md` — and the
-build renumbers every endnote by first appearance in the new reading order
-automatically; text boxes resolve citations exactly like prose. The user can
-also drag entries on the Endnotes page to reorder explicitly (layout.json
-`endnote_order`).
+A citation is the literal token `[^source-id]`. Move the sentence WITH its
+token — into another slot or a text box's `md` — and endnotes renumber by
+first appearance in the new reading order automatically. Mid-move states are
+edit-tolerant, publish-strict: an uncited source, a typo'd token (renders a
+red ? naming the missing id), and an emptied bullet list all RENDER in edit
+mode and REFUSE at publish. Never retype a token by hand — copy it exactly.
 
-Mid-move states are edit-tolerant, publish-strict (all three pinned by
-`tools/test_render.py`):
-- source briefly uncited (sentence cut, not yet pasted) → preview builds, note
-  prints; publish refuses.
-- citation token typo'd in the paste (`[^tax credits]`, lost bracket) → renders
-  a red ? marker naming the missing id; publish refuses.
-- a card's ONLY bullet cut (list empty) → placeholder renders; publish refuses.
+## Editing the editor itself (`edit.html`)
 
-Never retype a token by hand — copy it exactly (the id is hyphenated:
-`[^tax-credits]`, not `[^tax credits]`).
+Its whole stylesheet is one JS **template literal**: a backtick or `${…}` in a
+CSS comment ends the literal early and kills the ENTIRE script — the editor
+hangs at "loading the render engine…" with no console error. After ANY
+`edit.html` change run a boot test (`npx playwright test boot-errors.spec.js`)
+or at least `node --check` its inline script (`tools/test_render.py` does).
+An isolated DOM check that a feature works is NOT proof the file still boots.
 
-## How placement is stored (layout.json)
+## Build & serve rules
 
-`layout.json` is an **overrides layer**: the renderer's design is the default,
-and the file only speaks where the user moved/resized/recoloured something. An
-empty file = the pristine design. Never hand-place things in it by guessing
-inches — let the user drag in the editor, or set a sensible default in
-`render_report.py` and let them adjust. `.page` is `overflow:hidden`, so an
-element dragged off-page is caught by `Layout.check_bounds()` (a build error),
-never silently lost.
+- Each binding in `docsync.yml` names its ONE build command; run that, never
+  hand-edit generated output (the rendered HTML, the staged `<dir>/engine/`).
+- Re-stage after engine changes: `python3 -m docsync.stage --id <id>`.
+- Never start or kill a dev server the USER owns (a server launched outside
+  their login session cannot reach the keychain, so Push breaks) — ask them to
+  relaunch their launcher app instead. Test servers on other ports are fine.
+- If an editor origin wedges ("localhost won't load", server healthy), the
+  escape hatch is `<origin>/reset.html` — it unregisters the service worker,
+  drops caches, and reopens the editor.
 
-## Build, verify, ship
+## Where code lives
 
-- **`make -C report2027 pub`** is the ONE build command (live server, Save, and
-  CI all run it). `report2027/web/index.html` and `docs/primer/` are generated —
-  never hand-edit them.
-- **Do NOT launch the live server yourself.** "Budget Primer Editor.app" owns
-  it (a server started any other way can't reach the keychain, so Push hangs).
-  If it needs restarting, ask the user to relaunch the app.
-- After adding an editable element, sanity-check the build renders it with its
-  `data-el` in edit mode and cleanly (no `data-el`) in publish mode:
-  `cd report2027 && DOCSYNC_EDIT=1 python3 tools/render_report.py` then a plain
-  `python3 tools/render_report.py`.
-- The editor engine (`docsync/`, `serve.py`, `edit.html`) is **vendored from the
-  separate `~/primer-editor` repo** — fix editor/tooling bugs THERE first, then
-  copy here. Report *content* (pages, prose, the graphics you add) is owned here.
-- **Editing `edit.html`:** its whole stylesheet is one JS **template literal**, so
-  a backtick or `${...}` in a CSS comment ends the literal early and kills the
-  ENTIRE script — the editor then hangs on "loading the render engine…" with no
-  console error. After ANY `edit.html` change, run a boot test (`npx playwright
-  test boot-errors.spec.js`) or at least `node --check` its inline script
-  (`tools/test_render.py` now does the latter). An isolated DOM check that a
-  feature works is NOT proof the file still boots.
-- **Save** commits locally; **Push** sends the branch AND fast-forwards `main`
-  (the deploy branch) — every Push publishes to the live site. If a push is
-  rejected with "fetch first," CI added a rebuild commit to `main`:
-  `git fetch && git merge origin/main`, rebuild, then push both.
+The engine (`docsync/`, `edit.html`, `serve.py`, this skill) is canonical in
+the **primer-editor** repo; report repos vendor copies. Fix engine bugs there
+first, then copy over. Report content (its pages, prose, its renderer's
+bespoke design) is owned by each report's repo and never flows back.
 
-## Regression guard
+---
 
-`graphic()` behaviour is covered by `tests/editor/graphic.spec.js` in the
-primer-editor repo (inline render, corner-not-width handles, drag-records-
-position, resize-writes-width). If you extend the movability system, add or
-update a spec there.
+# Budget Primer specifics (this repo)
+
+- **Build:** `make -C report2027 pub` is the ONE build command (live server,
+  Save, CI). `report2027/web/index.html` and `docs/primer/` are generated —
+  never hand-edit.
+- **Serve:** "Budget Primer Editor.app" owns the live server on :8010. Never
+  start/kill it from Claude — ask the user to relaunch the app.
+- **Deploy:** Save commits locally; Push sends the current branch AND
+  fast-forwards `main` — every Push publishes to the live site. "fetch first"
+  rejection = CI added a rebuild commit: `git fetch && git merge origin/main`,
+  rebuild, push both.
+- **Vendoring:** engine files (docsync/, edit.html, serve.py) come FROM
+  `~/primer-editor` — fix there first, copy here. This report's renderer,
+  content and design are owned here.
+- **Bespoke card():** this report's `card()` in render_report.py is CSS-styled
+  (.card in primer.css) and predates docsync.blocks — keep using it here. It
+  supports `icon=`/`icon_id=` (movable header glyph) and
+  `detachable=True, min_h=` (title/bullets pull apart; seed the default group
+  in layout.json: `["card.<key>", "<base>.title", "<key>"]`). `graphic()` here
+  delegates to docsync.blocks.
+- **Cache:** bump `CACHE_VERSION` in `docs/primer/sw.js` after any
+  primer.css/shell change, or returning browsers keep the old stylesheet.
+- **Escape hatch:** http://localhost:8010/reset.html un-wedges a stuck editor
+  origin (stale service worker / cache).

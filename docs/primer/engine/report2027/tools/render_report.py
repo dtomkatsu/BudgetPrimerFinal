@@ -671,25 +671,13 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable
 
 
 def graphic(el_id, svg, w=1.5, cls=""):
-    """A free-standing SVG the editor can MOVE, RESIZE (proportionally, from any
-    corner) and ROTATE like an image — its placement lives in layout.json under
-    el_id, so a drag or a resize sticks across rebuilds.
-
-    This is the ONE way to add an SVG a report editor should be able to
-    reposition: a bare <svg> in the markup is frozen, invisible to the editor.
-    Give every graphic a unique, stable el_id (e.g. "spent.flowchart"); `w` is
-    its default width in inches before the user sizes it (the SVG scales to fill
-    via its viewBox, so it MUST carry a viewBox), and `cls` adds classes.
-
-    The default width is supplied only until the user resizes it — after that
-    the width in layout.json wins, so their sizing is never overwritten by a
-    rebuild.
-    """
-    klass = ("ds-graphic " + cls).strip()
-    sized = L.positions.get(el_id, {}).get("w")     # user has resized it?
-    base = "" if sized else (f"width:{w}in" if w else "")
-    return (f'{L.spacer(el_id)}'
-            f'<span class="{klass}"{L.attr(el_id, base)}>{svg}</span>')
+    """A free-standing SVG the editor can move/resize/rotate; placement lives
+    in layout.json under el_id. One implementation for every report now —
+    docsync.blocks.graphic — this wrapper just supplies this report's Layout.
+    (See blocks.py for the full contract: unique stable el_id, viewBox
+    required, `w` is the default width until the user resizes.)"""
+    from docsync.blocks import graphic as _graphic
+    return _graphic(L, el_id, svg, w=w, cls=cls)
 
 
 def img_el(el_id, cls, src, alt):

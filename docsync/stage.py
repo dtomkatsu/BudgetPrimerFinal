@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from docsync.registry import ROOT, Binding, RegistryError, get, load_registry  # noqa: E402
 
 EDITOR = Path(__file__).resolve().parent / "editor" / "edit.html"
-PACKAGE = ("content.py", "normalise.py", "layout.py")
+PACKAGE = ("content.py", "normalise.py", "layout.py", "blocks.py")
 
 
 def rel(p: Path) -> str:

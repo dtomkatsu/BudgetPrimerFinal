@@ -6,6 +6,7 @@
     "engine/docsync/content.py": "docsync/content.py",
     "engine/docsync/normalise.py": "docsync/normalise.py",
     "engine/docsync/layout.py": "docsync/layout.py",
+    "engine/docsync/blocks.py": "docsync/blocks.py",
     "engine/report2027/tools/render_report.py": "report2027/tools/render_report.py",
     "engine/report2027/content.md": "report2027/content.md",
     "engine/report2027/layout.json": "report2027/layout.json",
