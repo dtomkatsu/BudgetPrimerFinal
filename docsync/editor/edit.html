@@ -6753,8 +6753,14 @@ function wire() {
        a zero-size, unclickable box — inline-block with a floor keeps it a
        real target even before anything is typed. */
     .ds-inline { display:inline-block; min-width:1.5em; min-height:1em; }
+    /* user-select:ALL, not none: a footnote chip must be part of a text
+       selection so it travels when you cut/copy a sentence to move it —
+       user-select:none made the browser skip it, silently dropping the
+       citation. `all` keeps it atomic (you grab the whole [^id], never half a
+       token) while making it selectable and copyable with the surrounding
+       prose. */
     .ds-chip { border-radius:3px; padding:0 3px; background:rgba(107,158,120,.14);
-               outline:1px solid #B9C9BE; cursor:default; user-select:none; }
+               outline:1px solid #B9C9BE; cursor:default; user-select:all; }
     .ds-chip.ds-fnchip { font-size:.85em; vertical-align:super; color:#2F3E46; }
     .ds-endnote-edit { display:block; padding:2px 0; }
     .ds-endnote-edit input { display:block; width:100%; box-sizing:border-box; font:inherit;
