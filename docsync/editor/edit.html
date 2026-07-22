@@ -5257,6 +5257,18 @@ $('side-x').addEventListener('click', closeSide);
 // selection down in the iframe. mousedown is prevented so focus (and with it
 // the selection, and the not-yet-committed edit) never leaves the editor.
 $('ty-marks').addEventListener('mousedown', e => e.preventDefault());
+// Every OTHER type control (font, size, case, colour…) re-renders on change,
+// and a re-render replaces the document an open editor lives in. With a real
+// mouse the click's own focus change blurs the editor first (committing it);
+// but that ordering is the browser's accident, not a guarantee — when it
+// didn't happen, the render orphaned the open editor and `editing` stayed
+// true forever, silently swallowing every later click ("can't change
+// anything"). Commit deterministically instead, the moment any non-marks
+// type control is touched.
+$('type').addEventListener('pointerdown', e => {
+  if (!richHost || e.target.closest('#ty-marks')) return;
+  richHost.blur();     // finish(true): commit + re-render (single-flight)
+}, true);
 const richDo = fn => {
   if (!richHost) return;
   const d = $('out').contentDocument;
@@ -7181,7 +7193,13 @@ function edit(d, key) {
   closeSources();   // its citation counts would go stale behind an edit
 
   const inline = blocks[0].dataset.inline === '1';
-  const allowLists = key.startsWith('extra.');
+  // A slot supports lists when the RENDERER says so: extra sections go
+  // through block_html (full markdown), and a C.list() bullets slot stamps
+  // its data-slot on the <ul> itself — so the element's own tag is the
+  // renderer's authoritative answer. Without this, a bullets slot opened as
+  // plain paragraphs: literal "- " dashes on screen and no list buttons.
+  const allowLists = key.startsWith('extra.')
+    || blocks[0].tagName === 'UL' || blocks[0].tagName === 'OL';
   const allowMd = !RICH_PLAINTEXT_SLOTS.has(key);
   const extraClass = (blocks[0].className || '').split(/\s+/).filter(Boolean);
 

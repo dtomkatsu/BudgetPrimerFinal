@@ -66,4 +66,36 @@ test.describe('lists', () => {
     await expect(ta.locator('ul')).toHaveCount(0);
     await expect(ta.locator('p')).toHaveCount(2);
   });
+
+  // Regression: a C.list() bullets slot (the renderer stamps data-slot on the
+  // <ul> itself) opened WITHOUT list support — its "- " source lines showed
+  // as literal dashes, the list buttons stayed hidden, and a commit through
+  // the list-less serializer would have flattened the list. The slot
+  // element's own tag is the renderer's authoritative "this is a list".
+  test('a designed bullets slot opens as a real list and round-trips', async ({ page }) => {
+    const frame = page.frameLocator('#out');
+    const oha = frame.locator('[data-slot="basics.branch.oha.bullets"]');
+    await oha.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await oha.dblclick({ force: true });
+    const host = frame.locator('.ds-edit');
+    await host.waitFor({ state: 'visible' });
+
+    // Real <li>s, no literal markdown, and the list buttons offered.
+    await expect(host.locator('ul > li')).toHaveCount(2);
+    expect(await host.evaluate(el => /(^|\n)- /.test(el.innerText))).toBe(false);
+    await expect(page.locator('#ty-mul')).toBeVisible();
+
+    // Edit one bullet, commit, and the slot round-trips as "- " lines the
+    // renderer's bullets() parser accepts — re-rendered as a two-item <ul>.
+    await host.evaluate(el => {
+      el.querySelectorAll('li')[1].textContent = 'Edited bullet two.';
+    });
+    await host.evaluate(el => el.blur());
+    await frame.locator('.ds-edit').waitFor({ state: 'detached' });
+    await expect(frame.locator('[data-slot="basics.branch.oha.bullets"] li')).toHaveCount(2);
+    const committed = await page.evaluate(() => readSlot('basics.branch.oha.bullets'));
+    expect(committed.split('\n').every(l => l.startsWith('- '))).toBe(true);
+    expect(committed).toContain('Edited bullet two.');
+  });
 });

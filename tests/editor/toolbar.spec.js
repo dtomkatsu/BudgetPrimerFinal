@@ -107,6 +107,36 @@ test.describe('contextual toolbar', () => {
     await expect(page.locator('#ty-mb')).toHaveClass(/\bon\b/);
   });
 
+  // Regression: any NON-marks type control (font, size, colour…) re-renders
+  // on change, and a re-render replaces the document the open editor lives
+  // in. When the browser's own focus change didn't blur-commit the editor
+  // first, the render orphaned it and `editing` stayed true forever — every
+  // later click silently swallowed. The type row now commits the open editor
+  // deterministically on pointerdown.
+  test('picking a font while editing commits the edit instead of wedging', async ({ page }) => {
+    const frame = page.frameLocator('#out');
+    const slot = frame.locator('[data-slot="basics.p1"], [data-slot="spent.p1"]').first();
+    await slot.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    await slot.dblclick({ force: true });
+    await frame.locator('.ds-edit').waitFor({ state: 'visible' });
+    const key = await page.evaluate(() => document.getElementById('ty-key').textContent);
+
+    // The wedge's exact path: interact with the font control mid-edit.
+    await page.dispatchEvent('#ty-font', 'pointerdown');
+    await page.selectOption('#ty-font', 'Anton');
+    await page.waitForFunction(() => editing === false, null, { timeout: 15000 });
+
+    // The style applied AND the editor state recovered — a later click works.
+    expect(await page.evaluate(k => layout.text[k] && layout.text[k].font, key)).toBe('Anton');
+    await page.evaluate(() => clearSel(document.querySelector('#out').contentDocument));
+    const h1 = frame.locator('[data-el="basics.h1"]');
+    await h1.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(200);
+    await h1.click();
+    await page.waitForFunction(() => selIds.has('basics.h1'), null, { timeout: 5000 });
+  });
+
   test('the Appleseed logo recolours from the strip and renders inline', async ({ page }) => {
     await page.evaluate(() => setSel($('out').contentDocument, ['cover.logo']));
     await page.waitForTimeout(200);
