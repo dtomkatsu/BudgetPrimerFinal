@@ -590,7 +590,19 @@ def fy_pie_swap(fig_id, slices27, slices26, **kw):
             + pie(slices26, attrs=f' data-fig="{fig_id}" data-fy="2026" hidden', **kw))
 
 # ---------- page shells ----------
-def card(title, bullets, bg, light=None, key=""):
+# Header glyphs for the one-time / emergency appropriation tiles (page 8): a
+# warning triangle and a medical cross, echoing the printed primer. Fill is
+# currentColor so they inherit the tile's text colour and flip white->charcoal
+# with .card.light exactly as the title does. The triangle's exclamation is an
+# even-odd cutout, so whatever colour the tile is recoloured to shows through.
+WARNING_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" '
+                'aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4'
+                'h-2v-4h2v4z"/></svg>')
+CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+              '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
+
+
+def card(title, bullets, bg, light=None, key="", icon=""):
     """One tile. The bullets' key names it: it is already unique per card, and a
     second name for the same thing is a second thing to keep in step.
 
@@ -616,9 +628,14 @@ def card(title, bullets, bg, light=None, key=""):
     override = L.style(el_id, "") if el_id else ""
     style = f"background:{fill_css(bg)}" + (f";{override}" if override else "")
     tag = (L.tag(el_id) + L.fill_tag(el_id)) if el_id else ""
+    # An icon, when given, sits left of the title in a flex header. Without one
+    # the heading is byte-for-byte what it always was, so every other card is
+    # untouched.
+    head = (f'<h4 class="card-ico-h"><span class="card-ico">{icon}</span>{title}</h4>'
+            if icon else f'<h4>{title}</h4>')
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
-            f'<h4>{title}</h4><ul{ul}>{lis}</ul></div>')
+            f'{head}<ul{ul}>{lis}</ul></div>')
 
 def img_el(el_id, cls, src, alt):
     """One image element, honouring replace/radius/filter/crop overrides.
@@ -954,8 +971,8 @@ pages.append(f"""
  {C.html("onetime.photo.caption", "photocap")}
  {L.spacer("onetime.h3")}<h3 class="sub2"{L.attr("onetime.h3")}>{C.t("onetime.h3")}</h3>
  <div class="cards2">
-  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets")}
-  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets")}
+  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets", icon=WARNING_ICON)}
+  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets", icon=CROSS_ICON)}
  </div>
 {C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{L.tables_html(8)}{folio(8)}
 </section>""")
