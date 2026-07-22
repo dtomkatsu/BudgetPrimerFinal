@@ -309,7 +309,7 @@ Projected Hawaiʻi State Tax Revenue,
 ### Individual Income Tax
 
 [[taxes.cards.iit.bullets]]
-- Hawaiʻi taxes those with high incomes at a higher marginal rate. Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25. By FY32, the cuts will cost $1.45 billion annually.[^cor-forecast]
+- Hawaiʻi taxes those with high incomes at a higher marginal rate.
 
 [[taxes.cards.tat.title]]
 ### Transient Accommodations Tax
@@ -324,7 +324,7 @@ Projected Hawaiʻi State Tax Revenue,
 Percentage of Income Paid in State and Local Taxes by Household Income Quintile (2024)[^itep-whopays]
 
 [[whopays.p1]]
-In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is due almost entirely to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
+In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is largely due to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
 [[whopays.callout.title]]
 ### Tax Credits
