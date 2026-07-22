@@ -253,11 +253,22 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Connection", "keep-alive")
         self.end_headers()
         seen = None
+        # A stream LEASE, not a lifetime. A zombie holder — a discarded tab or
+        # a hung worker context the browser never quite kills — can sit on an
+        # open stream forever, ACKing heartbeats, pinning one of the browser's
+        # six per-origin sockets. Six of those and the origin is dead: every
+        # new load queues behind sockets that never free ("localhost won't
+        # load", server perfectly healthy). Ending the response after a bounded
+        # window returns the socket no matter what; a LIVE client's EventSource
+        # auto-reconnects in ~3s (and the leader's poll covers the gap), while
+        # a zombie's held socket simply expires. Starvation becomes transient
+        # instead of permanent — self-healing regardless of client bugs.
+        deadline = time.time() + 45
         try:
-            while True:
+            while time.time() < deadline:
                 with _cond:
                     _cond.wait_for(lambda: _version != seen or _error is not None,
-                                   timeout=20)
+                                   timeout=min(20, max(0.1, deadline - time.time())))
                     v, err = _version, _error
                 # A heartbeat keeps proxies from closing an idle stream. ahead
                 # rides along so a Save elsewhere (another tab, another Claude

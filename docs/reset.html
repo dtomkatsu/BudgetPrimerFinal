@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Escape hatch for a wedged editor service worker.
+
+     The draft editor registers a service worker scoped to /primer/. If that
+     worker wedges (hung fetch events pinning the connection pool), every
+     /primer/* load hangs THROUGH it — reloads included, because the reload is
+     itself intercepted. This page lives OUTSIDE that scope, so it always
+     loads: it unregisters every worker on the origin, drops the app-shell
+     caches (the Pyodide cache too — a clean slate beats a fast boot when
+     you're here), clears the live-reload leader locks, and sends you to a
+     fresh editor, which will register the current worker anew.
+
+     Use it any time localhost:8010 "won't load": http://localhost:8010/reset.html -->
+<html lang="en">
+<meta charset="utf-8">
+<title>Reset the draft editor</title>
+<body style="font:15px/1.6 system-ui;padding:40px;max-width:560px;margin:auto;color:#2F3E46">
+<h1 style="font-size:20px">Resetting the draft editor…</h1>
+<pre id="log" style="background:#EDF1EE;padding:14px;border-radius:8px;white-space:pre-wrap"></pre>
+<script>
+(async () => {
+  const log = m => document.getElementById('log').textContent += m + '\n';
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const r of regs) { await r.unregister(); log('unregistered worker: ' + (r.scope || '')); }
+    if (!regs.length) log('no service workers registered');
+  } catch (e) { log('worker cleanup failed: ' + e.message); }
+  try {
+    const keys = await caches.keys();
+    for (const k of keys) { await caches.delete(k); log('dropped cache: ' + k); }
+    if (!keys.length) log('no caches');
+  } catch (e) { log('cache cleanup failed: ' + e.message); }
+  try {
+    for (const k of ['primer-live-leader', 'primer-live-event',
+                     'primer-preview-leader', 'primer-preview-event'])
+      localStorage.removeItem(k);
+    log('cleared live-reload locks');
+  } catch (e) {}
+  log('done — opening a fresh editor…');
+  setTimeout(() => location.replace('/primer/edit.html'), 800);
+})();
+</script>
+</body>
+</html>
