@@ -23,13 +23,19 @@ PORT="${PRIMER_PORT:-8010}"
 
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
+# Finder launches apps with a bare-bones PATH (/usr/bin:/bin:...), where
+# python3 is Apple's system Python — no pyyaml, so the build fails inside the
+# app while working fine in a terminal. Resolve the developer's python3 NOW,
+# at build time in a real shell, and bake the absolute path in.
+PYTHON="$(command -v python3)"
+
 # --- the launch script: start the server if needed, then open the app window --
 cat > "$APP/Contents/MacOS/launch" <<LAUNCH
 #!/bin/bash
 REPO="$REPO"
 PORT="$PORT"
+PYTHON="$PYTHON"
 URL="http://localhost:\$PORT/primer/start.html"
-CHROME="\${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 
 cd "\$REPO" || exit 1
 
@@ -47,7 +53,7 @@ if up && ! mine; then
   sleep 1
 fi
 if ! up; then
-  PRIMER_OPEN=0 nohup python3 -u report2027/tools/serve.py >/tmp/primer-live.log 2>&1 &
+  PRIMER_OPEN=0 nohup "\$PYTHON" -u report2027/tools/serve.py >/tmp/primer-live.log 2>&1 &
   echo \$! > "\$PIDFILE"
   for _ in \$(seq 1 40); do
     up && break
@@ -55,10 +61,13 @@ if ! up; then
   done
 fi
 
-# A standalone window (--app) so it reads as an app, not a browser tab. Falls
-# back to the default browser if Chrome is not where we expect.
-if [ -x "\$CHROME" ]; then
-  "\$CHROME" --app="\$URL" >/dev/null 2>&1 &
+# A standalone window (--app) so it reads as an app, not a browser tab — via
+# \`open\`, which hands off to the running Chrome and survives this script
+# exiting. Invoking the Chrome binary directly and backgrounding it did NOT:
+# the handoff stub died with the script and no window ever appeared. Falls
+# back to the default browser if Chrome isn't installed.
+if [ -d "/Applications/Google Chrome.app" ]; then
+  open -na "Google Chrome" --args --app="\$URL"
 else
   open "\$URL"
 fi
