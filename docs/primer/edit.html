@@ -3625,7 +3625,26 @@ function arrangeBar(d) {
   // arrange strip.
   const soloBox = n === 1 && boxOf([...selIds][0]) ? [...selIds][0] : null;
   if (soloBox) { showType(soloBox); return; }
-  if (n) $('type').hidden = true;        // the row holds one toolbar at a time
+  // The same goes for the report's own text: every slot now lives inside a
+  // movable object (each paragraph block is one), so without this the
+  // single-click type controls above became unreachable for ALL content —
+  // click always meant "arrange", and font/size/colour sat behind an
+  // undiscoverable double-click. One selected object carrying exactly one
+  // text slot IS text: put the type controls in hand. Composites (a card
+  // with a title and bullets), images and shapes still arrange.
+  const soloSlotEl = n === 1 && d ? selEls(d)[0] : null;
+  if (soloSlotEl) {
+    const keys = new Set([...soloSlotEl.querySelectorAll('[data-slot]')]
+      .map(x => x.dataset.slot));
+    if (soloSlotEl.dataset.slot) keys.add(soloSlotEl.dataset.slot);
+    if (keys.size === 1) { showType([...keys][0]); return; }
+  }
+  // The row holds one toolbar at a time — and with nothing selected it holds
+  // NO type controls: a font dropdown with no target is noise (and was the
+  // stale state a deselect used to leave behind). The one exception is an
+  // open inline text editor, whose B/I/list buttons live in this row while
+  // the selection is empty.
+  if (n || !editing) $('type').hidden = true;
   const wholeGroup = n > 0 && selGroups().length === 1 && selGroups()[0].length === n
     && selGroups()[0].every(id => selIds.has(id));
   $('ar-count').textContent = !n ? '—'
