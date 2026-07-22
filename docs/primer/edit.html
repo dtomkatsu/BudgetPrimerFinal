@@ -2639,7 +2639,12 @@ function paintRot(d, el) {
 // the resize needs.
 const isGraphic = el => !el.dataset.shape && !el.matches('[data-slot]')
   && !el.querySelector('[data-slot]') && !el.classList.contains('ds-textbox')
-  && (el.tagName === 'IMG' || !!el.querySelector('img'));
+  // A .ds-graphic is an inline-SVG graphic (render_report.graphic()); it scales
+  // as a whole exactly like an image, so it takes the same corner handles. The
+  // class gate is deliberate — a stray <svg> decoration inside some other
+  // element must NOT turn that element into a proportionally-scaled graphic.
+  && (el.tagName === 'IMG' || !!el.querySelector('img')
+      || el.classList.contains('ds-graphic'));
 
 function startRotate(d, el, e0) {
   const page = el.closest('section.page') || d.querySelector('section.page');
