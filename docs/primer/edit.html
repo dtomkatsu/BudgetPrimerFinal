@@ -5441,10 +5441,15 @@ $('redo').onclick = redo;
 
 function dragify(d) {
   d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
-    // A movable nested inside another movable — a callout's own paragraphs —
-    // is part of that object, not a second one; the outer element owns every
-    // gesture. Binding the inner one would let a drag pull a callout apart.
-    if (el.parentElement && el.parentElement.closest('[data-el]')) return;
+    // A movable nested inside another movable — a callout's own paragraphs — is
+    // a content sub-part, not a second object; the outer owns the gesture, so
+    // dragging the callout doesn't pull its prose out. But a distinct OBJECT
+    // that merely SITS inside another movable — a graphic/icon in a card header,
+    // an image or a text box dropped into a card — must stay independently
+    // grabbable. Skipping it "glued" it to its container: it could never be
+    // selected or moved on its own, which is exactly the trap this exempts.
+    const independentObject = isGraphic(el) || el.classList.contains('ds-textbox');
+    if (!independentObject && el.parentElement && el.parentElement.closest('[data-el]')) return;
     // A locked element wears its state: a padlock and a muted ring, and the
     // grab cursor gives way. It still SELECTS (so it can be unlocked) but the
     // drag refuses.
