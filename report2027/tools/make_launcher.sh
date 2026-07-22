@@ -33,12 +33,24 @@ CHROME="\${CHROME_BIN:-/Applications/Google Chrome.app/Contents/MacOS/Google Chr
 
 cd "\$REPO" || exit 1
 
-# Boot the live server only if nothing is already answering on the port —
-# reopening the app while it is already running just focuses the window.
-if ! curl -sf "http://localhost:\$PORT/__ping" >/dev/null 2>&1; then
-  PRIMER_OPEN=0 nohup python3 report2027/tools/serve.py >/tmp/primer-live.log 2>&1 &
+# The app OWNS the server. A server on this port that the app did not start
+# (a leftover from a Claude session, a forgotten terminal) may be running in
+# a context that cannot reach the keychain — its Push would fail — so it is
+# replaced, not reused. Reopening the app while its own server runs just
+# focuses the window. Ownership is a pidfile written at boot.
+PIDFILE="/tmp/primer-live.pid"
+up() { curl -sf "http://localhost:\$PORT/__ping" >/dev/null 2>&1; }
+mine() { [ -f "\$PIDFILE" ] && kill -0 "\$(cat "\$PIDFILE")" 2>/dev/null \
+  && lsof -nP -iTCP:\$PORT -sTCP:LISTEN -t 2>/dev/null | grep -qx "\$(cat "\$PIDFILE")"; }
+if up && ! mine; then
+  lsof -nP -iTCP:\$PORT -sTCP:LISTEN -t 2>/dev/null | xargs kill 2>/dev/null
+  sleep 1
+fi
+if ! up; then
+  PRIMER_OPEN=0 nohup python3 -u report2027/tools/serve.py >/tmp/primer-live.log 2>&1 &
+  echo \$! > "\$PIDFILE"
   for _ in \$(seq 1 40); do
-    curl -sf "http://localhost:\$PORT/__ping" >/dev/null 2>&1 && break
+    up && break
     sleep 0.25
   done
 fi
