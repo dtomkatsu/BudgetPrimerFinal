@@ -833,7 +833,7 @@ EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
 # and its number follows. The markup lives here, not in docsync, because "•
 # BUDGET PRIMER" and the left/right alternation are this report's, not the
 # engine's; docsync only computes the order.
-DESIGNED_PAGES = 12
+DESIGNED_PAGES = 13
 PAGE_ORDER = L.page_order(DESIGNED_PAGES)
 PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 
@@ -845,7 +845,8 @@ PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process",
                5: "How Money Is Spent", 6: "Spending Categories",
                7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
-               9: "Funding the Budget", 10: "Taxes", 11: "Who Pays", 12: "Endnotes"}
+               9: "Funding the Budget", 10: "Taxes", 11: "Who Pays",
+               12: "Tax Credits", 13: "Endnotes"}
 
 def stamp_page(html, pid):
     """Tag a section with its identity, edit mode only (like data-el)."""
@@ -910,7 +911,7 @@ pages.append(f"""
   <div><span>Budget Basics</span><span>{pageno(3)}</span></div>
   <div><span>How Money Is Spent</span><span>{pageno(5)}</span></div>
   <div><span>Funding the Budget</span><span>{pageno(9)}</span></div>
-  <div><span>Endnotes</span><span>{pageno(12)}</span></div>
+  <div><span>Endnotes</span><span>{pageno(13)}</span></div>
  </div>
  {L.spacer("toc.copyright")}<p class="copyright"{L.attr("toc.copyright")}>{C.slot_span("toc.copyright", "<br>".join(esc(l) for l in C.lines("toc.copyright")))}</p>
  {L.layer(2)}{L.text_boxes(2)}{L.tables_html(2)}{folio(2)}
@@ -1068,29 +1069,39 @@ pages.append(f"""
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
+{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{L.tables_html(11)}{folio(11)}
+</section>""")
+
+# -- page 12: tax credits (the callout was on page 11; moved to its own page)
+# The callout keeps its identity ("callout.whopays"), so any recolour/position
+# it carried follows it here — everything page-keyed stays by identity. Its
+# [^tax-credits] footnote sits right where it did in reading order (last of
+# page 11 -> first of page 12), so endnote numbering is unchanged.
+pages.append(f"""
+<section class="page"{L.fill_attr(f"page.12")}>
 {callout_open("whopays")}
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
-{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{L.tables_html(11)}{folio(11)}
+ {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>""")
 
-# -- page 12: endnotes ------------------------------------------------------
+# -- page 13: endnotes ------------------------------------------------------
 # Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
 # assembled body FIRST so numbering follows the page ORDER, then build the
 # endnotes page from the order that produced.
 #
-# The endnotes list is a product of resolving the very body it sits in, so page
-# 12 is assembled as a shell holding a placeholder, the whole ordered body is
-# resolved, and the placeholder is filled with the numbered list afterwards.
+# The endnotes list is a product of resolving the very body it sits in, so the
+# endnotes page is assembled as a shell holding a placeholder, the whole ordered
+# body is resolved, and the placeholder is filled with the numbered list after.
 ENDNOTES_SLOT = "<!--ds-endnotes-->"
-by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..11
-by_id[12] = f"""
-<section class="page"{L.fill_attr("page.12")}>
+by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..12
+by_id[13] = f"""
+<section class="page"{L.fill_attr("page.13")}>
  {L.spacer("endnotes.h1")}<h1{L.attr("endnotes.h1")}>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{ENDNOTES_SLOT}</ol>
- {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
+ {L.layer(13)}{L.text_boxes(13)}{L.tables_html(13)}{folio(13)}
 </section>"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
