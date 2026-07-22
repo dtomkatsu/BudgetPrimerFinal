@@ -72,6 +72,28 @@ The primitives, all authored directly in `report2027/layout.json`:
   composites — their text lives in content.md and syncs through the pipeline.
   Leave them as they are unless the user explicitly asks to decompose one.
 
+### Decomposing an existing content card
+
+If the user wants a `card()` tile's pieces to come apart, pass
+`detachable=True, min_h=<tile height in inches>` to that `card()` call, and seed
+its default group in `layout.json` `groups`:
+
+```python
+{card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"),
+      DARK, key="spent.cards.operating.bullets", detachable=True, min_h=1.83)}
+```
+```jsonc
+"groups": [["card.<key>", "<base>.title", "<key>"]]   // <base> = key without ".bullets"
+```
+
+The tile, title, and bullets become three movable objects laid out exactly as
+before by default, moving as one until the user Ungroups — then each can be
+pulled out. The title/bullet text STAYS in content.md (still editable prose).
+`min_h` keeps the tile a visible panel after its text is dragged out (measure
+the tile's rendered height first). The pieces are grabbable because the
+renderer marks them `ds-detachable` (exempt from the "nested = part of parent"
+rule). Guarded by `tests/editor/detachable-card.spec.js` in primer-editor.
+
 ## Making OTHER elements editable
 
 Everything editable shares one hook: **`{L.spacer(el_id)}` before the element +

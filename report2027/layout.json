@@ -30,5 +30,8 @@
   },
   "shapes": [],
   "boxes": [],
-  "tables": []
+  "tables": [],
+  "groups": [
+    ["card.spent.cards.operating.bullets", "spent.cards.operating.title", "spent.cards.operating.bullets"]
+  ]
 }

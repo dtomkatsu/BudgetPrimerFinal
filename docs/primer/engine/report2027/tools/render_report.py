@@ -602,7 +602,7 @@ CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
 
 
-def card(title, bullets, bg, light=None, key="", icon="", icon_id=""):
+def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable=False, min_h=None):
     """One tile. The bullets' key names it: it is already unique per card, and a
     second name for the same thing is a second thing to keep in step.
 
@@ -627,6 +627,12 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id=""):
     ul = C.ul_attr(key) if key else ""
     override = L.style(el_id, "") if el_id else ""
     style = f"background:{fill_css(bg)}" + (f";{override}" if override else "")
+    # A detachable tile keeps a floor height so it stays a visible panel after
+    # its title and bullets are dragged out of it (an empty div would collapse
+    # to nothing). In the flow, with the text still inside, the content is
+    # already this tall, so it changes nothing until something is pulled out.
+    if detachable and min_h:
+        style += f";min-height:{min_h}in"
     tag = (L.tag(el_id) + L.fill_tag(el_id)) if el_id else ""
     # An icon, when given, sits left of the title in a flex header. Passing an
     # icon_id makes it a graphic() — a movable/resizable glyph the user can drag
@@ -636,12 +642,32 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id=""):
     if icon:
         ico = (graphic(icon_id, icon, w=0.42, cls="card-ico")
                if icon_id else f'<span class="card-ico">{icon}</span>')
-        head = f'<h4 class="card-ico-h">{ico}{title}</h4>'
+        h4_inner, h4_cls = ico + title, "card-ico-h"
     else:
-        head = f'<h4>{title}</h4>'
+        h4_inner, h4_cls = title, ""
+
+    # A detachable card renders its title and bullets as their own movable
+    # objects (data-el + ds-detachable) that START laid out inside the tile but
+    # can be pulled out and placed anywhere — the pieces the user wanted to
+    # separate. The TEXT still comes from content.md (title is C.t's slot span;
+    # the <ul> keeps its data-slot), so it stays editable prose. The position
+    # hook goes on the h4 / a wrapping div, never on the same tag as the slot —
+    # two style attributes silently drop one (why the <ul> is wrapped, not
+    # tagged directly). A default group (seeded in layout.json) keeps the three
+    # moving as one until the user Ungroups.
+    if detachable and key:
+        base = key[:-len(".bullets")] if key.endswith(".bullets") else key
+        title_id = base + ".title"
+        tcls = (h4_cls + " ds-detachable").strip()
+        head = f'{L.spacer(title_id)}<h4 class="{tcls}"{L.attr(title_id)}>{h4_inner}</h4>'
+        bullets_el = (f'{L.spacer(key)}<div class="ds-detachable"{L.attr(key)}>'
+                      f'<ul{ul}>{lis}</ul></div>')
+    else:
+        head = f'<h4 class="{h4_cls}">{h4_inner}</h4>' if h4_cls else f'<h4>{h4_inner}</h4>'
+        bullets_el = f'<ul{ul}>{lis}</ul>'
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
-            f'{head}<ul{ul}>{lis}</ul></div>')
+            f'{head}{bullets_el}</div>')
 
 
 def graphic(el_id, svg, w=1.5, cls=""):
@@ -937,7 +963,7 @@ pages.append(f"""
  {C.html("spent.p1")}
  {C.html("spent.p2")}
  <div class="cards3">
-  {card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK, key="spent.cards.operating.bullets")}
+  {card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK, key="spent.cards.operating.bullets", detachable=True, min_h=1.83)}
   {card(C.t("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID, key="spent.cards.capital.bullets")}
   {card(C.t("spent.cards.onetime.title", esc=True), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True, key="spent.cards.onetime.bullets")}
  </div>

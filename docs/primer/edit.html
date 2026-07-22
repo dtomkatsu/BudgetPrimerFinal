@@ -5451,7 +5451,11 @@ function dragify(d) {
     // an image or a text box dropped into a card — must stay independently
     // grabbable. Skipping it "glued" it to its container: it could never be
     // selected or moved on its own, which is exactly the trap this exempts.
-    const independentObject = isGraphic(el) || el.classList.contains('ds-textbox');
+    // ds-detachable marks a designed sub-part that the renderer built to come
+    // apart — a content card's title or bullets, laid out inside the tile by
+    // default but meant to be pulled out and moved on its own.
+    const independentObject = isGraphic(el) || el.classList.contains('ds-textbox')
+      || el.classList.contains('ds-detachable');
     if (!independentObject && el.parentElement && el.parentElement.closest('[data-el]')) return;
     // A locked element wears its state: a padlock and a muted ring, and the
     // grab cursor gives way. It still SELECTS (so it can be unlocked) but the
