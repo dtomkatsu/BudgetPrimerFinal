@@ -1,5 +1,9 @@
 # Working on the Budget Primer
 
+> Deeper playbook: the **`report-editor` skill** (`.claude/skills/report-editor/`)
+> — load it when adding or restyling anything on a report page. This file is the
+> always-on summary.
+
 ## Adding SVGs / graphics the editor can move & resize
 
 **Any SVG, diagram, icon-lockup, or decorative graphic you add to the report
