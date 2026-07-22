@@ -98,10 +98,19 @@ def md_inline(s: str) -> str:
 
 
 def bullets(block: str) -> list[str]:
-    """'- item' lines -> [html, ...]. Errors if the block isn't a list."""
+    """'- item' lines -> [html, ...]. Errors if the block isn't a list.
+
+    In EDIT mode an empty list is a placeholder instead of an error: cutting
+    the last bullet to move it elsewhere is a normal mid-move state, and
+    crashing the live preview over it blocked exactly that move. Publishing
+    still refuses, so a list left empty doesn't quietly ship a hollow card.
+    """
     items = [md_inline(l.strip()[2:].strip())
              for l in _unhead(block).splitlines() if l.strip().startswith("- ")]
     if not items:
+        if os.environ.get("DOCSYNC_EDIT"):
+            return ['<i style="opacity:.55">empty list — add a "- " bullet '
+                    '(publishing will refuse until one exists)</i>']
         raise ContentError(f"expected a '- ' bullet list, got:\n  {block[:80]}")
     return items
 
@@ -211,10 +220,21 @@ class Footnotes:
 
     def resolve(self, html: str) -> str:
         """Replace [^id] runs with <sup>N</sup> (adjacent refs share one <sup>,
-        thin-space separated, matching the primer's multi-ref style)."""
+        thin-space separated, matching the primer's multi-ref style).
+
+        In EDIT mode a citation naming no source renders as a red ? marker
+        (hover names the missing id) instead of crashing the build — a token
+        that lost a bracket or gained a space in a copy/paste is a mid-move
+        state to show, not a wall to hit. Publishing still refuses via
+        _number's ContentError, so a typo can't ship."""
+        def one(i):
+            if i not in self.sources and os.environ.get("DOCSYNC_EDIT"):
+                return ('<a class="fn" style="color:#C0392B" title="no source named '
+                        f'[{i}] under [[sources]] — fix the citation or add the source">?</a>')
+            return str(self._number(i))
         def run(m):
             ids = re.findall(r"\[\^([^\]]+)\]", m.group(0))
-            return "<sup>" + "&thinsp;".join(str(self._number(i)) for i in ids) + "</sup>"
+            return "<sup>" + "&thinsp;".join(one(i) for i in ids) + "</sup>"
         return re.sub(r"(?:\[\^[^\]]+\])+", run, html)
 
     def unused(self) -> list[str]:

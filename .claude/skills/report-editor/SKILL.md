@@ -111,6 +111,26 @@ Everything editable shares one hook: **`{L.spacer(el_id)}` before the element +
 `el_id` convention is `<page>.<name>` (e.g. `spent.table1.caption`). Reuse an
 existing id only if you mean the same element.
 
+## Moving cited text (footnotes travel with it)
+
+A citation is the literal token `[^source-id]` in the markdown. Move the
+sentence WITH its token — into another slot, or a text box's `md` — and the
+build renumbers every endnote by first appearance in the new reading order
+automatically; text boxes resolve citations exactly like prose. The user can
+also drag entries on the Endnotes page to reorder explicitly (layout.json
+`endnote_order`).
+
+Mid-move states are edit-tolerant, publish-strict (all three pinned by
+`tools/test_render.py`):
+- source briefly uncited (sentence cut, not yet pasted) → preview builds, note
+  prints; publish refuses.
+- citation token typo'd in the paste (`[^tax credits]`, lost bracket) → renders
+  a red ? marker naming the missing id; publish refuses.
+- a card's ONLY bullet cut (list empty) → placeholder renders; publish refuses.
+
+Never retype a token by hand — copy it exactly (the id is hyphenated:
+`[^tax-credits]`, not `[^tax credits]`).
+
 ## How placement is stored (layout.json)
 
 `layout.json` is an **overrides layer**: the renderer's design is the default,

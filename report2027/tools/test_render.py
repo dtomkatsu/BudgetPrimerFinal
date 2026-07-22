@@ -70,6 +70,39 @@ def main():
     if not ok_clean:
         FAILS.append(f"the untouched fixture should build, but it failed:\n{out_clean[-400:]}")
 
+    # --- a MISTYPED citation (paste that gained a space / lost a hyphen) ------
+    typoed = src.replace(token, f"[^{single.replace('-', ' ')}]")
+    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as f:
+        f.write(typoed)
+        typo_draft = f.name
+    ok_edit2, out_edit2 = render(typo_draft, edit_mode=True)
+    if not ok_edit2:
+        FAILS.append("edit mode should TOLERATE an unknown citation id (typo mid-paste), "
+                     f"but the build failed:\n{out_edit2[-400:]}")
+    ok_pub2, out_pub2 = render(typo_draft, edit_mode=False)
+    if ok_pub2:
+        FAILS.append("publish mode should REFUSE an unknown citation id, but the build passed")
+    elif "has no entry under [[sources]]" not in out_pub2:
+        FAILS.append(f"typo'd citation failed publish for the wrong reason:\n{out_pub2[-400:]}")
+    os.unlink(typo_draft)
+
+    # --- cutting the LAST bullet out of a card (mid-move empty list) ----------
+    import re as _re
+    m2 = _re.search(r"\[\[[a-z0-9.]+\.bullets\]\]\n(- [^\n]*\n)\n", src)
+    if m2:
+        emptied = src.replace(m2.group(1), "", 1)
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as f:
+            f.write(emptied)
+            empty_draft = f.name
+        ok_edit3, out_edit3 = render(empty_draft, edit_mode=True)
+        if not ok_edit3:
+            FAILS.append("edit mode should TOLERATE an emptied bullet list (mid-move), "
+                         f"but the build failed:\n{out_edit3[-400:]}")
+        ok_pub3, _ = render(empty_draft, edit_mode=False)
+        if ok_pub3:
+            FAILS.append("publish mode should REFUSE an empty bullet list, but the build passed")
+        os.unlink(empty_draft)
+
     os.unlink(draft)
     if FAILS:
         print("RENDER TESTS FAILED:\n" + "\n\n".join(FAILS))
