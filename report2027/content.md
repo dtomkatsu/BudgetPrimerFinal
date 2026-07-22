@@ -67,15 +67,15 @@ The state budget funds Hawaiʻi's three government branches: the Legislature; th
 ### Executive
 
 [[basics.branch.executive.bullets]]
-- Enforces state laws and manages the daily operations of the government.
+- Enforces laws and manages the daily operations of the state government.
 - Consists of the Governor, Lieutenant Governor, State Departments, and the University of Hawaiʻi System.
 
 [[basics.branch.oha.title]]
 ### Office of Hawaiian Affairs
 
 [[basics.branch.oha.bullets]]
-- A semi-autonomous state agency responsible for improving the wellbeing of Native Hawaiians.
-- Legislative appropriations represent only a small portion of OHA's resources.
+- Responsible for improving the wellbeing of Native Hawaiians.
+- Semi-independent state agency
 
 [[process.h2]]
 ## Budget Process
