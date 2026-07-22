@@ -39,6 +39,13 @@ URL="http://localhost:\$PORT/primer/start.html"
 
 cd "\$REPO" || exit 1
 
+# Finder launches apps with a minimal PATH, so a bare \`python3\` — which the
+# Makefile and everything serve.py shells out to (\`make pub\` -> build_data,
+# render_report, docsync.stage) uses — resolves to Apple's system Python, which
+# lacks pyyaml and fails every build. Put the developer's python FIRST on PATH
+# so the entire build chain, not just serve.py's own launch, uses it.
+export PATH="\$(dirname "\$PYTHON"):\$PATH"
+
 # The app OWNS the server. A server on this port that the app did not start
 # (a leftover from a Claude session, a forgotten terminal) may be running in
 # a context that cannot reach the keychain — its Push would fail — so it is
