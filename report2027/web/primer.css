@@ -240,7 +240,9 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .endnotes a { word-break: break-all; }
 
 /* toolbar + tooltip (screen only) */
-.toolbar { position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between;
+/* Sits at the top of the document and scrolls away with the content — NOT
+   sticky, so it doesn't follow the viewport down the page. */
+.toolbar { display: flex; justify-content: space-between;
            align-items: center; background: var(--forest); color: #fff; padding: 10px 20px;
            font-size: 14px; }
 .toolbar button { background: var(--sage-light); color: var(--forest); border: 0;
