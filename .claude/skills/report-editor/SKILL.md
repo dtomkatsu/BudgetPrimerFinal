@@ -156,6 +156,13 @@ never silently lost.
 - The editor engine (`docsync/`, `serve.py`, `edit.html`) is **vendored from the
   separate `~/primer-editor` repo** — fix editor/tooling bugs THERE first, then
   copy here. Report *content* (pages, prose, the graphics you add) is owned here.
+- **Editing `edit.html`:** its whole stylesheet is one JS **template literal**, so
+  a backtick or `${...}` in a CSS comment ends the literal early and kills the
+  ENTIRE script — the editor then hangs on "loading the render engine…" with no
+  console error. After ANY `edit.html` change, run a boot test (`npx playwright
+  test boot-errors.spec.js`) or at least `node --check` its inline script
+  (`tools/test_render.py` now does the latter). An isolated DOM check that a
+  feature works is NOT proof the file still boots.
 - **Save** commits locally; **Push** sends the branch AND fast-forwards `main`
   (the deploy branch) — every Push publishes to the live site. If a push is
   rejected with "fetch first," CI added a rebuild commit to `main`:

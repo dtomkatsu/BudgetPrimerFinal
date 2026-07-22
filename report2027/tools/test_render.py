@@ -34,7 +34,36 @@ def render(content_path, edit_mode):
     return r.returncode == 0, (r.stdout + r.stderr)
 
 
+def check_editor_js():
+    """The editor's inline <script> is one giant JS blob whose stylesheet is a
+    template literal — a stray backtick or ${...} in a CSS COMMENT ends the
+    literal early and kills the WHOLE script, so the editor boots to a frozen
+    "loading the render engine…" with no console error the tests here would
+    see. `node --check` catches it in a second. Skipped if node is absent."""
+    import re
+    import shutil
+    if not shutil.which("node"):
+        return
+    edit = REPORT.parent / "docsync" / "editor" / "edit.html"
+    if not edit.exists():
+        return
+    html = edit.read_text()
+    scripts = re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", html, re.S)
+    if not scripts:
+        return
+    blob = max(scripts, key=len)                      # the editor script
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
+        f.write(blob)
+        js = f.name
+    r = subprocess.run(["node", "--check", js], capture_output=True, text=True)
+    os.unlink(js)
+    if r.returncode != 0:
+        FAILS.append("edit.html inline script has a JS syntax error (a backtick or "
+                     "${...} inside the stylesheet template literal?):\n" + r.stderr.strip()[:500])
+
+
 def main():
+    check_editor_js()
     src = CONTENT.read_text()
     # Pick any footnote citation the fixture has, and drop just that token so the
     # source it names is orphaned while everything else stays valid.
