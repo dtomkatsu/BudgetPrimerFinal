@@ -602,7 +602,7 @@ CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
 
 
-def card(title, bullets, bg, light=None, key="", icon=""):
+def card(title, bullets, bg, light=None, key="", icon="", icon_id=""):
     """One tile. The bullets' key names it: it is already unique per card, and a
     second name for the same thing is a second thing to keep in step.
 
@@ -628,11 +628,17 @@ def card(title, bullets, bg, light=None, key="", icon=""):
     override = L.style(el_id, "") if el_id else ""
     style = f"background:{fill_css(bg)}" + (f";{override}" if override else "")
     tag = (L.tag(el_id) + L.fill_tag(el_id)) if el_id else ""
-    # An icon, when given, sits left of the title in a flex header. Without one
-    # the heading is byte-for-byte what it always was, so every other card is
-    # untouched.
-    head = (f'<h4 class="card-ico-h"><span class="card-ico">{icon}</span>{title}</h4>'
-            if icon else f'<h4>{title}</h4>')
+    # An icon, when given, sits left of the title in a flex header. Passing an
+    # icon_id makes it a graphic() — a movable/resizable glyph the user can drag
+    # out of the header and scale — while a plain icon (no id) stays a fixed
+    # header glyph. Without any icon the heading is byte-for-byte what it always
+    # was, so every other card is untouched.
+    if icon:
+        ico = (graphic(icon_id, icon, w=0.42, cls="card-ico")
+               if icon_id else f'<span class="card-ico">{icon}</span>')
+        head = f'<h4 class="card-ico-h">{ico}{title}</h4>'
+    else:
+        head = f'<h4>{title}</h4>'
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
             f'{head}<ul{ul}>{lis}</ul></div>')
@@ -994,8 +1000,8 @@ pages.append(f"""
  {C.html("onetime.photo.caption", "photocap")}
  {L.spacer("onetime.h3")}<h3 class="sub2"{L.attr("onetime.h3")}>{C.t("onetime.h3")}</h3>
  <div class="cards2">
-  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets", icon=WARNING_ICON)}
-  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets", icon=CROSS_ICON)}
+  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets", icon=WARNING_ICON, icon_id="onetime.cards.onetime.icon")}
+  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets", icon=CROSS_ICON, icon_id="onetime.cards.emergency.icon")}
  </div>
 {C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{L.tables_html(8)}{folio(8)}
 </section>""")
