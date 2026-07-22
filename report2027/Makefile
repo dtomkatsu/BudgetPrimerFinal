@@ -6,6 +6,7 @@ all: data html pdf embed
 validate:
 	python3 tools/build_data.py --validate
 	cd .. && python3 docsync/test_docsync.py
+	python3 tools/test_render.py
 
 # The draft editor runs this report's own renderer in the browser. docsync
 # stages it — and everything it reads — next to the published page, driven by

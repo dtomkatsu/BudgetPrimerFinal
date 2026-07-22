@@ -1115,7 +1115,18 @@ C.fn.order_by(L.endnote_order(), C.fn.cited(_assembled))
 body = C.fn.resolve(_assembled)
 
 missing_src = C.fn.unused()
-if missing_src:
+# A source with no citation is a HARD error only when PUBLISHING. While editing
+# (DOCSYNC_EDIT), it is almost always a normal in-between state — you cut a
+# sentence to move it elsewhere, and for those few seconds the source it cited
+# has nothing pointing at it. Crashing the live preview over that made a routine
+# move feel like a "critical error" and blocked it. In edit mode the source is
+# simply left unrendered (it reappears the moment you paste the text back), and
+# a note prints; publish/export/CI still refuse, so a source that stays orphaned
+# — a citation typo, a genuinely dangling def — is still caught before it ships.
+if missing_src and os.environ.get("DOCSYNC_EDIT"):
+    print("  draft: source(s) not cited yet — normal while moving text: "
+          + ", ".join(missing_src))
+elif missing_src:
     srcs = ", ".join(f"[{s}]" for s in missing_src)
     hidden = [p for p in range(1, DESIGNED_PAGES + 1) if p not in PAGE_POS]
     if hidden:
@@ -1126,7 +1137,9 @@ if missing_src:
             f"hiding {names} left these sources with nothing citing them: {srcs}. "
             f"Show that page again, or remove the sources from the doc.")
     raise ContentError(
-        "content.md declares sources never cited in the prose: " + srcs)
+        "content.md declares sources never cited in the prose: " + srcs
+        + " — if you're moving the text that cites one, finish the move (paste it "
+        + "back in); this blocks publishing only, not the live preview.")
 
 en = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(C.fn.endnotes_with_ids()))
 notes = C.fn.endnotes()
