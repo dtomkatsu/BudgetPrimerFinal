@@ -75,7 +75,7 @@ The state budget funds Hawaiʻi's three government branches: the Legislature; th
 
 [[basics.branch.oha.bullets]]
 - Responsible for improving the wellbeing of Native Hawaiians.
-- Semi-independent state agency.
+- Semi-independent state agency that is mostly funded by = public trusts and its own investments.
 
 [[process.h2]]
 ## Budget Process
