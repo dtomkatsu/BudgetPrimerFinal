@@ -451,8 +451,24 @@ class Handler(SimpleHTTPRequestHandler):
         return "pushed — GitHub Pages deploys in about a minute"
 
 
-def _git(*args):
-    r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True)
+def _git(*args, timeout=45):
+    # A detached dev server has no terminal and no GUI session to answer a
+    # credential prompt, so a git that decides to ASK — a first push before the
+    # keychain has cached anything, an unreachable remote — would hang the push
+    # AND the editor's spinner forever. Force non-interactive and cap the wait:
+    # a missing credential or dead network now fails in seconds with a message
+    # you can act on. A credential already in the keychain is still used without
+    # a prompt, so a push that worked keeps working.
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0",
+           "GIT_SSH_COMMAND": "ssh -o BatchMode=yes -o ConnectTimeout=10"}
+    try:
+        r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True,
+                           text=True, env=env, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            f"git {args[0]} timed out after {timeout}s — the remote didn't answer, "
+            "or a credential prompt had no terminal to answer it. Run the push once "
+            "in your own terminal so the keychain caches the credential, then retry.")
     if r.returncode != 0:
         raise RuntimeError(f"git {args[0]} failed:\n{(r.stdout + r.stderr).strip()[-1500:]}")
 
