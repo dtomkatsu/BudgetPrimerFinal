@@ -6418,39 +6418,90 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  // A BACKGROUND tab must hold no connection. Chromium allows six HTTP/1.1
-  // connections per origin, and an SSE stream occupies one for as long as the
-  // tab lives — so six forgotten primer tabs deadlock the whole origin: the
-  // next page load queues for a slot that never frees, and "localhost isn't
-  // loading" with a perfectly healthy server. The stream (and the poll) run
-  // only while the tab is visible; coming back does one catch-up ping, which
-  // adopts anything missed exactly as the stream would have.
-  let es = null;
+  startLive(d => { setPushState(d.ahead); onBump(d.v, d.error); });
+}
+
+// ONE connection for ALL tabs. Each tab opening its own /__events stream piled
+// them up against Chromium's six-per-origin cap, and a few stale tabs then
+// deadlocked the whole origin — "localhost won't load" with a perfectly healthy
+// server. Instead the tabs elect a single LEADER (a heartbeat lock in
+// localStorage) that holds the only stream and relays each event to the others
+// through localStorage — a `storage` event fires in every OTHER tab, so no
+// BroadcastChannel is needed. Followers open no connection at all. When the
+// leader tab dies its lock goes stale and the next tab takes over. So however
+// many editor/preview tabs are open, and however they die, there is exactly one
+// connection: it cannot pile up. onEvent gets {v, ahead, error} in every tab.
+function startLive(onEvent) {
+  const LK = 'primer-live-leader', EV = 'primer-live-event';
+  const HB_MS = 2000, STALE_MS = 6000;
+  const meId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let es = null, leading = false, hb = 0, evN = 0;
+  const apply = d => { if (d) onEvent(d); };
+  const relay = d => {
+    try { localStorage.setItem(EV, JSON.stringify({ ...d, _n: ++evN + '.' + Date.now() })); } catch (e) {}
+  };
+  const setLock = () => {
+    try { localStorage.setItem(LK, JSON.stringify({ id: meId, t: Date.now() })); } catch (e) {}
+  };
+  const readLock = () => {
+    try { return JSON.parse(localStorage.getItem(LK) || 'null'); } catch (e) { return null; }
+  };
   const openStream = () => {
     if (es) return;
     try {
       es = new EventSource('/__events');
       es.onmessage = ev => {
         let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
-        setPushState(d.ahead);
-        onBump(d.v, d.error);
+        apply(d); relay(d);              // the leader reacts, then tells the rest
       };
-    } catch (e) { /* no EventSource: the poll below still works */ }
+    } catch (e) { /* no EventSource: the leader's poll below still catches builds */ }
   };
-  const closeStream = () => { if (es) { es.close(); es = null; } };
-  const catchUp = async () => {
-    try {
-      const d = await (await fetch('/__ping', { cache: 'no-store' })).json();
-      setPushState(d.ahead);
-      onBump(d.v);
-    } catch (e) { /* server stopped; leave the last render up */ }
+  const stopLeading = () => {
+    leading = false;
+    if (es) { es.close(); es = null; }
+    if (hb) { clearInterval(hb); hb = 0; }
   };
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) closeStream();
-    else { catchUp(); openStream(); }
+  const startLeading = () => {
+    setLock();
+    if (leading) return;
+    leading = true;
+    openStream();
+    hb = setInterval(() => {
+      setLock();
+      // The leader's poll: the fallback if the SSE drops, and how a Save/Push in
+      // ANY tab reaches every tab's button. Followers never poll.
+      fetch('/__ping', { cache: 'no-store' }).then(r => r.json())
+        .then(d => { apply(d); relay(d); }).catch(() => {});
+    }, HB_MS);
+  };
+  const elect = () => {
+    if (document.hidden) { stopLeading(); return; }    // a hidden tab never leads
+    const lk = readLock();
+    if (!lk || Date.now() - lk.t >= STALE_MS || lk.id === meId) startLeading();  // vacant / stale / already mine
+    else stopLeading();                                                          // someone else holds it → follow
+  };
+  const catchUpOnce = () =>
+    fetch('/__ping', { cache: 'no-store' }).then(r => r.json()).then(apply).catch(() => {});
+  // Followers hear the leader through localStorage; the writing tab never gets
+  // its own storage event, so this only ever fires in the OTHER tabs.
+  window.addEventListener('storage', e => {
+    if (e.key === EV && !leading && e.newValue) { try { apply(JSON.parse(e.newValue)); } catch (err) {} }
   });
-  if (!document.hidden) openStream();
-  setInterval(() => { if (!document.hidden) catchUp(); }, 1500);
+  document.addEventListener('visibilitychange', () => {
+    elect();
+    if (!document.hidden && !leading) catchUpOnce();   // a revealed follower doesn't wait on the next heartbeat
+  });
+  // Hand leadership over promptly on close: drop the lock if it's mine, so the
+  // next tab takes over in one heartbeat instead of waiting out the stale window.
+  window.addEventListener('pagehide', () => {
+    const lk = readLock();
+    if (lk && lk.id === meId) { try { localStorage.removeItem(LK); } catch (e) {} }
+    stopLeading();
+  });
+  elect();
+  setInterval(elect, HB_MS);
+  if (!document.hidden) catchUpOnce();   // first paint has current state without waiting for a heartbeat
+  window.__liveIsLeader = () => leading; // test hook: exactly one tab holds the stream
 }
 
 let pulling = false;

@@ -131,28 +131,43 @@ RELOAD_JS = """
     banner.textContent='build failed — the preview is the last good version\\n\\n'+msg;
   }
   function clear(){ if(banner){ banner.remove(); banner=null; } }
-  // Background tabs hold NO stream: Chromium caps an origin at six HTTP/1.1
-  // connections, and each open SSE pins one until the tab dies — a handful of
-  // forgotten preview tabs starves the pool and new loads hang forever. The
-  // stream runs only while visible; on return, one ping catches a missed build.
-  var es=null;
-  function handle(e){
-    var d=JSON.parse(e.data||'{}');
+  function apply(d){
+    if(!d) return;
     if(d.error){ show(d.error); return; }
     clear();
     if(last===undefined){ last=d.v; return; }
     if(d.v!==last) location.reload();
   }
-  function open(){ if(es) return;
-    try{ es=new EventSource('/__events'); es.onmessage=handle; }catch(e){} }
-  function close(){ if(es){ es.close(); es=null; } }
-  document.addEventListener('visibilitychange', function(){
-    if(document.hidden){ close(); return; }
-    fetch('/__ping',{cache:'no-store'}).then(function(r){return r.json();})
-      .then(function(d){ if(last!==undefined&&d.v!==last) location.reload(); else open(); })
-      .catch(open);
-  });
-  if(!document.hidden) open();
+  // ONE connection for ALL preview tabs. Each tab opening its own SSE piled them
+  // up against Chromium's six-per-origin cap, and stale tabs then deadlocked the
+  // whole origin. The tabs elect a single LEADER (a heartbeat lock in
+  // localStorage) that holds the only /__events stream and relays each event to
+  // the rest through localStorage — a `storage` event fires in every OTHER tab.
+  // Followers hold no connection. Its own key, separate from the editor's, so
+  // each surface caps at one stream (two total, well under the limit). Same
+  // design as edit.html's startLive.
+  var LK='primer-preview-leader', EV='primer-preview-event';
+  var HB=2000, STALE=6000;
+  var me=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  var es=null, leading=false, hb=0, evN=0;
+  function relay(d){ try{ localStorage.setItem(EV, JSON.stringify({v:d.v, error:d.error, _n:(++evN)+'.'+Date.now()})); }catch(e){} }
+  function setLock(){ try{ localStorage.setItem(LK, JSON.stringify({id:me,t:Date.now()})); }catch(e){} }
+  function readLock(){ try{ return JSON.parse(localStorage.getItem(LK)||'null'); }catch(e){ return null; } }
+  function onmsg(e){ var d={}; try{ d=JSON.parse(e.data||'{}'); }catch(x){} apply(d); relay(d); }
+  function openStream(){ if(es) return; try{ es=new EventSource('/__events'); es.onmessage=onmsg; }catch(e){} }
+  function stopLeading(){ leading=false; if(es){ es.close(); es=null; } if(hb){ clearInterval(hb); hb=0; } }
+  function startLeading(){ setLock(); if(leading) return; leading=true; openStream();
+    hb=setInterval(function(){ setLock();
+      fetch('/__ping',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){ apply(d); relay(d); }).catch(function(){}); }, HB); }
+  function elect(){ if(document.hidden){ stopLeading(); return; }
+    var lk=readLock();
+    if(!lk || Date.now()-lk.t>=STALE || lk.id===me) startLeading(); else stopLeading(); }
+  function catchUpOnce(){ fetch('/__ping',{cache:'no-store'}).then(function(r){return r.json();}).then(apply).catch(function(){}); }
+  window.addEventListener('storage', function(e){ if(e.key===EV && !leading && e.newValue){ try{ apply(JSON.parse(e.newValue)); }catch(x){} } });
+  document.addEventListener('visibilitychange', function(){ elect(); if(!document.hidden && !leading) catchUpOnce(); });
+  window.addEventListener('pagehide', function(){ var lk=readLock(); if(lk && lk.id===me){ try{ localStorage.removeItem(LK); }catch(e){} } stopLeading(); });
+  elect(); setInterval(elect, HB);
+  if(!document.hidden) catchUpOnce();
 })();
 </script>
 """
