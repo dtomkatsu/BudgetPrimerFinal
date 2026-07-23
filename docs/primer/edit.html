@@ -6579,6 +6579,26 @@ async function pullFromDisk() {
   } finally { pulling = false; }
 }
 
+// Re-fetch the renderer and everything it reads (render_report.py, the shared
+// docsync package, data files, images, original.html…) and rewrite them into
+// Pyodide's virtual filesystem. renderOnce() runpy.run_path's the renderer from
+// that FS every render and clears the docsync modules first, so once the files
+// are refreshed the next render runs the NEW code. Without this, a version bump
+// re-pulled only content/layout — so an edit to the RENDERER (not the prose)
+// never showed until a hard reload rebooted Pyodide. Content and layout are
+// skipped here: _pull owns those (with clash detection against unsaved edits).
+async function refreshEngineFiles() {
+  const urls = Object.keys(M.files).filter(
+    u => M.files[u] !== M.content && M.files[u] !== M.layout);
+  const datas = await Promise.all(
+    urls.map(u => BINARY_RE.test(u) ? getBytes(withBase(u)) : get(withBase(u))));
+  urls.forEach((u, i) => {
+    const path = '/repo/' + M.files[u];
+    py.FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+    py.FS.writeFile(path, datas[i]);
+  });
+}
+
 async function _pull() {
   let freshSrc = original, freshLayout = layoutOrig;
   try {
@@ -6598,7 +6618,15 @@ async function _pull() {
       layout.positions = layout.positions || {}; layout.shapes = layout.shapes || []; took = true; }
     else clash = true;
   }
-  if (took) { markDirty(); await render(); $('stat').textContent = 'updated from disk'; }
+  // A bump means SOMETHING on disk changed. It may be the renderer or a data
+  // file (not content/layout), so refresh the engine and re-render regardless
+  // of whether content/layout themselves moved — that is what makes a renderer
+  // edit show up live instead of only after a hard reload. Rendering uses the
+  // current source/layout, so an unsaved prose edit is preserved, not clobbered.
+  let engineOk = true;
+  try { await refreshEngineFiles(); } catch (e) { engineOk = false; }
+  if (engineOk && !clash) { await render(); $('stat').textContent = took ? 'updated from disk' : 'reloaded'; }
+  else if (took) { markDirty(); await render(); $('stat').textContent = 'updated from disk'; }
   if (clash) {
     $('stat').textContent = 'Claude changed the same thing you have unsaved — '
       + 'Discard to take the disk version, or Save to keep yours';
