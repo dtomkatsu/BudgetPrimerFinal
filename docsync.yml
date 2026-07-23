@@ -20,6 +20,15 @@ bindings:
     outputs:
       - report2027/web/index.html
       - docs/primer/index.html
+    # Files the renderer doesn't read directly but the live server's rebuild
+    # loop must still react to — hand-edited CSS/JS, or data the renderer only
+    # reads through report2027/tools/build_data.py, not render_report.py.
+    watch:
+      - report2027/tools/*.py
+      - report2027/web/primer.css
+      - report2027/web/primer.js
+      - report2027/data/*.json
+      - report2027/manual/*.json
     # What the draft editor needs to run THIS report in the browser. Naming it
     # here is what lets one editor serve any report: the editor reads the
     # manifest staged beside it and knows nothing about the primer.

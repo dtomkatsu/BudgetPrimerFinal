@@ -52,6 +52,11 @@ class Binding:
     anchor: str = "docsync"    # fragment mode: <!-- docsync:start|end -->
     pr: bool = False           # open a PR instead of committing to main
     outputs: list[str] = field(default_factory=list)  # extra paths to commit
+    # Extra glob patterns (relative to ROOT) the local live server should
+    # watch for changes, beyond content/layout/editor.render/editor.engine —
+    # a report's own CSS/JS or data files the renderer doesn't read directly
+    # but a rebuild should still react to.
+    watch: list[str] = field(default_factory=list)
     editor: Editor | None = None       # None: this binding has no draft editor
 
     @property
@@ -111,6 +116,7 @@ def load_registry(path: Path = REGISTRY) -> list[Binding]:
             anchor=b.get("anchor", "docsync"),
             pr=bool(b.get("pr", False)),
             outputs=list(b.get("outputs") or []),
+            watch=list(b.get("watch") or []),
             editor=_editor(b.get("editor"), where),
         ))
     return out

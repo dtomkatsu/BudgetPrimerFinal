@@ -78,8 +78,18 @@ def stage(b: Binding, repo: str = "") -> None:
     e = b.editor
     eng = e.dir / "engine"
     m = manifest(b)
+    existing = eng / "manifest.json"
     if repo:
         m["repo"] = repo
+    elif existing.is_file():
+        # Re-staging (every rebuild, not just the first `--repo` adoption)
+        # must not silently forget which repo a project pushes to — manifest()
+        # always starts from repo: None, so without this a build that re-stages
+        # without repeating --repo would blank it out on every single rebuild.
+        try:
+            m["repo"] = json.loads(existing.read_text()).get("repo") or None
+        except (json.JSONDecodeError, OSError):
+            pass
 
     for url, src in m["files"].items():
         dst = e.dir / url

@@ -830,6 +830,14 @@
 let M = null;                          // the manifest
 let REPO = '';                         // owner/name we save to
 let BRANCH = 'main';                    // the deploy branch drafts fork from and publish to
+// The live server now hosts more than one project (each possibly its own repo
+// on disk), so every /__ping, /__events, /__save, /__push, /__export call has
+// to say which one it means — otherwise a Save here could write another
+// project's files, or this tab could react to another project's rebuild.
+function withProject(path) {
+  if (!M || !M.id) return path;
+  return path + (path.includes('?') ? '&' : '?') + 'project=' + encodeURIComponent(M.id);
+}
 const $ = id => document.getElementById(id);
 const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
 
@@ -988,6 +996,19 @@ async function get(u) {
   const r = await fetch(bust(u), { cache: 'no-store' });
   if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
   return r.text();
+}
+
+// A manifest file that isn't text (an image an editor.engine list names, e.g.
+// a logo a renderer inlines as a data URI). r.text() UTF-8-decodes the
+// response — on real binary bytes that silently replaces every invalid
+// sequence with U+FFFD, corrupting the file from the first non-ASCII byte
+// on. Every manifest file used to be source code/markdown/JSON, so this
+// never came up until a project first staged a raster image.
+const BINARY_RE = /\.(png|jpe?g|gif|webp|ico|bmp|woff2?|ttf|otf)$/i;
+async function getBytes(u) {
+  const r = await fetch(bust(u), { cache: 'no-store' });
+  if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
+  return new Uint8Array(await r.arrayBuffer());
 }
 
 // --- projects: one editor, many reports ------------------------------------
@@ -6309,7 +6330,8 @@ async function boot() {
 
   const urls = Object.keys(M.files);
   const [pyodide, ...files] =
-    await Promise.all([loadPyodide(), ...urls.map(u => get(withBase(u)))]);
+    await Promise.all([loadPyodide(),
+      ...urls.map(u => BINARY_RE.test(u) ? getBytes(withBase(u)) : get(withBase(u)))]);
   // Viewing or continuing a draft: its content and layout come from the draft
   // branch, not the deployed copies (which are main's). The engine code itself
   // stays same-origin — only the two authored files differ per draft.
@@ -6426,7 +6448,7 @@ function setPushState(ahead) {
 
 async function detectLocal() {
   try {
-    const r = await fetch('/__ping', { cache: 'no-store' });
+    const r = await fetch(withProject('/__ping'), { cache: 'no-store' });
     local = r.ok;
     if (r.ok) { try {
       const j = await r.json();
@@ -6470,7 +6492,9 @@ async function detectLocal() {
 // many editor/preview tabs are open, and however they die, there is exactly one
 // connection: it cannot pile up. onEvent gets {v, ahead, error} in every tab.
 function startLive(onEvent) {
-  const LK = 'primer-live-leader', EV = 'primer-live-event';
+  // Scoped by project id: two projects' edit.html tabs open at once must not
+  // elect a shared leader or relay each other's rebuild events.
+  const LK = 'primer-live-leader:' + (M && M.id || ''), EV = 'primer-live-event:' + (M && M.id || '');
   const HB_MS = 2000, STALE_MS = 6000;
   const meId = Math.random().toString(36).slice(2) + Date.now().toString(36);
   let es = null, leading = false, hb = 0, evN = 0;
@@ -6487,7 +6511,7 @@ function startLive(onEvent) {
   const openStream = () => {
     if (es) return;
     try {
-      es = new EventSource('/__events');
+      es = new EventSource(withProject('/__events'));
       es.onmessage = ev => {
         let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
         apply(d); relay(d);              // the leader reacts, then tells the rest
@@ -6508,7 +6532,7 @@ function startLive(onEvent) {
       setLock();
       // The leader's poll: the fallback if the SSE drops, and how a Save/Push in
       // ANY tab reaches every tab's button. Followers never poll.
-      fetch('/__ping', { cache: 'no-store' }).then(r => r.json())
+      fetch(withProject('/__ping'), { cache: 'no-store' }).then(r => r.json())
         .then(d => { apply(d); relay(d); }).catch(() => {});
     }, HB_MS);
   };
@@ -6519,7 +6543,7 @@ function startLive(onEvent) {
     else stopLeading();                                                          // someone else holds it → follow
   };
   const catchUpOnce = () =>
-    fetch('/__ping', { cache: 'no-store' }).then(r => r.json()).then(apply).catch(() => {});
+    fetch(withProject('/__ping'), { cache: 'no-store' }).then(r => r.json()).then(apply).catch(() => {});
   // Followers hear the leader through localStorage; the writing tab never gets
   // its own storage event, so this only ever fires in the OTHER tabs.
   window.addEventListener('storage', e => {
@@ -7912,6 +7936,7 @@ $('save').onclick = async () => {
     $('stat').textContent = 'saving to disk…';
     try {
       const j = await postLocal('/__save', {
+        project: M.id,
         content: source !== original ? source : null,
         layout: (M.layout && layoutText !== layoutOrig) ? layoutText : null,
       });
@@ -7939,7 +7964,7 @@ $('push').onclick = async () => {
   $('push').disabled = true;
   $('stat').textContent = 'pushing…';
   try {
-    const j = await postLocal('/__push', null);
+    const j = await postLocal('/__push', { project: M.id });
     if (!j.ok) throw new Error(j.error || 'push failed');
     $('stat').textContent = j.message || 'pushed';
     setPushState(j.ahead);
@@ -8211,12 +8236,13 @@ async function doExport(fmt) {
     return;
   }
   const marks = $('dl-marks').checked;
-  const name = fmt === 'pdf' ? 'Budget-Primer-FY2026-27.pdf' : 'Budget-Primer-pages.zip';
+  const slug = M.id || 'report';
+  const name = fmt === 'pdf' ? `${slug}.pdf` : `${slug}-pages.zip`;
   $('stat').textContent = `rendering the ${fmt.toUpperCase()}… (a full report takes a moment)`;
   try {
     const r = await fetch('/__export', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fmt, marks,
+      body: JSON.stringify({ fmt, marks, project: M.id,
         content: source, layout: JSON.stringify(layout, null, 2) + '\n' }),
     });
     if ((r.headers.get('Content-Type') || '').includes('application/json')) {
