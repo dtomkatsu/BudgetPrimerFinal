@@ -1,14 +1,16 @@
 <!doctype html>
-<!-- Escape hatch for a wedged editor service worker.
+<!-- Escape hatch for a wedged editor origin.
 
      The draft editor registers a service worker scoped to /primer/. If that
      worker wedges (hung fetch events pinning the connection pool), every
      /primer/* load hangs THROUGH it — reloads included, because the reload is
-     itself intercepted. This page lives OUTSIDE that scope, so it always
+     itself intercepted; the window shows a blank/grey page while the server
+     is perfectly healthy. This page lives OUTSIDE that scope, so it always
      loads: it unregisters every worker on the origin, drops the app-shell
      caches (the Pyodide cache too — a clean slate beats a fast boot when
-     you're here), clears the live-reload leader locks, and sends you to a
-     fresh editor, which will register the current worker anew.
+     you're here), clears the live-reload leader locks (including the
+     per-project ones, e.g. "primer-live-leader:rxkids"), and sends you to a
+     fresh start page, which will register the current worker anew.
 
      Use it any time localhost:8010 "won't load": http://localhost:8010/reset.html -->
 <html lang="en">
@@ -31,13 +33,17 @@
     if (!keys.length) log('no caches');
   } catch (e) { log('cache cleanup failed: ' + e.message); }
   try {
-    for (const k of ['primer-live-leader', 'primer-live-event',
-                     'primer-preview-leader', 'primer-preview-event'])
-      localStorage.removeItem(k);
-    log('cleared live-reload locks');
+    // The live-reload locks are per-project now ("primer-live-leader:<id>"),
+    // so sweep by prefix rather than naming four fixed keys.
+    const gone = [];
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (/^primer-(live|preview)-(leader|event)/.test(k)) { localStorage.removeItem(k); gone.push(k); }
+    }
+    log(gone.length ? 'cleared live-reload locks: ' + gone.join(', ') : 'no live-reload locks');
   } catch (e) {}
   log('done — opening a fresh editor…');
-  setTimeout(() => location.replace('/primer/edit.html'), 800);
+  setTimeout(() => location.replace('/primer/start.html'), 800);
 })();
 </script>
 </body>
