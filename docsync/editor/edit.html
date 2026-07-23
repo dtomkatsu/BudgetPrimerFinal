@@ -7476,6 +7476,12 @@ function edit(d, key) {
     host.classList.remove('ds-edit', 'ds-inline');
     if (keep) {
       if (newVal.trim() !== readSlot(key)) {
+        // Record the pre-edit state FIRST, or this text change (a typed edit,
+        // a deletion) is not undoable — every other edit path pushes history,
+        // but the slot editor didn't, so ⌘Z after editing prose found nothing
+        // to undo (or undid an earlier move instead). Push only on a real
+        // change, so opening and closing a slot without editing adds nothing.
+        pushHistory();
         writeSlot(key, newVal);
         dirty = source !== original || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
         $('save').disabled = $('revert').disabled = !dirty;
