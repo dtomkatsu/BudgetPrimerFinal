@@ -69,6 +69,10 @@
     },
     "spent.h1": {
       "size": 65
+    },
+    "basics.h1": {
+      "size": 60
     }
-  }
+  },
+  "sections": {}
 }
