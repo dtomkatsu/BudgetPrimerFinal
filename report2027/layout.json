@@ -62,5 +62,10 @@
       "spent.cards.operating.title",
       "spent.cards.operating.bullets"
     ]
-  ]
+  ],
+  "text": {
+    "funding.h1": {
+      "size": 65
+    }
+  }
 }
