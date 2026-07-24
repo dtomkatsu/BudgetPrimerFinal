@@ -2528,6 +2528,66 @@ function showHandles(d, page, el) {
 const hideHandles = d => d.querySelectorAll('.ds-handles, .ds-mini')
   .forEach(h => h.remove());       // the mini bar rides the handles' lifecycle
 
+// ---------------------------------------------------- resizable sections
+// A colored background band (data-sec, from L.sec in the renderer) is not a
+// movable: it stays in flow, its background stays glued to it, and the ONLY
+// thing the user adjusts is its height — a grip on its bottom edge drags a
+// min-height override into layout.sections. Dragging back down to the
+// section's natural content height clears the override entirely, so an
+// untouched page stays untouched.
+function wireSections(d) {
+  d.querySelectorAll('[data-sec]').forEach(el => {
+    const id = el.dataset.sec;
+    if (d.defaultView.getComputedStyle(el).position === 'static') {
+      el.style.position = 'relative';           // anchors the grip; edit-only render
+    }
+    const grip = d.createElement('div');
+    grip.className = 'ds-sec-grip';
+    grip.title = 'Drag to stretch this section - drag back down to its content to reset';
+    grip.addEventListener('mousedown', e0 => {
+      if (e0.button !== 0) return;
+      e0.preventDefault(); e0.stopPropagation();
+      const page = el.closest('section.page') || d.querySelector('section.page');
+      const px = DPI * zoomOf(page);
+      if (!px) return;
+      pushHistory();
+      // Natural height = what the section stands at with no override; the
+      // clear threshold, measured live so content edits are always honoured.
+      const was = el.style.minHeight;
+      el.style.minHeight = '';
+      const naturalIn = el.getBoundingClientRect().height / px;
+      el.style.minHeight = was;
+      const startIn = el.getBoundingClientRect().height / px;
+      const grabY = e0.clientY;
+      grip.classList.add('ds-active');
+      d.body.classList.add('ds-resizing');
+      let hIn = startIn, cleared = !was;
+      const move = e => {
+        hIn = startIn + (e.clientY - grabY) / px;
+        cleared = hIn <= naturalIn + 0.05;
+        el.style.minHeight = cleared ? '' : hIn.toFixed(2) + 'in';
+        $('stat').textContent = cleared
+          ? id + ' -> natural height'
+          : id + ' -> ' + hIn.toFixed(2) + 'in tall';
+      };
+      const up = () => {
+        d.removeEventListener('mousemove', move);
+        d.removeEventListener('mouseup', up);
+        grip.classList.remove('ds-active');
+        d.body.classList.remove('ds-resizing');
+        layout.sections = layout.sections || {};
+        if (cleared) delete layout.sections[id];
+        else layout.sections[id] = { h: +Math.max(0.2, hIn).toFixed(2) };
+        markDirty();
+        reportFit(d);                 // the page may have grown under it
+      };
+      d.addEventListener('mousemove', move);
+      d.addEventListener('mouseup', up);
+    });
+    el.appendChild(grip);
+  });
+}
+
 function startResize(d, el, e0, dir) {
   const page = el.closest('section.page') || d.querySelector('section.page');
   const pr = page.getBoundingClientRect();
@@ -6050,6 +6110,7 @@ async function restoreCachedDraft() {
   try { layout = JSON.parse(cachedLayout); } catch (e) { source = original; return; }
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
+  layout.sections = layout.sections || {};
   cachedRestored = true;
 }
 
@@ -6369,6 +6430,7 @@ async function boot() {
   }
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
+  layout.sections = layout.sections || {};
   // Put the rebuilt checkout on the path once, here, rather than inside the
   // render call — the type row asks the engine for its font list before
   // anything has rendered.
@@ -6615,7 +6677,7 @@ async function _pull() {
   if (M.layout && freshLayout !== layoutOrig) {
     const mineChanged = JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
     if (!mineChanged) { layoutOrig = freshLayout; layout = JSON.parse(freshLayout || '{}');
-      layout.positions = layout.positions || {}; layout.shapes = layout.shapes || []; took = true; }
+      layout.positions = layout.positions || {}; layout.shapes = layout.shapes || []; layout.sections = layout.sections || {}; took = true; }
     else clash = true;
   }
   // A bump means SOMETHING on disk changed. It may be the renderer or a data
@@ -6765,6 +6827,7 @@ function wire() {
   showLocalImages(d);
   dragify(d);
   contextify(d);
+  wireSections(d);
   wireCells(d);
   keysFor(d);
   wireMarkState(d);            // chrome B/I state tracks the edit selection
@@ -6819,6 +6882,14 @@ function wire() {
   });
   const css = d.createElement('style');
   css.textContent = `
+    /* Section grip: a thin strip on a colored band's bottom edge; the pill
+       appears on hover so an untouched page shows nothing. */
+    .ds-sec-grip { position:absolute; left:0; right:0; bottom:-5px;
+                   height:10px; cursor:ns-resize; z-index:9990; }
+    .ds-sec-grip:hover::after, .ds-sec-grip.ds-active::after {
+      content:""; position:absolute; left:50%; transform:translateX(-50%);
+      bottom:3px; width:44px; height:5px; border-radius:3px;
+      background:#6B9E78; box-shadow:0 0 0 1.5px #fff, 0 2px 8px rgba(20,30,35,.3); }
     [data-slot] { cursor:text; border-radius:3px; transition:background .12s;
                   outline:1px dashed transparent; outline-offset:3px; }
     [data-slot]:hover { background:#EAF3EC; outline-color:#95B7A2; }

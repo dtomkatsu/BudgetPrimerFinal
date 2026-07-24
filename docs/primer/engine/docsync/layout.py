@@ -552,6 +552,12 @@ class Layout:
         # order, and anything else keeps its first-appearance place after
         # them. An id that is no longer cited is simply ignored.
         self.endnotes = raw.get("endnotes") or []
+        # Height overrides for colored background sections, {id: {"h": in}}.
+        # A section keeps its background glued to itself and its text in flow;
+        # the override only stretches (or trims toward natural height) the
+        # band via min-height — the web-native half of the Canva model, see
+        # STAGE2_AUTOMATION.md. Emitted by sec().
+        self.sections = raw.get("sections") or {}
         self._validate()
 
     def endnote_order(self) -> list:
@@ -559,6 +565,9 @@ class Layout:
         return [e for e in self.endnotes if isinstance(e, str)]
 
     def _validate(self):
+        for el, s in self.sections.items():
+            if not isinstance(s, dict) or _num(s.get("h"), f"section '{el}'.h") <= 0:
+                raise LayoutError(f"section '{el}': needs a positive 'h'")
         for el, p in self.positions.items():
             for k in ("x", "y"):
                 if k not in p:
@@ -854,6 +863,28 @@ class Layout:
         wid = f'width:{p["w"]}in;' if p.get("w") else ""
         return (f'<div class="ds-spacer" style="{wid}height:{p["reserve"]}in;'
                 f'flex:0 0 auto" aria-hidden="true"></div>')
+
+    def sec(self, el_id: str) -> str:
+        """Attributes for a resizable colored background section.
+
+        Unlike attr(), the element is never taken out of the flow — the only
+        override is min-height, so the band can stretch past its content or
+        trim back toward it, while the text keeps flowing and the background
+        stays glued to the section. data-sec (edit mode only) is what gives
+        the editor's bottom-edge grip its target; the style ships in both
+        modes so publish honours the drag.
+
+        For sections that carry no style attribute of their own — the caller
+        (docsync.propose skips styled sections) must guarantee that, or the
+        first style attribute silently wins.
+        """
+        bits = []
+        if os.environ.get("DOCSYNC_EDIT"):
+            bits.append(f'data-sec="{el_id}"')
+        s = self.sections.get(el_id)
+        if s and s.get("h"):
+            bits.append(f'style="min-height:{s["h"]}in"')
+        return (" " + " ".join(bits)) if bits else ""
 
     def tag(self, el_id: str) -> str:
         """Just the data-el hook, for elements that already carry a style of
