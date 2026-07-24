@@ -45,10 +45,15 @@ handles. `tests/editor/graphic.spec.js` (in the primer-editor repo) guards it.
 ## Repo layout & the editor
 
 - The live editor / engine (`docsync/`, `report2027/tools/serve.py`,
-  `edit.html`) is **vendored from the separate `~/primer-editor` repo** — fix
-  editor/tooling bugs THERE first, then copy the file(s) here. Report *content*
-  (`content.md`, `layout.json`, the numbers, page-specific markup like the
-  appropriation-card icons) is owned HERE and never flows back to primer-editor.
+  `edit.html`) is **vendored from the separate `~/primer-editor` repo, and the
+  vendoring is AUTOMATIC**: primer-editor's post-commit hook runs
+  `python3 -m docsync.vendor`, which copies the engine here, restages
+  `docs/primer`, and makes a local commit. So: NEVER edit engine files in this
+  repo — the next vendor run refuses while they're dirty, and your change
+  would be orphaned anyway. Fix engine/editor/tooling bugs in
+  `~/primer-editor` and commit there; the copy arrives on its own. Report
+  *content* (`content.md`, `layout.json`, the numbers, page-specific markup
+  like the appropriation-card icons) is owned HERE and never flows back.
 - **Never launch the live server yourself.** "Budget Primer Editor.app" owns
   it; a server started any other way can't reach the keychain and its Push
   hangs. If it needs a restart, ask the user to relaunch the app.
