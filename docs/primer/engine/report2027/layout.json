@@ -28,21 +28,7 @@
       "w": 1.58
     }
   },
-  "shapes": [
-    {
-      "id": "s1-rect",
-      "page": 3,
-      "kind": "rect",
-      "x": 2.13,
-      "y": 1.59,
-      "w": 2,
-      "h": 1,
-      "fill": "#6B9E78",
-      "stroke": "none",
-      "sw": 0.02,
-      "z": 3
-    }
-  ],
+  "shapes": [],
   "boxes": [
     {
       "id": "t1",
