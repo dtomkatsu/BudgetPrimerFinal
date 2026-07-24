@@ -26,10 +26,12 @@ is no more one global ROOT/CONTENT/LAYOUT — see PROJECTS.
 """
 from __future__ import annotations
 
+import base64
 import glob
 import importlib.util
 import io
 import json
+import re
 import mimetypes
 import os
 import shutil
@@ -473,7 +475,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
-        if path not in ("/__save", "/__push", "/__export"):
+        if path not in ("/__save", "/__push", "/__export", "/__upload"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
@@ -485,6 +487,11 @@ class Handler(SimpleHTTPRequestHandler):
         pid = req.get("project") or DEFAULT_PROJECT
         if pid not in PROJECTS:
             return self._json(200, {"ok": False, "error": f"unknown project '{pid}'"})
+        if path == "/__upload":
+            try:
+                return self._json(200, {"ok": True, **self._upload(pid, req)})
+            except Exception as e:                   # noqa: BLE001 — report it
+                return self._json(200, {"ok": False, "error": str(e)})
         try:
             msg = self._push(pid) if path == "/__push" else self._save(pid, req)
             return self._json(200, {"ok": True, "message": msg, "v": STATE[pid].version,
@@ -492,6 +499,35 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception as e:                       # noqa: BLE001 — report it
             return self._json(200, {"ok": False, "error": str(e),
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
+
+    def _upload(self, pid: str, req) -> dict:
+        """Write an uploaded image into the project's assets dir, on disk.
+
+        The file itself IS the persistence — it lands in the checkout next to
+        everything else the project owns, and the next Save's path-scoped
+        commit picks the assets dir up along with content/layout (see _save).
+        Committing here instead would make an upload alone create history,
+        which Save never does for any other edit.
+        """
+        b = PROJECTS[pid]["binding"]
+        name = re.sub(r"[^a-z0-9.]+", "-", str(req.get("name") or "")
+                      .lower()).strip("-")
+        if not name or "." not in name:
+            raise RuntimeError(f"bad image name {req.get('name')!r}")
+        try:
+            data = base64.b64decode(req.get("data") or "", validate=True)
+        except Exception as e:
+            raise RuntimeError(f"bad image data: {e}") from e
+        if not data or len(data) > 20 * 1024 * 1024:
+            raise RuntimeError("image is empty or over 20MB")
+        assets = _assets_dir(b)
+        assets.mkdir(parents=True, exist_ok=True)
+        (assets / name).write_bytes(data)
+        # The prose/box path is relative to the project's built page.
+        out_dir = (b.editor.out if b.editor else b.content).parent
+        src = os.path.relpath(assets / name, out_dir)
+        return {"src": src, "path": str((assets / name).relative_to(
+            PROJECTS[pid]["root"]))}
 
     # ---- export: render the editor's CURRENT draft to a file and stream it ---
     # The editor posts its in-memory content + layout, so you download exactly
@@ -654,6 +690,15 @@ class Handler(SimpleHTTPRequestHandler):
         paths.extend(b.outputs)
         if b.editor:
             paths.append(str(b.editor.dir.relative_to(root)))
+        # Uploaded images (_upload writes them to disk without committing)
+        # ride the Save that uses them, like every other edit. A path-scoped
+        # commit only takes tracked files, so a NEW image must be added first
+        # — still scoped to the assets dir, nothing else can ride along.
+        assets = _assets_dir(b)
+        if assets.exists():
+            rel = str(assets.relative_to(root))
+            _git(root, "add", "--", rel)
+            paths.append(rel)
         if subprocess.run(["git", "-C", str(root), "diff", "--quiet", "HEAD", "--",
                            *paths]).returncode == 0:
             return "already up to date"
@@ -683,6 +728,16 @@ class Handler(SimpleHTTPRequestHandler):
                     "or run: git fetch && git merge origin/" + branch) from e
             raise
         return "pushed — GitHub Pages deploys in about a minute"
+
+
+def _assets_dir(b) -> Path:
+    """Where a project's uploaded images live: the binding's own assets dir
+    when it names one, else an assets/ folder beside the built page — the
+    place a relative "assets/…" src in the page resolves to."""
+    if b.editor and b.editor.assets:
+        return b.editor.assets
+    out = b.editor.out if b.editor else b.content
+    return out.parent / "assets"
 
 
 def _git(root: Path, *args, timeout=45):

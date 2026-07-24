@@ -1071,7 +1071,13 @@ class Layout:
         mine = [b for b in self.boxes if b.get("page") == page]
         if not mine:
             return ""
-        out = []
+        # An image inside a box (the Insert-image flow stores one as a box
+        # whose markdown is just the image) is sized BY the box: the box's
+        # width is the one thing the editor's resize drags, so the picture
+        # must follow it. Engine-owned so it holds in every project, not
+        # just ones whose own stylesheet happens to style .inline-img.
+        out = ['<style>.ds-textbox img.inline-img{display:block;width:100%;'
+               'height:auto;margin:0}</style>']
         for b in mine:
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')

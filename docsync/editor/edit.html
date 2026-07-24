@@ -750,6 +750,14 @@
     </div>
   </div>
   <span class="ty-sep"></span>
+  <!-- Insert is not selection-contextual, but it lives here so "put a photo
+       on the page" is answered at a glance, like Group is. Always enabled. -->
+  <button id="ar-img" aria-label="Insert image — uploads into the project's assets and places it on this page">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"><rect x="1.5" y="2" width="11" height="10"
+      rx="1.5"/><circle cx="5" cy="5.6" r="1.1" fill="currentColor" stroke="none"/>
+      <path d="M2.5 10.5l3-3 2.2 2.2 2-2 1.8 1.8"/></svg></button>
+  <span class="ty-sep"></span>
   <button id="ar-dup" aria-label="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4"><rect x="1.5" y="1.5" width="8" height="8" rx="1.5"/>
@@ -1742,8 +1750,13 @@ async function compressImageFile(file) {
 /** Pick a file, push it to the repo's assets, and hand back its path — the
  *  one upload flow, whether the image lands in prose or replaces another. */
 async function uploadImageFile(d, onDone) {
-  const tok = await ensureAuth();
-  if (!tok) return;
+  // Local mode needs no token: the dev server writes the file into the
+  // checkout's assets dir, and the next Save's path-scoped commit takes it
+  // along. Only the hosted (GitHub API) path authenticates.
+  if (!local) {
+    const tok = await ensureAuth();
+    if (!tok) return;
+  }
   const inp = d.createElement('input');
   inp.type = 'file';
   inp.accept = 'image/*';
@@ -1766,6 +1779,18 @@ async function uploadImageFile(d, onDone) {
     $('stat').textContent = shrunk
       ? `uploading ${name}… (shrunk ${beforeKB.toFixed(0)}KB → ${afterKB.toFixed(0)}KB)`
       : `uploading ${name}…`;
+    if (local) {
+      try {
+        const j = await postLocal('/__upload', { project: M.id, name, data: b64 });
+        if (!j.ok) throw new Error(j.error || 'upload failed');
+        localImages.set(j.src, dataUrl);   // preview before the next build copies it
+        $('stat').textContent = `${name} saved to ${j.path} — commits with your next Save`;
+        onDone(j.src, name);
+      } catch (e) {
+        $('stat').textContent = 'upload failed: ' + e.message;
+      }
+      return;
+    }
     try {
       // Images ride the draft too: they publish with the prose that uses them
       // instead of landing on main ahead of it. (Local mode keeps main — the
@@ -4890,6 +4915,25 @@ $('ar-back').addEventListener('click', () => layerStep($('out').contentDocument,
 
 $('ar-dup').addEventListener('click', () => duplicateSel($('out').contentDocument));
 $('ar-del').addEventListener('click', () => deleteSel($('out').contentDocument));
+// Insert image: one upload flow (uploadImageFile — local disk or GitHub,
+// mode-appropriate), then the image lands as a floating BOX whose markdown
+// is just the image. A box is already movable, resizable, layerable and
+// persisted in layout.json, so the image inherits every behaviour placed
+// text has, and the asset file itself lives with the project (assets dir).
+$('ar-img').addEventListener('click', () => {
+  const d = $('out').contentDocument;
+  uploadImageFile(d, async (path, name) => {
+    pushHistory();
+    const id = freeBoxId();
+    const page = visiblePageId();
+    boxes().push({ id, page, x: 1, y: 1.5, w: 3, z: 2, md: `![${name}](${path})` });
+    setSel(d, ['text.' + id]);
+    markDirty();
+    await render();
+    $('stat').textContent =
+      `${name} placed on page ${page} — drag to move, edges to resize`;
+  });
+});
 $('ar-lock').addEventListener('click', () => toggleLockSel($('out').contentDocument));
 $('ar-group').addEventListener('click', () => groupSel($('out').contentDocument));
 $('ar-ungroup').addEventListener('click', () => ungroupSel($('out').contentDocument));
@@ -6030,7 +6074,12 @@ function paintShape(d, id) {
   const sh = layout.shapes.find(s => s.id === id);
   const node = d.querySelector(`[data-shape="${id}"]`);
   if (!sh || !node) return;
-  if (sh.kind === 'rect') {
+  if (sh.kind === 'rect' || sh.kind === 'icon') {
+    // An icon is a nested <svg> and reads the same box attributes a rect
+    // does. It used to fall through to the line branch below, which set
+    // x1/y1/x2/y2 — attributes a nested svg ignores — so a dragged icon
+    // updated layout.shapes but never moved on screen until the next full
+    // render: the "I can't move icons" bug.
     node.setAttribute('x', sh.x); node.setAttribute('y', sh.y);
     node.setAttribute('width', sh.w); node.setAttribute('height', sh.h);
   } else if (sh.kind === 'ellipse') {
@@ -6825,6 +6874,10 @@ let pendingResolve = null;            // its render()'s resolver, for supersede
 function wire() {
   const d = $('out').contentDocument;
   showLocalImages(d);
+  // Native image-drag steals the gesture before the editor's mousemove ever
+  // fires — grab a placed photo and a ghost image flies while the box stays
+  // put. Never wanted in an editor; the editor's own drag does the moving.
+  d.querySelectorAll('section.page img').forEach(i => { i.draggable = false; });
   dragify(d);
   contextify(d);
   wireSections(d);

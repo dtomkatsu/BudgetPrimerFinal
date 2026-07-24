@@ -10,6 +10,7 @@ whether a push is safe.
     python3 docsync/test_docsync.py
 """
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -520,7 +521,10 @@ check("a box renders its markdown", boxed.text_boxes(3), "<b>Note:</b>")
 check("a box takes the same styles as a slot", boxed.text_boxes(3), "font-size:13px")
 # Same reason a text slot has no height: pin one and it either clips its words
 # or leaves a hole the moment they change. Its bottom is the fit check's job.
-check_eq("a box pins no height", "height:" in boxed.text_boxes(3), False)
+# (Numeric heights only — the engine's box-image rule says height:auto, which
+# is the opposite of pinning.)
+check_eq("a box pins no height",
+         bool(re.search(r"(?<!min-)height:[\d.]", boxed.text_boxes(3))), False)
 check_eq("no boxes means no markup at all", _layout({}).text_boxes(3), "")
 
 check("a box needs an id",
