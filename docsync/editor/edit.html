@@ -445,17 +445,51 @@
   .tp-custom { width:24px; height:24px; padding:1px; border:1px dashed #8B9A90;
         border-radius:6px; background:#fff; cursor:pointer; }
 
-  /* the chart panel: type picker, data grid, settings — Canva's three parts */
-  .ch-types { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
-        margin-bottom:6px; }
-  .ch-type { display:flex; flex-direction:column; align-items:center; gap:3px;
-        padding:8px 2px 6px; border:1px solid #DCE4DE; border-radius:9px;
-        background:#fff; color:#52796F; cursor:pointer; font:9.5px system-ui;
-        transition:background .12s, border-color .12s, color .12s; }
-  .ch-type:hover { background:#EDF4EE; border-color:var(--sage); }
-  .ch-type.on { background:var(--sage); border-color:var(--sage); color:#fff; }
-  .ch-type svg { display:block; }
+  /* the chart panel: a type dropdown, Data | Customize tabs, and — under
+     Customize — collapsible sections, so a long option list stays scannable */
+  .ch-typebar { display:flex; align-items:center; gap:8px; padding:8px 10px;
+        border:1px solid #DCE4DE; border-radius:10px; margin:2px 0 10px; }
+  .ch-typeicon { flex:none; display:grid; place-items:center; color:#52796F; }
+  .ch-typeicon svg { width:20px; height:20px; display:block; }
+  .ch-typesel { flex:1; min-width:0; border:0; background:none; cursor:pointer;
+        font:600 13px system-ui; color:var(--ink); appearance:none;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%2352796F' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat:no-repeat; background-position:right center;
+        background-size:12px; padding-right:16px; }
+  .ch-typesel:focus { outline:2px solid rgba(107,158,120,.45); outline-offset:2px; }
+  .ch-tabs { display:flex; border-bottom:1px solid #E3EAE5; margin-bottom:10px; }
+  .ch-tab { flex:1; border:0; background:none; cursor:pointer; padding:8px 0 9px;
+        font:600 13px system-ui; color:#7A8E92; border-bottom:2px solid transparent;
+        margin-bottom:-1px; transition:color .12s, border-color .12s; }
+  .ch-tab:hover { color:var(--ink); }
+  .ch-tab.on { color:var(--ink); border-bottom-color:var(--sage); }
+  /* Customize sections */
+  .ch-sec { display:flex; align-items:center; gap:9px; width:100%; padding:9px 10px;
+        border:0; border-radius:8px; background:none; cursor:pointer;
+        font:600 12.5px system-ui; color:var(--ink); text-align:left; }
+  .ch-sec:hover { background:#F3F7F4; }
+  .ch-sec.open { background:#EDF4EE; }
+  .ch-sec-ico { flex:none; display:grid; place-items:center; color:#52796F; }
+  .ch-sec-lab { flex:1; }
+  .ch-sec-arrow { flex:none; color:#7A8E92; font-size:12px; transition:transform .14s; }
+  .ch-sec.open .ch-sec-arrow { transform:rotate(180deg); }
+  .ch-secbody { padding:6px 10px 12px; }
+  .ch-fieldlab { font:12px system-ui; color:#52796F; margin:8px 0 5px; }
+  /* a real switch, not a pill button — a toggle reads as on/off at a glance */
+  .ch-switchrow { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .ch-switch { flex:none; width:36px; height:20px; border-radius:99px; border:0;
+        background:#CFDAD3; cursor:pointer; position:relative; padding:0;
+        transition:background .14s; }
+  .ch-switch::after { content:""; position:absolute; top:2px; left:2px;
+        width:16px; height:16px; border-radius:50%; background:#fff;
+        box-shadow:0 1px 3px rgba(0,0,0,.28); transition:transform .14s; }
+  .ch-switch.on { background:var(--sage); }
+  .ch-switch.on::after { transform:translateX(16px); }
+  /* the data sheet */
   .ch-grid { display:grid; gap:4px; align-items:center; margin-bottom:7px; }
+  .ch-dot { width:9px; height:9px; border-radius:50%; justify-self:center;
+        border:1px solid rgba(0,0,0,.12); }
+  .ch-num { text-align:right; }
   .ch-hd { font:600 10px system-ui; color:#7A8E92; text-transform:uppercase;
         letter-spacing:.4px; }
   .ch-grid input { min-width:0; width:100%; box-sizing:border-box;
@@ -3570,6 +3604,27 @@ function tableCellKey(e) {
   return false;
 }
 
+/** A report's own STICKY or FIXED chrome — a web toolbar, a floating CTA —
+ *  paints over the canvas and takes every click that lands on it, including
+ *  clicks meant for whatever sits underneath. The primer's `.toolbar` is
+ *  `position:sticky; z-index:50`, well above the shape layer, so any object
+ *  scrolled under it simply could not be grabbed: it bit charts hardest,
+ *  because a chart is big enough that its top is usually under the bar by the
+ *  time the rest of it is on screen.
+ *
+ *  In the editor that chrome is decoration — its links and print button are
+ *  for the published page — so it stops taking the pointer. It still renders,
+ *  and nothing about the published output changes. Found by hit-testing a
+ *  chart's title and getting back the toolbar. */
+function deafenStickyChrome(d) {
+  d.querySelectorAll('body > *:not(script):not(style)').forEach(el => {
+    if (el.id === 'ds-edit-css' || (el.className || '').toString().startsWith('ds-')) return;
+    if (el.tagName === 'SECTION' && el.classList.contains('page')) return;
+    const pos = d.defaultView.getComputedStyle(el).position;
+    if (pos === 'sticky' || pos === 'fixed') el.style.pointerEvents = 'none';
+  });
+}
+
 function wireCells(d) {
   d.querySelectorAll('table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
     .forEach(td => {
@@ -4228,6 +4283,12 @@ function chartKindIcon(kind) {
     + '<path d="M12 12V3a9 9 0 1 0 9 9z"/><path d="M14 2.2V10h7.8A9 9 0 0 0 14 2.2z" opacity=".45"/></svg>';
 }
 
+// Which tab the chart panel is showing, and which Customize sections are
+// open. Kept outside the render so a redraw (every data edit re-renders the
+// whole panel) does not throw you back to the top.
+let chartTab = 'data';
+const chartOpen = { text: true, xaxis: false, yaxis: false, settings: false };
+
 function renderChartPanel() {
   const pop = $('chartpop');
   if (!pop || pop.hidden || sidePanelTool !== 'chart') return;
@@ -4240,37 +4301,62 @@ function renderChartPanel() {
     return;
   }
   const c = s.chart;
-  const h = t => { const p = document.createElement('p'); p.className = 'pop-h';
-                   p.textContent = t; pop.appendChild(p); return p; };
   const isPie = c.type === 'pie' || c.type === 'donut';
 
-  // --- 1. type -------------------------------------------------------------
-  h('Chart type');
-  const gal = document.createElement('div');
-  gal.className = 'ch-types';
-  pop.appendChild(gal);
+  // --- the type, as one dropdown ------------------------------------------
+  // A select, not a row of tiles: the type is a single choice you make once,
+  // and it should not cost a quarter of the panel to show four options.
+  const typeRow = document.createElement('div');
+  typeRow.className = 'ch-typebar';
+  typeRow.innerHTML = `<span class="ch-typeicon">${chartKindIcon(c.type)}</span>`;
+  const sel = document.createElement('select');
+  sel.className = 'ch-typesel';
+  sel.setAttribute('aria-label', 'Chart type');
   CHART_KINDS.forEach(([k, label]) => {
-    const b = document.createElement('button');
-    b.className = 'ch-type' + (c.type === k ? ' on' : '');
-    b.title = label;
-    b.setAttribute('aria-label', label + ' chart');
-    b.innerHTML = chartKindIcon(k) + `<span>${label}</span>`;
-    // Switching type keeps the data, exactly as Canva does — that is the
-    // whole point of separating the type picker from the data table.
-    b.addEventListener('click', () => chartWrite(ch => { ch.type = k; }));
-    gal.appendChild(b);
+    const o = document.createElement('option');
+    o.value = k; o.textContent = label;
+    if (c.type === k) o.selected = true;
+    sel.appendChild(o);
   });
+  // Switching type keeps the data — the whole reason type and data are
+  // separate surfaces.
+  sel.addEventListener('change', () => chartWrite(ch => { ch.type = sel.value; }));
+  typeRow.appendChild(sel);
+  pop.appendChild(typeRow);
 
-  // --- 2. data -------------------------------------------------------------
-  h('Data');
+  // --- Data | Customize ----------------------------------------------------
+  const tabs = document.createElement('div');
+  tabs.className = 'ch-tabs';
+  [['data', 'Data'], ['customize', 'Customize']].forEach(([k, label]) => {
+    const b = document.createElement('button');
+    b.className = 'ch-tab' + (chartTab === k ? ' on' : '');
+    b.textContent = label;
+    b.addEventListener('click', () => { chartTab = k; renderChartPanel(); });
+    tabs.appendChild(b);
+  });
+  pop.appendChild(tabs);
+
+  const mk = (host, label, title, fn, dis) => {
+    const b = document.createElement('button');
+    b.className = 'tp-btn'; b.textContent = label; b.title = title;
+    b.disabled = !!dis;
+    b.addEventListener('click', fn); host.appendChild(b); return b;
+  };
+
+  if (chartTab === 'data') renderChartData(pop, s, c, isPie, mk);
+  else renderChartCustomize(pop, s, c, isPie, mk);
+}
+
+/** The data table: labels down the side, one column per series, and a colour
+ *  dot on each row so the sheet says which bar or slice it feeds. */
+function renderChartData(pop, s, c, isPie, mk) {
+  const cols = isPie ? 1 : c.series.length;
   const grid = document.createElement('div');
   grid.className = 'ch-grid';
-  // A pie reads ONE series, so its editor shows one value column and hides the
-  // machinery for more — offering series that cannot be drawn is a lie.
-  const cols = isPie ? 1 : c.series.length;
-  grid.style.gridTemplateColumns = `1fr repeat(${cols}, minmax(0, 1fr)) auto`;
+  grid.style.gridTemplateColumns = `14px 1fr repeat(${cols}, minmax(0, 1fr)) auto`;
   const cell = (el, cls) => { if (cls) el.className = cls; grid.appendChild(el); return el; };
-  // header row
+
+  cell(document.createElement('span'));                       // dot column
   cell(Object.assign(document.createElement('span'), { textContent: 'Label' }), 'ch-hd');
   c.series.slice(0, cols).forEach((se, si) => {
     const inp = document.createElement('input');
@@ -4280,15 +4366,24 @@ function renderChartPanel() {
     cell(inp);
   });
   cell(document.createElement('span'));
-  // body rows
+
   (c.labels || []).forEach((lab, ri) => {
+    // A pie is coloured per row (slice); a bar chart per column (series), so
+    // the row dot only means something for a pie — for bars it shows the
+    // first series' colour as a hint rather than pretending to be a control.
+    const dot = document.createElement('span');
+    dot.className = 'ch-dot';
+    dot.style.background = isPie
+      ? ((c.colors || [])[ri] || CHART_FALLBACK[ri % CHART_FALLBACK.length])
+      : (c.series[0].color || CHART_FALLBACK[0]);
+    cell(dot);
     const li = document.createElement('input');
     li.value = lab; li.placeholder = 'Label';
     li.addEventListener('change', () => chartWrite(ch => { ch.labels[ri] = li.value; }));
     cell(li);
     c.series.slice(0, cols).forEach((se, si) => {
       const vi = document.createElement('input');
-      vi.type = 'number'; vi.step = 'any';
+      vi.type = 'number'; vi.step = 'any'; vi.className = 'ch-num';
       vi.value = se.data[ri] === undefined ? '' : se.data[ri];
       vi.addEventListener('change', () => chartWrite(ch => {
         ch.series[si].data[ri] = vi.value === '' ? 0 : +vi.value;
@@ -4311,12 +4406,6 @@ function renderChartPanel() {
   const rowBtns = document.createElement('div');
   rowBtns.className = 'tp-row';
   pop.appendChild(rowBtns);
-  const mk = (host, label, title, fn, dis) => {
-    const b = document.createElement('button');
-    b.className = 'tp-btn'; b.textContent = label; b.title = title;
-    b.disabled = !!dis;
-    b.addEventListener('click', fn); host.appendChild(b); return b;
-  };
   mk(rowBtns, '+ Row', 'Add a data row', () => chartWrite(ch => {
     ch.labels.push('Item ' + (ch.labels.length + 1));
     ch.series.forEach(x => x.data.push(0));
@@ -4330,117 +4419,163 @@ function renderChartPanel() {
       ch.series.pop();
     }), c.series.length <= 1);
   }
-
-  // --- 3. settings ---------------------------------------------------------
-  h('Settings');
-  const ti = document.createElement('input');
-  ti.className = 'ch-title'; ti.value = c.title || ''; ti.placeholder = 'Chart title';
-  ti.addEventListener('change', () => chartWrite(ch => {
-    if (ti.value.trim()) ch.title = ti.value.trim(); else delete ch.title;
-  }));
-  pop.appendChild(ti);
-  const opts = document.createElement('div');
-  opts.className = 'tp-row'; pop.appendChild(opts);
-  const toggle = (label, key, dflt) => {
-    const on = c[key] === undefined ? dflt : !!c[key];
-    const b = mk(opts, label, label, () => chartWrite(ch => { ch[key] = !on; }));
-    b.classList.toggle('on', on);
-  };
-  toggle('Legend', 'legend', false);
-  toggle('Values', 'values', false);
-  if (!isPie) toggle('Grid', 'grid', true);
-
-  // --- colours -------------------------------------------------------------
-  // A pie is coloured per SLICE, a bar chart per SERIES: the same control,
-  // pointed at whichever the chart actually draws from.
-  h(isPie ? 'Slice colours' : 'Series colours');
-  // One click to recolour the whole chart from a palette colour: the rest of
-  // the set is generated by stepping lightness, so a five-slice pie is still
-  // readable rather than five swatches of the same green.
-  const ramp = document.createElement('div');
-  ramp.className = 'tp-sw';
-  pop.appendChild(ramp);
-  (M.palette || []).forEach(base => {
-    const b = document.createElement('button');
-    b.className = 'tp-swatch';
-    b.style.background = base;
-    b.title = 'Colour the whole chart from ' + base;
-    b.addEventListener('click', () => chartWrite(ch => {
-      const n = isPie ? (ch.labels || []).length : ch.series.length;
-      const set = Array.from({ length: Math.max(1, n) },
-        (_, i) => n < 2 ? base : tint(base, (i / (n - 1)) * 0.62));
-      if (isPie) ch.colors = set;
-      else ch.series.forEach((se, i) => { se.color = set[i]; });
-    }));
-    ramp.appendChild(b);
-  });
-  const names = isPie ? (c.labels || []) : c.series.map(x => x.name);
-  names.forEach((nm, i) => {
-    const row = document.createElement('div');
-    row.className = 'ch-colrow';
-    const lab = document.createElement('span');
-    lab.className = 'ch-collab'; lab.textContent = nm || `#${i + 1}`;
-    const cur = isPie ? ((c.colors || [])[i] || CHART_FALLBACK[i % CHART_FALLBACK.length])
-                      : (c.series[i].color || CHART_FALLBACK[i % CHART_FALLBACK.length]);
-    const sw = document.createElement('input');
-    sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = cur;
-    sw.addEventListener('change', () => chartWrite(ch => {
-      if (isPie) { ch.colors = ch.colors || []; ch.colors[i] = sw.value.toUpperCase(); }
-      else ch.series[i].color = sw.value.toUpperCase();
-    }));
-    row.append(lab, sw);
-    pop.appendChild(row);
-  });
-
-  // --- ink -----------------------------------------------------------------
-  // The chart's TEXT and rules, separate from its data colours: a dark chart
-  // on a dark band needs pale labels, and that has nothing to do with which
-  // colour a bar is.
-  h('Text & lines');
-  const CH_INK = [['titleColor', 'Title', '#2F3E46'], ['labelColor', 'Labels', '#52796F'],
-                  ['axisColor', 'Axis', '#7A8E92'], ['gridColor', 'Gridlines', '#E4EBE6']];
-  CH_INK.forEach(([key, label, dflt]) => {
-    if (isPie && (key === 'axisColor' || key === 'gridColor')) return;   // nothing to paint
-    const row = document.createElement('div');
-    row.className = 'ch-colrow';
-    const lab = document.createElement('span');
-    lab.className = 'ch-collab'; lab.textContent = label;
-    const sw = document.createElement('input');
-    sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = c[key] || dflt;
-    sw.addEventListener('change', () =>
-      chartWrite(ch => { ch[key] = sw.value.toUpperCase(); }));
-    const rst = document.createElement('button');
-    rst.className = 'ch-reset'; rst.textContent = '⟲';
-    rst.title = 'Back to the default';
-    rst.disabled = !c[key];
-    rst.addEventListener('click', () => chartWrite(ch => { delete ch[key]; }));
-    row.append(lab, rst, sw);
-    pop.appendChild(row);
-  });
-
-  // The chart's own background rides the shape's fill, so it is the same
-  // control every other shape uses — surfaced here so it is where you look.
-  const bgRow = document.createElement('div');
-  bgRow.className = 'ch-colrow';
-  const bgLab = document.createElement('span');
-  bgLab.className = 'ch-collab'; bgLab.textContent = 'Background';
-  const bgNone = document.createElement('button');
-  bgNone.className = 'ch-reset'; bgNone.textContent = '⟲';
-  bgNone.title = 'No background';
-  bgNone.disabled = !s.fill || s.fill === 'none';
-  bgNone.addEventListener('click', () => chartWrite((ch, sh) => { sh.fill = 'none'; }));
-  const bgSw = document.createElement('input');
-  bgSw.type = 'color'; bgSw.className = 'ch-colsw';
-  bgSw.value = (typeof s.fill === 'string' && s.fill !== 'none') ? s.fill : '#FFFFFF';
-  bgSw.addEventListener('change', () =>
-    chartWrite((ch, sh) => { sh.fill = bgSw.value.toUpperCase(); }));
-  bgRow.append(bgLab, bgNone, bgSw);
-  pop.appendChild(bgRow);
+  // Transpose: the commonest fix when a pasted sheet came in the wrong way
+  // round, and the reason Canva keeps a button for it next to the table.
+  const utilRow = document.createElement('div');
+  utilRow.className = 'tp-row';
+  pop.appendChild(utilRow);
+  mk(utilRow, '⇄ Swap rows/columns', 'Turn the table on its side',
+    () => chartWrite(ch => {
+      const rows = ch.labels.slice(), ser = ch.series.slice();
+      ch.labels = ser.map((x, i) => x.name || 'Series ' + (i + 1));
+      ch.series = rows.map((name, ri) => ({
+        name, data: ser.map(x => x.data[ri] || 0),
+      }));
+      delete ch.colors;
+    }), isPie || c.series.length < 1);
 
   const note = document.createElement('p');
   note.className = 'side-note';
   note.textContent = 'Double-click the title or any label on the page to rename it.';
   pop.appendChild(note);
+}
+
+/** Customize: collapsible sections, so a long list of options is scannable. */
+function renderChartCustomize(pop, s, c, isPie, mk) {
+  const section = (key, icon, label, build) => {
+    const head = document.createElement('button');
+    head.className = 'ch-sec' + (chartOpen[key] ? ' open' : '');
+    head.innerHTML = `<span class="ch-sec-ico">${icon}</span>`
+      + `<span class="ch-sec-lab"></span><span class="ch-sec-arrow">⌄</span>`;
+    head.querySelector('.ch-sec-lab').textContent = label;
+    head.addEventListener('click', () => { chartOpen[key] = !chartOpen[key]; renderChartPanel(); });
+    pop.appendChild(head);
+    if (!chartOpen[key]) return;
+    const body = document.createElement('div');
+    body.className = 'ch-secbody';
+    pop.appendChild(body);
+    build(body);
+  };
+  const toggleRow = (host, label, key, dflt) => {
+    const on = c[key] === undefined ? dflt : !!c[key];
+    const row = document.createElement('div');
+    row.className = 'ch-switchrow';
+    const lab = document.createElement('span');
+    lab.className = 'ch-collab'; lab.textContent = label;
+    const sw = document.createElement('button');
+    sw.className = 'ch-switch' + (on ? ' on' : '');
+    sw.setAttribute('role', 'switch');
+    sw.setAttribute('aria-checked', String(on));
+    sw.setAttribute('aria-label', label);
+    sw.addEventListener('click', () => chartWrite(ch => { ch[key] = !on; }));
+    row.append(lab, sw);
+    host.appendChild(row);
+  };
+  const textField = (host, label, get, set, placeholder) => {
+    const l = document.createElement('p');
+    l.className = 'ch-fieldlab'; l.textContent = label;
+    const i = document.createElement('input');
+    i.className = 'ch-title'; i.value = get() || ''; i.placeholder = placeholder || '';
+    i.addEventListener('change', () => chartWrite(ch => set(ch, i.value)));
+    host.append(l, i);
+  };
+  const inkRow = (host, label, key, dflt) => {
+    const row = document.createElement('div');
+    row.className = 'ch-colrow';
+    const lab = document.createElement('span');
+    lab.className = 'ch-collab'; lab.textContent = label;
+    const rst = document.createElement('button');
+    rst.className = 'ch-reset'; rst.textContent = '⟲';
+    rst.title = 'Back to the default';
+    rst.disabled = !c[key];
+    rst.addEventListener('click', () => chartWrite(ch => { delete ch[key]; }));
+    const sw = document.createElement('input');
+    sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = c[key] || dflt;
+    sw.addEventListener('change', () => chartWrite(ch => { ch[key] = sw.value.toUpperCase(); }));
+    row.append(lab, rst, sw);
+    host.appendChild(row);
+  };
+
+  const I = {
+    text: '<svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 3.2V2h10v1.2M7 2v10M5.2 12h3.6"/></svg>',
+    bars: '<svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="2" y="8" width="2.6" height="4.5" rx="0.6"/><rect x="5.7" y="5" width="2.6" height="7.5" rx="0.6"/><rect x="9.4" y="2" width="2.6" height="10.5" rx="0.6"/></svg>',
+    cog: '<svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 4h10M2 10h10"/><circle cx="5" cy="4" r="1.5"/><circle cx="9.5" cy="10" r="1.5"/></svg>',
+  };
+
+  section('text', I.text, 'Text', body => {
+    toggleRow(body, 'Legend', 'legend', false);
+    toggleRow(body, 'Data labels', 'values', false);
+    textField(body, 'Title', () => c.title,
+      (ch, v) => { if (v.trim()) ch.title = v.trim(); else delete ch.title; }, 'Add title');
+    inkRow(body, 'Title colour', 'titleColor', '#2F3E46');
+    inkRow(body, 'Label colour', 'labelColor', '#52796F');
+  });
+
+  if (!isPie) {
+    section('xaxis', I.bars, 'Axis & grid', body => {
+      toggleRow(body, 'Gridlines', 'grid', true);
+      inkRow(body, 'Axis colour', 'axisColor', '#7A8E92');
+      inkRow(body, 'Gridline colour', 'gridColor', '#E4EBE6');
+    });
+  }
+
+  section('settings', I.cog, isPie ? 'Slice colours' : 'Series colours', body => {
+    // One click to recolour the whole chart from a palette colour: the rest of
+    // the set is generated by stepping lightness, so a five-slice pie is still
+    // readable rather than five swatches of the same green.
+    const ramp = document.createElement('div');
+    ramp.className = 'tp-sw';
+    body.appendChild(ramp);
+    (M.palette || []).forEach(base => {
+      const b = document.createElement('button');
+      b.className = 'tp-swatch';
+      b.style.background = base;
+      b.title = 'Colour the whole chart from ' + base;
+      b.addEventListener('click', () => chartWrite(ch => {
+        const n = isPie ? (ch.labels || []).length : ch.series.length;
+        const set = Array.from({ length: Math.max(1, n) },
+          (_, i) => n < 2 ? base : tint(base, (i / (n - 1)) * 0.62));
+        if (isPie) ch.colors = set;
+        else ch.series.forEach((se, i) => { se.color = set[i]; });
+      }));
+      ramp.appendChild(b);
+    });
+    const names = isPie ? (c.labels || []) : c.series.map(x => x.name);
+    names.forEach((nm, i) => {
+      const row = document.createElement('div');
+      row.className = 'ch-colrow';
+      const lab = document.createElement('span');
+      lab.className = 'ch-collab'; lab.textContent = nm || `#${i + 1}`;
+      const cur = isPie ? ((c.colors || [])[i] || CHART_FALLBACK[i % CHART_FALLBACK.length])
+                        : (c.series[i].color || CHART_FALLBACK[i % CHART_FALLBACK.length]);
+      const sw = document.createElement('input');
+      sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = cur;
+      sw.addEventListener('change', () => chartWrite(ch => {
+        if (isPie) { ch.colors = ch.colors || []; ch.colors[i] = sw.value.toUpperCase(); }
+        else ch.series[i].color = sw.value.toUpperCase();
+      }));
+      row.append(lab, sw);
+      body.appendChild(row);
+    });
+    // The chart's own background rides the shape's fill — the same control
+    // every other shape uses, surfaced here so it is where you look.
+    const bgRow = document.createElement('div');
+    bgRow.className = 'ch-colrow';
+    const bgLab = document.createElement('span');
+    bgLab.className = 'ch-collab'; bgLab.textContent = 'Background';
+    const bgNone = document.createElement('button');
+    bgNone.className = 'ch-reset'; bgNone.textContent = '⟲';
+    bgNone.title = 'No background';
+    bgNone.disabled = !s.fill || s.fill === 'none';
+    bgNone.addEventListener('click', () => chartWrite((ch, sh) => { sh.fill = 'none'; }));
+    const bgSw = document.createElement('input');
+    bgSw.type = 'color'; bgSw.className = 'ch-colsw';
+    bgSw.value = (typeof s.fill === 'string' && s.fill !== 'none') ? s.fill : '#FFFFFF';
+    bgSw.addEventListener('change', () =>
+      chartWrite((ch, sh) => { sh.fill = bgSw.value.toUpperCase(); }));
+    bgRow.append(bgLab, bgNone, bgSw);
+    body.appendChild(bgRow);
+  });
 }
 
 // Mirrors CHART_COLORS in layout.py — the swatch has to show the colour the
@@ -8549,6 +8684,7 @@ function wire() {
   dragify(d);
   contextify(d);
   wireSections(d);
+  deafenStickyChrome(d);
   wireCells(d);
   paintCells(d);               // a cell range is ids, so it survives a render
   // Chart text edits where it is read. Bound on the text node, which sees the

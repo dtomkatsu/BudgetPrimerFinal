@@ -1636,7 +1636,12 @@ class Layout:
                 attrs.append(f'opacity="{s["alpha"]:g}"')
             bg = s.get("fill")
             bg = bg if isinstance(bg, str) and bg != "none" else "none"
-            return (f'<g {" ".join(attrs)} style="pointer-events:bounding-box">'
+            # The hit area is the background RECT, not the <g>. A container has
+            # no geometry of its own, so pointer-events:bounding-box on it is
+            # unreliable; a full-size rect with pointer-events:all is the
+            # standard way to make a mostly-empty drawing grabbable, and it is
+            # what actually catches the pointer here.
+            return (f'<g {" ".join(attrs)}>'
                     f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{bg}"'
                     f' pointer-events="all"/>'
                     f'{chart_svg(s.get("chart") or {}, x, y, w, h)}</g>')
