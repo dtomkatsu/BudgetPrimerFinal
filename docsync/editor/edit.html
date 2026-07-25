@@ -53,9 +53,8 @@
   #bar { position:relative; display:flex; gap:8px; align-items:center; padding:8px 14px;
          background:var(--chrome); color:var(--txt); flex-wrap:nowrap;
          border-bottom:1px solid var(--line); }
-  #brand { display:flex; align-items:center; gap:7px; font-weight:700;
-           letter-spacing:.2px; color:#fff; white-space:nowrap; flex:none; }
-  #brand svg { display:block; }
+  /* A thin rule between the history/commit group and the rest. */
+  .bar-sep { flex:none; width:1px; height:20px; background:var(--line); margin:0 3px; }
   #stat { flex:1 1 40px; min-width:40px; opacity:.9; overflow:hidden;
           text-overflow:ellipsis; white-space:nowrap; }
   #bar > button, #bar > span:not(#stat) { flex:none; }
@@ -65,16 +64,17 @@
   #zoom { display:none !important; }
 
   /* Left tool rail — Canva-style: a narrow column of icon-over-label buttons. */
-  #leftrail { flex:none; width:64px; background:var(--chrome2);
+  #leftrail { flex:none; width:72px; background:var(--chrome2);
               border-right:1px solid var(--line); display:flex; flex-direction:column;
-              align-items:stretch; gap:2px; padding:8px 5px; overflow-y:auto; }
-  #leftrail button { display:flex; flex-direction:column; align-items:center; gap:6px;
+              align-items:stretch; gap:4px; padding:10px 7px; overflow-y:auto; }
+  #leftrail button { display:flex; flex-direction:column; align-items:center; gap:7px;
                      background:none; border:0; color:var(--txt); cursor:pointer;
-                     padding:10px 3px; border-radius:9px; font:600 10.5px system-ui;
-                     transition:background .12s; }
+                     padding:11px 3px 9px; border-radius:12px;
+                     font:600 10.5px system-ui; letter-spacing:.1px;
+                     transition:background .12s, color .12s; }
   #leftrail button:hover { background:var(--ctl); }
   #leftrail button.on { background:var(--sage); color:#fff; }
-  #leftrail button svg { width:21px; height:21px; }
+  #leftrail button svg { width:23px; height:23px; }
   /* A boot failure is the one status the row must not quietly ellipsis away:
      it is the only thing on screen telling you why nothing works. */
   #stat.err { opacity:1; color:#FFD9D4; font-weight:600; cursor:help; }
@@ -82,8 +82,14 @@
            background:rgba(255,255,255,.07); padding:2px 8px; border-radius:99px; }
   #fit { background:#C0392B; color:#fff; padding:3px 10px; border-radius:99px;
          font:12px system-ui; cursor:help; }
-  /* one button language everywhere: quiet by default, sage when primary */
-  #bar button { display:inline-flex; align-items:center; gap:6px; font:12.5px system-ui;
+  /* one button language everywhere: quiet by default, sage when primary.
+     Scoped to the bar's OWN buttons (direct children, plus the zoom segment):
+     the .pop popovers are children of #bar too, and a bare "#bar button" (id +
+     type) outranked every .pop class rule — so each popover row rendered as a
+     dark slab of chrome sitting on a white card. That is what made the Shape,
+     Text and Download menus look the way they did. */
+  #bar > button, #zoom button {
+                display:inline-flex; align-items:center; gap:6px; font:12.5px system-ui;
                 background:var(--ctl); color:var(--txt); border:1px solid var(--ctl-line);
                 border-radius:7px; padding:5px 12px; cursor:pointer; height:29px;
                 transition:background .12s, border-color .12s; }
@@ -91,11 +97,11 @@
      Share/Publish/Push all render anyway once "hidden" is only an attribute.
      Pre-existing (Share/Publish never had a test asserting the local-mode
      hidden state to catch it); found while wiring Push. */
-  #bar button[hidden] { display:none; }
-  #bar button:hover { border-color:var(--sage); background:#4B5B68; }
-  #bar button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
+  #bar > button[hidden] { display:none; }
+  #bar > button:hover, #zoom button:hover { border-color:var(--sage); background:#4B5B68; }
+  #bar > button:disabled { opacity:.45; cursor:default; border-color:var(--ctl-line);
                          background:var(--ctl); }
-  #bar button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #bar > button.on { background:var(--sage); border-color:var(--sage); color:#fff; }
   #undo, #redo { font-size:16px; line-height:1; padding:4px 9px; }
 
   /* Sources manager — a light panel over the preview, in the top document so a
@@ -175,52 +181,82 @@
   #stage { flex:1; min-height:0; overflow:auto; position:relative; background:#EDF1EE; }
   #out { border:0; display:block; width:1200px; height:100%;
          transform-origin:0 0; background:#EDF1EE; }
-  /* Page rail: numbered chips ACROSS THE BOTTOM, drag to reorder, eye to
-     hide. It sat down the left until the left column became a panel host —
-     a filmstrip is the more natural read for page order anyway. */
-  #rail { flex:none; display:flex; align-items:center; gap:7px;
+  /* Page strip: Canva's filmstrip across the bottom — each chip is a real
+     PREVIEW of its page (the rendered section itself, cloned into a shadow
+     root and scaled), numbered, drag to reorder, eye to hide. */
+  #rail { flex:none; display:flex; align-items:flex-start; gap:10px;
           overflow-x:auto; overflow-y:hidden; background:var(--chrome);
-          border-top:1px solid var(--line); padding:8px 10px; scrollbar-width:thin; }
-  #rail-list { display:flex; align-items:center; gap:7px; }
+          border-top:1px solid var(--line); padding:10px 12px; scrollbar-width:thin; }
+  #rail-list { display:flex; align-items:flex-start; gap:10px; }
   #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
-          color:var(--dim); flex:none; padding-right:4px; }
-  .chip { position:relative; display:flex; align-items:center; gap:7px; flex:none;
-          padding:7px 8px; border:1px solid var(--ctl-line); border-radius:8px;
-          background:var(--ctl); color:var(--txt); cursor:pointer; font:12px system-ui;
-          transition:border-color .12s, opacity .12s; }
-  .chip:hover { border-color:var(--sage); }
-  .chip.on { border-color:var(--sage); background:#4B5B68; }
-  .chip.hidden-pg { opacity:.4; }
-  .chip.blank { border-style:dashed; }
-  /* Horizontal now, so the insertion marker is a LEFT edge, not a top one. */
-  .chip.drag-over { border-color:var(--sage); border-left-width:3px; }
-  .chip-n { font:700 12px ui-monospace,monospace; min-width:20px; }
-  .chip-lab { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-          font-size:11px; color:var(--dim); }
-  .chip-x { border:0; background:none; color:var(--dim); cursor:pointer; font-size:14px;
-          padding:0 2px; line-height:1; }
-  .chip-x:hover { color:#F2B8A8; }
-  .chip-eye { border:0; background:none; cursor:pointer; padding:0 2px; opacity:.7;
-          font-size:12px; }
-  .chip-eye:hover { opacity:1; }
-  #rail-add { display:flex; align-items:center; justify-content:center; gap:6px;
-          flex:none; padding:8px 12px; border:1px dashed var(--ctl-line);
-          border-radius:8px; background:none; color:var(--dim); cursor:pointer;
-          font:12px system-ui; }
+          color:var(--dim); flex:none; padding:24px 4px 0 0; align-self:center; }
+  .chip { position:relative; display:flex; flex-direction:column; align-items:center;
+          gap:4px; flex:none; width:52px; padding:0; border:0; background:none;
+          color:var(--txt); cursor:pointer; font:12px system-ui;
+          transition:opacity .12s; }
+  /* The preview frame. A page is portrait, so the box is: fixed width, and a
+     height that suits 8.5x11 — anything taller (a scrolling web page bound as
+     one long "page") scales to WIDTH and clips, showing its top, as Canva's
+     own long-page thumbnails do. */
+  .chip-thumb { position:relative; width:52px; height:67px; flex:none;
+          border-radius:5px; overflow:hidden; background:#fff;
+          border:1px solid var(--ctl-line); box-shadow:0 1px 3px rgba(0,0,0,.22);
+          transition:border-color .12s, box-shadow .12s; }
+  .chip:hover .chip-thumb { border-color:var(--sage); }
+  .chip.on .chip-thumb { border-color:var(--sage);
+          box-shadow:0 0 0 2px var(--sage), 0 1px 3px rgba(0,0,0,.22); }
+  /* No preview to show: a hidden page is not in the rendered document, and a
+     brand-new blank one has nothing on it yet. */
+  .chip-thumb.empty { background:repeating-linear-gradient(45deg,
+          #fff 0 6px, #F1F4F2 6px 12px); }
+  .chip-view { position:absolute; inset:0; overflow:hidden; }
+  .chip.hidden-pg { opacity:.45; }
+  .chip.hidden-pg .chip-thumb { border-style:dashed; }
+  .chip.blank .chip-thumb { border-style:dashed; }
+  /* Horizontal, so the insertion marker is a LEFT edge, not a top one. */
+  .chip.drag-over .chip-thumb { border-color:var(--sage); border-left-width:3px; }
+  /* The number sits ON the preview, bottom-left, over a scrim so it stays
+     legible whatever the page behind it happens to be. */
+  .chip-n { position:absolute; left:0; bottom:0; z-index:2; padding:1px 5px 1px 4px;
+          border-radius:0 5px 0 4px; background:rgba(47,62,70,.72); color:#fff;
+          font:700 10px ui-monospace,monospace; line-height:1.35;
+          pointer-events:none; }
+  .chip-lab { width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+          text-align:center; font-size:9.5px; line-height:1.3; color:var(--dim); }
+  .chip.on .chip-lab { color:var(--txt); }
+  /* Controls ride on the preview's top-right and only on hover — Canva keeps
+     a page thumbnail clean until you reach for it. */
+  .chip-x, .chip-eye { position:absolute; top:2px; right:2px; z-index:3;
+          border:0; border-radius:4px; cursor:pointer; padding:0; line-height:1;
+          width:17px; height:17px; display:flex; align-items:center;
+          justify-content:center; background:rgba(47,62,70,.78); color:#E8EDE6;
+          opacity:0; transition:opacity .12s, background .12s; }
+  .chip:hover .chip-x, .chip:hover .chip-eye,
+  .chip-x:focus-visible, .chip-eye:focus-visible { opacity:1; }
+  /* A hidden page's eye is its only way back — always visible, or the chip
+     offers no way to undo hiding except undo itself. */
+  .chip.hidden-pg .chip-eye { opacity:1; }
+  .chip-x { font-size:13px; }
+  .chip-eye { font-size:9px; }
+  .chip-x:hover { background:#8A4A3A; color:#fff; }
+  .chip-eye:hover { background:var(--sage); color:#fff; }
+  #rail-add { display:flex; flex-direction:column; align-items:center;
+          justify-content:center; gap:3px; flex:none; width:52px; height:67px;
+          border:1px dashed var(--ctl-line); border-radius:5px; background:none;
+          color:var(--dim); cursor:pointer; font:9.5px system-ui; }
   #rail-add:hover { border-color:var(--sage); color:var(--txt); }
-  .chip-lab { max-width:110px; }
 
   /* -- the left panel: a tool's full surface, where a popover would be
      cramped. Light, because it is a content surface rather than chrome. */
-  #side { width:288px; flex:none; display:flex; flex-direction:column;
+  #side { width:318px; flex:none; display:flex; flex-direction:column;
           background:#fff; color:var(--ink); border-right:1px solid #C9D6CD; }
   #side[hidden] { display:none; }
   #side-head { display:flex; align-items:center; justify-content:space-between;
-          padding:14px 16px 10px; font:600 15px system-ui; }
-  #side-x { border:0; background:none; font-size:17px; line-height:1; cursor:pointer;
-          color:#52796F; padding:2px 4px; }
-  #side-x:hover { color:var(--ink); }
-  #side-body { flex:1; min-height:0; overflow-y:auto; padding:0 16px 18px; }
+          padding:15px 18px 8px; font:700 17px/1.2 system-ui; letter-spacing:-.2px; }
+  #side-x { border:0; background:none; font-size:15px; line-height:1; cursor:pointer;
+          color:#7A8E92; padding:5px; border-radius:50%; }
+  #side-x:hover { color:var(--ink); background:#EDF1EE; }
+  #side-body { flex:1; min-height:0; overflow-y:auto; padding:0 18px 20px; }
   #side-body h4 { display:flex; align-items:center; gap:7px; font:600 12.5px system-ui;
           margin:16px 0 9px; color:var(--ink); }
   #side-search { width:100%; box-sizing:border-box; font:13px system-ui;
@@ -237,6 +273,60 @@
   .cdot.none { background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M1 9L9 1%27 stroke=%27%23C0392B%27/%3E%3C/svg%3E") center/100% no-repeat; }
   .cdot.eye { background:#fff; font-size:13px; }
   .side-note { font:11.5px system-ui; color:#7A8E92; margin:8px 0 0; }
+
+  /* -- a tool's picker, DOCKED in the left column instead of hanging off the
+     rail in a 190px popover. Canva's arrangement: the panel is the surface, and
+     the choices are an array of big rounded art tiles with their names under
+     them. The pop keeps its id and its buttons — dockPanel() only MOVES the
+     node into #side-body and adds .docked, so every handler (and every test
+     selector) still points at exactly the same elements. */
+  .pop.docked { position:static; width:auto; min-width:0; max-width:none;
+        padding:0; border:0; border-radius:0; box-shadow:none; }
+  .pop.docked .pop-h { margin:18px 0 10px; font:600 12.5px system-ui;
+        letter-spacing:0; text-transform:none; color:var(--ink); }
+  .pop.docked > .pop-h:first-child { margin-top:4px; }
+
+  /* the array itself: art square over a label, three across */
+  .tgrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:15px 11px; }
+  .tgrid .shp { display:flex; flex-direction:column; align-items:center; gap:8px;
+        width:100%; padding:0; border:0; background:none; cursor:pointer;
+        font:500 11.5px/1.2 system-ui; color:#4A5B62; text-align:center; }
+  .tile-art { display:grid; place-items:center; width:100%; aspect-ratio:1;
+        border-radius:15px; background:#F1F5F2; border:1px solid #E3EAE5;
+        transition:background .13s, border-color .13s, transform .13s,
+        box-shadow .13s; }
+  .tgrid .shp svg { width:40px; height:40px; }
+  /* .pop .shp:hover paints the row sage — right for a menu row, wrong for a
+     tile, where only the art square should react. */
+  .tgrid .shp:hover { background:none; color:var(--ink); }
+  .tgrid .shp:hover .tile-art { background:#E5EFE8; border-color:var(--sage);
+        transform:translateY(-2px); box-shadow:0 7px 16px rgba(47,62,70,.14); }
+  .tgrid .shp:active .tile-art { transform:translateY(0);
+        box-shadow:0 2px 6px rgba(47,62,70,.12); }
+
+  /* text presets: previews at their real weight, the way Canva shows them */
+  .pop.docked .txtpreset { display:block; width:100%; text-align:left;
+        padding:14px 15px; margin-bottom:10px; border:1px solid #E3EAE5;
+        border-radius:12px; background:#F8FAF9; color:var(--ink);
+        transition:background .13s, border-color .13s; }
+  .pop.docked .txtpreset:hover { background:#E9F2EC; border-color:var(--sage);
+        color:var(--ink); }
+
+  /* the icon panel: search over a scrolling array of the same tiles */
+  .pop.docked #icon-q, .pop.docked #icon-set { border-radius:9px; padding:9px 11px;
+        font:13px system-ui; }
+  .pop.docked #icon-grid { grid-template-columns:repeat(4, 1fr); gap:9px;
+        max-height:none; margin-top:12px; overflow:visible; }
+  .pop.docked .icon-tile { border-radius:12px; background:#F1F5F2;
+        border:1px solid #E3EAE5;
+        transition:background .13s, border-color .13s, transform .13s; }
+  .pop.docked .icon-tile svg { width:26px; height:26px; }
+  .pop.docked .icon-tile:hover { background:#E5EFE8; border-color:var(--sage);
+        transform:translateY(-2px); }
+  .pop.docked .icon-note { margin:12px 0 0; }
+  /* recently used: the last icons placed, so re-using one is a single click */
+  #icon-recent { display:grid; grid-template-columns:repeat(4, 1fr); gap:9px; }
+  #icon-recent:empty { display:none; }
 
   /* -- the picker: SV square, hue rail, hex. Canva's own arrangement. */
   #cpick { border:1px solid #C9D6CD; border-radius:10px; padding:12px;
@@ -502,11 +592,20 @@
 </head>
 <body>
 <div id="bar">
-  <span id="brand"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"
-    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path
-    d="M11.3 1.9l2.8 2.8L5 13.8l-3.6.8.8-3.6z"/></svg>Draft editor</span>
-  <span id="title" class="ds-id"></span>
+  <!-- History and commit lead the bar: undo/redo then Save/Push, the controls
+       you reach for constantly, at the edge nearest the canvas. The wordmark
+       and the "<project> · live" pill that used to sit here are gone — the
+       project picker beside them already says which report this is. -->
+  <button id="undo" disabled aria-label="Undo (⌘Z)">↶</button>
+  <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
+  <button id="save" disabled>Save draft</button>
+  <button id="push" hidden disabled aria-label="Send commits saved locally to GitHub">Push</button>
+  <span class="bar-sep"></span>
   <select id="proj" hidden title="Switch project"></select>
+  <!-- Kept, but only shown when it says something the picker does not: which
+       DRAFT branch you are on. detectLocal() hides it for the live local
+       report, where it only ever repeated the project id. -->
+  <span id="title" class="ds-id"></span>
   <span id="stat">loading the render engine…</span>
   <span id="fit" hidden title="">⚠</span>
   <!-- Text / Shape / Icon / Table live in the left rail (#leftrail) now. -->
@@ -531,11 +630,11 @@
   </div>
   <button id="add" aria-label="Add a new prose section to a page">+ Section</button>
   <button id="sources" aria-label="View, edit, reorder and remove citations">Sources</button>
-  <button id="undo" disabled aria-label="Undo (⌘Z)">↶</button>
-  <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
-  <button id="revert" disabled>Discard</button>
-  <button id="save" disabled>Save draft</button>
-  <button id="push" hidden disabled aria-label="Send commits saved locally to GitHub">Push</button>
+  <!-- Discard is off the local bar: undo covers stepping an edit back. It is
+       NOT redundant on a saved draft, where it is the only way to throw the
+       draft branch away and return to the live report, so detectLocal() hides
+       it rather than the markup deleting it. -->
+  <button id="revert" disabled hidden>Discard</button>
   <button id="share" disabled aria-label="Copy a link that shows this draft to anyone">Share</button>
   <button id="publish" disabled aria-label="Make this draft the live report">Publish</button>
   <button id="download" aria-label="Download the report as a PDF or per-page PNGs">Download ▾</button>
@@ -555,23 +654,28 @@
     <button class="shp txtpreset" data-k="subheading" style="font:600 14px system-ui">Add a subheading</button>
     <button class="shp txtpreset" data-k="body" style="font:12px system-ui">Add body text</button>
   </div>
+  <!-- The shape array. Each choice is an art tile (square + name underneath),
+       so it reads as a gallery of things you can place rather than a menu. The
+       .shp buttons and their data-k are untouched — only the wrapper is new. -->
   <div class="pop" id="shapepop" hidden>
     <p class="pop-h">Add to the page in view</p>
-    <button class="shp" data-k="rect"><svg width="15" height="15" viewBox="0 0 15 15"
-      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><rect x="1.5" y="3" width="12"
-      height="9" rx="1.5"/></svg>Rectangle</button>
-    <button class="shp" data-k="ellipse"><svg width="15" height="15" viewBox="0 0 15 15"
-      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><ellipse cx="7.5" cy="7.5"
-      rx="6" ry="4.6"/></svg>Ellipse</button>
-    <button class="shp" data-k="line"><svg width="15" height="15" viewBox="0 0 15 15"
-      stroke="#52796F" stroke-width="1.6" stroke-linecap="round"><path
-      d="M2 12.5L13 2.5"/></svg>Line</button>
-    <button class="shp" data-k="triangle"><svg width="15" height="15" viewBox="0 0 15 15"
-      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
-      d="M7.5 2.5L13 12.5H2z"/></svg>Triangle</button>
-    <button class="shp" data-k="arrow"><svg width="15" height="15" viewBox="0 0 15 15"
-      fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
-      d="M1.5 5.8h6.5V3.2l5.5 4.3-5.5 4.3V9.2H1.5z"/></svg>Arrow</button>
+    <div class="tgrid">
+      <button class="shp" data-k="rect"><span class="tile-art"><svg viewBox="0 0 15 15"
+        fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><rect x="1.5" y="3" width="12"
+        height="9" rx="1.5"/></svg></span>Rectangle</button>
+      <button class="shp" data-k="ellipse"><span class="tile-art"><svg viewBox="0 0 15 15"
+        fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><ellipse cx="7.5" cy="7.5"
+        rx="6" ry="4.6"/></svg></span>Ellipse</button>
+      <button class="shp" data-k="line"><span class="tile-art"><svg viewBox="0 0 15 15"
+        stroke="#52796F" stroke-width="1.6" stroke-linecap="round"><path
+        d="M2 12.5L13 2.5"/></svg></span>Line</button>
+      <button class="shp" data-k="triangle"><span class="tile-art"><svg viewBox="0 0 15 15"
+        fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
+        d="M7.5 2.5L13 12.5H2z"/></svg></span>Triangle</button>
+      <button class="shp" data-k="arrow"><span class="tile-art"><svg viewBox="0 0 15 15"
+        fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
+        d="M1.5 5.8h6.5V3.2l5.5 4.3-5.5 4.3V9.2H1.5z"/></svg></span>Arrow</button>
+    </div>
   </div>
   <div class="pop pop-wide" id="iconpop" hidden>
     <p class="pop-h">Search open-source icons</p>
@@ -580,6 +684,8 @@
     <select id="icon-set" title="Which icon set to search">
       <option value="">All sets</option>
     </select>
+    <p class="pop-h" id="icon-recent-h" hidden>Recently used</p>
+    <div id="icon-recent"></div>
     <div id="icon-grid"></div>
     <p class="icon-note" id="icon-note"></p>
   </div>
@@ -819,7 +925,7 @@
   <span id="rail-head">Pages</span>
   <div id="rail-list"></div>
   <button id="rail-add" aria-label="Insert a blank page after the one in view">
-    <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor"
+    <svg width="15" height="15" viewBox="0 0 12 12" stroke="currentColor"
       stroke-width="1.5" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>Page</button>
 </div>
 
@@ -3034,7 +3140,9 @@ const tableOf = id => tables().find(t => t.id === (id || '').replace(/^table\./,
  *  not inside a popover (or on its trigger) closes them. */
 function togglePop(pop, anchor) {
   const wasHidden = pop.hidden;
-  document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
+  // :not(.docked) — a picker that lives in the left panel is not a transient
+  // popover, and opening Layers or Download must not blank it out.
+  document.querySelectorAll('.pop:not(.docked)').forEach(p => { p.hidden = true; });
   if (!wasHidden) return;
   // Fixed coordinates from the anchor's on-screen rect — the pop lives inside
   // a fixed-height row whose overflow would clip an absolute panel.
@@ -3046,13 +3154,48 @@ function togglePop(pop, anchor) {
 }
 addEventListener('mousedown', e => {
   if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers, #download'))
-    document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
+    document.querySelectorAll('.pop:not(.docked)').forEach(p => { p.hidden = true; });
 });
+
+// ------------------------------------------------ the rail's docked panels
+// A rail tool's picker opens in the LEFT PANEL, the way Canva's does, instead
+// of hanging off a 72px rail in a popover it immediately outgrows: an array of
+// art tiles needs a surface, not a 190px card. dockPanel only MOVES the pop
+// node into #side-body and marks it .docked — its markup, its ids and every
+// handler already bound to it come along untouched.
+let sidePanelTool = null;              // which rail tool owns #side right now
+
+function undockPanel() {
+  if (!sidePanelTool) return;
+  const pop = $(sidePanelTool + 'pop');
+  pop.hidden = true;
+  pop.classList.remove('docked');
+  $('bar').appendChild(pop);           // home, where togglePop can place it again
+  $(sidePanelTool).classList.remove('on');
+  sidePanelTool = null;
+}
+
+function dockPanel(tool, title) {
+  if (sidePanelTool === tool) { closeSide(); return; }   // the rail button toggles
+  undockPanel();
+  sideFillId = null;                   // #side is about a tool now, not a colour
+  document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
+  const body = $('side-body');
+  body.innerHTML = '';
+  const pop = $(tool + 'pop');
+  pop.classList.add('docked');
+  pop.hidden = false;
+  body.appendChild(pop);
+  sidePanelTool = tool;
+  $(tool).classList.add('on');
+  $('side-title').textContent = title;
+  $('side').hidden = false;
+}
 
 // Canva's "Add a text box" panel: a heading, a subheading, or body text. Each
 // is a text box with a style preset, so it drags, resizes and recolours like
 // any other — and its size/weight can then be tuned in the formatting toolbar.
-$('text').onclick = () => togglePop($('textpop'), $('text'));
+$('text').onclick = () => dockPanel('text', 'Text');
 const TEXT_PRESETS = {
   heading:    { md: 'Heading',     style: { size: 30, weight: 700, leading: 1.05 }, w: 4 },
   subheading: { md: 'Subheading',  style: { size: 19, weight: 600 },               w: 3.5 },
@@ -3060,7 +3203,6 @@ const TEXT_PRESETS = {
                 style: {},                                                          w: 3 },
 };
 async function addTextBox(kind) {
-  $('textpop').hidden = true;
   const preset = TEXT_PRESETS[kind] || TEXT_PRESETS.body;
   const page = visiblePageId();
   pushHistory();
@@ -3076,10 +3218,7 @@ async function addTextBox(kind) {
 document.querySelectorAll('#textpop .txtpreset').forEach(b =>
   b.addEventListener('click', () => addTextBox(b.dataset.k)));
 
-const freeTableId = () => {
-  let n = 1; while (tables().some(t => t.id === 't' + n)) n++;
-  return 't' + n;
-};
+const freeTableId = () => freeTId();
 
 $('table').onclick = async () => {
   const page = visiblePageId();
@@ -3827,8 +3966,10 @@ function arrangeBar(d) {
   $('ar-fill').hidden = !canFill;
   if (!canFill) $('ar-fillpop').hidden = true;
   // An open colour panel follows the selection, and closes when there is
-  // nothing single-selected left for it to be about.
-  if (!$('side').hidden) {
+  // nothing single-selected left for it to be about. A docked TOOL panel does
+  // not: placing a shape selects it, and the picker you placed it from must
+  // still be there to place the next one.
+  if (!$('side').hidden && !sidePanelTool) {
     if (canFill) { if (sideFillId !== fillId) openColorPanel(fillId); }
     else if (!selIds.size) closeSide();
   }
@@ -4025,11 +4166,21 @@ function forgetInGroups(ids) {
   if (!layout.groups.length) delete layout.groups;
 }
 
-const freeBoxId = () => {
+/** layout.py validates shapes, boxes AND tables against ONE id namespace
+ *  ("duplicate id 't1' — already a shape or box"), so a free id has to clear
+ *  all three. It didn't: freeBoxId skipped tables and freeTableId skipped
+ *  boxes and shapes, so a text box and a table both took 't1' and the very
+ *  next render died on the validator — "This draft does not build". Both
+ *  allocators now ask the same question. */
+const freeTId = () => {
   let n = 1;
-  while (boxes().some(b => b.id === 't' + n) || layout.shapes.some(s => s.id === 't' + n)) n++;
+  const taken = id => boxes().some(b => b.id === id)
+                   || tables().some(t => t.id === id)
+                   || layout.shapes.some(s => s.id === id);
+  while (taken('t' + n)) n++;
   return 't' + n;
 };
+const freeBoxId = () => freeTId();
 const freeShapeId = kind => {
   let n = layout.shapes.length + 1;
   while (layout.shapes.some(s => s.id === `s${n}-${kind}`)) n++;
@@ -4464,6 +4615,127 @@ function railRender() {
     list.appendChild(sep);
     hidden.forEach(p => list.appendChild(chip(p.id, null, p.label, true)));
   }
+  railThumbs();
+  railSyncActive();
+}
+
+// ------------------------------------------------------- page thumbnails
+// Each chip shows the page itself: the rendered <section> CLONED into a shadow
+// root and scaled down — live markup, not a raster snapshot, so it costs one
+// DOM clone and needs no canvas, no screenshot service and no second render.
+//
+// Shadow DOM is what makes it safe. A report's stylesheet is written for a
+// whole document (`body`, `h1`, `section`, `.page`); dropped into this one it
+// would restyle the editor's own chrome. A shadow tree contains it in both
+// directions — the report's CSS cannot get out, the editor's cannot get in.
+const THUMB_STRIP = '.ds-handles, .ds-selbox, .ds-marquee, .ds-sec-grip, .ds-mini,'
+  + ' .ds-menu, .ds-edit, .ds-cropov, .ds-crop-frame, .ds-crop-ghost, .ds-crop-hint,'
+  + ' .ds-xtools, .ds-cell-edit, .ds-endnote-edit, .ds-guide, .ds-cut, .ds-apply';
+const thumbCssCache = new Map();       // href -> text, fetched once per stylesheet
+const thumbFontLinks = new Set();
+let thumbSheet = null, thumbSheetText = null;
+
+/** A font family only registers from an @font-face in the OUTER document — one
+ *  inside a shadow tree is ignored — so a cross-origin font stylesheet (whose
+ *  text we cannot read anyway) is mirrored into this document's head instead
+ *  of inlined. Font stylesheets carry @font-face and nothing that matches an
+ *  element, so this adds no selectors that could restyle the chrome. */
+function thumbMirrorFont(href) {
+  if (thumbFontLinks.has(href)) return;
+  thumbFontLinks.add(href);
+  const l = document.createElement('link');
+  l.rel = 'stylesheet'; l.href = href;
+  document.head.appendChild(l);
+}
+
+/** The report's OWN styling as one constructed stylesheet, adopted by every
+ *  thumbnail — parsed once and shared, rather than a copy per page. */
+async function thumbSheetFor(d) {
+  const parts = [];
+  for (const l of d.querySelectorAll('link[rel="stylesheet"]')) {
+    const href = l.href;
+    if (!href) continue;
+    let cross = true;
+    try { cross = new URL(href).origin !== location.origin; } catch (e) {}
+    if (cross) { thumbMirrorFont(href); continue; }
+    if (!thumbCssCache.has(href)) {
+      // A stylesheet that will not fetch costs the preview some styling, never
+      // the preview itself — cache the empty result so it is not retried on
+      // every render.
+      try { thumbCssCache.set(href, await (await fetch(href)).text()); }
+      catch (e) { thumbCssCache.set(href, ''); }
+    }
+    parts.push(thumbCssCache.get(href));
+  }
+  // Every inline style EXCEPT the editor's own: a page scaffolded from a
+  // static HTML file keeps its whole design in one, so they cannot just be
+  // skipped wholesale.
+  d.querySelectorAll('style').forEach(s => {
+    if (s.id !== 'ds-edit-css') parts.push(s.textContent);
+  });
+  // :root matches nothing inside a shadow tree, and :root is where a report
+  // declares its custom properties — every colour and font slot. :host is that
+  // tree's root, so the same declarations land and inherit down to the clone.
+  const text = parts.join('\n').replace(/:root\b/g, ':host');
+  if (thumbSheet && thumbSheetText === text) return thumbSheet;
+  const sheet = new CSSStyleSheet();
+  try { sheet.replaceSync(text); } catch (e) { return null; }
+  thumbSheet = sheet; thumbSheetText = text;
+  return sheet;
+}
+
+let thumbSeq = 0;
+async function railThumbs() {
+  const mine = ++thumbSeq;
+  const d = $('out').contentDocument;
+  if (!d || !d.body) return;
+  const sheet = await thumbSheetFor(d);
+  if (mine !== thumbSeq) return;              // a newer render already ran
+  // The report's inherited text styling hangs off <body>, which has no
+  // counterpart in a shadow tree — carry it across explicitly.
+  const b = getComputedStyle(d.body);
+  $('rail-list').querySelectorAll('.chip').forEach(c => {
+    const host = c.querySelector('.chip-view');
+    const frame = c.querySelector('.chip-thumb');
+    if (!host) return;
+    const sec = d.querySelector(`section[data-page="${CSS.escape(c.dataset.pid)}"]`);
+    if (!sec) { frame.classList.add('empty'); if (host.shadowRoot) host.shadowRoot.replaceChildren(); return; }
+    const pw = sec.offsetWidth, ph = sec.offsetHeight;
+    if (!pw || !ph) { frame.classList.add('empty'); return; }
+    frame.classList.remove('empty');
+    const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
+    if (sheet) sr.adoptedStyleSheets = [sheet];
+    // Scale to WIDTH: a page is portrait and the frame matches, so height
+    // follows; a page far taller than 8.5x11 overflows and is clipped to its
+    // top by .chip-view's overflow:hidden, rather than shrinking to a sliver.
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `width:${pw}px;height:${ph}px;transform-origin:0 0;`
+      + `transform:scale(${host.clientWidth / pw});font-family:${b.fontFamily};`
+      + `font-size:${b.fontSize};line-height:${b.lineHeight};color:${b.color};`;
+    const clone = sec.cloneNode(true);
+    clone.querySelectorAll(THUMB_STRIP).forEach(n => n.remove());
+    // .page centres itself in a document with `margin: 24px auto`; in a box
+    // that is exactly one page wide that margin is just an offset.
+    clone.style.margin = '0';
+    wrap.appendChild(clone);
+    sr.replaceChildren(wrap);
+  });
+}
+
+/** Light up the page the canvas is actually looking at, the way Canva's strip
+ *  tracks the scroll — the chip was only ever marked on click before, so it
+ *  went stale the moment you scrolled the document instead. */
+let railRAF = 0;
+function railScrollSync() {
+  if (railRAF) return;                 // one sync per frame, not per scroll tick
+  railRAF = requestAnimationFrame(() => { railRAF = 0; railSyncActive(); });
+}
+
+function railSyncActive() {
+  if ($('rail').hidden) return;
+  const cur = String(visiblePageId());
+  $('rail-list').querySelectorAll('.chip').forEach(c =>
+    c.classList.toggle('on', c.dataset.pid === cur && !c.classList.contains('hidden-pg')));
 }
 
 function chip(pid, pos, label, isHidden) {
@@ -4472,8 +4744,15 @@ function chip(pid, pos, label, isHidden) {
   c.className = 'chip' + (isBlank ? ' blank' : '') + (isHidden ? ' hidden-pg' : '');
   c.dataset.pid = pid;
   c.draggable = !isHidden;
-  c.innerHTML = `<span class="chip-n">${isHidden ? '—' : pos}</span>`
-    + `<span class="chip-lab">${isBlank ? 'blank page' : (label || 'page ' + pid)}</span>`;
+  const name = isBlank ? 'blank page' : (label || 'page ' + pid);
+  c.title = isHidden ? name + ' — hidden from the report' : name;
+  // .chip-view is the SHADOW HOST and nothing else: a host renders its shadow
+  // tree INSTEAD of its own children, so the number would vanish the moment a
+  // preview landed if it lived in there. The frame holds both as siblings.
+  c.innerHTML = `<span class="chip-thumb empty"><span class="chip-view"></span>`
+    + `<span class="chip-n"></span></span><span class="chip-lab"></span>`;
+  c.querySelector('.chip-n').textContent = isHidden ? '—' : pos;
+  c.querySelector('.chip-lab').textContent = name;
   // Show/hide (designed only) or delete (blank).
   if (isBlank) {
     const x = document.createElement('button');
@@ -4629,7 +4908,9 @@ function applyZoom(recompute = true) {
     let s = zoomChoice === 'fit' || !zoomChoice
       ? Math.min(availW / VIEW_W, zoomChoice === 'fit' ? 10 : 1)
       : +zoomChoice;
-    curScale = Math.max(0.25, Math.min(2, Math.round(s * 1000) / 1000));
+    // floor, not round: rounding a fit scale UP overshoots the pane by a
+    // fraction of a pixel, which is still a 1px horizontal scroll range.
+    curScale = Math.max(0.25, Math.min(2, Math.floor(s * 1000) / 1000));
   }
   const s = curScale;
   out.style.width = VIEW_W + 'px';
@@ -4638,6 +4919,15 @@ function applyZoom(recompute = true) {
   // Centre a canvas narrower than the pane; let a wider one scroll.
   const slack = availW - VIEW_W * s;
   out.style.marginLeft = slack > 0 ? (slack / 2) + 'px' : '0';
+  // The transform is VISUAL only — the iframe's layout box stays VIEW_W wide
+  // and clientHeight/s tall, so any pane narrower than VIEW_W kept a phantom
+  // horizontal scroll range (scrollWidth 1200 in a 1094px pane) even though
+  // nothing visible overflowed. Latent while the stage was usually wider than
+  // 1200; the left panel docking in made narrow panes the normal case. Pull
+  // the layout edges back to the visual size, both axes, both directions
+  // (s>1 extends them, keeping a zoomed canvas's real scroll range).
+  out.style.marginRight = (VIEW_W * (s - 1)) + 'px';
+  out.style.marginBottom = ((stage.clientHeight / s) * (s - 1)) + 'px';
 }
 
 document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click', () => {
@@ -4650,10 +4940,41 @@ document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click
   if (d) paintSel(d);
 }));
 
-let rsT = null;
-addEventListener('resize', () => {
-  clearTimeout(rsT);
-  rsT = setTimeout(() => applyZoom(false), 120);   // re-layout, never re-zoom
+// Re-fit whenever the CANVAS PANE changes size — a window resize, OR the left
+// panel docking in and out (every rail tool moves the stage edge by 318px now,
+// which a window-resize listener never sees). Observing the stage catches every
+// cause with one mechanism. An explicit zoom (100/125/150) keeps its scale and
+// only re-centres, per the applyZoom contract above; fit/auto derive their
+// scale FROM the pane, so for them a pane change recomputes — without this the
+// page sat clipped behind a horizontal scrollbar until the next render
+// happened to re-fit. Size guard: applyZoom mutates the iframe, and a resize
+// feedback loop must have a fixed point.
+let stageW = 0, stageH = 0, stageT = 0;
+const stageRefit = () => {
+  applyZoom(zoomChoice === '' || zoomChoice === 'fit');
+  const d = $('out').contentDocument;
+  if (d) paintSel(d);
+};
+new ResizeObserver(() => {
+  const st = $('stage');
+  // A collapsed pane (0 width) is suspension, not a layout to fit: scaling to
+  // the 0.25 floor there just leaves a miniature page to recover from later.
+  // Skip it; the reveal below (or the reveal's own resize delivery) refits.
+  if (!st.clientWidth) return;
+  if (st.clientWidth === stageW && st.clientHeight === stageH) return;
+  stageW = st.clientWidth; stageH = st.clientHeight;
+  // A TIMER, not requestAnimationFrame: rAF never fires in a hidden document,
+  // so a resize landing while the tab is backgrounded parked the refit forever
+  // — the canvas came back at a stale scale (observed: stuck at the 0.25
+  // floor after a hidden 0-width episode). Timers run regardless.
+  clearTimeout(stageT);
+  stageT = setTimeout(stageRefit, 60);
+}).observe($('stage'));
+// Belt and braces for work the hidden tab deferred: rendering pipelines (and
+// with them ResizeObserver delivery) suspend while hidden, so refit once on
+// every reveal rather than trusting the deferred delivery to arrive.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && $('stage').clientWidth) stageRefit();
 });
 
 // ----------------------------------------------------------------- guides
@@ -5176,11 +5497,16 @@ const gradOf = (stops, angle) => ({
 let sideFillId = null;          // whose colour the panel is editing
 
 function closeSide() {
+  // A docked picker has to go home to #bar BEFORE the panel is emptied — it is
+  // a live node with handlers on it, not markup the panel can throw away.
+  undockPanel();
+  $('side-body').innerHTML = '';
   $('side').hidden = true;
   sideFillId = null;
 }
 
 function openColorPanel(id) {
+  undockPanel();
   sideFillId = id;
   $('side').hidden = false;
   $('side-title').textContent = 'Color';
@@ -6103,6 +6429,9 @@ function markDirty() {
   // Discard stays live while a saved draft exists: with nothing unsaved it
   // offers to throw the whole draft away (see its handler).
   $('revert').disabled = !dirty && !(draftBranch && !local);
+  // ...and is only ON the bar where it does something undo cannot: dropping a
+  // saved draft branch. Locally, stepping edits back is undo's job.
+  $('revert').hidden = local || !draftBranch;
   $('save').classList.toggle('dirty', dirty);
   cacheDraft();                       // persist unsaved edits for offline safety
 }
@@ -6229,10 +6558,46 @@ async function iconBodies(ids) {
   }));
 }
 
+// "Recently used", Canva's own first row: the last icons placed, kept with
+// their geometry so a re-place needs no network at all. Shown only when the
+// grid is idle — a search fills the panel with its own results, as in Canva.
+const ICON_RECENT_KEY = 'ds-icon-recent';
+const iconRecent = () => {
+  try { return JSON.parse(localStorage.getItem(ICON_RECENT_KEY) || '[]'); }
+  catch (e) { return []; }
+};
+function iconRecentAdd(id, it) {
+  const list = iconRecent().filter(r => r.id !== id);
+  list.unshift({ id, body: it.body, vb: it.vb });
+  try { localStorage.setItem(ICON_RECENT_KEY, JSON.stringify(list.slice(0, 8))); }
+  catch (e) { /* a full quota must never stop an icon being placed */ }
+}
+function iconTile(id, vb, body) {
+  const b = document.createElement('button');
+  b.className = 'icon-tile';
+  b.title = id;
+  b.innerHTML = `<svg viewBox="${vb}" width="22" height="22">${body}</svg>`;
+  b.addEventListener('click', () => addIcon(id));
+  return b;
+}
+function iconRecentRender(show) {
+  const host = $('icon-recent'), list = show ? iconRecent() : [];
+  host.textContent = '';
+  $('icon-recent-h').hidden = !list.length;
+  list.forEach(r => {
+    // Seed the cache from the stored geometry so addIcon can place it offline.
+    if (!iconCache.has(r.id)) iconCache.set(r.id, { body: r.body, vb: r.vb });
+    host.appendChild(iconTile(r.id, r.vb, r.body));
+  });
+}
+
 async function iconSearch(q) {
   const grid = $('icon-grid'), note = $('icon-note');
   const mine = ++iconSeq;
-  if (!q.trim()) { grid.textContent = ''; note.textContent = ''; return; }
+  if (!q.trim()) {
+    grid.textContent = ''; note.textContent = ''; iconRecentRender(true); return;
+  }
+  iconRecentRender(false);
   note.textContent = 'searching…';
   const set = $('icon-set').value;
   const prefixes = set || ICON_SETS.map(([p]) => p).join(',');
@@ -6251,12 +6616,7 @@ async function iconSearch(q) {
   const found = ids.filter(i => iconCache.has(i));
   found.forEach(id => {
     const { body, vb } = iconCache.get(id);
-    const b = document.createElement('button');
-    b.className = 'icon-tile';
-    b.title = id;
-    b.innerHTML = `<svg viewBox="${vb}" width="22" height="22">${body}</svg>`;
-    b.addEventListener('click', () => addIcon(id));
-    grid.appendChild(b);
+    grid.appendChild(iconTile(id, vb, body));
   });
   note.textContent = found.length
     ? `${found.length} icons — click one to place it`
@@ -6266,7 +6626,7 @@ async function iconSearch(q) {
 async function addIcon(id) {
   const it = iconCache.get(id);
   if (!it) return;
-  $('iconpop').hidden = true;
+  iconRecentAdd(id, it);
   const page = visiblePageId();
   pushHistory();
   const sid = freeShapeId('icon');
@@ -6287,8 +6647,11 @@ $('icon').onclick = () => {
   if (sel.options.length === 1) {
     ICON_SETS.forEach(([p, label]) => sel.add(new Option(label, p)));
   }
-  togglePop($('iconpop'), $('icon'));
-  if (!$('iconpop').hidden) $('icon-q').focus();
+  dockPanel('icon', 'Icons');
+  if (sidePanelTool === 'icon') {
+    iconRecentRender(!$('icon-q').value.trim());
+    $('icon-q').focus();
+  }
 };
 let iconTimer = null;
 const iconDebounced = () => {
@@ -6298,9 +6661,10 @@ const iconDebounced = () => {
 $('icon-q').addEventListener('input', iconDebounced);
 $('icon-set').addEventListener('change', () => iconSearch($('icon-q').value));
 
-$('shape').onclick = () => togglePop($('shapepop'), $('shape'));
+$('shape').onclick = () => dockPanel('shape', 'Shapes');
 document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('click', async () => {
-  $('shapepop').hidden = true;
+  // The panel stays open: Canva lets you place a run of shapes without
+  // re-opening the picker between each one.
   const kind = b.dataset.k;
   const page = visiblePageId();
   pushHistory();
@@ -6574,7 +6938,12 @@ async function detectLocal() {
   $('share').hidden = $('publish').hidden = true;
   $('push').hidden = false;
   $('save').textContent = 'Save';
+  // The pill said "<project> · live" next to a picker already naming the
+  // project, on a bar whose whole state is "live" — pure repetition. It stays
+  // in the DOM (resolveDraft writes the draft branch into it, which IS worth
+  // saying) and comes back the moment it has that to say.
   $('title').textContent = M.id + ' · live';
+  $('title').hidden = true;
   $('stat').textContent = 'live — edits here and from Claude land in the same files';
   // Adopt a rebuild the moment the version moves. Two ways see it, because one
   // failing silently is exactly the bug this had: the event stream is instant
@@ -6890,6 +7259,12 @@ function wire() {
   const meta = d.getElementById('ds-pagemeta');
   if (meta) { try { designedPages = JSON.parse(meta.textContent); } catch (e) {} }
   railRender();
+  // The strip follows the canvas. Listener on the iframe's own window, which
+  // is replaced wholesale by the next render, so nothing accumulates.
+  d.defaultView.addEventListener('scroll', railScrollSync, { passive: true });
+  // Deferred for the same reason layersRender is below: wire() runs BEFORE the
+  // scroll position is restored, so read the page in view after that lands.
+  setTimeout(railSyncActive, 0);
   drawGuideLayer(d);           // guides are editor-drawn, so redraw each render
   // Deferred a tick: wire() runs before the scroll restore, and the panel
   // keys on the page in VIEW — rebuilt too early it shows the cover's stack.
@@ -6934,6 +7309,10 @@ function wire() {
     });
   });
   const css = d.createElement('style');
+  // Named so the page thumbnails can tell the EDITOR's chrome CSS apart from
+  // the report's own styling and adopt only the latter — a preview shows the
+  // page, not the handles and hover outlines currently pointed at it.
+  css.id = 'ds-edit-css';
   css.textContent = `
     /* Section grip: a thin strip on a colored band's bottom edge; the pill
        appears on hover so an untouched page shows nothing. */
@@ -7868,8 +8247,12 @@ function tokenWhy(e) {
 // the git underneath stays out of sight.
 let draftBranch = new URLSearchParams(location.search).get('draft') || null;
 
-const showDraftBadge = () =>
-  { $('title').textContent = M.id + ' · draft: ' + draftBranch.split('/').pop(); };
+// The one thing the pill is still for: you are editing a DRAFT, not the live
+// report. Un-hides it — detectLocal() hides it for the plain local case.
+const showDraftBadge = () => {
+  $('title').textContent = M.id + ' · draft: ' + draftBranch.split('/').pop();
+  $('title').hidden = false;
+};
 const draftUrl = () => location.origin + pageUrl({ draft: draftBranch });
 
 async function resolveDraft() {
