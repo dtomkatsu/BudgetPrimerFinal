@@ -128,6 +128,36 @@ SELF_DIR_TO_PID = {
 }
 
 
+def _default_registry() -> dict:
+    """The editor's start-page registry, derived from what this server serves.
+    Used only when no projects.json exists — see do_GET. `base` is the staged
+    editor dir relative to docs/primer/, which is what start.html opens; a
+    project living in another repo is reached through its reserved mount."""
+    out = {}
+    for pid, p in sorted(PROJECTS.items()):
+        e = p["binding"].editor
+        if not e:
+            continue
+        base = (f"../_repo-{pid}" if p["root"] != SELF_ROOT
+                else "." if e.dir.name == "primer" else f"../{e.dir.name}")
+        entry = {"name": pid.replace("-", " ").title(), "base": base}
+        repo = _origin_of(p["root"])
+        if repo:
+            entry["repo"] = repo
+        out[pid] = entry
+    return out
+
+
+def _origin_of(root: Path) -> str | None:
+    """'owner/name' for a checkout's origin, so a synthesised registry points
+    Save/Push at the repo the files actually came from."""
+    r = subprocess.run(["git", "-C", str(root), "remote", "get-url", "origin"],
+                       capture_output=True, text=True)
+    url = r.stdout.strip().removesuffix(".git")
+    m = re.search(r"[:/]([^/:]+/[^/]+)$", url) if url else None
+    return m.group(1) if m else None
+
+
 def _watch_patterns(root: Path, b) -> list[str]:
     """Everything a rebuild of this ONE project should react to: its content/
     layout/renderer/engine files (already absolute — resolved by whichever
@@ -373,6 +403,14 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, self._ping_payload(pid))
         if clean == "/__events":
             return self._sse(pid)
+        # projects.json is per-machine and untracked, so a fresh clone has
+        # none — and the start page then showed "No reports yet" over a server
+        # that was happily serving four of them, with "+ New report" disabled
+        # because that needs a repo it had no way to know. Synthesise the file
+        # from what this process ACTUALLY serves. Writing nothing to disk keeps
+        # a real projects.json purely an override: present, it wins.
+        if clean.endswith("/projects.json") and not (DOCS / clean.lstrip("/")).is_file():
+            return self._json(200, _default_registry())
         for mpid, mount_dir in EXTERNAL_MOUNTS.items():
             prefix = f"/_repo-{mpid}/"
             if clean == prefix[:-1] or clean.startswith(prefix):
@@ -812,7 +850,23 @@ def main():
     # Two loopback listeners (IPv4 + IPv6), NOT a dual-stack `::` bind — the save/
     # push/export endpoints must stay off the LAN. If IPv6 loopback is somehow
     # unavailable, fall back to IPv4-only rather than refuse to start.
-    servers = [ThreadingHTTPServer(("127.0.0.1", PORT), Handler)]
+    try:
+        servers = [ThreadingHTTPServer(("127.0.0.1", PORT), Handler)]
+    except OSError as e:
+        # Almost always a server already running — a second `make live`, or one
+        # left behind by a closed terminal. The bare traceback that used to
+        # come out of here named none of that.
+        import errno
+        if e.errno != errno.EADDRINUSE:
+            raise
+        print(f"\n  Port {PORT} is already in use.\n"
+              f"    If the editor is already running, just open "
+              f"http://localhost:{PORT}/primer/start.html\n"
+              f"    Otherwise, stop the process holding it:\n"
+              f"      lsof -nP -iTCP:{PORT} -sTCP:LISTEN\n"
+              f"    or start this one somewhere else:\n"
+              f"      PRIMER_PORT=8011 make -C report2027 live\n")
+        return 1
     try:
         servers.append(_IPv6Server(("::1", PORT), Handler))
     except OSError as e:
@@ -830,4 +884,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # SystemExit, not a bare call: main() returns 1 when the port is
+    # taken, and `make live` must fail rather than report success.
+    raise SystemExit(main())
