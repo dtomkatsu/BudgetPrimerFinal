@@ -8031,9 +8031,27 @@ function paintShape(d, id) {
   if (sh.rot) paintRot(d, node);         // the pivot moved with the box
 }
 
+/** layout.json reduced to what it actually SAYS. On load the editor fills in
+ *  empty containers — positions/shapes/sections — so the rest of the code
+ *  never has to null-check them. A file that never carried those keys is not
+ *  "edited" by their appearance, but a raw compare said it was: every report
+ *  opened dirty, with Save lit and nothing to save, and switching project
+ *  warned about losing edits that did not exist. Compare on this instead.
+ *  An empty container is dropped whichever side it is on, so genuinely
+ *  emptying one (deleting the last shape) still reads as a change. */
+function layoutSaid(o) {
+  const c = JSON.parse(JSON.stringify(o || {}));
+  for (const k of Object.keys(c)) {
+    const v = c[k];
+    if (Array.isArray(v) ? !v.length
+        : (v && typeof v === 'object' && !Object.keys(v).length)) delete c[k];
+  }
+  return JSON.stringify(c);
+}
+
 function markDirty() {
   dirty = source !== original
-       || JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
+       || layoutSaid(layout) !== layoutSaid(JSON.parse(layoutOrig || '{}'));
   $('save').disabled = !dirty;
   // Discard stays live while a saved draft exists: with nothing unsaved it
   // offers to throw the whole draft away (see its handler).
