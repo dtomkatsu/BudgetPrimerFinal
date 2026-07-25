@@ -37,6 +37,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VENDOR_YML = ROOT / "vendor.yml"
+# Per-machine additions, gitignored — see consumers().
+VENDOR_LOCAL = ROOT / "vendor.local.yml"
 
 # Engine paths, relative to either repo root. serve.py rides along because
 # consumers run the live server from their own checkout.
@@ -56,13 +58,23 @@ def engine_files() -> list[str]:
 
 
 def consumers() -> list[Path]:
+    """Every repo this engine syncs into: vendor.yml, plus vendor.local.yml if
+    it exists. The split matters because vendor.yml is TRACKED — a consumer
+    listed there travels to everyone who clones, and their post-commit hook
+    would then try to write into a checkout they do not have. So the tracked
+    file stays empty by default and your own machine's consumers live in
+    vendor.local.yml, which is gitignored."""
     import yaml                                       # noqa: PLC0415
-    if not VENDOR_YML.exists():
-        print(f"{VENDOR_YML} not found — no consumers registered", file=sys.stderr)
+    entries = []
+    for f in (VENDOR_YML, VENDOR_LOCAL):
+        if not f.exists():
+            continue
+        data = yaml.safe_load(f.read_text()) or {}
+        entries.extend(data.get("consumers") or [])
+    if not entries:
         return []
-    data = yaml.safe_load(VENDOR_YML.read_text()) or {}
     out = []
-    for c in data.get("consumers") or []:
+    for c in entries:
         p = Path(str(c["path"] if isinstance(c, dict) else c)).expanduser()
         if not (p / "docsync.yml").exists():
             print(f"  skipping {p}: no docsync.yml (not a docsync repo)",

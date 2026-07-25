@@ -25,7 +25,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -72,6 +74,23 @@ def manifest(b: Binding) -> dict:
     }
 
 
+def _origin_slug(root) -> str | None:
+    """'owner/name' for a checkout's origin, or None when it has none. Accepts
+    either URL form git hands out: git@host:owner/name.git and
+    https://host/owner/name(.git)."""
+    try:
+        url = subprocess.run(
+            ["git", "-C", str(root), "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if not url:
+        return None
+    url = url.removesuffix(".git")
+    m = re.search(r"[:/]([^/:]+/[^/]+)$", url)
+    return m.group(1) if m else None
+
+
 def stage(b: Binding, repo: str = "") -> None:
     if not b.editor:
         raise RegistryError(f"'{b.id}' has no editor: block in docsync.yml")
@@ -90,6 +109,14 @@ def stage(b: Binding, repo: str = "") -> None:
             m["repo"] = json.loads(existing.read_text()).get("repo") or None
         except (json.JSONDecodeError, OSError):
             pass
+    if not m.get("repo"):
+        # Nothing chose one, so default to THIS checkout's own origin. Without
+        # it a fresh clone inherits whatever repo was staged into the committed
+        # manifest — i.e. someone else's — and the new owner's very first Push
+        # aims at a repo that is not theirs. Deriving it means the editor
+        # points at your own remote from the first build, and it still falls
+        # back to None (the editor asks) when there is no origin at all.
+        m["repo"] = _origin_slug(ROOT)
 
     for url, src in m["files"].items():
         dst = e.dir / url
