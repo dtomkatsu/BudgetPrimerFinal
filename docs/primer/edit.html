@@ -2806,10 +2806,29 @@ function contextify(d) {
         const hit = hitPlaced(d, el, e);
         if (hit) target = hit;
       }
+      // A TABLE's right-click is always its own menu, wherever on it the
+      // click landed. Cells carry that menu themselves, but the table's
+      // padding, its border, the gap under the last row — and any point the
+      // page resolved back to the table via hitPlaced — fell through to the
+      // generic layer menu, which has no rows or columns in it. The menu you
+      // got depended on which pixel you hit: "right click works
+      // inconsistently ... isn't giving the option to add columns".
+      if ((target.dataset.el || '').startsWith('table.')) {
+        const td = cellUnder(d, target, e);
+        if (td) { tableMenu(d, td, e); return; }
+      }
       layerMenu(d, target, e);
     });
   });
   d.addEventListener('mousedown', e => {
+    // Button 2 is the right-click that is ABOUT to open a menu. The event
+    // order for a context click is not the same everywhere — a Mac trackpad
+    // two-finger tap and Ctrl+click can deliver `contextmenu` BEFORE this
+    // mousedown — so closing here shut the menu the very same gesture had
+    // just opened, on some clicks and not others. That is the "right-click
+    // works inconsistently" report. Skipping it leaves nothing stale: every
+    // opener (layerMenu, tableMenu, endnoteMenu) calls closeMenu() first.
+    if (e.button === 2) return;
     if (!e.target.closest || !e.target.closest('.ds-menu')) closeMenu(d);
   });
 }
@@ -3625,11 +3644,48 @@ function deafenStickyChrome(d) {
   });
 }
 
+/** The cell a pointer event means for `table`: the one under it, or failing
+ *  that the nearest — a click on the table's padding or below its last row
+ *  still has an obvious cell it is talking about, and the menu needs one to
+ *  know which row and column its items act on. */
+function cellUnder(d, table, e) {
+  const at = d.elementFromPoint(e.clientX, e.clientY);
+  const hit = at && at.closest && at.closest('[data-cell]');
+  if (hit && table.contains(hit)) return hit;
+  let best = null, bestD = Infinity;
+  table.querySelectorAll('[data-cell]').forEach(td => {
+    const r = td.getBoundingClientRect();
+    const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+    const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+    const dist = dx * dx + dy * dy;
+    if (dist < bestD) { bestD = dist; best = td; }
+  });
+  return best;
+}
+
 function wireCells(d) {
   d.querySelectorAll('table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
     .forEach(td => {
       td.addEventListener('dblclick', e => { e.preventDefault(); e.stopPropagation(); editCell(d, td); });
-      td.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); tableMenu(d, td, e); });
+      td.addEventListener('contextmenu', async e => {
+        e.preventDefault(); e.stopPropagation();
+        const tableEl = td.closest('[data-el^="table."]');
+        if (!tableEl) return;
+        // Right-clicking a cell that is being EDITED blurs it, and the blur
+        // commits and re-renders the whole document. Building the menu now
+        // would put it in a document about to be thrown away — which is why
+        // right-clicking mid-edit showed no menu at all. Remember what was
+        // clicked, let any render in flight finish, then open the menu in
+        // whatever document is current. `editing` is already false by the
+        // time this fires, so it cannot be the thing we test on.
+        const id = idOf(tableEl), at = td.dataset.cell;
+        const pt = { clientX: e.clientX, clientY: e.clientY };
+        if (renderRunning) await render();
+        const d2 = $('out').contentDocument;
+        const cell = d2.querySelector(
+          `[data-el="${CSS.escape(id)}"] [data-cell="${at}"]`);
+        if (cell) tableMenu(d2, cell, pt);
+      });
       // Bound on the CELL, which sees mousedown before the table does — that
       // is what lets a cell click take the gesture away from dragify's
       // move-the-whole-table without unbinding anything.
