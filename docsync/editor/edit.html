@@ -10632,7 +10632,18 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 boot().catch(async e => {
   const netErr = e instanceof TypeError || /fetch/i.test(e.message || '');
   let msg = 'failed to start: ' + e.message;
-  if (netErr) {
+  // Pyodide is a ~30MB download from a CDN, and it is the FIRST thing a new
+  // user needs. When that script never loads — offline, a proxy, a network
+  // that blocks jsdelivr — loadPyodide is simply not defined, and the failure
+  // reads as an anonymous ReferenceError at the exact moment someone is least
+  // able to guess why. It is cached after one success, so this is a first-run
+  // cliff; name it. (Checked before the network branch: this is not a fetch
+  // error, so that branch would never claim it.)
+  if (typeof loadPyodide === 'undefined') {
+    msg = 'the render engine (Pyodide, ~30MB) could not be downloaded from '
+        + 'cdn.jsdelivr.net — check your connection or proxy, then reload. '
+        + 'It is cached after the first successful load.';
+  } else if (netErr) {
     const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
     let serverUp = false;
     try { serverUp = (await fetch('/__ping', { cache: 'no-store' })).ok; } catch (err) {}
