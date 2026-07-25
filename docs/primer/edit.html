@@ -30,7 +30,10 @@
 <style>
   :root { --ink:#2F3E46; --sage:#6B9E78; --deep:#52796F; --chrome:#334049;
           --chrome2:#3B4A54; --line:#4B5C66; --ctl:#455460; --ctl-line:#57686F;
-          --txt:#EDF2EF; --dim:#A9BCB4; }
+          --txt:#EDF2EF; --dim:#A9BCB4;
+          /* One number for the tool rail's width: #leftrail is that wide, and
+             the floating panel starts exactly where it ends. */
+          --rail-w:56px; }
   html { height:100%; }
   /* Flex column, so the iframe takes whatever the bars leave. The old fixed
      calc() heights lied whenever a toolbar wrapped to a second line. */
@@ -64,17 +67,18 @@
   #zoom { display:none !important; }
 
   /* Left tool rail — Canva-style: a narrow column of icon-over-label buttons. */
-  #leftrail { flex:none; width:72px; background:var(--chrome2);
+  #leftrail { flex:none; width:var(--rail-w); background:var(--chrome2);
               border-right:1px solid var(--line); display:flex; flex-direction:column;
-              align-items:stretch; gap:4px; padding:10px 7px; overflow-y:auto; }
-  #leftrail button { display:flex; flex-direction:column; align-items:center; gap:7px;
+              align-items:stretch; gap:3px; padding:8px 5px; overflow-y:auto;
+              position:relative; z-index:2; }
+  #leftrail button { display:flex; flex-direction:column; align-items:center; gap:5px;
                      background:none; border:0; color:var(--txt); cursor:pointer;
-                     padding:11px 3px 9px; border-radius:12px;
-                     font:600 10.5px system-ui; letter-spacing:.1px;
+                     padding:8px 2px 7px; border-radius:10px;
+                     font:600 9px system-ui; letter-spacing:.1px;
                      transition:background .12s, color .12s; }
   #leftrail button:hover { background:var(--ctl); }
   #leftrail button.on { background:var(--sage); color:#fff; }
-  #leftrail button svg { width:23px; height:23px; }
+  #leftrail button svg { width:19px; height:19px; }
   /* A boot failure is the one status the row must not quietly ellipsis away:
      it is the only thing on screen telling you why nothing works. */
   #stat.err { opacity:1; color:#FFD9D4; font-weight:600; cursor:help; }
@@ -106,34 +110,68 @@
 
   /* Sources manager — a light panel over the preview, in the top document so a
      re-render of the iframe never disturbs it. top is set from the bar height. */
-  #srcpanel { position:fixed; right:16px; width:min(560px,92vw);
-    max-height:calc(100vh - 90px); overflow:auto; background:#fff; color:var(--ink);
-    border:1px solid #C9D6CD; border-radius:8px; box-shadow:0 14px 38px rgba(0,0,0,.30);
-    z-index:60; font:13px/1.45 system-ui; }
-  #srcpanel header { display:flex; align-items:center; gap:10px; padding:9px 12px;
-    background:var(--ink); color:#E8EDE6; border-radius:8px 8px 0 0; position:sticky; top:0; }
-  #srcpanel header b { letter-spacing:.3px; }
-  #srcpanel header span { flex:1; font-size:11px; opacity:.82; }
-  #srcpanel header button { background:var(--sage); color:#fff; border:0;
-    border-radius:4px; padding:3px 11px; cursor:pointer; font:inherit; }
-  .srcrow { padding:9px 12px; border-bottom:1px solid #EDF1EE;
-    display:grid; grid-template-columns:1fr auto; gap:6px 8px; align-items:center; }
-  .srcid { grid-column:1 / -1; font:11px ui-monospace,monospace; color:var(--deep);
+  #srcpanel { position:fixed; right:16px; width:min(640px,94vw);
+    max-height:calc(100vh - 96px); display:flex; flex-direction:column;
+    background:#fff; color:var(--ink); border:1px solid #C9D6CD; border-radius:12px;
+    box-shadow:0 18px 46px rgba(20,30,35,.34); z-index:60; font:13px/1.45 system-ui;
+    overflow:hidden; }
+  #srcpanel header { display:flex; align-items:center; gap:10px; padding:12px 14px 11px;
+    background:var(--ink); color:#E8EDE6; flex:none; }
+  #srcpanel header b { font:700 15px system-ui; letter-spacing:.2px; }
+  .src-count { font:600 11px system-ui; background:rgba(255,255,255,.14);
+    border-radius:99px; padding:2px 9px; }
+  #srcpanel header .src-spacer { flex:1; }
+  .src-x { background:none; border:0; color:#C7D5CD; font-size:15px; cursor:pointer;
+    padding:5px 7px; border-radius:50%; line-height:1; }
+  .src-x:hover { background:rgba(255,255,255,.14); color:#fff; }
+  .src-new { background:var(--sage); color:#fff; border:0; border-radius:7px;
+    padding:6px 13px; cursor:pointer; font:600 12.5px system-ui; }
+  .src-new:hover { background:#7FB08B; }
+  /* Filter bar: 21 sources is a scroll, so finding one is the primary act. */
+  .src-tools { display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid #E6ECE8; background:#F7FAF8; flex:none; }
+  #src-q { flex:1; min-width:0; font:13px system-ui; padding:7px 11px;
+    border:1px solid #C9D6CD; border-radius:8px; color:var(--ink); background:#fff; }
+  #src-q:focus { outline:2px solid rgba(107,158,120,.5); outline-offset:-1px; }
+  .src-filter { font:600 12px system-ui; padding:6px 12px; border:1px solid #C9D6CD;
+    background:#fff; color:var(--deep); border-radius:99px; cursor:pointer;
+    white-space:nowrap; }
+  .src-filter.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  #srclist { overflow-y:auto; flex:1; min-height:0; }
+  .srcrow { padding:11px 14px; border-bottom:1px solid #EDF1EE;
+    display:grid; grid-template-columns:1fr; gap:6px; }
+  .srcrow:hover { background:#FAFCFB; }
+  .srcid { font:12px ui-monospace,monospace; color:var(--deep);
     display:flex; gap:8px; align-items:center; }
-  .srcuse { font-size:10px; color:#8B9A90; }
-  .srcidctl { margin-left:auto; display:flex; gap:4px; }
-  .srcren { font:10px system-ui; padding:2px 8px; cursor:pointer; border:1px solid #C9D6CD;
-    background:#fff; color:var(--deep); border-radius:4px; }
+  /* "unused" is the one that wants finding — it is the deletable one. */
+  .srcuse { font:600 10px system-ui; border-radius:99px; padding:2px 8px;
+    background:#E7EEE8; color:#5B6E66; }
+  .srcuse.unused { background:#F6E7DE; color:#A85E2F; }
+  /* Row controls stay out of the way until the row is reached for: at 21 rows
+     they were 60-odd buttons of standing chrome. */
+  .srcidctl { margin-left:auto; display:flex; gap:4px; opacity:0;
+    transition:opacity .12s; }
+  .srcrow:hover .srcidctl, .srcidctl:focus-within { opacity:1; }
+  .srcren { font:11px system-ui; min-width:24px; padding:3px 8px; cursor:pointer;
+    border:1px solid #C9D6CD; background:#fff; color:var(--deep); border-radius:6px; }
   .srcren:hover:not(:disabled) { background:var(--sage); color:#fff; border-color:var(--sage); }
-  .srcren:disabled { opacity:.35; cursor:default; }
-  .srcrow input { font:12px system-ui; padding:5px 7px; width:100%; box-sizing:border-box;
-    border:1px solid #C9D6CD; border-radius:4px; color:var(--ink); }
-  .srctext { grid-column:1 / -1; }
-  .srcdel { font:11px system-ui; padding:5px 11px; border:1px solid #d9b0a0;
-    background:#fff; color:#C2703A; border-radius:4px; cursor:pointer; white-space:nowrap; }
+  .srcren:disabled { opacity:.3; cursor:default; }
+  .srcrow input { font:12.5px system-ui; padding:7px 9px; width:100%; box-sizing:border-box;
+    border:1px solid #DCE4DE; border-radius:7px; color:var(--ink); background:#fff; }
+  .srcrow input:hover { border-color:#C9D6CD; }
+  .srcrow input:focus { outline:2px solid rgba(107,158,120,.45); outline-offset:-1px;
+    border-color:var(--sage); }
+  .srcurl-wrap { display:flex; align-items:center; gap:6px; }
+  .srcopen { flex:none; text-decoration:none; font-size:13px; color:#7A8E92;
+    border:1px solid #DCE4DE; border-radius:7px; padding:6px 9px; line-height:1; }
+  .srcopen:hover { background:#EDF4EE; color:var(--ink); border-color:var(--sage); }
+  .srcdel { font:11px system-ui; padding:3px 9px; border:1px solid #d9b0a0;
+    background:#fff; color:#C2703A; border-radius:6px; cursor:pointer; white-space:nowrap; }
   .srcdel:hover:not(:disabled) { background:#C2703A; color:#fff; border-color:#C2703A; }
-  .srcdel:disabled { opacity:.5; cursor:default; border-color:#d7dcd8; color:#9aa4a0; }
-  .srcempty { padding:16px; color:#8B9A90; font-size:12px; }
+  .srcdel:disabled { opacity:.4; cursor:default; border-color:#d7dcd8; color:#9aa4a0; }
+  .srcempty { padding:26px 16px; color:#8B9A90; font-size:12.5px; text-align:center; }
+  .src-foot { flex:none; padding:8px 14px; border-top:1px solid #E6ECE8;
+    background:#F7FAF8; font:11.5px system-ui; color:#7A8E92; }
 
   /* Sign in with GitHub — same family as the sources panel. */
   #authpanel { position:fixed; right:16px; width:min(380px,92vw); background:#fff;
@@ -173,7 +211,7 @@
           cursor:pointer; max-width:220px; }
   #proj:hover { border-color:var(--sage); }
   /* Below the bars: the page rail and the canvas, side by side. */
-  #work { flex:1; min-height:0; display:flex; }
+  #work { flex:1; min-height:0; display:flex; position:relative; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
      whole iframe is SCALED to the pane, never reflowed. A narrow pane would
      otherwise fire the report's mobile media queries, and a drag would record
@@ -187,7 +225,27 @@
   #rail { flex:none; display:flex; align-items:flex-start; gap:10px;
           overflow-x:auto; overflow-y:hidden; background:var(--chrome);
           border-top:1px solid var(--line); padding:10px 12px; scrollbar-width:thin; }
-  #rail-list { display:flex; align-items:flex-start; gap:10px; }
+  #rail-list { display:flex; align-items:flex-start; gap:2px; }
+  /* Insert point between two pages: a hit strip that shows a small + and a
+     guide line only on hover, so thirteen of them add no standing noise. It
+     supplies the spacing between chips too, hence #rail-list's gap of 2. */
+  .rail-ins { position:relative; flex:none; width:15px; height:67px; padding:0;
+          border:0; background:none; cursor:pointer; display:flex;
+          align-items:center; justify-content:center; }
+  .rail-ins::before { content:""; position:absolute; top:1px; bottom:1px;
+          width:2px; border-radius:2px; background:var(--sage);
+          opacity:0; transition:opacity .12s; }
+  .rail-ins-dot { position:relative; z-index:1; width:14px; height:14px;
+          border-radius:50%; background:var(--sage); color:#fff;
+          font:700 11px/14px system-ui; text-align:center; opacity:0;
+          transform:scale(.55); transition:opacity .12s, transform .12s;
+          box-shadow:0 1px 4px rgba(0,0,0,.35); }
+  .rail-ins:hover::before { opacity:.5; }
+  .rail-ins:hover .rail-ins-dot,
+  .rail-ins:focus-visible .rail-ins-dot { opacity:1; transform:scale(1); }
+  /* The hidden run has no insert points between its chips, so it needs the
+     gap the inserts would otherwise have provided. */
+  .chip.hidden-pg + .chip.hidden-pg { margin-left:9px; }
   #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
           color:var(--dim); flex:none; padding:24px 4px 0 0; align-self:center; }
   .chip { position:relative; display:flex; flex-direction:column; align-items:center;
@@ -248,15 +306,37 @@
 
   /* -- the left panel: a tool's full surface, where a popover would be
      cramped. Light, because it is a content surface rather than chrome. */
-  #side { width:318px; flex:none; display:flex; flex-direction:column;
-          background:#fff; color:var(--ink); border-right:1px solid #C9D6CD; }
+  /* The panel OVERLAYS the canvas rather than sitting in the flex row beside
+     it: docking a tool used to shove the page sideways and re-fit the whole
+     canvas, so opening a picker moved the very thing you were aiming at.
+     Floating it leaves the page exactly where it was. #work is the
+     positioning context; #stage keeps the full width underneath. */
+  #side { position:absolute; left:var(--rail-w); top:0; bottom:0; z-index:5; width:252px;
+          display:flex; flex-direction:column; background:#fff; color:var(--ink);
+          border-right:1px solid #C9D6CD; box-shadow:6px 0 22px rgba(20,30,35,.20);
+          /* visible, so the fold chevron can sit on the outer edge */
+          overflow:visible; transition:width .16s ease; }
   #side[hidden] { display:none; }
+  /* Collapsed: the surface rolls up to nothing and the chevron rides back to
+     the rail, still there to pull the same panel out again. */
+  #side.folded { width:0; border-right:0; box-shadow:none; }
+  #side.folded #side-head, #side.folded #side-body { display:none; }
+  #side-fold { position:absolute; right:-13px; top:50%; margin-top:-26px;
+          width:26px; height:52px; padding:0; z-index:6; cursor:pointer;
+          display:flex; align-items:center; justify-content:center;
+          font:15px system-ui; line-height:1; color:#5B6E66;
+          background:#fff; border:1px solid #C9D6CD; border-left:0;
+          border-radius:0 9px 9px 0; box-shadow:3px 0 10px rgba(20,30,35,.14);
+          transition:color .12s, background .12s; }
+  #side-fold:hover { background:#EDF4EE; color:var(--ink); }
+  #side.folded #side-fold { transform:rotate(180deg); border-left:1px solid #C9D6CD;
+          border-radius:0 9px 9px 0; }
   #side-head { display:flex; align-items:center; justify-content:space-between;
-          padding:15px 18px 8px; font:700 17px/1.2 system-ui; letter-spacing:-.2px; }
+          padding:13px 14px 6px; font:700 15.5px/1.2 system-ui; letter-spacing:-.2px; }
   #side-x { border:0; background:none; font-size:15px; line-height:1; cursor:pointer;
           color:#7A8E92; padding:5px; border-radius:50%; }
   #side-x:hover { color:var(--ink); background:#EDF1EE; }
-  #side-body { flex:1; min-height:0; overflow-y:auto; padding:0 18px 20px; }
+  #side-body { flex:1; min-height:0; overflow-y:auto; padding:0 14px 16px; }
   #side-body h4 { display:flex; align-items:center; gap:7px; font:600 12.5px system-ui;
           margin:16px 0 9px; color:var(--ink); }
   #side-search { width:100%; box-sizing:border-box; font:13px system-ui;
@@ -311,6 +391,95 @@
         transition:background .13s, border-color .13s; }
   .pop.docked .txtpreset:hover { background:#E9F2EC; border-color:var(--sage);
         color:var(--ink); }
+  /* The default action reads as the primary one. */
+  .pop.docked #txt-default { display:block; width:100%; text-align:center;
+        padding:12px 14px; margin:2px 0 4px; border:0; border-radius:10px;
+        background:var(--sage); color:#fff; font:600 13.5px system-ui;
+        cursor:pointer; transition:background .12s; }
+  .pop.docked #txt-default:hover { background:var(--deep); color:#fff; }
+
+  /* the table panel: rows/columns, fill, text and borders on one surface */
+  .tp-scope { font:11.5px system-ui; color:#5B6E66; background:#EDF4EE;
+        border-radius:8px; padding:7px 10px; margin:4px 0 0; }
+  .tp-clear { display:block; width:100%; margin-top:6px; font:11.5px system-ui;
+        padding:5px 0; border:1px solid #C9D6CD; border-radius:7px;
+        background:#fff; color:var(--deep); cursor:pointer; }
+  .tp-clear:hover { background:var(--sage); border-color:var(--sage); color:#fff; }
+  .tp-row { display:flex; gap:5px; margin-bottom:6px; align-items:center; }
+  .tp-btn { flex:1; min-width:0; font:11.5px system-ui; padding:6px 4px;
+        border:1px solid #DCE4DE; border-radius:7px; background:#fff;
+        color:var(--ink); cursor:pointer; white-space:nowrap;
+        transition:background .12s, border-color .12s; }
+  .tp-btn:hover:not(:disabled) { background:#EDF4EE; border-color:var(--sage); }
+  .tp-btn.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  .tp-btn:disabled { opacity:.4; cursor:default; }
+  .tp-btn.danger:hover:not(:disabled) { background:#C0603F; border-color:#C0603F;
+        color:#fff; }
+  /* segmented: one control, not four buttons */
+  .tp-seg .tp-btn { border-radius:0; margin-left:-1px; }
+  .tp-seg .tp-btn:first-child { border-radius:7px 0 0 7px; margin-left:0; }
+  .tp-seg .tp-btn:last-child { border-radius:0 7px 7px 0; }
+  .tp-seg .tp-btn.on { position:relative; z-index:1; }
+  .tp-lab { flex:none; font:11.5px system-ui; color:#5B6E66; }
+  .tp-range { flex:1; min-width:0; accent-color:var(--sage); }
+  .tp-val { flex:none; font:11px ui-monospace,monospace; color:#5B6E66;
+        min-width:34px; text-align:right; }
+  /* the style gallery: three looks per colour, drawn as miniature tables */
+  .tp-gal { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
+        margin-bottom:4px; }
+  .tp-preset { padding:3px; border:1px solid #E3EAE5; border-radius:8px;
+        background:#fff; cursor:pointer; line-height:0;
+        transition:border-color .12s, box-shadow .12s, transform .12s; }
+  .tp-preset:hover { border-color:var(--sage); transform:translateY(-1px);
+        box-shadow:0 4px 10px rgba(47,62,70,.12); }
+  .tp-preset.on { border-color:var(--sage); box-shadow:0 0 0 2px var(--sage); }
+  .tp-preset-grid { display:grid; grid-template-columns:repeat(3, 1fr);
+        grid-template-rows:repeat(4, 1fr); width:100%; aspect-ratio:1;
+        border-radius:3px; overflow:hidden; }
+  .tp-sw { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 4px; }
+  .tp-swatch { width:24px; height:24px; padding:0; border-radius:6px;
+        border:1px solid rgba(0,0,0,.16); cursor:pointer; }
+  .tp-swatch:hover { outline:2px solid var(--ink); outline-offset:1px; }
+  .tp-swatch.on { outline:2px solid #6B9E78; outline-offset:1px; }
+  .tp-swatch.none { background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M1 9L9 1%27 stroke=%27%23C0392B%27/%3E%3C/svg%3E") center/100% no-repeat; }
+  .tp-custom { width:24px; height:24px; padding:1px; border:1px dashed #8B9A90;
+        border-radius:6px; background:#fff; cursor:pointer; }
+
+  /* the chart panel: type picker, data grid, settings — Canva's three parts */
+  .ch-types { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
+        margin-bottom:6px; }
+  .ch-type { display:flex; flex-direction:column; align-items:center; gap:3px;
+        padding:8px 2px 6px; border:1px solid #DCE4DE; border-radius:9px;
+        background:#fff; color:#52796F; cursor:pointer; font:9.5px system-ui;
+        transition:background .12s, border-color .12s, color .12s; }
+  .ch-type:hover { background:#EDF4EE; border-color:var(--sage); }
+  .ch-type.on { background:var(--sage); border-color:var(--sage); color:#fff; }
+  .ch-type svg { display:block; }
+  .ch-grid { display:grid; gap:4px; align-items:center; margin-bottom:7px; }
+  .ch-hd { font:600 10px system-ui; color:#7A8E92; text-transform:uppercase;
+        letter-spacing:.4px; }
+  .ch-grid input { min-width:0; width:100%; box-sizing:border-box;
+        font:12px system-ui; padding:5px 6px; border:1px solid #DCE4DE;
+        border-radius:6px; color:var(--ink); background:#fff; }
+  .ch-grid input:focus { outline:2px solid rgba(107,158,120,.45); outline-offset:-1px;
+        border-color:var(--sage); }
+  .ch-hd-in { font-weight:600 !important; }
+  .ch-rowdel { border:0; background:none; color:#B4BFB7; cursor:pointer;
+        font-size:11px; padding:2px 3px; border-radius:4px; }
+  .ch-rowdel:hover:not(:disabled) { background:#F3E3DC; color:#C2703A; }
+  .ch-rowdel:disabled { opacity:.3; cursor:default; }
+  .ch-title { width:100%; box-sizing:border-box; font:12.5px system-ui;
+        padding:7px 9px; border:1px solid #DCE4DE; border-radius:7px;
+        margin-bottom:6px; color:var(--ink); }
+  .ch-colrow { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .ch-collab { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+        white-space:nowrap; font:12px system-ui; color:#52796F; }
+  .ch-colsw { flex:none; width:30px; height:24px; padding:1px; cursor:pointer;
+        border:1px solid #DCE4DE; border-radius:6px; background:#fff; }
+  .ch-reset { flex:none; border:0; background:none; color:#B4BFB7; cursor:pointer;
+        font-size:12px; padding:2px 4px; border-radius:4px; line-height:1; }
+  .ch-reset:hover:not(:disabled) { background:#EDF4EE; color:var(--deep); }
+  .ch-reset:disabled { opacity:.3; cursor:default; }
 
   /* the icon panel: search over a scrolling array of the same tiles */
   .pop.docked #icon-q, .pop.docked #icon-set { border-radius:9px; padding:9px 11px;
@@ -650,6 +819,12 @@
   </div>
   <div class="pop" id="textpop" hidden>
     <p class="pop-h">Add text to the page in view</p>
+    <!-- The plain one first and highlighted: an empty box to type in is what
+         "add text" means most of the time, and the styled presets below are
+         the shortcuts. Deliberately NOT .txtpreset — that class is the set of
+         three style presets, which the suite counts. -->
+    <button class="shp" id="txt-default" data-k="plain">Add a text box</button>
+    <p class="pop-h">Or start from a style</p>
     <button class="shp txtpreset" data-k="heading" style="font:700 17px system-ui">Add a heading</button>
     <button class="shp txtpreset" data-k="subheading" style="font:600 14px system-ui">Add a subheading</button>
     <button class="shp txtpreset" data-k="body" style="font:12px system-ui">Add body text</button>
@@ -689,6 +864,12 @@
     <div id="icon-grid"></div>
     <p class="icon-note" id="icon-note"></p>
   </div>
+  <!-- The table panel is built in JS (renderTablePanel) because everything in
+       it depends on what is selected — which table, and which of its cells. -->
+  <div class="pop" id="tablepop" hidden></div>
+  <!-- Same for charts: type gallery, data grid and settings, all keyed to the
+       selected chart (renderChartPanel). -->
+  <div class="pop" id="chartpop" hidden></div>
 </div>
 <div id="context">
 <div id="type" hidden>
@@ -764,6 +945,17 @@
 <div id="arrange" hidden>
   <span class="ar-count" id="ar-count"></span>
   <span class="ty-sep"></span>
+  <!-- Shown only for a selected table: opens its full panel on the left, the
+       way Canva puts table styling in a surface rather than a popover. -->
+  <button id="ar-table" aria-label="Table — rows, columns, fills and borders" hidden>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.3"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
+      <path d="M1.5 5.5h11M1.5 9h11M5.5 2v10"/></svg>Table</button>
+  <button id="ar-chart" aria-label="Chart — type, data and settings" hidden>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.3" stroke-linecap="round"><path d="M1.6 12.4h10.8"/>
+      <rect x="2.6" y="7" width="2.4" height="4.2"/><rect x="6" y="4.2" width="2.4" height="7"/>
+      <rect x="9.4" y="1.8" width="2.4" height="9.4"/></svg>Chart</button>
   <button id="ar-border" aria-label="Border — colour, weight, dash" hidden>
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.5"><rect x="2" y="2" width="10" height="10" rx="2" stroke-dasharray="3 2"/></svg></button>
@@ -908,6 +1100,12 @@
         stroke-width="1.4"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
         <path d="M1.5 5.5h11M1.5 9h11M5.5 2v10"/></svg>
       Table</button>
+    <button id="chart" aria-label="Add a bar, column, pie or donut chart">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+        stroke-width="1.4" stroke-linecap="round"><path d="M1.6 12.4h10.8"/>
+        <rect x="2.6" y="7" width="2.4" height="4.2"/><rect x="6" y="4.2" width="2.4" height="7"/>
+        <rect x="9.4" y="1.8" width="2.4" height="9.4"/></svg>
+      Chart</button>
   </nav>
   <!-- The left column is a PANEL host now: whatever the current tool needs a
        lot of room for (colour, today) opens here instead of in a popover that
@@ -918,6 +1116,9 @@
       <button id="side-x" aria-label="Close">✕</button>
     </div>
     <div id="side-body"></div>
+    <!-- Collapse the panel out of the way without losing it: the tool stays
+         open and the chevron stays on the canvas edge to bring it back. -->
+    <button id="side-fold" aria-label="Collapse this panel">‹</button>
   </aside>
   <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
 </div>
@@ -3175,8 +3376,14 @@ function undockPanel() {
   sidePanelTool = null;
 }
 
-function dockPanel(tool, title) {
-  if (sidePanelTool === tool) { closeSide(); return; }   // the rail button toggles
+function dockPanel(tool, title, opts = {}) {
+  // toggle:false — reopening the same panel REFRESHES it instead of closing.
+  // The table panel is opened from several places (the rail, the arrange
+  // strip, the right-click menu) and each must land on it open, not flip it.
+  if (sidePanelTool === tool) {
+    if (opts.toggle === false) return;
+    closeSide(); return;                                 // the rail button toggles
+  }
   undockPanel();
   sideFillId = null;                   // #side is about a tool now, not a colour
   document.querySelectorAll('.pop').forEach(p => { p.hidden = true; });
@@ -3190,6 +3397,15 @@ function dockPanel(tool, title) {
   $(tool).classList.add('on');
   $('side-title').textContent = title;
   $('side').hidden = false;
+  unfoldSide();          // reaching for a tool means you want to see it
+}
+
+/** A folded panel stays folded until something is deliberately opened in it —
+ *  otherwise picking a new tool would look like nothing happened. */
+function unfoldSide() {
+  $('side').classList.remove('folded');
+  $('side-fold').setAttribute('aria-label', 'Collapse this panel');
+  $('side-fold').setAttribute('aria-expanded', 'true');
 }
 
 // Canva's "Add a text box" panel: a heading, a subheading, or body text. Each
@@ -3197,6 +3413,10 @@ function dockPanel(tool, title) {
 // any other — and its size/weight can then be tuned in the formatting toolbar.
 $('text').onclick = () => dockPanel('text', 'Text');
 const TEXT_PRESETS = {
+  // The default: a plain box at body size with nothing to delete first. The
+  // three below are style shortcuts, and `body` keeps its worked example of
+  // what the markdown does.
+  plain:      { md: 'Your text here', style: {},                                    w: 3 },
   heading:    { md: 'Heading',     style: { size: 30, weight: 700, leading: 1.05 }, w: 4 },
   subheading: { md: 'Subheading',  style: { size: 19, weight: 600 },               w: 3.5 },
   body:       { md: 'Body text. **Bold**, *italic* and [links](https://example.org) work.',
@@ -3207,7 +3427,7 @@ async function addTextBox(kind) {
   const page = visiblePageId();
   pushHistory();
   const id = freeBoxId();
-  const box = { id, page, x: 1, y: 2, w: preset.w, z: 2, md: preset.md };
+  const box = { id, page, x: placeX(preset.w), y: 2, w: preset.w, z: 2, md: preset.md };
   if (preset.style && Object.keys(preset.style).length) box.style = { ...preset.style };
   boxes().push(box);
   setSel($('out').contentDocument, ['text.' + id]);
@@ -3215,39 +3435,199 @@ async function addTextBox(kind) {
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place`;
 }
-document.querySelectorAll('#textpop .txtpreset').forEach(b =>
+document.querySelectorAll('#textpop .shp[data-k]').forEach(b =>
   b.addEventListener('click', () => addTextBox(b.dataset.k)));
 
 const freeTableId = () => freeTId();
+
+$('ar-table').addEventListener('click', () => openTablePanel(selectedTableId()));
 
 $('table').onclick = async () => {
   const page = visiblePageId();
   pushHistory();
   const id = freeTableId();
-  tables().push({ id, page, x: 1, y: 2, w: 3.5, z: 2, header: true,
+  tables().push({ id, page, x: placeX(3.5), y: 2, w: 3.5, z: 2, header: true,
                   rows: [['Column 1', 'Column 2'], ['', ''], ['', '']] });
   setSel($('out').contentDocument, ['table.' + id]);
   markDirty();
   await render();
-  $('stat').textContent = `table.${id} added to page ${page} — double-click a cell to edit, right-click for rows & columns`;
+  // Land on the styling panel, the way Canva drops you into the new table's
+  // controls rather than making you hunt for them.
+  openTablePanel('table.' + id);
+  $('stat').textContent = `table.${id} added to page ${page} — click a cell to style it, double-click to type`;
 };
 
 /** Table cells edit in place (double-click) and offer a rows/columns menu
  *  (right-click). Both are bound each render, since the DOM is rebuilt. */
+// ------------------------------------------------------- cell selection
+// Which cells the table panel's fill / align / text controls act on. Null
+// means "the whole table". Canva's model: the first click selects the TABLE
+// (so it can still be dragged as one object); once it is selected, clicks
+// inside pick cells, and a drag across them picks a range.
+let cellSel = null;                  // { id, r0, c0, r1, c1 } — corners, unsorted
+const cellRange = () => cellSel && {
+  r0: Math.min(cellSel.r0, cellSel.r1), r1: Math.max(cellSel.r0, cellSel.r1),
+  c0: Math.min(cellSel.c0, cellSel.c1), c1: Math.max(cellSel.c0, cellSel.c1),
+};
+/** Every "r,c" key the current selection covers — what a style write iterates.
+ *  With no selection that is every cell in the table, so "no selection" means
+ *  "the whole table" without any caller special-casing it. */
+function cellKeys(t) {
+  const rg = cellRange();
+  const keys = [];
+  t.rows.forEach((row, r) => row.forEach((_, c) => {
+    if (!rg || (r >= rg.r0 && r <= rg.r1 && c >= rg.c0 && c <= rg.c1)) keys.push(`${r},${c}`);
+  }));
+  return keys;
+}
+function paintCells(d) {
+  d.querySelectorAll('.ds-cell-sel').forEach(n => n.classList.remove('ds-cell-sel'));
+  const rg = cellRange();
+  if (!rg || !cellSel) return;
+  const tbl = d.querySelector(`[data-el="${CSS.escape(cellSel.id)}"]`);
+  if (!tbl) return;
+  tbl.querySelectorAll('[data-cell]').forEach(td => {
+    const [r, c] = td.dataset.cell.split(',').map(Number);
+    if (r >= rg.r0 && r <= rg.r1 && c >= rg.c0 && c <= rg.c1) td.classList.add('ds-cell-sel');
+  });
+}
+function clearCellSel(d) {
+  cellSel = null;
+  if (d) paintCells(d);
+}
+/** Put the cell cursor somewhere and show it. Always reads the CURRENT
+ *  document: every caller is downstream of a render that replaced it. */
+function selectCell(id, r, c) {
+  cellSel = { id, r0: r, c0: c, r1: r, c1: c };
+  paintCells($('out').contentDocument);
+  renderTablePanel();
+}
+/** Move the cell cursor by (dr, dc). `wrap` carries Tab past the end of a row
+ *  onto the next one, which is what makes tabbing through a table work.
+ *  Returns the cell landed on, or null when the move ran off the grid. */
+function stepCell(t, r, c, dr, dc, wrap) {
+  const rows = t.rows.length, cols = t.rows[0].length;
+  let nr = r + dr, nc = c + dc;
+  if (wrap) {
+    if (nc >= cols) { nc = 0; nr++; }
+    else if (nc < 0) { nc = cols - 1; nr--; }
+  }
+  if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return null;
+  selectCell('table.' + t.id, nr, nc);
+  return { r: nr, c: nc };
+}
+/** The <td> for a cell in the live document. */
+function cellEl(d, id, r, c) {
+  const tbl = d.querySelector(`[data-el="${CSS.escape(id)}"]`);
+  return tbl && tbl.querySelector(`[data-cell="${r},${c}"]`);
+}
+
+/** A selected table cell behaves like a spreadsheet cell: type to replace,
+ *  Enter/F2 to edit, Tab and arrows to walk the grid, Delete to empty it.
+ *  This is what "edit the table directly" comes down to.
+ *
+ *  Bound from BOTH keydown listeners — the iframe's and this document's —
+ *  because a click on a cell calls preventDefault to keep the gesture from
+ *  dragging the table, which also means focus never moves into the iframe.
+ *  Whichever document happens to hold focus, the keystroke lands here.
+ *  Returns true when it consumed the key. */
+function tableCellKey(e) {
+  if (editing || !cellSel || !selIds.has(cellSel.id)) return false;
+  if (e.metaKey || e.ctrlKey) return false;         // ⌘-anything stays global
+  const t = tableOfId(cellSel.id);
+  const rg = cellRange();
+  if (!t || !rg) return false;
+  const d = $('out').contentDocument;
+  const { r0: r, c0: c } = rg;
+  const open = seed => {
+    const td = cellEl(d, cellSel.id, r, c);
+    if (td) editCell(d, td, seed);
+  };
+  if (e.key === 'Tab') {
+    e.preventDefault(); stepCell(t, r, c, 0, e.shiftKey ? -1 : 1, true); return true;
+  }
+  if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); open(); return true; }
+  if (e.key === 'Escape') { clearCellSel(d); renderTablePanel(); return true; }
+  if (e.key.startsWith('Arrow')) {
+    const [dr, dc] = { ArrowUp: [-1, 0], ArrowDown: [1, 0],
+                       ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key] || [];
+    if (dr === undefined) return false;
+    e.preventDefault(); stepCell(t, r, c, dr, dc, false); return true;
+  }
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    pushHistory();
+    cellKeys(t).forEach(k => {
+      const [rr, cc] = k.split(',').map(Number);
+      t.rows[rr][cc] = '';
+    });
+    markDirty();
+    render().then(() => { paintCells($('out').contentDocument); renderTablePanel(); });
+    return true;
+  }
+  // Any printable character starts editing WITH that character.
+  if (e.key.length === 1 && !e.altKey) { e.preventDefault(); open(e.key); return true; }
+  return false;
+}
+
 function wireCells(d) {
   d.querySelectorAll('table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
     .forEach(td => {
       td.addEventListener('dblclick', e => { e.preventDefault(); e.stopPropagation(); editCell(d, td); });
       td.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); tableMenu(d, td, e); });
+      // Bound on the CELL, which sees mousedown before the table does — that
+      // is what lets a cell click take the gesture away from dragify's
+      // move-the-whole-table without unbinding anything.
+      td.addEventListener('mousedown', e => {
+        if (editing || e.button !== 0) return;
+        const tableEl = td.closest('[data-el^="table."]');
+        if (!tableEl) return;
+        const id = idOf(tableEl);
+        const [pr, pc] = td.dataset.cell.split(',').map(Number);
+        // Not selected yet: let the event through so the first click still
+        // selects and drags the table as a whole — but remember WHICH cell it
+        // landed on, so that one click already puts the cursor there and the
+        // next keystroke types into it. Without this you had to click the
+        // table, then click a cell, then double-click, before you could type.
+        if (!selIds.has(id)) {
+          cellSel = { id, r0: pr, c0: pc, r1: pr, c1: pc };
+          setTimeout(() => { paintCells(d); renderTablePanel(); }, 0);
+          return;
+        }
+        e.preventDefault(); e.stopPropagation();
+        const [r, c] = td.dataset.cell.split(',').map(Number);
+        if (e.shiftKey && cellSel && cellSel.id === id) { cellSel.r1 = r; cellSel.c1 = c; }
+        else cellSel = { id, r0: r, c0: c, r1: r, c1: c };
+        paintCells(d);
+        renderTablePanel();
+        const move = ev => {
+          const over = ev.target.closest && ev.target.closest('[data-cell]');
+          if (!over || over.closest('[data-el^="table."]') !== tableEl) return;
+          const [rr, cc] = over.dataset.cell.split(',').map(Number);
+          if (rr === cellSel.r1 && cc === cellSel.c1) return;
+          cellSel.r1 = rr; cellSel.c1 = cc;
+          paintCells(d); renderTablePanel();
+        };
+        const up = () => {
+          d.removeEventListener('mousemove', move);
+          d.removeEventListener('mouseup', up);
+        };
+        d.addEventListener('mousemove', move);
+        d.addEventListener('mouseup', up);
+      });
     });
 }
 
-function editCell(d, td) {
+function editCell(d, td, seed) {
   if (editing) return;
   const tableEl = td.closest('[data-el^="table."]');
   const t = tableEl && tableOf(tableEl.dataset.el);
   if (!t) return;
   const [ri, ci] = td.dataset.cell.split(',').map(Number);
+  // Editing a cell IS selecting it — so the panel follows you around the grid
+  // and Tab/arrows have somewhere to go the moment you leave the editor.
+  cellSel = { id: idOf(tableEl), r0: ri, c0: ci, r1: ri, c1: ci };
+  renderTablePanel();
   editing = true;
   const raw = (t.rows[ri] && t.rows[ri][ci]) || '';
   const host = d.createElement('span');
@@ -3255,11 +3635,17 @@ function editCell(d, td) {
   host.className = 'ds-cell-edit';
   host.dataset.richMode = 'inline';
   host.style.whiteSpace = 'pre-wrap';   // a cell can carry a Shift+Enter newline
-  host.innerHTML = mdToHtml(raw, { inline: true });
+  // `seed` is a typed character: typing over a selected cell REPLACES it and
+  // keeps the keystroke, the way a spreadsheet (and Canva) does — without it
+  // the first letter you type would be swallowed opening the editor.
+  if (seed === undefined) host.innerHTML = mdToHtml(raw, { inline: true });
+  else host.textContent = seed;
   td.textContent = '';
   td.appendChild(host);
   host.focus();
-  const r = d.createRange(); r.selectNodeContents(host);
+  const r = d.createRange();
+  r.selectNodeContents(host);
+  if (seed !== undefined) r.collapse(false);      // caret after what was typed
   const s = d.getSelection(); s.removeAllRanges(); s.addRange(r);
   const finish = async keep => {
     if (host.dataset.done) return; host.dataset.done = '1';
@@ -3279,48 +3665,901 @@ function editCell(d, td) {
   host.addEventListener('blur', () => { if (!modalOpen) finish(true); });
   host.addEventListener('paste', e => pasteClean(d, host, e, { inline: true }));
   host.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    // stopPropagation on every key this handler finishes on. finish() sets
+    // `editing = false` SYNCHRONOUSLY, so without this the very same keystroke
+    // carries on bubbling to the document handler, which now sees editing ===
+    // false, decides a table cell is selected, and re-opens the editor it was
+    // just told to close. Enter then left the editor stuck open on the next
+    // cell and swallowed everything typed after it.
+    if (['Escape', 'Enter', 'Tab'].includes(e.key)) e.stopPropagation();
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); return; }
+    // Tab walks the grid and Enter drops a row — a table is filled in by
+    // typing straight through it, not by reaching for the mouse per cell.
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      finish(true).then(() => stepCell(t, ri, ci, 0, e.shiftKey ? -1 : 1, true));
+      return;
+    }
     // Enter commits (a cell is usually one line); Shift+Enter for a real newline.
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      finish(true).then(() => stepCell(t, ri, ci, 1, 0, false));
+      return;
+    }
     else if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); insertBreak(d, host); }
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
   });
 }
 
-/** Rows & columns for the right-clicked cell — insert/delete either side, and
- *  toggle the header band. */
+// A 14px line icon for a menu row. Kept terse — these are read at a glance,
+// next to their label, never on their own.
+const TMI = {
+  copy: '<rect x="4.5" y="4.5" width="8" height="8" rx="1.4"/><path d="M9.5 4.5V2.6a1 1 0 0 0-1-1H2.6a1 1 0 0 0-1 1v5.9a1 1 0 0 0 1 1h1.9"/>',
+  style: '<path d="M3 1.8h6.4v3.4H3z"/><path d="M6.2 5.2v2.4H4.4v4.6h3.4V7.6"/>',
+  paste: '<rect x="2.6" y="2.6" width="8.8" height="10" rx="1.2"/><path d="M5.2 2.6V1.8h3.6v.8"/>',
+  dup: '<rect x="1.8" y="1.8" width="7.4" height="7.4" rx="1.2"/><path d="M5.4 12.2h5.6a1.2 1.2 0 0 0 1.2-1.2V5.4"/>',
+  grid: '<rect x="1.5" y="2" width="11" height="10" rx="1"/><path d="M1.5 5.5h11M1.5 9h11M5.5 2v10"/>',
+  delcol: '<rect x="1.5" y="2" width="5" height="10" rx="1"/><path d="M9 4.5l3.5 3.5M12.5 4.5L9 8"/>',
+  delrow: '<rect x="1.5" y="2" width="11" height="5" rx="1"/><path d="M4.5 9.5l3.5 3.5M8 9.5L4.5 13"/>',
+  plus: '<path d="M7 2.5v9M2.5 7h9"/>',
+  fit: '<path d="M2 3.5h10M7 3.5v8M4.8 11.5h4.4"/>',
+  down: '<path d="M3 5.5L7 9.5l4-4"/>',
+  up: '<path d="M3 8.5L7 4.5l4 4"/>',
+  right: '<path d="M5.5 3l4 4-4 4"/>',
+  left: '<path d="M8.5 3l-4 4 4 4"/>',
+  sliders: '<path d="M2 4h10M2 10h10"/><circle cx="5" cy="4" r="1.6"/><circle cx="9.5" cy="10" r="1.6"/>',
+};
+
+/** The table's own context menu: what you can do to this cell, its row, its
+ *  column and the table — grouped the way Canva groups them, with the icons
+ *  and shortcut hints that make a long menu scannable. */
 function tableMenu(d, td, e) {
   closeMenu(d);
   const tableEl = td.closest('[data-el^="table."]');
   const t = tableEl && tableOf(tableEl.dataset.el);
   if (!t) return;
   const [ri, ci] = td.dataset.cell.split(',').map(Number);
-  const cols = t.rows[0].length;
-  const m = d.createElement('div'); m.className = 'ds-menu';
+  const cols = t.rows[0].length, rows = t.rows.length;
+  // Right-clicking a cell also puts the cursor on it, so the menu and the
+  // panel are always talking about the same cell.
+  selectCell(idOf(tableEl), ri, ci);
+  const m = d.createElement('div'); m.className = 'ds-menu ds-tmenu';
   m.addEventListener('mousedown', ev => ev.preventDefault());
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
-  const head = d.createElement('div'); head.className = 'ds-menu-head';
-  head.textContent = `${tableEl.dataset.el} · row ${ri + 1}, col ${ci + 1}`; m.appendChild(head);
-  const item = (label, fn, on = true) => {
-    const b = d.createElement('button'); b.textContent = label; b.disabled = !on;
-    b.addEventListener('click', async () => { closeMenu(d); pushHistory(); fn(); markDirty(); await render(); });
+  /** A menu row. `fn` may be sync (a layout edit, wrapped in history + render)
+   *  or, with raw:true, something that owns its own commit. */
+  const item = (icon, label, key, fn, on = true, raw = false) => {
+    const b = d.createElement('button');
+    b.className = 'ds-mi';
+    b.disabled = !on;
+    b.innerHTML = `<span class="ds-mi-ico"><svg width="14" height="14" viewBox="0 0 14 14"`
+      + ` fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"`
+      + ` stroke-linejoin="round">${TMI[icon] || ''}</svg></span>`
+      + `<span class="ds-mi-lab"></span>`
+      + (key ? `<span class="ds-mk"></span>` : '');
+    b.querySelector('.ds-mi-lab').textContent = label;
+    if (key) b.querySelector('.ds-mk').textContent = key;
+    b.addEventListener('click', async () => {
+      closeMenu(d);
+      if (raw) { fn(); return; }
+      pushHistory(); fn(); markDirty(); await render();
+      paintCells($('out').contentDocument);
+      renderTablePanel();
+    });
     m.appendChild(b);
+    return b;
   };
   const sep = () => { const s = d.createElement('div'); s.className = 'ds-menu-sep'; m.appendChild(s); };
-  item('Insert row above', () => t.rows.splice(ri, 0, Array(cols).fill('')));
-  item('Insert row below', () => t.rows.splice(ri + 1, 0, Array(cols).fill('')));
-  item('Delete row', () => t.rows.splice(ri, 1), t.rows.length > 1);
+
+  // --- the object ----------------------------------------------------------
+  item('copy', 'Copy', '⌘C', () => copySel(d), true, true);
+  item('style', 'Copy style', '⌥⌘C', () => copyStyle(d), true, true);
+  item('paste', 'Paste', '⌘V', () => pasteClip(d), !!clip, true);
+  item('dup', 'Duplicate', '⌘D', () => duplicateSel(d), true, true);
+  item('grid', 'Delete table', '', () => {
+    setSel(d, ['table.' + t.id]); clearCellSel(d); deleteSel(d);
+  }, true, true);
   sep();
-  item('Insert column left', () => t.rows.forEach(r => r.splice(ci, 0, '')));
-  item('Insert column right', () => t.rows.forEach(r => r.splice(ci + 1, 0, '')));
-  item('Delete column', () => t.rows.forEach(r => r.splice(ci, 1)), cols > 1);
+  // --- structure -----------------------------------------------------------
+  item('delcol', 'Delete column', '', () => tableDeleteCol(t, ci), cols > 1);
+  item('delrow', 'Delete row', '', () => tableDeleteRow(t, ri), rows > 1);
+  item('plus', 'Add column', '', () => tableInsertCol(t, ci + 1));
+  item('plus', 'Add row', '', () => tableInsertRow(t, ri + 1));
   sep();
-  item(t.header ? 'Remove header row' : 'Make first row a header', () => { t.header = !t.header; });
+  // --- sizing --------------------------------------------------------------
+  // Rows already size to their content — there are no row heights to fit —
+  // so the pair here is the two that mean something for this schema.
+  item('fit', 'Fit columns to content', '', () => tableFitColumns(t, tableEl));
+  item('fit', 'Even column widths', '', () => { delete t.colw; }, !!t.colw);
+  sep();
+  // --- reorder -------------------------------------------------------------
+  item('up', 'Move row up', '', () => tableMoveRow(t, ri, -1), ri > 0);
+  item('down', 'Move row down', '', () => tableMoveRow(t, ri, 1), ri < rows - 1);
+  item('left', 'Move column left', '', () => tableMoveCol(t, ci, -1), ci > 0);
+  item('right', 'Move column right', '', () => tableMoveCol(t, ci, 1), ci < cols - 1);
+  sep();
+  item('grid', t.header ? 'Remove header row' : 'Make first row a header', '',
+    () => { t.header = !t.header; });
+  item('sliders', 'Table styles…', '', () => openTablePanel(idOf(tableEl)), true, true);
+
   d.body.appendChild(m);
   const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
   if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
-  if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+  if (r.bottom > vh) m.style.top = Math.max(4,
+    e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
+
+// =================================================== table structure edits
+// Row and column edits go through these, never through rows.splice directly.
+// `cells` is keyed "row,col" and `colw` is positional, so an insert or delete
+// that only touches `rows` leaves every fill and width past the cut attached
+// to the WRONG cell — silently, and only visibly after the next render.
+function reindexCells(t, kind, at, delta) {
+  if (!t.cells) return;
+  const out = {};
+  Object.entries(t.cells).forEach(([k, v]) => {
+    let [r, c] = k.split(',').map(Number);
+    const i = kind === 'row' ? r : c;
+    if (delta < 0 && i === at) return;          // the deleted line's own overrides go with it
+    const n = i >= at ? i + delta : i;
+    if (kind === 'row') r = n; else c = n;
+    out[`${r},${c}`] = v;
+  });
+  t.cells = out;
+  if (!Object.keys(out).length) delete t.cells;
+}
+function tableInsertRow(t, at) {
+  reindexCells(t, 'row', at, 1);
+  t.rows.splice(at, 0, Array(t.rows[0].length).fill(''));
+}
+function tableDeleteRow(t, at) {
+  if (t.rows.length <= 1) return;
+  reindexCells(t, 'row', at, -1);
+  t.rows.splice(at, 1);
+}
+function tableInsertCol(t, at) {
+  reindexCells(t, 'col', at, 1);
+  t.rows.forEach(r => r.splice(at, 0, ''));
+  if (t.colw) t.colw.splice(at, 0, t.colw.reduce((a, b) => a + b, 0) / t.colw.length);
+}
+function tableDeleteCol(t, at) {
+  if (t.rows[0].length <= 1) return;
+  reindexCells(t, 'col', at, -1);
+  t.rows.forEach(r => r.splice(at, 1));
+  if (t.colw) t.colw.splice(at, 1);
+}
+/** Reordering swaps two whole lines, so their overrides swap with them. */
+function swapCellLines(t, kind, a, b) {
+  if (!t.cells) return;
+  const out = {};
+  Object.entries(t.cells).forEach(([k, v]) => {
+    let [r, c] = k.split(',').map(Number);
+    const i = kind === 'row' ? r : c;
+    const n = i === a ? b : i === b ? a : i;
+    if (kind === 'row') r = n; else c = n;
+    out[`${r},${c}`] = v;
+  });
+  t.cells = out;
+}
+function tableMoveRow(t, at, delta) {
+  const to = at + delta;
+  if (to < 0 || to >= t.rows.length) return;
+  [t.rows[at], t.rows[to]] = [t.rows[to], t.rows[at]];
+  swapCellLines(t, 'row', at, to);
+}
+function tableMoveCol(t, at, delta) {
+  const to = at + delta;
+  if (to < 0 || to >= t.rows[0].length) return;
+  t.rows.forEach(r => { [r[at], r[to]] = [r[to], r[at]]; });
+  if (t.colw) [t.colw[at], t.colw[to]] = [t.colw[to], t.colw[at]];
+  swapCellLines(t, 'col', at, to);
+}
+/** Column widths from what is actually in the cells. Measured off the live
+ *  DOM — the renderer already laid the text out, so the widest cell's
+ *  scrollWidth IS the content width, no shadow measuring pass needed. */
+function tableFitColumns(t, tableEl) {
+  if (!tableEl) return;
+  const cols = t.rows[0].length;
+  const w = [];
+  for (let c = 0; c < cols; c++) {
+    let max = 1;
+    tableEl.querySelectorAll(`[data-cell$=",${c}"]`).forEach(td => {
+      if (+td.dataset.cell.split(',')[1] !== c) return;   // ",1" also ends ",11"
+      max = Math.max(max, td.scrollWidth);
+    });
+    w.push(max);
+  }
+  t.colw = w;
+}
+
+// ====================================================== the table panel
+// Canva puts table styling on a surface, not in a popover: rows and columns,
+// cell fill, text, and borders, all acting on the selected CELLS — or on the
+// whole table when nothing narrower is selected.
+let tablePanelId = null;
+
+const tableOfId = id => tableOf(id.startsWith('table.') ? id : 'table.' + id);
+
+/** The one selected table, if the selection is exactly that. */
+function selectedTableId() {
+  const ids = [...selIds];
+  return ids.length === 1 && ids[0].startsWith('table.') ? ids[0] : null;
+}
+
+function openTablePanel(id) {
+  tablePanelId = id || selectedTableId();
+  if (!tablePanelId) return;
+  dockPanel('table', 'Table', { toggle: false });
+  renderTablePanel();
+}
+
+/** Commit a change to the panel's table and repaint everything that shows it. */
+async function tableWrite(fn) {
+  const t = tableOfId(tablePanelId || '');
+  if (!t) return;
+  pushHistory();
+  fn(t);
+  markDirty();
+  await render();
+  paintCells($('out').contentDocument);
+  renderTablePanel();
+}
+
+function renderTablePanel() {
+  const pop = $('tablepop');
+  if (!pop || pop.hidden || sidePanelTool !== 'table') return;
+  const t = tableOfId(tablePanelId || '');
+  pop.textContent = '';
+  if (!t) {
+    pop.innerHTML = '<p class="pop-h">No table selected</p>'
+      + '<p class="side-note">Click a table on the page to style it, or use the '
+      + 'Table tool to add one.</p>';
+    return;
+  }
+  const rows = t.rows.length, cols = t.rows[0].length;
+  const rg = cellRange();
+  const nSel = rg ? (rg.r1 - rg.r0 + 1) * (rg.c1 - rg.c0 + 1) : 0;
+
+  const h = text => { const p = document.createElement('p'); p.className = 'pop-h';
+                      p.textContent = text; pop.appendChild(p); return p; };
+  const row = cls => { const dv = document.createElement('div');
+                       dv.className = 'tp-row' + (cls ? ' ' + cls : '');
+                       pop.appendChild(dv); return dv; };
+  const btn = (host, label, title, fn, on, html) => {
+    const b = document.createElement('button');
+    b.className = 'tp-btn' + (on ? ' on' : '');
+    if (html) b.innerHTML = html; else b.textContent = label;
+    b.title = title || label;
+    b.setAttribute('aria-label', title || label);
+    b.addEventListener('click', fn);
+    host.appendChild(b);
+    return b;
+  };
+  // Align icons as real rules, not the lookalike unicode glyphs that were
+  // here — those rendered as a delete key and a backspace arrow.
+  const alignIcon = a => {
+    const lines = { left: ['M1 2h12', 'M1 5.5h8', 'M1 9h12', 'M1 12.5h8'],
+                    center: ['M1 2h12', 'M3 5.5h8', 'M1 9h12', 'M3 12.5h8'],
+                    right: ['M1 2h12', 'M5 5.5h8', 'M1 9h12', 'M5 12.5h8'] }[a];
+    return '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" '
+      + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round">'
+      + lines.map(dd => `<path d="${dd}"/>`).join('') + '</svg>';
+  };
+
+  // --- what the controls will act on ---------------------------------------
+  const scope = document.createElement('p');
+  scope.className = 'tp-scope';
+  scope.textContent = nSel
+    ? `${nSel === 1 ? 'Cell' : nSel + ' cells'} selected — styles apply to ${nSel === 1 ? 'it' : 'them'}`
+    : `${rows} × ${cols} — styles apply to the whole table`;
+  pop.appendChild(scope);
+  if (nSel) {
+    const clr = document.createElement('button');
+    clr.className = 'tp-clear'; clr.textContent = 'Select whole table';
+    clr.addEventListener('click', () => {
+      clearCellSel($('out').contentDocument); renderTablePanel();
+    });
+    pop.appendChild(clr);
+  }
+
+  // --- styles --------------------------------------------------------------
+  // A gallery of whole looks, drawn as miniature tables: pick the table you
+  // want rather than assembling it from four controls. Canva's own opening
+  // move, and it leaves every control below still there to tune from.
+  h('Table styles');
+  const gal = document.createElement('div');
+  gal.className = 'tp-gal';
+  pop.appendChild(gal);
+  tableStylePresets().forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'tp-preset' + (tablePresetMatches(t, p) ? ' on' : '');
+    b.title = p.name;
+    b.setAttribute('aria-label', p.name);
+    b.innerHTML = tablePresetSwatch(p);
+    b.addEventListener('click', () => tableWrite(t2 => applyTablePreset(t2, p)));
+    gal.appendChild(b);
+  });
+
+  // --- rows & columns ------------------------------------------------------
+  // Anchored on the selection when there is one, else the last row/column, so
+  // the buttons always mean something without needing a cell picked first.
+  const ar = rg ? rg.r0 : rows - 1, ar2 = rg ? rg.r1 : rows - 1;
+  const ac = rg ? rg.c0 : cols - 1, ac2 = rg ? rg.c1 : cols - 1;
+  h('Rows & columns');
+  const rr = row();
+  btn(rr, '↑ Row', 'Insert a row above', () => tableWrite(t2 => tableInsertRow(t2, ar)));
+  btn(rr, '↓ Row', 'Insert a row below', () => tableWrite(t2 => tableInsertRow(t2, ar2 + 1)));
+  const delR = btn(rr, '− Row', 'Delete this row',
+    () => tableWrite(t2 => tableDeleteRow(t2, ar)));
+  delR.disabled = rows <= 1;
+  delR.classList.add('danger');
+  const cr = row();
+  btn(cr, '← Col', 'Insert a column to the left', () => tableWrite(t2 => tableInsertCol(t2, ac)));
+  btn(cr, '→ Col', 'Insert a column to the right', () => tableWrite(t2 => tableInsertCol(t2, ac2 + 1)));
+  const delC = btn(cr, '− Col', 'Delete this column',
+    () => tableWrite(t2 => tableDeleteCol(t2, ac)));
+  delC.disabled = cols <= 1;
+  delC.classList.add('danger');
+  const or = row();
+  btn(or, t.header ? '✓ Header row' : 'Header row',
+    'Make the first row a header band',
+    () => tableWrite(t2 => { t2.header = !t2.header; }), !!t.header);
+  btn(or, 'Even columns', 'Give every column the same width',
+    () => tableWrite(t2 => { delete t2.colw; }));
+
+  // --- fill ----------------------------------------------------------------
+  h(nSel ? 'Cell fill' : 'Fill');
+  tpSwatches(pop, currentCellFill(t), c => tableWrite(t2 => {
+    if (!nSel) {                       // whole table: one property, not N overrides
+      if (c) t2.fill = c; else delete t2.fill;
+      cellKeys(t2).forEach(k => { if (t2.cells && t2.cells[k]) delete t2.cells[k].fill; });
+      pruneCells(t2);
+      return;
+    }
+    cellKeys(t2).forEach(k => setCellProp(t2, k, 'fill', c));
+  }));
+
+  // --- text ----------------------------------------------------------------
+  h('Text');
+  const tr = row();
+  ['left', 'center', 'right'].forEach(a =>
+    btn(tr, '', 'Align ' + a,
+      () => tableWrite(t2 => cellKeys(t2).forEach(k => setCellProp(t2, k, 'align', a))),
+      currentCellProp(t, 'align') === a, alignIcon(a)));
+  btn(tr, 'B', 'Bold these cells', () => {
+    const now = currentCellProp(t, 'bold') === true;
+    tableWrite(t2 => cellKeys(t2).forEach(k => setCellProp(t2, k, 'bold', now ? null : true)));
+  }, currentCellProp(t, 'bold') === true);
+  tpSwatches(pop, currentCellProp(t, 'color'), c =>
+    tableWrite(t2 => cellKeys(t2).forEach(k => setCellProp(t2, k, 'color', c))),
+    { noneLabel: 'Default' });
+
+  // --- borders -------------------------------------------------------------
+  // Table-wide by design: a border is the grid, and per-cell edges disagree at
+  // every shared line. Canva scopes it the same way.
+  const b = t.border || {};
+  h('Borders');
+  const sr = row('tp-seg');
+  [['all', 'All'], ['outer', 'Outer'], ['inner', 'Inner'], ['none', 'None']].forEach(([v, lab]) =>
+    btn(sr, lab, 'Draw the ' + lab.toLowerCase() + ' lines',
+      () => tableWrite(t2 => { t2.border = { ...(t2.border || {}), sides: v }; }),
+      (b.sides || 'all') === v));
+  const wr = row();
+  const wLab = document.createElement('span');
+  wLab.className = 'tp-lab'; wLab.textContent = 'Thickness';
+  wr.appendChild(wLab);
+  const wIn = document.createElement('input');
+  wIn.type = 'range'; wIn.min = '0'; wIn.max = '8'; wIn.step = '0.5';
+  wIn.value = String(b.w === undefined ? 1 : b.w);
+  wIn.className = 'tp-range';
+  const wVal = document.createElement('span');
+  wVal.className = 'tp-val'; wVal.textContent = wIn.value + 'px';
+  wIn.addEventListener('input', () => { wVal.textContent = wIn.value + 'px'; });
+  wIn.addEventListener('change', () =>
+    tableWrite(t2 => { t2.border = { ...(t2.border || {}), w: +wIn.value }; }));
+  wr.append(wIn, wVal);
+  const dr = row('tp-seg');
+  [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']].forEach(([v, lab]) =>
+    btn(dr, lab, lab + ' lines',
+      () => tableWrite(t2 => { t2.border = { ...(t2.border || {}), style: v }; }),
+      (b.style || 'solid') === v));
+  tpSwatches(pop, b.color, c =>
+    tableWrite(t2 => { t2.border = { ...(t2.border || {}), color: c || '#C9D6CD' }; }),
+    { noneLabel: null });
+}
+
+/** Read a property off the selection: the shared value, or undefined when the
+ *  selected cells disagree — so a control only ever shows "on" when it is
+ *  true for everything it would act on. */
+function currentCellProp(t, prop) {
+  const vals = cellKeys(t).map(k => (t.cells && t.cells[k] || {})[prop]);
+  const first = vals[0];
+  return vals.every(v => v === first) ? first : undefined;
+}
+function currentCellFill(t) {
+  const own = currentCellProp(t, 'fill');
+  if (own !== undefined) return own;
+  return cellRange() ? undefined : t.fill;
+}
+function setCellProp(t, key, prop, value) {
+  t.cells = t.cells || {};
+  const cur = t.cells[key] || (t.cells[key] = {});
+  if (value === null || value === undefined || value === '') delete cur[prop];
+  else cur[prop] = value;
+  pruneCells(t);
+}
+/** Drop overrides that no longer say anything — an empty {} in layout.json is
+ *  noise the validator would still have to walk. */
+function pruneCells(t) {
+  if (!t.cells) return;
+  Object.keys(t.cells).forEach(k => {
+    if (!Object.keys(t.cells[k]).length) delete t.cells[k];
+  });
+  if (!Object.keys(t.cells).length) delete t.cells;
+}
+
+// ------------------------------------------------------- table style presets
+// Three looks per colour, the way Canva's table gallery is laid out:
+//   grid    every line drawn in the colour, no fills
+//   header  a solid header band over a plain body, lines in the colour
+//   banded  a solid header over zebra-tinted rows, no lines at all
+const tint = (hex, amount) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return '#FFFFFF';
+  const n = parseInt(m[1], 16);
+  const mix = c => Math.round(c + (255 - c) * amount);
+  return '#' + [mix(n >> 16 & 255), mix(n >> 8 & 255), mix(n & 255)]
+    .map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+};
+/** Readable text on a solid band: the usual luminance split, so a pale header
+ *  keeps dark type instead of going white-on-white. */
+const onColor = hex => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return '#2F3E46';
+  const n = parseInt(m[1], 16);
+  const L = (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
+  return L > 0.62 ? '#2F3E46' : '#FFFFFF';
+};
+function tableStylePresets() {
+  // The report's own palette leads; a neutral grey opens the gallery so there
+  // is always a plain option even for a palette of one colour.
+  const colors = ['#6E7A7E', ...(M.palette || []).filter(c => !/^#f{3,6}$/i.test(c))]
+    .slice(0, 8);
+  const out = [];
+  colors.forEach(c => {
+    out.push({ name: 'Grid', color: c, kind: 'grid',
+               border: { w: 1, color: c, style: 'solid', sides: 'all' } });
+    out.push({ name: 'Header', color: c, kind: 'header',
+               border: { w: 1, color: c, style: 'solid', sides: 'all' },
+               headerFill: c, headerColor: onColor(c) });
+    out.push({ name: 'Banded', color: c, kind: 'banded',
+               border: { w: 0, color: c, style: 'solid', sides: 'none' },
+               headerFill: c, headerColor: onColor(c), band: tint(c, 0.86) });
+  });
+  return out;
+}
+function applyTablePreset(t, p) {
+  t.border = { ...p.border };
+  ['headerFill', 'headerColor', 'band'].forEach(k => {
+    if (p[k]) t[k] = p[k]; else delete t[k];
+  });
+  delete t.fill;
+  // Per-cell fills would sit on top of the look just chosen and read as the
+  // preset "not applying" — a style is a fresh start for the whole grid.
+  if (t.cells) {
+    Object.keys(t.cells).forEach(k => { delete t.cells[k].fill; });
+    pruneCells(t);
+  }
+  if (p.headerFill) t.header = true;
+}
+const tablePresetMatches = (t, p) =>
+  (t.headerFill || null) === (p.headerFill || null)
+  && (t.band || null) === (p.band || null)
+  && ((t.border || {}).color || null) === (p.border.color || null)
+  && ((t.border || {}).sides || 'all') === (p.border.sides || 'all');
+/** The preset drawn as a tiny table — the same four rules the renderer will
+ *  apply, so what you click is what you get. */
+function tablePresetSwatch(p) {
+  const line = p.border.sides === 'none' ? 'none' : `1px solid ${p.border.color}`;
+  const cell = (r, c) => {
+    const head = r === 0 && p.headerFill;
+    const bg = head ? p.headerFill
+      : (p.band && r % 2 === 0 ? p.band : '#FFFFFF');
+    return `<div style="background:${bg};border-right:${c < 2 ? line : 'none'};`
+         + `border-bottom:${r < 3 ? line : 'none'}"></div>`;
+  };
+  let g = '';
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) g += cell(r, c);
+  return `<span class="tp-preset-grid" style="border:${line === 'none'
+    ? '1px solid #E3EAE5' : line}">${g}</span>`;
+}
+
+// ============================================================ the chart panel
+// Canva's chart editor is three surfaces: a TYPE picker, a DATA table, and a
+// SETTINGS area. This is the same three, stacked on one panel — and the chart
+// itself is a shape (kind:"chart"), so drag, resize, z-order, rotate, opacity,
+// duplicate and delete all come from the shape pipeline already in place.
+const CHART_KINDS = [
+  ['bar', 'Bar'], ['column', 'Rows'], ['pie', 'Pie'], ['donut', 'Donut'],
+];
+let chartPanelId = null;
+
+const chartOf = id => layout.shapes.find(s =>
+  s.id === (id || '').replace(/^chart\./, '') && s.kind === 'chart');
+
+function selectedChartId() {
+  const ids = [...selIds];
+  if (ids.length !== 1) return null;
+  const s = layout.shapes.find(x => x.id === ids[0] && x.kind === 'chart');
+  return s ? s.id : null;
+}
+
+function openChartPanel(id) {
+  chartPanelId = id || selectedChartId();
+  if (!chartPanelId) return;
+  dockPanel('chart', 'Chart', { toggle: false });
+  renderChartPanel();
+}
+
+async function chartWrite(fn) {
+  const s = chartOf(chartPanelId);
+  if (!s) return;
+  pushHistory();
+  fn(s.chart, s);
+  markDirty();
+  await render();
+  renderChartPanel();
+}
+
+/** A tiny drawing of a chart type, for the picker. */
+function chartKindIcon(kind) {
+  const c = 'currentColor';
+  if (kind === 'bar') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
+    + '<rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/>'
+    + '<rect x="17" y="3" width="4" height="17" rx="1"/></svg>';
+  if (kind === 'column') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
+    + '<rect x="4" y="4" width="16" height="4" rx="1"/><rect x="4" y="10" width="11" height="4" rx="1"/>'
+    + '<rect x="4" y="16" width="7" height="4" rx="1"/></svg>';
+  if (kind === 'donut') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'
+    + c + '" stroke-width="5"><circle cx="12" cy="12" r="8" opacity=".35"/>'
+    + '<path d="M12 4a8 8 0 0 1 8 8" stroke-linecap="butt"/></svg>';
+  return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
+    + '<path d="M12 12V3a9 9 0 1 0 9 9z"/><path d="M14 2.2V10h7.8A9 9 0 0 0 14 2.2z" opacity=".45"/></svg>';
+}
+
+function renderChartPanel() {
+  const pop = $('chartpop');
+  if (!pop || pop.hidden || sidePanelTool !== 'chart') return;
+  const s = chartOf(chartPanelId);
+  pop.textContent = '';
+  if (!s) {
+    pop.innerHTML = '<p class="pop-h">No chart selected</p>'
+      + '<p class="side-note">Click a chart on the page to edit it, or use the '
+      + 'Chart tool to add one.</p>';
+    return;
+  }
+  const c = s.chart;
+  const h = t => { const p = document.createElement('p'); p.className = 'pop-h';
+                   p.textContent = t; pop.appendChild(p); return p; };
+  const isPie = c.type === 'pie' || c.type === 'donut';
+
+  // --- 1. type -------------------------------------------------------------
+  h('Chart type');
+  const gal = document.createElement('div');
+  gal.className = 'ch-types';
+  pop.appendChild(gal);
+  CHART_KINDS.forEach(([k, label]) => {
+    const b = document.createElement('button');
+    b.className = 'ch-type' + (c.type === k ? ' on' : '');
+    b.title = label;
+    b.setAttribute('aria-label', label + ' chart');
+    b.innerHTML = chartKindIcon(k) + `<span>${label}</span>`;
+    // Switching type keeps the data, exactly as Canva does — that is the
+    // whole point of separating the type picker from the data table.
+    b.addEventListener('click', () => chartWrite(ch => { ch.type = k; }));
+    gal.appendChild(b);
+  });
+
+  // --- 2. data -------------------------------------------------------------
+  h('Data');
+  const grid = document.createElement('div');
+  grid.className = 'ch-grid';
+  // A pie reads ONE series, so its editor shows one value column and hides the
+  // machinery for more — offering series that cannot be drawn is a lie.
+  const cols = isPie ? 1 : c.series.length;
+  grid.style.gridTemplateColumns = `1fr repeat(${cols}, minmax(0, 1fr)) auto`;
+  const cell = (el, cls) => { if (cls) el.className = cls; grid.appendChild(el); return el; };
+  // header row
+  cell(Object.assign(document.createElement('span'), { textContent: 'Label' }), 'ch-hd');
+  c.series.slice(0, cols).forEach((se, si) => {
+    const inp = document.createElement('input');
+    inp.className = 'ch-hd-in'; inp.value = se.name || '';
+    inp.placeholder = 'Series';
+    inp.addEventListener('change', () => chartWrite(ch => { ch.series[si].name = inp.value; }));
+    cell(inp);
+  });
+  cell(document.createElement('span'));
+  // body rows
+  (c.labels || []).forEach((lab, ri) => {
+    const li = document.createElement('input');
+    li.value = lab; li.placeholder = 'Label';
+    li.addEventListener('change', () => chartWrite(ch => { ch.labels[ri] = li.value; }));
+    cell(li);
+    c.series.slice(0, cols).forEach((se, si) => {
+      const vi = document.createElement('input');
+      vi.type = 'number'; vi.step = 'any';
+      vi.value = se.data[ri] === undefined ? '' : se.data[ri];
+      vi.addEventListener('change', () => chartWrite(ch => {
+        ch.series[si].data[ri] = vi.value === '' ? 0 : +vi.value;
+      }));
+      cell(vi);
+    });
+    const del = document.createElement('button');
+    del.className = 'ch-rowdel'; del.textContent = '✕';
+    del.title = 'Remove this row';
+    del.disabled = (c.labels || []).length <= 1;
+    del.addEventListener('click', () => chartWrite(ch => {
+      ch.labels.splice(ri, 1);
+      ch.series.forEach(x => x.data.splice(ri, 1));
+      if (ch.colors) ch.colors.splice(ri, 1);
+    }));
+    cell(del);
+  });
+  pop.appendChild(grid);
+
+  const rowBtns = document.createElement('div');
+  rowBtns.className = 'tp-row';
+  pop.appendChild(rowBtns);
+  const mk = (host, label, title, fn, dis) => {
+    const b = document.createElement('button');
+    b.className = 'tp-btn'; b.textContent = label; b.title = title;
+    b.disabled = !!dis;
+    b.addEventListener('click', fn); host.appendChild(b); return b;
+  };
+  mk(rowBtns, '+ Row', 'Add a data row', () => chartWrite(ch => {
+    ch.labels.push('Item ' + (ch.labels.length + 1));
+    ch.series.forEach(x => x.data.push(0));
+  }));
+  if (!isPie) {
+    mk(rowBtns, '+ Series', 'Add another set of bars', () => chartWrite(ch => {
+      ch.series.push({ name: 'Series ' + (ch.series.length + 1),
+                       data: ch.labels.map(() => 0) });
+    }));
+    mk(rowBtns, '− Series', 'Remove the last series', () => chartWrite(ch => {
+      ch.series.pop();
+    }), c.series.length <= 1);
+  }
+
+  // --- 3. settings ---------------------------------------------------------
+  h('Settings');
+  const ti = document.createElement('input');
+  ti.className = 'ch-title'; ti.value = c.title || ''; ti.placeholder = 'Chart title';
+  ti.addEventListener('change', () => chartWrite(ch => {
+    if (ti.value.trim()) ch.title = ti.value.trim(); else delete ch.title;
+  }));
+  pop.appendChild(ti);
+  const opts = document.createElement('div');
+  opts.className = 'tp-row'; pop.appendChild(opts);
+  const toggle = (label, key, dflt) => {
+    const on = c[key] === undefined ? dflt : !!c[key];
+    const b = mk(opts, label, label, () => chartWrite(ch => { ch[key] = !on; }));
+    b.classList.toggle('on', on);
+  };
+  toggle('Legend', 'legend', false);
+  toggle('Values', 'values', false);
+  if (!isPie) toggle('Grid', 'grid', true);
+
+  // --- colours -------------------------------------------------------------
+  // A pie is coloured per SLICE, a bar chart per SERIES: the same control,
+  // pointed at whichever the chart actually draws from.
+  h(isPie ? 'Slice colours' : 'Series colours');
+  // One click to recolour the whole chart from a palette colour: the rest of
+  // the set is generated by stepping lightness, so a five-slice pie is still
+  // readable rather than five swatches of the same green.
+  const ramp = document.createElement('div');
+  ramp.className = 'tp-sw';
+  pop.appendChild(ramp);
+  (M.palette || []).forEach(base => {
+    const b = document.createElement('button');
+    b.className = 'tp-swatch';
+    b.style.background = base;
+    b.title = 'Colour the whole chart from ' + base;
+    b.addEventListener('click', () => chartWrite(ch => {
+      const n = isPie ? (ch.labels || []).length : ch.series.length;
+      const set = Array.from({ length: Math.max(1, n) },
+        (_, i) => n < 2 ? base : tint(base, (i / (n - 1)) * 0.62));
+      if (isPie) ch.colors = set;
+      else ch.series.forEach((se, i) => { se.color = set[i]; });
+    }));
+    ramp.appendChild(b);
+  });
+  const names = isPie ? (c.labels || []) : c.series.map(x => x.name);
+  names.forEach((nm, i) => {
+    const row = document.createElement('div');
+    row.className = 'ch-colrow';
+    const lab = document.createElement('span');
+    lab.className = 'ch-collab'; lab.textContent = nm || `#${i + 1}`;
+    const cur = isPie ? ((c.colors || [])[i] || CHART_FALLBACK[i % CHART_FALLBACK.length])
+                      : (c.series[i].color || CHART_FALLBACK[i % CHART_FALLBACK.length]);
+    const sw = document.createElement('input');
+    sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = cur;
+    sw.addEventListener('change', () => chartWrite(ch => {
+      if (isPie) { ch.colors = ch.colors || []; ch.colors[i] = sw.value.toUpperCase(); }
+      else ch.series[i].color = sw.value.toUpperCase();
+    }));
+    row.append(lab, sw);
+    pop.appendChild(row);
+  });
+
+  // --- ink -----------------------------------------------------------------
+  // The chart's TEXT and rules, separate from its data colours: a dark chart
+  // on a dark band needs pale labels, and that has nothing to do with which
+  // colour a bar is.
+  h('Text & lines');
+  const CH_INK = [['titleColor', 'Title', '#2F3E46'], ['labelColor', 'Labels', '#52796F'],
+                  ['axisColor', 'Axis', '#7A8E92'], ['gridColor', 'Gridlines', '#E4EBE6']];
+  CH_INK.forEach(([key, label, dflt]) => {
+    if (isPie && (key === 'axisColor' || key === 'gridColor')) return;   // nothing to paint
+    const row = document.createElement('div');
+    row.className = 'ch-colrow';
+    const lab = document.createElement('span');
+    lab.className = 'ch-collab'; lab.textContent = label;
+    const sw = document.createElement('input');
+    sw.type = 'color'; sw.className = 'ch-colsw'; sw.value = c[key] || dflt;
+    sw.addEventListener('change', () =>
+      chartWrite(ch => { ch[key] = sw.value.toUpperCase(); }));
+    const rst = document.createElement('button');
+    rst.className = 'ch-reset'; rst.textContent = '⟲';
+    rst.title = 'Back to the default';
+    rst.disabled = !c[key];
+    rst.addEventListener('click', () => chartWrite(ch => { delete ch[key]; }));
+    row.append(lab, rst, sw);
+    pop.appendChild(row);
+  });
+
+  // The chart's own background rides the shape's fill, so it is the same
+  // control every other shape uses — surfaced here so it is where you look.
+  const bgRow = document.createElement('div');
+  bgRow.className = 'ch-colrow';
+  const bgLab = document.createElement('span');
+  bgLab.className = 'ch-collab'; bgLab.textContent = 'Background';
+  const bgNone = document.createElement('button');
+  bgNone.className = 'ch-reset'; bgNone.textContent = '⟲';
+  bgNone.title = 'No background';
+  bgNone.disabled = !s.fill || s.fill === 'none';
+  bgNone.addEventListener('click', () => chartWrite((ch, sh) => { sh.fill = 'none'; }));
+  const bgSw = document.createElement('input');
+  bgSw.type = 'color'; bgSw.className = 'ch-colsw';
+  bgSw.value = (typeof s.fill === 'string' && s.fill !== 'none') ? s.fill : '#FFFFFF';
+  bgSw.addEventListener('change', () =>
+    chartWrite((ch, sh) => { sh.fill = bgSw.value.toUpperCase(); }));
+  bgRow.append(bgLab, bgNone, bgSw);
+  pop.appendChild(bgRow);
+
+  const note = document.createElement('p');
+  note.className = 'side-note';
+  note.textContent = 'Double-click the title or any label on the page to rename it.';
+  pop.appendChild(note);
+}
+
+// Mirrors CHART_COLORS in layout.py — the swatch has to show the colour the
+// renderer will actually use when a series carries none of its own.
+const CHART_FALLBACK = ['#6B9E78', '#52796F', '#95B7A2', '#354F52',
+                        '#CAD2C5', '#2F3E46', '#A8C4B0', '#7A8E92'];
+
+/** Read/write one piece of chart text by its data-ch hook. One place that
+ *  knows the hook grammar, so the in-canvas editor and the panel cannot drift
+ *  apart about what "label:2" means. */
+function chartText(c, hook, value) {
+  const [what, i] = hook.split(':');
+  const n = +i;
+  if (what === 'title') {
+    if (value === undefined) return c.title || '';
+    if (value.trim()) c.title = value.trim(); else delete c.title;
+  } else if (what === 'label') {
+    if (value === undefined) return (c.labels || [])[n] || '';
+    c.labels[n] = value;
+  } else if (what === 'series') {
+    if (value === undefined) return (c.series[n] || {}).name || '';
+    c.series[n].name = value;
+  }
+  return undefined;
+}
+
+/** Double-click a chart's title, category label or legend key on the PAGE and
+ *  type. SVG <text> cannot host a caret, so an HTML input is floated exactly
+ *  over the glyph run — the same trick the roadmap called for, kept to chart
+ *  text where the hooks make the target unambiguous. */
+function editChartText(d, node) {
+  if (editing) return;
+  const g = node.closest('g[data-shape]');
+  const s = g && layout.shapes.find(x => x.id === g.dataset.shape && x.kind === 'chart');
+  if (!s) return;
+  const hook = node.dataset.ch;
+  editing = true;
+  const r = node.getBoundingClientRect();
+  const inp = d.createElement('input');
+  inp.className = 'ds-ch-edit';
+  inp.value = chartText(s.chart, hook);
+  const cs = d.defaultView.getComputedStyle(node);
+  inp.style.cssText = `position:absolute;left:${r.left + d.defaultView.scrollX - 4}px;`
+    + `top:${r.top + d.defaultView.scrollY - 3}px;height:${r.height + 6}px;`
+    + `min-width:${Math.max(46, r.width + 22)}px;font-size:${cs.fontSize};`
+    + `font-weight:${cs.fontWeight};text-align:${node.getAttribute('text-anchor') === 'middle'
+        ? 'center' : 'left'};`;
+  d.body.appendChild(inp);
+  inp.focus(); inp.select();
+  let done = false;
+  const finish = async keep => {
+    if (done) return; done = true;
+    editing = false;
+    const val = inp.value;
+    inp.remove();
+    if (keep && val !== chartText(s.chart, hook)) {
+      pushHistory(); chartText(s.chart, hook, val); markDirty();
+      await render();
+      renderChartPanel();
+    }
+  };
+  inp.addEventListener('blur', () => finish(true));
+  inp.addEventListener('keydown', e => {
+    e.stopPropagation();            // see editCell: the document handler would
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  });
+}
+
+$('chart').onclick = async () => {
+  const page = visiblePageId();
+  pushHistory();
+  const id = freeShapeId('chart');
+  layout.shapes.push({
+    id, page, kind: 'chart', x: placeX(4), y: 1.6, w: 4, h: 2.8, z: 3, fill: 'none',
+    chart: {
+      type: 'bar',
+      labels: ['First', 'Second', 'Third'],
+      series: [{ name: 'Series 1', data: [12, 19, 8] }],
+      legend: false, values: true, grid: true,
+    },
+  });
+  setSel($('out').contentDocument, [id]);
+  markDirty();
+  await render();
+  openChartPanel(id);
+  $('stat').textContent = `${id} added to page ${page} — edit its data in the Chart panel`;
+};
+$('ar-chart').addEventListener('click', () => openChartPanel(selectedChartId()));
+
+/** The report's palette as a swatch row, plus a "none" and a custom picker. */
+function tpSwatches(host, current, onPick, opts = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tp-sw';
+  const add = (bg, title, cls, val) => {
+    const b = document.createElement('button');
+    b.className = 'tp-swatch' + (cls ? ' ' + cls : '')
+      + (current && val && current.toLowerCase() === val.toLowerCase() ? ' on' : '');
+    if (bg) b.style.background = bg;
+    b.title = title;
+    b.addEventListener('click', () => onPick(val));
+    wrap.appendChild(b);
+  };
+  if (opts.noneLabel !== null) {
+    const b = document.createElement('button');
+    b.className = 'tp-swatch none' + (current ? '' : ' on');
+    b.title = opts.noneLabel || 'None';
+    b.addEventListener('click', () => onPick(null));
+    wrap.appendChild(b);
+  }
+  (M.palette || []).forEach(c => add(c, c, '', c));
+  const custom = document.createElement('input');
+  custom.type = 'color';
+  custom.className = 'tp-custom';
+  custom.value = /^#[0-9a-f]{6}$/i.test(current || '') ? current : '#6B9E78';
+  custom.title = 'Custom colour';
+  custom.addEventListener('change', () => onPick(custom.value.toUpperCase()));
+  wrap.appendChild(custom);
+  host.appendChild(wrap);
 }
 
 /** Editing a box's words. Its text is in layout.json, not content.md, so it
@@ -3983,6 +5222,20 @@ function arrangeBar(d) {
   // border and effects need a shape/box behind them; transparency needs any
   // store to keep the alpha in (a designed element grows one when moved).
   const oneSh = fillId && layout.shapes.find(x => x.id === fillId);
+  // A selected table gets its own way into the styling panel, and a selection
+  // that moves OFF the table drops the cell range with it — otherwise the
+  // panel would keep acting on cells nothing is pointing at any more.
+  const tblId = selectedTableId();
+  $('ar-table').hidden = !tblId;
+  const chId = selectedChartId();
+  $('ar-chart').hidden = !chId;
+  if (chId && sidePanelTool === 'chart' && chartPanelId !== chId) {
+    chartPanelId = chId; renderChartPanel();
+  }
+  if (cellSel && cellSel.id !== tblId) clearCellSel(d);
+  if (tblId && sidePanelTool === 'table' && tablePanelId !== tblId) {
+    tablePanelId = tblId; renderTablePanel();
+  }
   $('ar-border').hidden = !oneSh || ['line', 'icon'].includes(oneSh.kind);
   $('ar-alpha').hidden = !fillId || !(storeOf(fillId) || (layout.positions || {})[fillId]);
   $('ar-fxbtn').hidden = !fillId || !(oneSh || boxOf(fillId));
@@ -4558,6 +5811,7 @@ function keysFor(d) {
     if ((e.metaKey || e.ctrlKey) && (e.key === ']' || e.key === '[')) {
       e.preventDefault(); layerStep(d, e.key === ']' ? 1 : -1, e.altKey); return;
     }
+    if (tableCellKey(e)) return;
     if (!selIds.size) return;
     if (e.key === 'Escape') { clearSel(d); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -4608,7 +5862,14 @@ function railRender() {
   const order = pageOrder();
   const labelOf = id => (designedPages.find(p => p.id === id) || {}).label;
   const hidden = designedPages.filter(p => !order.includes(p.id));
-  order.forEach((pid, i) => list.appendChild(chip(pid, i + 1, labelOf(pid), false)));
+  // A small insert point between every pair of pages (and at both ends), the
+  // way Canva lets you drop a page exactly where you are looking rather than
+  // adding at the end and dragging it back. Quiet until hovered.
+  order.forEach((pid, i) => {
+    list.appendChild(railInsert(i));
+    list.appendChild(chip(pid, i + 1, labelOf(pid), false));
+  });
+  list.appendChild(railInsert(order.length));
   if (hidden.length) {
     const sep = document.createElement('div');
     sep.id = 'rail-head'; sep.textContent = 'Hidden';
@@ -4738,6 +5999,18 @@ function railSyncActive() {
     c.classList.toggle('on', c.dataset.pid === cur && !c.classList.contains('hidden-pg')));
 }
 
+function railInsert(at) {
+  const b = document.createElement('button');
+  b.className = 'rail-ins';
+  b.dataset.at = at;
+  b.setAttribute('aria-label', at === 0
+    ? 'Insert a blank page before page 1'
+    : `Insert a blank page after page ${at}`);
+  b.innerHTML = '<span class="rail-ins-dot">+</span>';
+  b.addEventListener('click', e => { e.stopPropagation(); addBlankPage(at); });
+  return b;
+}
+
 function chip(pid, pos, label, isHidden) {
   const isBlank = typeof pid === 'string';
   const c = document.createElement('div');
@@ -4851,20 +6124,35 @@ function chip(pid, pos, label, isHidden) {
   return c;
 }
 
-$('rail-add').addEventListener('click', async () => {
+/** Insert a blank page at a position in the order. `at` is an index INTO the
+ *  visible order (0 = before the first page); undefined means "after the page
+ *  in view", which is what the end-of-strip + button has always meant. */
+async function addBlankPage(at) {
   pushHistory();
   const order = pageOrder();
-  const inView = visiblePageId();
-  let n = 1;
   const blanks = pageBlanks();
+  let n = 1;
   while (blanks.some(b => b.id === 'p' + n)) n++;
   const bid = 'p' + n;
-  const at = order.indexOf(inView);
-  order.splice(at >= 0 ? at + 1 : order.length, 0, bid);
+  if (at === undefined) {
+    const i = order.indexOf(visiblePageId());
+    at = i >= 0 ? i + 1 : order.length;
+  }
+  order.splice(Math.max(0, Math.min(at, order.length)), 0, bid);
   writeOrder(order, [...blanks, { id: bid }]);
   await render();
   $('stat').textContent = `blank page added — drag boxes, shapes and images onto it`;
-});
+}
+
+$('rail-add').addEventListener('click', () => addBlankPage());
+
+/** Where a newly-placed object of width `w` should land: centred across the
+ *  page rather than hard against the left margin. The left margin is exactly
+ *  where the tool panel now floats, so an icon placed from the Icon panel used
+ *  to arrive UNDERNEATH it — visible only after closing the very panel you
+ *  were placing from. Centring also matches what Canva does: a new element
+ *  appears in the middle of what you are looking at, not in a corner. */
+const placeX = w => Math.max(0.3, (PAGE_W_IN - w) / 2);
 
 /** The identity of the page whose middle is nearest the viewport middle. */
 function visiblePageId() {
@@ -5247,7 +6535,7 @@ $('ar-img').addEventListener('click', () => {
     pushHistory();
     const id = freeBoxId();
     const page = visiblePageId();
-    boxes().push({ id, page, x: 1, y: 1.5, w: 3, z: 2, md: `![${name}](${path})` });
+    boxes().push({ id, page, x: placeX(3), y: 1.5, w: 3, z: 2, md: `![${name}](${path})` });
     setSel(d, ['text.' + id]);
     markDirty();
     await render();
@@ -5509,6 +6797,7 @@ function openColorPanel(id) {
   undockPanel();
   sideFillId = id;
   $('side').hidden = false;
+  unfoldSide();
   $('side-title').textContent = 'Color';
   const body = $('side-body');
   body.innerHTML = '';
@@ -5781,6 +7070,14 @@ function openColorPanel(id) {
 }
 
 $('side-x').addEventListener('click', closeSide);
+// Fold is not close: the tool stays open and the chevron brings it straight
+// back, which is what the arrow on the panel edge promises.
+$('side-fold').addEventListener('click', () => {
+  const folded = $('side').classList.toggle('folded');
+  $('side-fold').setAttribute('aria-label',
+    folded ? 'Expand this panel' : 'Collapse this panel');
+  $('side-fold').setAttribute('aria-expanded', String(!folded));
+});
 
 
 // The Canva text bar's own B / I / lists, acting on the open editor's live
@@ -6633,7 +7930,7 @@ async function addIcon(id) {
   // Square, and the report's own primary — an icon lands in the palette
   // rather than as a black sticker to be recoloured afterwards. Its markup
   // draws in currentColor, so the Fill control recolours the whole glyph.
-  layout.shapes.push({ id: sid, page, kind: 'icon', x: 1, y: 1, w: 0.6, h: 0.6,
+  layout.shapes.push({ id: sid, page, kind: 'icon', x: placeX(0.6), y: 1, w: 0.6, h: 0.6,
                        icon: id, vb: it.vb, svg: it.body,
                        fill: '#52796F', z: 3 });
   setSel($('out').contentDocument, [sid]);
@@ -6676,7 +7973,7 @@ document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('cli
   // behind the page's own (often translucent) panels, which read as "just an
   // outline". Send it back from the layers panel / right-click when it should
   // sit behind content.
-  layout.shapes.push({ id, page, kind, x: 1, y: 1, w: 2, h: kind === 'line' ? 0 : 1,
+  layout.shapes.push({ id, page, kind, x: placeX(2), y: 1, w: 2, h: kind === 'line' ? 0 : 1,
                        fill: kind === 'line' ? 'none' : '#6B9E78',
                        stroke: kind === 'line' ? '#52796F' : 'none',
                        sw: 0.02, z: 3 });
@@ -6689,6 +7986,8 @@ document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('cli
 addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.tagName === 'SELECT')) return;
+  if (t && t.isContentEditable) return;
+  if (tableCellKey(e)) return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
     e.preventDefault();
     e.shiftKey ? redo() : undo();
@@ -7251,6 +8550,14 @@ function wire() {
   contextify(d);
   wireSections(d);
   wireCells(d);
+  paintCells(d);               // a cell range is ids, so it survives a render
+  // Chart text edits where it is read. Bound on the text node, which sees the
+  // dblclick before the shape does, so it never becomes a drag.
+  d.querySelectorAll('g[data-shape] [data-ch]').forEach(n => {
+    n.addEventListener('dblclick', e => {
+      e.preventDefault(); e.stopPropagation(); editChartText(d, n);
+    });
+  });
   keysFor(d);
   wireMarkState(d);            // chrome B/I state tracks the edit selection
   applyZoom();
@@ -7337,8 +8644,21 @@ function wire() {
        double-click and nothing below it moves. (A hardcoded .8em here was
        an ~11px height change on every open — a visible push.) */
     .ds-edit:focus { outline-color:#4F7A5C; }
+    /* chart text: readable as editable, and the floated input that edits it */
+    g[data-shape] [data-ch]:hover { fill:#6B9E78 !important; }
+    .ds-ch-edit { position:absolute; z-index:9995; box-sizing:border-box;
+      padding:1px 5px; border:1px solid #6B9E78; border-radius:4px;
+      background:#fff; color:#2F3E46; font-family:inherit; line-height:1.1;
+      box-shadow:0 2px 10px rgba(20,30,35,.22); outline:none; }
     table.ds-table td[data-cell], table.ds-table th[data-cell] { cursor:text; }
     table.ds-table td[data-cell]:hover, table.ds-table th[data-cell]:hover { background:#EAF3EC; }
+    /* A selected cell rings itself with an INSET shadow rather than a
+       background: the whole point of selecting one is usually to set its
+       fill, and a tint would hide the colour being chosen. */
+    table.ds-table td.ds-cell-sel, table.ds-table th.ds-cell-sel {
+      box-shadow:inset 0 0 0 2px #6B9E78; }
+    table.ds-table td.ds-cell-sel:hover, table.ds-table th.ds-cell-sel:hover {
+      background:transparent; }
     .ds-cell-edit { display:inline-block; min-width:1.5em; min-height:1em;
                font:inherit; color:inherit; line-height:inherit; outline:2px solid #6B9E78;
                outline-offset:1px; border-radius:2px; background:transparent; cursor:text; }
@@ -7528,6 +8848,17 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
                       color:#2F3E46; }
     .ds-menu button:hover:not(:disabled) { background:#6B9E78; color:#fff; }
     .ds-menu button:disabled { color:#B4BFB7; cursor:default; }
+    /* .ds-mi rows carry an icon and a shortcut hint. Scoped to the class, not
+       to .ds-menu button, so every other menu in the editor is untouched. */
+    .ds-tmenu { min-width:236px; padding:5px; }
+    .ds-menu button.ds-mi { display:flex; align-items:center; gap:10px;
+                            padding:6px 9px; }
+    .ds-mi-ico { flex:none; display:grid; place-items:center; opacity:.8; }
+    .ds-mi-lab { flex:1; white-space:nowrap; }
+    .ds-mk { flex:none; font:10.5px ui-monospace,monospace; color:#7A8E92;
+             background:#EFF3F0; border-radius:4px; padding:1px 6px; }
+    .ds-mi:hover:not(:disabled) .ds-mk { background:rgba(255,255,255,.24); color:#fff; }
+    .ds-mi:disabled .ds-mi-ico { opacity:.4; }
     .ds-menu-slider { display:flex; align-items:center; gap:7px; font:11px system-ui;
              color:#5B6E66; padding:3px 8px; }
     .ds-menu-slider input[type=range] { flex:1; accent-color:#6B9E78; min-width:110px; }
@@ -7720,36 +9051,94 @@ function moveSource(id, dir) {
 }
 
 let srcPanel = null;
+let srcQuery = '', srcUnusedOnly = false;
 function closeSources() { if (srcPanel) { srcPanel.remove(); srcPanel = null; } }
 function openSources() {
   if (editing) return;
   closeSources();
+  srcQuery = ''; srcUnusedOnly = false;
   srcPanel = document.createElement('div');
   srcPanel.id = 'srcpanel';
   srcPanel.innerHTML =
-    '<header><b>SOURCES</b><span>edit text or link, reorder, rename, or delete an '
-    + 'uncited source — endnote numbers follow first use in the prose</span>'
-    + '<button type="button">Close</button></header><div id="srclist"></div>';
-  srcPanel.querySelector('button').onclick = closeSources;
+    '<header><b>Sources</b><span class="src-count"></span><span class="src-spacer"></span>'
+    + '<button type="button" class="src-new">+ Add source</button>'
+    + '<button type="button" class="src-x" aria-label="Close">&#10005;</button></header>'
+    + '<div class="src-tools">'
+    + '<input id="src-q" type="search" placeholder="Search id, citation or link…" '
+    + 'autocomplete="off" spellcheck="false">'
+    + '<button type="button" class="src-filter" id="src-unused">Unused only</button>'
+    + '</div><div id="srclist"></div>'
+    + '<p class="src-foot">Endnote numbers follow first use in the prose — reorder '
+    + 'only changes the list. Right-click a paragraph to cite one.</p>';
+  srcPanel.querySelector('.src-x').onclick = closeSources;
+  srcPanel.querySelector('.src-new').onclick = addSourceFromPanel;
+  const q = srcPanel.querySelector('#src-q');
+  q.addEventListener('input', () => { srcQuery = q.value.trim().toLowerCase(); renderSources(); });
+  srcPanel.querySelector('#src-unused').addEventListener('click', () => {
+    srcUnusedOnly = !srcUnusedOnly; renderSources();
+  });
   document.body.appendChild(srcPanel);
   srcPanel.style.top = ($('bar').getBoundingClientRect().bottom + 6) + 'px';
   renderSources();
 }
+
+/** Add a source from the panel itself. It could only be created by citing one
+ *  mid-paragraph before, so a reference you have but have not placed yet had
+ *  nowhere to go. */
+async function addSourceFromPanel() {
+  const r = await dsForm('Add a source', [
+    { name: 'id', label: 'Short id', type: 'text', required: true,
+      placeholder: 'e.g. act175-exec' },
+    { name: 'text', label: 'Citation', type: 'text', required: true },
+    { name: 'url', label: 'Link', type: 'text', required: true, placeholder: 'https://…' },
+  ], { okLabel: 'Add', validate: vals => {
+    const id = vals.id.trim();
+    if (!id) return 'An id is required.';
+    if (!/^[A-Za-z0-9._-]+$/.test(id)) return 'Use letters, numbers, and . _ - only.';
+    if (parseSources().some(x => x.id === id)) return `[${id}] already exists.`;
+    if (!vals.text.trim()) return 'A citation is required.';
+    if (!vals.url.trim()) return 'A link is required.';
+    return '';
+  } });
+  if (!r) return;
+  pushHistory();
+  addSource(r.id.trim(), r.text.trim(), r.url.trim());
+  markDirty(); await render(); renderSources();
+  $('stat').textContent = `[${r.id.trim()}] added — right-click a paragraph to cite it`;
+}
+
 function renderSources() {
   if (!srcPanel) return;
   const list = srcPanel.querySelector('#srclist');
   list.textContent = '';
-  const rows = parseSources();
-  if (!rows.length) {
-    list.innerHTML = '<p class="srcempty">No sources yet. Use <b>Cite</b> while '
-      + 'editing a paragraph to add one.</p>';
+  const all = parseSources();
+  srcPanel.querySelector('.src-count').textContent =
+    all.length + (all.length === 1 ? ' source' : ' sources');
+  srcPanel.querySelector('#src-unused').classList.toggle('on', srcUnusedOnly);
+  if (!all.length) {
+    list.innerHTML = '<p class="srcempty">No sources yet.<br>Right-click a paragraph and '
+      + 'choose <b>Add endnote here</b>, or use <b>+ Add source</b> above.</p>';
     return;
   }
-  rows.forEach((s, idx) => {
+  // Filtering hides rows but never renumbers them: idx stays the index in the
+  // FULL list, so the up/down arrows still move a source through the real
+  // order rather than through whatever the search happens to be showing.
+  const rows = all.filter(s => {
+    if (srcUnusedOnly && citeCount(s.id)) return false;
+    if (!srcQuery) return true;
+    return (s.id + ' ' + s.text + ' ' + s.url).toLowerCase().includes(srcQuery);
+  });
+  if (!rows.length) {
+    list.innerHTML = '<p class="srcempty">Nothing matches that.</p>';
+    return;
+  }
+  rows.forEach(s => {
+    const idx = all.indexOf(s);
     const n = citeCount(s.id);
     const row = document.createElement('div'); row.className = 'srcrow';
     const id = document.createElement('div'); id.className = 'srcid';
-    id.innerHTML = `[${s.id}]<span class="srcuse">${n ? `cited ${n}×` : 'unused'}</span>`;
+    id.innerHTML = `[${s.id}]<span class="srcuse${n ? '' : ' unused'}">`
+      + `${n ? `cited ${n}×` : 'unused'}</span>`;
     const ctl = document.createElement('span'); ctl.className = 'srcidctl';
     const mkb = (label, title, dis, fn) => {
       const b = document.createElement('button');
@@ -7758,9 +9147,12 @@ function renderSources() {
       b.addEventListener('click', fn);
       ctl.appendChild(b);
     };
+    // Bounds are against the FULL list, not the filtered view — moving is a
+    // move through the real order, so a filtered row is only at the end when
+    // it is genuinely last.
     mkb('↑', 'Move up', idx === 0, () => {
       pushHistory(); moveSource(s.id, -1); markDirty(); render(); renderSources(); });
-    mkb('↓', 'Move down', idx === rows.length - 1, () => {
+    mkb('↓', 'Move down', idx === all.length - 1, () => {
       pushHistory(); moveSource(s.id, 1); markDirty(); render(); renderSources(); });
     mkb('rename', 'Rename this id everywhere it is cited', false, async () => {
       const r = await dsForm(`Rename [${s.id}]`, [{
@@ -7777,14 +9169,31 @@ function renderSources() {
       if (neu === s.id) return;
       pushHistory(); renameSource(s.id, neu); markDirty(); render(); renderSources();
     });
-    id.appendChild(ctl);
-    const txt = document.createElement('input');
-    txt.className = 'srctext'; txt.value = s.text; txt.placeholder = 'citation text';
-    const url = document.createElement('input');
-    url.value = s.url; url.placeholder = 'https://…';
+    // Delete joins the hover cluster instead of holding a column open on every
+    // row. Class and disabled-when-cited behaviour are unchanged.
     const del = document.createElement('button');
     del.type = 'button'; del.className = 'srcdel'; del.textContent = 'Delete';
     if (n) { del.disabled = true; del.title = `Cited in the prose — remove the [^${s.id}] refs first`; }
+    ctl.appendChild(del);
+    id.appendChild(ctl);
+    const txt = document.createElement('input');
+    txt.className = 'srctext'; txt.value = s.text; txt.placeholder = 'citation text';
+    // The URL keeps its position as the row's SECOND input (the suite reads it
+    // as input #1); the open-link button is an <a>, so it does not shift that.
+    const urlWrap = document.createElement('div');
+    urlWrap.className = 'srcurl-wrap';
+    const url = document.createElement('input');
+    url.value = s.url; url.placeholder = 'https://…';
+    const open = document.createElement('a');
+    open.className = 'srcopen'; open.target = '_blank'; open.rel = 'noopener noreferrer';
+    open.textContent = '↗'; open.title = 'Open this link in a new tab';
+    const syncOpen = () => {
+      const u = url.value.trim();
+      open.href = /^https?:\/\//i.test(u) ? u : '';
+      open.style.visibility = open.href ? '' : 'hidden';
+    };
+    syncOpen();
+    urlWrap.append(url, open);
     const commit = () => {
       const t = txt.value.trim(), u = url.value.trim();
       if (!t || !u) return;                       // never write a half-line
@@ -7792,12 +9201,13 @@ function renderSources() {
     };
     txt.addEventListener('change', commit);       // fires on blur only when changed
     url.addEventListener('change', commit);
+    url.addEventListener('input', syncOpen);
     del.addEventListener('click', async () => {
       if (!await dsConfirm(`Delete source [${s.id}]? This cannot be undone from here.`,
           { okLabel: 'Delete', danger: true })) return;
       pushHistory(); deleteSource(s.id); markDirty(); render(); renderSources();
     });
-    row.append(id, txt, url, del);
+    row.append(id, txt, urlWrap);
     list.appendChild(row);
   });
 }

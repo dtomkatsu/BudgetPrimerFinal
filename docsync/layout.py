@@ -38,8 +38,45 @@ from .content import block_html, md_inline
 # different page passes its own size in — this is a default, not a law. It is
 # the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
-KINDS = ("rect", "ellipse", "line", "triangle", "arrow", "icon")
+KINDS = ("rect", "ellipse", "line", "triangle", "arrow", "icon", "chart")
 LINE_ENDS = ("none", "start", "end", "both")
+
+# --- charts ---------------------------------------------------------------
+# A chart is a SHAPE, not a fourth kind of placed object. That is the whole
+# design: it inherits x/y/w/h in inches, z-order, rotation, opacity, drag,
+# resize, duplicate and delete from the shape pipeline, and it renders inside
+# the same per-page <svg> layer every report renderer already emits — so no
+# report has to add a call to show one. It is drawn as plain SVG, with no
+# library, which is what lets the same markup serve the browser preview and
+# the headless-Chrome PDF (which has no network) from one code path.
+CHART_TYPES = ("bar", "column", "pie", "donut")
+CHART_COLORS = ("#6B9E78", "#52796F", "#95B7A2", "#354F52",
+                "#CAD2C5", "#2F3E46", "#A8C4B0", "#7A8E92")
+
+
+def _nice_max(v: float) -> float:
+    """A round number at or above v, so an axis reads 0 / 25 / 50 rather than
+    0 / 23.7 / 47.4."""
+    if v <= 0:
+        return 1.0
+    exp = math.floor(math.log10(v))
+    base = 10.0 ** exp
+    for m in (1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10):
+        if v <= m * base:
+            return m * base
+    return 10 * base
+
+
+def _fmt_num(v: float) -> str:
+    """Axis and value labels: no trailing .0, thousands separated."""
+    if v == int(v):
+        return f"{int(v):,}"
+    return f"{v:,.2f}".rstrip("0").rstrip(".")
+
+
+def _xml(s) -> str:
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
 
 # --- icons ---------------------------------------------------------------
 # An icon is picked from an open-source set (Iconoir, Lucide, Heroicons,
@@ -475,6 +512,249 @@ def fill_repr(v) -> str:
     return "#" + "".join(f"{round(c / n):02x}" for c in (rs, gs, bs))
 
 
+def _chart_series(c: dict) -> list:
+    """Normalised series: every one has a name, a data list and a colour."""
+    out = []
+    for i, s in enumerate(c.get("series") or []):
+        out.append({
+            "name": s.get("name") or f"Series {i + 1}",
+            "data": [float(v or 0) for v in (s.get("data") or [])],
+            "color": s.get("color") or CHART_COLORS[i % len(CHART_COLORS)],
+        })
+    return out
+
+
+def _ch_hook(c: dict, what: str) -> str:
+    """In edit mode every piece of chart TEXT carries what it stands for, so
+    the editor can open the right field when one is double-clicked on the page
+    — the labels are edited where they are read, not only in a side panel."""
+    if not os.environ.get("DOCSYNC_EDIT"):
+        return ""
+    return f' data-ch="{what}" style="cursor:text"'
+
+
+def chart_svg(c: dict, x: float, y: float, w: float, h: float) -> str:
+    """A chart as SVG, in the page's inch coordinates. Every length here is an
+    inch, so the drawing scales with the box the way any other shape does."""
+    kind = c.get("type", "bar")
+    labels = [str(v) for v in (c.get("labels") or [])]
+    series = _chart_series(c)
+    title = c.get("title") or ""
+    # Every ink colour is overridable; these are the defaults the report has
+    # always drawn with, so a chart that sets none looks exactly as before.
+    c_title = c.get("titleColor") or "#2F3E46"
+    c_label = c.get("labelColor") or "#52796F"
+    c_axis = c.get("axisColor") or "#7A8E92"
+    c_grid = c.get("gridColor") or "#E4EBE6"
+    fs = max(0.07, min(0.13, h * 0.055))            # label size tracks the box
+    parts = []
+    top = y
+    if title:
+        parts.append(f'<text x="{x + w / 2:.4f}" y="{y + fs * 1.1:.4f}" '
+                     f'text-anchor="middle" font-size="{fs * 1.25:.4f}" '
+                     f'font-weight="700" fill="{c_title}"'
+                     f'{_ch_hook(c, "title")}>{_xml(title)}</text>')
+        top = y + fs * 2.0
+    legend = bool(c.get("legend")) and len(series) > 0
+    legend_h = fs * 1.9 if legend else 0.0
+    body_h = max(0.2, (y + h) - top - legend_h)
+
+    ink = {"label": c_label, "axis": c_axis, "grid": c_grid}
+    if kind in ("pie", "donut"):
+        parts.append(_pie_svg(c, kind, labels, series, x, top, w, body_h, fs, ink))
+    else:
+        parts.append(_bars_svg(c, kind, labels, series, x, top, w, body_h, fs, ink))
+
+    if legend:
+        ly = y + h - fs * 0.5
+        # Pie legends name the SLICES; a bar legend names the series. Either
+        # way each entry is editable in place — a legend IS the label.
+        pie = kind in ("pie", "donut") and series
+        keys = ([{"name": labels[i] if i < len(labels) else f"#{i + 1}",
+                  "color": _slice_color(c, i), "hook": f"label:{i}"}
+                 for i in range(len(series[0]["data"]))]
+                if pie else [{**s, "hook": f"series:{i}"} for i, s in enumerate(series)])
+        gap = w / max(1, len(keys))
+        for i, k in enumerate(keys):
+            kx = x + i * gap
+            parts.append(f'<rect x="{kx:.4f}" y="{ly - fs * 0.75:.4f}" '
+                         f'width="{fs * 0.72:.4f}" height="{fs * 0.72:.4f}" rx="{fs * 0.16:.4f}" '
+                         f'fill="{k["color"]}"/>')
+            parts.append(f'<text x="{kx + fs:.4f}" y="{ly - fs * 0.12:.4f}" '
+                         f'font-size="{fs * 0.85:.4f}" fill="{c_label}"'
+                         f'{_ch_hook(c, k["hook"])}>{_xml(k["name"])}</text>')
+    return "".join(parts)
+
+
+def _slice_color(c: dict, i: int) -> str:
+    cols = c.get("colors") or []
+    if i < len(cols) and cols[i]:
+        return cols[i]
+    return CHART_COLORS[i % len(CHART_COLORS)]
+
+
+def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """kind 'bar' = vertical columns; 'column' = horizontal bars."""
+    if not series:
+        return ""
+    n = max(len(labels), max((len(s["data"]) for s in series), default=0))
+    if not n:
+        return ""
+    vmax = _nice_max(max((v for s in series for v in s["data"]), default=0))
+    grid = c.get("grid") is not False
+    show_vals = bool(c.get("values"))
+    parts = []
+    horizontal = kind == "column"
+    # Room for the tick labels along the value axis and the category names.
+    pad_l = (fs * 2.6) if not horizontal else (fs * 3.4)
+    pad_b = fs * 1.6
+    px, py = x + pad_l, y
+    pw, ph = max(0.1, w - pad_l - fs * 0.4), max(0.1, h - pad_b)
+
+    # gridlines + ticks
+    if grid:
+        for i in range(5):
+            t = i / 4
+            val = vmax * t
+            if horizontal:
+                gx = px + pw * t
+                parts.append(f'<line x1="{gx:.4f}" y1="{py:.4f}" x2="{gx:.4f}" '
+                             f'y2="{py + ph:.4f}" stroke="{ink["grid"]}" stroke-width="0.006"/>')
+                parts.append(f'<text x="{gx:.4f}" y="{py + ph + fs:.4f}" text-anchor="middle" '
+                             f'font-size="{fs * 0.8:.4f}" fill="{ink["axis"]}">{_fmt_num(val)}</text>')
+            else:
+                gy = py + ph - ph * t
+                parts.append(f'<line x1="{px:.4f}" y1="{gy:.4f}" x2="{px + pw:.4f}" '
+                             f'y2="{gy:.4f}" stroke="{ink["grid"]}" stroke-width="0.006"/>')
+                parts.append(f'<text x="{px - fs * 0.3:.4f}" y="{gy + fs * 0.3:.4f}" '
+                             f'text-anchor="end" font-size="{fs * 0.8:.4f}" '
+                             f'fill="{ink["axis"]}">{_fmt_num(val)}</text>')
+
+    slot = (ph if horizontal else pw) / n
+    inner = slot * 0.78
+    bw = inner / max(1, len(series))
+    for gi in range(n):
+        base = (py if horizontal else px) + gi * slot + (slot - inner) / 2
+        for si, s in enumerate(series):
+            v = s["data"][gi] if gi < len(s["data"]) else 0
+            frac = 0.0 if vmax == 0 else max(0.0, v / vmax)
+            if horizontal:
+                blen = pw * frac
+                by = base + si * bw
+                parts.append(f'<rect x="{px:.4f}" y="{by:.4f}" width="{blen:.4f}" '
+                             f'height="{bw * 0.86:.4f}" fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
+                if show_vals:
+                    parts.append(f'<text x="{px + blen + fs * 0.22:.4f}" '
+                                 f'y="{by + bw * 0.62:.4f}" font-size="{fs * 0.78:.4f}" '
+                                 f'fill="{ink["label"]}">{_fmt_num(v)}</text>')
+            else:
+                bh = ph * frac
+                bx = base + si * bw
+                parts.append(f'<rect x="{bx:.4f}" y="{py + ph - bh:.4f}" '
+                             f'width="{bw * 0.86:.4f}" height="{bh:.4f}" '
+                             f'fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
+                if show_vals:
+                    parts.append(f'<text x="{bx + bw * 0.43:.4f}" '
+                                 f'y="{py + ph - bh - fs * 0.22:.4f}" text-anchor="middle" '
+                                 f'font-size="{fs * 0.78:.4f}" fill="{ink["label"]}">{_fmt_num(v)}</text>')
+        name = labels[gi] if gi < len(labels) else ""
+        if name:
+            if horizontal:
+                parts.append(f'<text x="{px - fs * 0.3:.4f}" '
+                             f'y="{base + inner / 2 + fs * 0.3:.4f}" text-anchor="end" '
+                             f'font-size="{fs * 0.82:.4f}" fill="{ink["label"]}"'
+                             f'{_ch_hook(c, f"label:{gi}")}>{_xml(name)}</text>')
+            else:
+                parts.append(f'<text x="{base + inner / 2:.4f}" y="{py + ph + fs:.4f}" '
+                             f'text-anchor="middle" font-size="{fs * 0.82:.4f}" '
+                             f'fill="{ink["label"]}"{_ch_hook(c, f"label:{gi}")}'
+                             f'>{_xml(name)}</text>')
+    # the axis itself, last so it sits over the gridlines
+    if horizontal:
+        parts.append(f'<line x1="{px:.4f}" y1="{py:.4f}" x2="{px:.4f}" y2="{py + ph:.4f}" '
+                     f'stroke="{ink["axis"]}" stroke-width="0.008"/>')
+    else:
+        parts.append(f'<line x1="{px:.4f}" y1="{py + ph:.4f}" x2="{px + pw:.4f}" '
+                     f'y2="{py + ph:.4f}" stroke="{ink["axis"]}" stroke-width="0.008"/>')
+    return "".join(parts)
+
+
+def _pie_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """One ring of slices from the FIRST series — a pie has no second series to
+    show, so extra ones are ignored rather than silently overlaid."""
+    data = series[0]["data"] if series else []
+    total = sum(v for v in data if v > 0)
+    if total <= 0:
+        return ""
+    cx, cy = x + w / 2, y + h / 2
+    r = max(0.05, min(w, h) / 2 - fs * 0.4)
+    inner = r * 0.58 if kind == "donut" else 0.0
+    show_vals = bool(c.get("values"))
+    parts = []
+    ang = -math.pi / 2                                    # 12 o'clock, clockwise
+    for i, v in enumerate(data):
+        if v <= 0:
+            continue
+        sweep = 2 * math.pi * (v / total)
+        a2 = ang + sweep
+        big = 1 if sweep > math.pi else 0
+        x1, y1 = cx + r * math.cos(ang), cy + r * math.sin(ang)
+        x2, y2 = cx + r * math.cos(a2), cy + r * math.sin(a2)
+        col = _slice_color(c, i)
+        if inner:
+            i1x, i1y = cx + inner * math.cos(a2), cy + inner * math.sin(a2)
+            i2x, i2y = cx + inner * math.cos(ang), cy + inner * math.sin(ang)
+            d = (f'M{x1:.4f},{y1:.4f} A{r:.4f},{r:.4f} 0 {big} 1 {x2:.4f},{y2:.4f} '
+                 f'L{i1x:.4f},{i1y:.4f} A{inner:.4f},{inner:.4f} 0 {big} 0 {i2x:.4f},{i2y:.4f} Z')
+        else:
+            d = (f'M{cx:.4f},{cy:.4f} L{x1:.4f},{y1:.4f} '
+                 f'A{r:.4f},{r:.4f} 0 {big} 1 {x2:.4f},{y2:.4f} Z')
+        parts.append(f'<path d="{d}" fill="{col}" stroke="#fff" stroke-width="0.01"/>')
+        if show_vals:
+            mid = ang + sweep / 2
+            lr = (inner + r) / 2 if inner else r * 0.62
+            tx, ty = cx + lr * math.cos(mid), cy + lr * math.sin(mid)
+            pct = v / total * 100
+            parts.append(f'<text x="{tx:.4f}" y="{ty + fs * 0.3:.4f}" text-anchor="middle" '
+                         f'font-size="{fs * 0.8:.4f}" fill="#fff" font-weight="600">'
+                         f'{pct:.0f}%</text>')
+        ang = a2
+    return "".join(parts)
+
+
+def _check_chart(c, where: str) -> None:
+    if not isinstance(c, dict):
+        raise LayoutError(f"{where}: expected a chart object")
+    if c.get("type") not in CHART_TYPES:
+        raise LayoutError(f"{where}.type: expected one of {', '.join(CHART_TYPES)}")
+    labels = c.get("labels")
+    if labels is not None and not isinstance(labels, list):
+        raise LayoutError(f"{where}.labels: expected a list")
+    series = c.get("series")
+    if not isinstance(series, list) or not series:
+        raise LayoutError(f"{where}.series: needs at least one series")
+    for i, s in enumerate(series):
+        w2 = f"{where}.series[{i}]"
+        if not isinstance(s, dict):
+            raise LayoutError(f"{w2}: expected an object")
+        if not isinstance(s.get("data"), list):
+            raise LayoutError(f"{w2}.data: expected a list of numbers")
+        for j, v in enumerate(s["data"]):
+            if v is not None and not isinstance(v, (int, float)) or isinstance(v, bool):
+                raise LayoutError(f"{w2}.data[{j}]: {v!r} is not a number")
+        if s.get("color"):
+            _hex(s["color"], f"{w2}.color")
+    for j, col in enumerate(c.get("colors") or []):
+        if col:
+            _hex(col, f"{where}.colors[{j}]")
+    for flag in ("legend", "values", "grid"):
+        if c.get(flag) is not None and not isinstance(c[flag], bool):
+            raise LayoutError(f"{where}.{flag}: expected true or false")
+    for k in ("titleColor", "labelColor", "axisColor", "gridColor"):
+        if c.get(k):
+            _hex(c[k], f"{where}.{k}")
+
+
 def _check_shadow(sh, where: str) -> None:
     if not isinstance(sh, dict):
         raise LayoutError(f"{where}: expected a shadow object")
@@ -485,6 +765,91 @@ def _check_shadow(sh, where: str) -> None:
         _alpha(sh["alpha"], f"{where}.alpha")
     if sh.get("color"):
         _hex(sh["color"], f"{where}.color")
+
+
+TABLE_BORDER_STYLES = ("solid", "dashed", "dotted", "none")
+TABLE_ALIGNS = ("left", "center", "right")
+# Which edges the border is drawn on. "all" is every edge, "outer" the frame
+# only, "inner" the gridlines only, "none" nothing — Canva's own four.
+TABLE_BORDER_SIDES = ("all", "outer", "inner", "none")
+
+
+def _check_table_look(t: dict, where: str, nrows: int, ncols: int) -> None:
+    """The presentation half of a table: border, fills, column widths and the
+    per-cell overrides. All optional — a table with none of it renders exactly
+    as it did before any of this existed, which is what keeps every committed
+    layout.json valid."""
+    b = t.get("border")
+    if b is not None:
+        if not isinstance(b, dict):
+            raise LayoutError(f"{where}.border: expected an object")
+        if b.get("w") is not None:
+            w = _num(b["w"], f"{where}.border.w")
+            if not 0 <= w <= 12:
+                raise LayoutError(f"{where}.border.w: {w} is outside 0–12px")
+        if b.get("color"):
+            _hex(b["color"], f"{where}.border.color")
+        if b.get("style") and b["style"] not in TABLE_BORDER_STYLES:
+            raise LayoutError(f"{where}.border.style: expected one of "
+                              f"{', '.join(TABLE_BORDER_STYLES)}")
+        if b.get("sides") and b["sides"] not in TABLE_BORDER_SIDES:
+            raise LayoutError(f"{where}.border.sides: expected one of "
+                              f"{', '.join(TABLE_BORDER_SIDES)}")
+    # band: tints every OTHER body row — the zebra half of a table style, as
+    # one property rather than a fill override per cell, so it survives rows
+    # being inserted and deleted underneath it.
+    for k in ("fill", "headerFill", "headerColor", "band"):
+        if t.get(k):
+            _hex(t[k], f"{where}.{k}")
+    cw = t.get("colw")
+    if cw is not None:
+        if not isinstance(cw, list) or len(cw) != ncols:
+            raise LayoutError(f"{where}.colw: expected {ncols} widths, "
+                              f"one per column")
+        for j, v in enumerate(cw):
+            n = _num(v, f"{where}.colw[{j}]")
+            if n <= 0:
+                raise LayoutError(f"{where}.colw[{j}]: a width must be positive")
+    cells = t.get("cells")
+    if cells is not None:
+        if not isinstance(cells, dict):
+            raise LayoutError(f"{where}.cells: expected an object keyed 'row,col'")
+        for key, ov in cells.items():
+            w2 = f"{where}.cells['{key}']"
+            try:
+                r, c = (int(p) for p in str(key).split(","))
+            except ValueError:
+                raise LayoutError(f"{w2}: key must be 'row,col', zero-based")
+            if not (0 <= r < nrows and 0 <= c < ncols):
+                raise LayoutError(f"{w2}: no such cell in a {nrows}x{ncols} table")
+            if not isinstance(ov, dict):
+                raise LayoutError(f"{w2}: expected an object")
+            if ov.get("fill"):
+                _hex(ov["fill"], f"{w2}.fill")
+            if ov.get("color"):
+                _hex(ov["color"], f"{w2}.color")
+            if ov.get("align") and ov["align"] not in TABLE_ALIGNS:
+                raise LayoutError(f"{w2}.align: expected one of "
+                                  f"{', '.join(TABLE_ALIGNS)}")
+            for flag in ("bold", "italic"):
+                if ov.get(flag) is not None and not isinstance(ov[flag], bool):
+                    raise LayoutError(f"{w2}.{flag}: expected true or false")
+
+
+def table_border_css(b: dict, side: str) -> str:
+    """One edge's CSS for a table border spec. `side` is 'outer' or 'inner' —
+    which the `sides` setting turns on or off independently."""
+    if not b:
+        return ""
+    style = b.get("style", "solid")
+    on = b.get("sides", "all")
+    if style == "none" or on == "none" or (on == "outer" and side == "inner") \
+            or (on == "inner" and side == "outer"):
+        return "0"
+    w = b.get("w", 1)
+    if not w:
+        return "0"
+    return f'{w}px {style} {b.get("color", "#C9D6CD")}'
 
 
 def shadow_css(sh: dict) -> str:
@@ -613,6 +978,8 @@ class Layout:
                 _check_shadow(s["shadow"], f"{where}.shadow")
             if s.get("r") is not None and _num(s["r"], f"{where}.r") < 0:
                 raise LayoutError(f"{where}: corner radius cannot be negative")
+            if s.get("kind") == "chart":
+                _check_chart(s.get("chart"), f"{where}.chart")
             if s.get("dash") is not None:
                 d = s["dash"]
                 if not isinstance(d, list) or not 1 <= len(d) <= 2 or any(
@@ -787,6 +1154,7 @@ class Layout:
                 _alpha(t["alpha"], f"{where}.alpha")
             if t.get("style"):
                 _check_text(t["style"], f"{where}.style")
+            _check_table_look(t, where, len(rows), width)
 
     # ---- positions -------------------------------------------------------
 
@@ -1127,17 +1495,67 @@ class Layout:
             style = text_css(t.get("style") or {})
             tag = f' data-el="table.{t["id"]}"' if edit else ""
             header = bool(t.get("header"))
+            rows = t.get("rows", [])
+            ncols = len(rows[0]) if rows else 0
+            border = t.get("border")
+            outer = table_border_css(border, "outer")
+            inner = table_border_css(border, "inner")
+            over = t.get("cells") or {}
+            # Column widths as a <colgroup>: percentages of the table's own
+            # width, so dragging a column divider never changes the table's
+            # placement on the page.
+            colgroup = ""
+            if t.get("colw") and ncols:
+                total = sum(t["colw"]) or 1
+                colgroup = "<colgroup>" + "".join(
+                    f'<col style="width:{w / total * 100:.4f}%">' for w in t["colw"]
+                ) + "</colgroup>"
             body = ""
-            for ri, row in enumerate(t.get("rows", [])):
+            for ri, row in enumerate(rows):
                 cells = ""
                 for ci, c in enumerate(row):
                     th = header and ri == 0
                     name = "th" if th else "td"
                     hook = f' data-cell="{ri},{ci}"' if edit else ""
-                    cells += f'<{name}{hook}>{md_inline(str(c))}</{name}>'
+                    # Each edge picks the outer rule on the grid's rim and the
+                    # inner rule between cells, so "outer only" and "inner
+                    # only" both fall out of the same per-cell emit. Emitted
+                    # ONLY when the table carries a border spec: without one,
+                    # nothing is written and the report's own stylesheet keeps
+                    # styling the grid exactly as it always did.
+                    cs = ""
+                    if border:
+                        cs = (f'border-top:{outer if ri == 0 else inner};'
+                              f'border-left:{outer if ci == 0 else inner};'
+                              f'border-right:{outer if ci == ncols - 1 else inner};'
+                              f'border-bottom:{outer if ri == len(rows) - 1 else inner}')
+                    ov = over.get(f"{ri},{ci}") or {}
+                    # Zebra striping counts from the first BODY row, so a table
+                    # stripes the same whether or not it has a header band.
+                    band = None
+                    if t.get("band") and not th:
+                        if (ri - (1 if header else 0)) % 2 == 1:
+                            band = t["band"]
+                    bg = ov.get("fill") or (t.get("headerFill") if th else None) \
+                        or band or t.get("fill")
+                    bits = [cs] if cs else []
+                    if bg:
+                        bits.append(f"background:{bg}")
+                    fg = ov.get("color") or (t.get("headerColor") if th else None)
+                    if fg:
+                        bits.append(f"color:{fg}")
+                    if ov.get("align"):
+                        bits.append(f'text-align:{ov["align"]}')
+                    if ov.get("bold") is not None:
+                        bits.append(f'font-weight:{"700" if ov["bold"] else "400"}')
+                    if ov.get("italic"):
+                        bits.append("font-style:italic")
+                    sty = f' style="{";".join(bits)}"' if bits else ""
+                    cells += f'<{name}{hook}{sty}>{md_inline(str(c))}</{name}>'
                 body += f"<tr>{cells}</tr>"
             out.append(f'<table class="ds-table"{tag} '
-                       f'style="{css}{";" + style if style else ""}">{body}</table>')
+                       f'style="{css}{";" + style if style else ""}">'
+                       f'{colgroup}{body}</table>')
         return "".join(out)
 
     def table(self, table_id: str) -> dict | None:
@@ -1204,6 +1622,24 @@ class Layout:
         if s.get("dash"):
             d = s["dash"]
             common += f' stroke-dasharray="{" ".join(str(v) for v in d)}"'
+        if s["kind"] == "chart":
+            # A <g> wrapper, not a leaf: a chart is many elements, but the
+            # editor selects and drags by data-shape, so the id has to be on
+            # ONE node that covers the whole drawing. The transparent rect
+            # underneath is what gives it a grabbable surface — a chart is
+            # mostly empty space, and without it a drag would only catch a bar.
+            attrs = [f'data-shape="{s["id"]}"']
+            if s.get("rot"):
+                attrs.append(f'transform="rotate({s["rot"]} '
+                             f'{round(x + w / 2, 4)} {round(y + h / 2, 4)})"')
+            if s.get("alpha") is not None:
+                attrs.append(f'opacity="{s["alpha"]:g}"')
+            bg = s.get("fill")
+            bg = bg if isinstance(bg, str) and bg != "none" else "none"
+            return (f'<g {" ".join(attrs)} style="pointer-events:bounding-box">'
+                    f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{bg}"'
+                    f' pointer-events="all"/>'
+                    f'{chart_svg(s.get("chart") or {}, x, y, w, h)}</g>')
         if s["kind"] == "icon":
             # A nested <svg> so the icon's own viewBox does the scaling: the
             # glyph fits the box in inches whatever grid it was drawn on.
