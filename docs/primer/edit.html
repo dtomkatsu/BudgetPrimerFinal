@@ -2843,7 +2843,7 @@ function handlesFor(el) {
 
 function showHandles(d, page, el) {
   hideHandles(d);
-  const b = inchBox(el, page);
+  const b = shapeBox(el, page);
   const ov = d.createElement('div');
   ov.className = 'ds-handles';
   ov.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
@@ -4236,8 +4236,21 @@ function tablePresetSwatch(p) {
 // itself is a shape (kind:"chart"), so drag, resize, z-order, rotate, opacity,
 // duplicate and delete all come from the shape pipeline already in place.
 const CHART_KINDS = [
-  ['bar', 'Bar'], ['column', 'Rows'], ['pie', 'Pie'], ['donut', 'Donut'],
+  ['bar', 'Bar chart'], ['stacked-bar', 'Stacked bar chart'],
+  ['row', 'Row chart'], ['stacked-row', 'Stacked row chart'],
+  ['pie', 'Pie chart'], ['donut', 'Donut chart'],
+  ['line', 'Line chart'], ['scatter', 'Scatter plot'],
+  ['histogram', 'Histogram chart'], ['radar', 'Radar chart'],
+  ['funnel', 'Funnel chart'], ['packed', 'Packed circles chart'],
+  ['treemap', 'Treemap chart'],
 ];
+// Types that read ONE value per label rather than one per series: their data
+// grid shows a single value column, and their colours are per item.
+const CHART_BY_ITEM = ['pie', 'donut', 'funnel', 'packed', 'treemap', 'histogram'];
+// Types drawn in a value plane, and so the only ones with axes and gridlines
+// to configure — offering an axis colour for a treemap would be a lie.
+const CHART_WITH_AXES = ['bar', 'stacked-bar', 'row', 'stacked-row', 'column',
+                         'line', 'scatter', 'histogram'];
 let chartPanelId = null;
 
 const chartOf = id => layout.shapes.find(s =>
@@ -4270,17 +4283,45 @@ async function chartWrite(fn) {
 /** A tiny drawing of a chart type, for the picker. */
 function chartKindIcon(kind) {
   const c = 'currentColor';
-  if (kind === 'bar') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
-    + '<rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/>'
-    + '<rect x="17" y="3" width="4" height="17" rx="1"/></svg>';
-  if (kind === 'column') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
-    + '<rect x="4" y="4" width="16" height="4" rx="1"/><rect x="4" y="10" width="11" height="4" rx="1"/>'
-    + '<rect x="4" y="16" width="7" height="4" rx="1"/></svg>';
-  if (kind === 'donut') return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'
-    + c + '" stroke-width="5"><circle cx="12" cy="12" r="8" opacity=".35"/>'
-    + '<path d="M12 4a8 8 0 0 1 8 8" stroke-linecap="butt"/></svg>';
-  return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + c + '">'
-    + '<path d="M12 12V3a9 9 0 1 0 9 9z"/><path d="M14 2.2V10h7.8A9 9 0 0 0 14 2.2z" opacity=".45"/></svg>';
+  const svg = inner => '<svg viewBox="0 0 24 24" width="26" height="26">' + inner + '</svg>';
+  const F = ' fill="' + c + '"', S = ' fill="none" stroke="' + c + '" stroke-width="1.9"';
+  switch (kind) {
+    case 'stacked-bar': return svg('<rect x="4" y="11" width="5" height="9" rx="1"' + F
+      + '/><rect x="4" y="5" width="5" height="5" rx="1" opacity=".45"' + F
+      + '/><rect x="15" y="8" width="5" height="12" rx="1"' + F
+      + '/><rect x="15" y="3" width="5" height="4" rx="1" opacity=".45"' + F + '/>');
+    case 'row': return svg('<rect x="4" y="4" width="16" height="4" rx="1"' + F
+      + '/><rect x="4" y="10" width="11" height="4" rx="1"' + F
+      + '/><rect x="4" y="16" width="7" height="4" rx="1"' + F + '/>');
+    case 'column':
+    case 'stacked-row': return svg('<rect x="3" y="5" width="9" height="5" rx="1"' + F
+      + '/><rect x="13" y="5" width="6" height="5" rx="1" opacity=".45"' + F
+      + '/><rect x="3" y="14" width="6" height="5" rx="1"' + F
+      + '/><rect x="10" y="14" width="10" height="5" rx="1" opacity=".45"' + F + '/>');
+    case 'donut': return svg('<circle cx="12" cy="12" r="8" fill="none" stroke="' + c
+      + '" stroke-width="5" opacity=".35"/><path d="M12 4a8 8 0 0 1 8 8" fill="none" stroke="'
+      + c + '" stroke-width="5"/>');
+    case 'pie': return svg('<path d="M12 12V3a9 9 0 1 0 9 9z"' + F
+      + '/><path d="M14 2.2V10h7.8A9 9 0 0 0 14 2.2z" opacity=".45"' + F + '/>');
+    case 'line': return svg('<path d="M3 17l5-6 4 3 4-7 5 4"' + S + ' stroke-linejoin="round"/>');
+    case 'scatter': return svg('<circle cx="6" cy="16" r="2"' + F + '/><circle cx="11" cy="9" r="2"'
+      + F + '/><circle cx="16" cy="14" r="2"' + F + '/><circle cx="20" cy="6" r="2"' + F + '/>');
+    case 'histogram': return svg('<rect x="3" y="13" width="4" height="7"' + F
+      + '/><rect x="8" y="7" width="4" height="13"' + F + '/><rect x="13" y="10" width="4" height="10"'
+      + F + '/><rect x="18" y="15" width="3" height="5"' + F + '/>');
+    case 'radar': return svg('<path d="M12 3l8.5 6.2-3.2 10H6.7l-3.2-10z"' + S
+      + ' stroke-linejoin="round"/><path d="M12 8l4 2.9-1.5 4.6h-5L8 10.9z" opacity=".4"' + F + '/>');
+    case 'funnel': return svg('<path d="M3 5h18l-6 7v7l-6-3v-4z"' + F + '/>');
+    case 'packed': return svg('<circle cx="9" cy="12" r="6"' + F
+      + '/><circle cx="18" cy="8" r="3.4" opacity=".55"' + F
+      + '/><circle cx="18" cy="16" r="2.6" opacity=".4"' + F + '/>');
+    case 'treemap': return svg('<rect x="3" y="4" width="9" height="16" rx="1"' + F
+      + '/><rect x="13" y="4" width="8" height="9" rx="1" opacity=".55"' + F
+      + '/><rect x="13" y="14" width="8" height="6" rx="1" opacity=".35"' + F + '/>');
+    default: return svg('<rect x="3" y="12" width="4" height="8" rx="1"' + F
+      + '/><rect x="10" y="7" width="4" height="13" rx="1"' + F
+      + '/><rect x="17" y="3" width="4" height="17" rx="1"' + F + '/>');
+  }
 }
 
 // Which tab the chart panel is showing, and which Customize sections are
@@ -4301,7 +4342,7 @@ function renderChartPanel() {
     return;
   }
   const c = s.chart;
-  const isPie = c.type === 'pie' || c.type === 'donut';
+  const isPie = CHART_BY_ITEM.includes(c.type);   // one value per LABEL
 
   // --- the type, as one dropdown ------------------------------------------
   // A select, not a row of tiles: the type is a single choice you make once,
@@ -4511,7 +4552,7 @@ function renderChartCustomize(pop, s, c, isPie, mk) {
     inkRow(body, 'Label colour', 'labelColor', '#52796F');
   });
 
-  if (!isPie) {
+  if (CHART_WITH_AXES.includes(c.type)) {
     section('xaxis', I.bars, 'Axis & grid', body => {
       toggleRow(body, 'Gridlines', 'grid', true);
       inkRow(body, 'Axis colour', 'axisColor', '#7A8E92');
@@ -5166,6 +5207,20 @@ const selGroups = () => {
   return [...gs];
 };
 
+/** A placed shape's box in page inches. Measuring the DOM is right for the
+ *  shapes whose drawing IS their box, but a chart draws axis numbers and
+ *  value labels OUTSIDE the box it declares, so its bbox is bigger than the
+ *  chart — a selection ring measured from it sat away from the chart's edges
+ *  and appeared not to follow it. For those, the declared geometry is the
+ *  truth. Shared by the selection ring and the resize handles so the two can
+ *  never disagree about where a shape is. */
+function shapeBox(el, page) {
+  const s = el.dataset.shape && layout.shapes.find(x => x.id === el.dataset.shape);
+  if (s && s.kind === 'chart' && s.x !== undefined)
+    return { x: +s.x, y: +s.y, w: +s.w, h: +s.h };
+  return inchBox(el, page);
+}
+
 function paintSel(d) {
   d.querySelectorAll('.ds-sel, .ds-grouped').forEach(el =>
     el.classList.remove('ds-sel', 'ds-grouped'));
@@ -5183,9 +5238,10 @@ function paintSel(d) {
     // their box instead of a class. HTML elements keep the class.
     if (el.dataset.shape) {
       const page = el.closest('section.page') || d.querySelector('section.page');
-      const b = inchBox(el, page);
+      const b = shapeBox(el, page);
       const ring = d.createElement('div');
       ring.className = 'ds-selbox' + (wholeGroup ? ' grouped' : '');
+      ring.dataset.for = el.dataset.shape;   // so a drag can carry it along
       ring.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
       page.appendChild(ring);
     } else {
@@ -5214,7 +5270,7 @@ function showMini(d, els) {
   if (!mine.length) return;
   let x1 = 1e9, y1 = 1e9, x2 = -1e9;
   mine.forEach(el => {
-    const b = inchBox(el, page);
+    const b = shapeBox(el, page);
     x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y); x2 = Math.max(x2, b.x + b.w);
   });
   const bar = d.createElement('div');
@@ -5379,7 +5435,7 @@ function arrangeBar(d) {
   if ($('ar-fxbtn').hidden) $('ar-fxpop').hidden = true;
   if (!one) return;
   const page = one.closest('section.page') || d.querySelector('section.page');
-  const b = inchBox(one, page);
+  const b = shapeBox(one, page);
   const st = storeOf(idOf(one)) || {};
   $('ar-x').value = (st.x ?? b.x).toFixed(2);
   $('ar-y').value = (st.y ?? b.y).toFixed(2);
@@ -7475,6 +7531,26 @@ function placer(d, el, page) {
   const box = stored && stored.x !== undefined
     ? { ...measured, x: +stored.x + delta.x, y: +stored.y + delta.y }
     : measured;
+  // A chart's DOM bbox is the union of everything it draws, and its axis
+  // numbers and value labels sit OUTSIDE the box it declares — so measuring
+  // it hands the drag a box wider and taller than the chart really is, and
+  // every clamp and snap is then computed against the wrong edges (it stops
+  // short of the page edge and snaps to lines that are not where it looks).
+  // Its declared size is the truth; only the position needs measuring.
+  if (stored && stored.kind === 'chart') {
+    box.w = +stored.w; box.h = +stored.h;
+    // paintShape moves a chart by translating it from where the RENDERER drew
+    // it, which the renderer stamps on the node as data-ox/oy/ow/oh. A tab
+    // still running an older engine has no stamp, and the chart then sat
+    // perfectly still while its selection ring slid away — silently
+    // immovable. Nothing has moved yet at this point, so the shape's current
+    // position IS the drawn origin: stamp it and the drag works regardless of
+    // which engine build painted the page.
+    if (el.dataset.ox === undefined) {
+      el.dataset.ox = stored.x; el.dataset.oy = stored.y;
+      el.dataset.ow = stored.w; el.dataset.oh = stored.h;
+    }
+  }
   let spacer = null;
 
   // Going absolute drops the element out of the flow and everything around it
@@ -7521,7 +7597,16 @@ function placer(d, el, page) {
     y = Math.min(Math.max(y, 0), PAGE_H_IN - Math.min(box.h, PAGE_H_IN));
     if (shapeId) {
       const sh = layout.shapes.find(s => s.id === shapeId);
-      if (sh) { sh.x = +x.toFixed(2); sh.y = +y.toFixed(2); paintShape(d, shapeId); }
+      if (sh) {
+        sh.x = +x.toFixed(2); sh.y = +y.toFixed(2); paintShape(d, shapeId);
+        // Carry the selection ring along. It used to be painted once and left
+        // behind for the whole drag — the shape slid out from under its own
+        // ring, which reads as the selection not following the thing you are
+        // moving. True of every shape; noticed on a chart because a chart is
+        // big enough that the gap is obvious.
+        const ring = d.querySelector(`.ds-selbox[data-for="${CSS.escape(shapeId)}"]`);
+        if (ring) { ring.style.left = x + 'in'; ring.style.top = y + 'in'; }
+      }
     } else if (bx) {
       bx.x = +x.toFixed(2); bx.y = +y.toFixed(2);
       el.style.left = x.toFixed(2) + 'in';
@@ -7843,6 +7928,42 @@ function paintShape(d, id) {
   } else if (sh.kind === 'ellipse') {
     node.setAttribute('cx', sh.x + sh.w / 2); node.setAttribute('cy', sh.y + sh.h / 2);
     node.setAttribute('rx', sh.w / 2); node.setAttribute('ry', sh.h / 2);
+  } else if (sh.kind === 'chart') {
+    // Same trap the icon branch above documents, one kind further on: a chart
+    // is a <g> of many elements drawn at absolute inch coordinates, so there
+    // is no x/y attribute to set — and falling through to the line branch set
+    // x1/y1/x2/y2, which a <g> ignores entirely. The result was a chart whose
+    // x/y updated in layout.json (the status bar even reported the new
+    // position) while the drawing never moved: "I can't move the chart".
+    //
+    // Move and resize are shown as a TRANSFORM against where the renderer
+    // laid the group out (data-ox/oy/ow/oh, stamped at render time). Scaling
+    // stretches the text with it for the moment the drag lasts — the commit's
+    // full render redraws the chart properly at its new size.
+    // Written as an INLINE STYLE, not the transform attribute: .ds-lifted
+    // sets `transform:none` on a lifted shape, and a class rule outranks a
+    // presentation attribute — so the attribute form was blanked for the
+    // whole drag. Lengths are px, which on an SVG element with
+    // transform-box:view-box means user units, i.e. inches here.
+    const ox = +node.dataset.ox, oy = +node.dataset.oy;
+    const ow = +node.dataset.ow || sh.w, oh = +node.dataset.oh || sh.h;
+    const parts = [];
+    if (Number.isFinite(ox) && Number.isFinite(oy)) {
+      const sx = ow ? sh.w / ow : 1, sy = oh ? sh.h / oh : 1;
+      // Scaling about the SVG origin sends (ox,oy) to (ox*sx, oy*sy), so the
+      // translate is what puts that corner back where the shape now lives.
+      parts.push(`translate(${(sh.x - ox * sx).toFixed(4)}px, ${(sh.y - oy * sy).toFixed(4)}px)`);
+      if (sx !== 1 || sy !== 1) parts.push(`scale(${sx.toFixed(5)}, ${sy.toFixed(5)})`);
+    }
+    if (sh.rot) {
+      parts.push(`rotate(${sh.rot}deg)`);
+      node.style.transformOrigin = `${sh.x + sh.w / 2}px ${sh.y + sh.h / 2}px`;
+    } else {
+      node.style.transformOrigin = '';
+    }
+    node.style.transform = parts.join(' ');
+    node.removeAttribute('transform');       // never let the two disagree
+    return;                                  // rotation is composed in above
   } else if (sh.kind === 'triangle') {
     node.setAttribute('points', ptsAttr(trianglePts(sh.x, sh.y, sh.w, sh.h)));
   } else if (sh.kind === 'arrow') {
@@ -8234,6 +8355,17 @@ async function boot() {
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
   $('title').textContent = M.id;
   await detectLocal();          // local live server? then Save writes to disk
+  // Seed the build stamp with what THIS page was loaded from, then keep an
+  // eye on it — a rebuild whose bump never reached this tab is exactly the
+  // case a bump-driven check cannot catch, so it is also polled and checked
+  // whenever the tab is looked at again.
+  buildChangedOnDisk();
+  if (local) {
+    setInterval(checkBuildFresh, 20000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) checkBuildFresh();
+    });
+  }
   await resolveDraft();         // ?draft=… in the URL, or your own saved draft
 
   const urls = Object.keys(M.files);
@@ -8392,7 +8524,7 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  startLive(d => { setPushState(d.ahead); onBump(d.v, d.error); });
+  startLive(d => { setPushState(d.ahead); watchHealth(d); onBump(d.v, d.error); });
 }
 
 // ONE connection for ALL tabs. Each tab opening its own /__events stream piled
@@ -8513,7 +8645,63 @@ async function refreshEngineFiles() {
   });
 }
 
+// Two things live-reload cannot fix under an open tab:
+//   edit.html — this document; replacing it means reloading the page.
+//   the engine — _pull() refreshes it, but ONLY on a version bump, so a tab
+//   that was open across a rebuild it never saw keeps running old Python.
+// The second is the nastier one, because it fails far from its cause: a stale
+// layout.py rejected every new chart type ("expected one of bar, column, pie,
+// donut") and, having no data-ox stamp to translate from, left charts sitting
+// still while their selection ring slid away. Watch both and say so plainly;
+// never reload on someone's behalf, since unsaved edits live in this document.
+const STAMP_FILES = ['edit.html', 'engine/docsync/layout.py'];
+let buildStamp = null;
+async function buildChangedOnDisk() {
+  try {
+    const rs = await Promise.all(STAMP_FILES.map(f =>
+      fetch(withBase(f), { method: 'HEAD', cache: 'no-store' })));
+    const stamp = rs.map(r => (r.headers.get('last-modified') || '')
+                            + '|' + (r.headers.get('content-length') || '')).join('~');
+    if (!/\d/.test(stamp)) return false;          // server tells us nothing useful
+    if (buildStamp === null) { buildStamp = stamp; return false; }
+    return stamp !== buildStamp;
+  } catch (e) { return false; }
+}
+function offerEditorReload() {
+  const s = $('stat');
+  if (s.dataset.stale) return;                    // say it once, keep it up
+  s.dataset.stale = '1';
+  s.textContent = 'the editor was updated on disk — click to reload';
+  s.classList.add('err');
+  s.style.cursor = 'pointer';
+  s.title = 'Reload to pick up the new build. Save first if you have unsaved edits.';
+  s.onclick = () => location.reload();
+}
+async function checkBuildFresh() {
+  if (await buildChangedOnDisk()) offerEditorReload();
+}
+
+/** The server's file watcher is what turns an edit on disk into a reload here.
+ *  When that thread dies the server keeps serving perfectly — so nothing looks
+ *  wrong while every edit silently stops arriving, and the first symptom shows
+ *  up somewhere else entirely (a stale engine rejecting values the new one
+ *  accepts). It publishes how long ago it last ran; say so when it goes quiet.
+ *  Older servers send no watchAge at all, and are simply not judged. */
+function watchHealth(d) {
+  if (!d || typeof d.watchAge !== 'number') return;
+  if (d.watchAge < 15) { $('stat').dataset.watchdead = ''; return; }
+  if ($('stat').dataset.watchdead) return;
+  $('stat').dataset.watchdead = '1';
+  $('stat').textContent = 'live reload has stopped on the server — relaunch the editor app';
+  $('stat').classList.add('err');
+  $('stat').title = 'The file watcher is no longer running, so edits on disk will '
+    + 'not reach this page. Your work here is unaffected.';
+}
+
 async function _pull() {
+  // Before anything else: if this document or its engine is stale, nothing
+  // below can make the page behave like the code on disk.
+  checkBuildFresh();
   let freshSrc = original, freshLayout = layoutOrig;
   try {
     [freshSrc, freshLayout] = await Promise.all([
@@ -8887,6 +9075,16 @@ function wire() {
        keeps only the slight fade. */
     svg.shape-layer .ds-lifted { outline:none !important; transform:none;
                  box-shadow:none !important; }
+    /* A CHART is moved BY its transform: paintShape translates the group from
+       where the renderer drew it, because a <g> of many absolute-coordinate
+       elements has no x/y attribute to set. It writes that as an INLINE
+       STYLE, which is the only thing that outranks the .ds-lifted rule above
+       — as an attribute it lost, so the chart froze for the whole drag and
+       teleported on drop ("it moves irregularly"), wearing the lift's scale
+       instead of its own translate. It also must track the cursor rather than
+       ease after it, hence no transition. */
+    svg.shape-layer g[data-ox] { transition:none;
+                 transform-box:view-box; transform-origin:0 0; }
     /* Settling: land, don't teleport. Short enough to feel like physics. */
     .ds-settling { transition:left .13s cubic-bezier(.2,.8,.3,1),
                               top .13s cubic-bezier(.2,.8,.3,1); }

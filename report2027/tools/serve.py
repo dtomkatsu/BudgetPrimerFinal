@@ -234,16 +234,37 @@ def rebuild(pid: str, reason: str = "") -> None:
         st.cond.notify_all()
 
 
+# When the watcher last completed a pass. A dead watcher is the worst failure
+# this server has: it keeps serving perfectly, so everything LOOKS fine while
+# every edit silently stops reaching the browser — engine changes included,
+# which then surface far away as a stale validator rejecting new values. This
+# is published in /__ping so the editor can say so instead of going quiet.
+WATCH_BEAT = [time.time()]
+
+
 def watcher():
     patterns = {pid: _watch_patterns(p["root"], p["binding"]) for pid, p in PROJECTS.items()}
     for pid in PROJECTS:
         STATE[pid].mtimes = _snapshot(patterns[pid])
     while True:
         time.sleep(0.4)
+        WATCH_BEAT[0] = time.time()
         for pid in PROJECTS:
-            now = _snapshot(patterns[pid])
-            if now != STATE[pid].mtimes:
-                rebuild(pid, "watch")
+            # One bad pass must never end the loop. An exception here used to
+            # kill the thread outright and take live-reload with it for the
+            # life of the process — observed after two days' uptime, with the
+            # version frozen and no file change producing a rebuild.
+            try:
+                now = _snapshot(patterns[pid])
+                if now != STATE[pid].mtimes:
+                    rebuild(pid, "watch")
+            except Exception as e:
+                # Re-baseline so the same change does not re-fire every 0.4s.
+                try:
+                    STATE[pid].mtimes = _snapshot(patterns[pid])
+                except Exception:
+                    pass
+                print(f"  [{pid}] watch error (continuing): {e!r}")
 
 
 # ---- the server -------------------------------------------------------------
@@ -367,7 +388,8 @@ class Handler(SimpleHTTPRequestHandler):
         if pid not in STATE:
             return {"ok": True, "v": 0, "ahead": 0}
         st = STATE[pid]
-        payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"])}
+        payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"]),
+                   "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
         if st.error:
             payload["error"] = st.error
         return payload
@@ -464,7 +486,8 @@ class Handler(SimpleHTTPRequestHandler):
                 # A heartbeat keeps proxies from closing an idle stream. ahead
                 # rides along so a Save elsewhere (another tab, another Claude
                 # session) updates every open editor's Push button too.
-                payload = {"v": v, "ahead": _ahead(root)}
+                payload = {"v": v, "ahead": _ahead(root),
+                           "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
                 if err:
                     payload["error"] = err
                 self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode())

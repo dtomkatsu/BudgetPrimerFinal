@@ -49,7 +49,16 @@ LINE_ENDS = ("none", "start", "end", "both")
 # report has to add a call to show one. It is drawn as plain SVG, with no
 # library, which is what lets the same markup serve the browser preview and
 # the headless-Chrome PDF (which has no network) from one code path.
-CHART_TYPES = ("bar", "column", "pie", "donut")
+# "column" is the old name for what is now "row" (horizontal bars); kept so
+# every layout.json written before the rename still validates and renders.
+# Deliberately ABSENT: an animated bar-chart race, which has no meaning in a
+# report that is printed — every type here has to survive being a PDF.
+CHART_TYPES = ("bar", "stacked-bar", "row", "stacked-row", "column",
+               "pie", "donut", "line", "scatter", "histogram",
+               "radar", "funnel", "packed", "treemap")
+# Which types read a value PER LABEL (one series) rather than per series, and
+# so name their key by label the way a pie does.
+CHART_BY_ITEM = ("pie", "donut", "funnel", "packed", "treemap", "histogram")
 CHART_COLORS = ("#6B9E78", "#52796F", "#95B7A2", "#354F52",
                 "#CAD2C5", "#2F3E46", "#A8C4B0", "#7A8E92")
 
@@ -560,20 +569,34 @@ def chart_svg(c: dict, x: float, y: float, w: float, h: float) -> str:
     body_h = max(0.2, (y + h) - top - legend_h)
 
     ink = {"label": c_label, "axis": c_axis, "grid": c_grid}
+    args = (c, kind, labels, series, x, top, w, body_h, fs, ink)
     if kind in ("pie", "donut"):
-        parts.append(_pie_svg(c, kind, labels, series, x, top, w, body_h, fs, ink))
+        parts.append(_pie_svg(*args))
+    elif kind in ("line", "scatter"):
+        parts.append(_xy_svg(*args))
+    elif kind == "radar":
+        parts.append(_radar_svg(*args))
+    elif kind == "funnel":
+        parts.append(_funnel_svg(*args))
+    elif kind == "packed":
+        parts.append(_packed_svg(*args))
+    elif kind == "treemap":
+        parts.append(_treemap_svg(*args))
+    elif kind == "histogram":
+        parts.append(_histogram_svg(*args))
     else:
-        parts.append(_bars_svg(c, kind, labels, series, x, top, w, body_h, fs, ink))
+        parts.append(_bars_svg(*args))
 
     if legend:
         ly = y + h - fs * 0.5
-        # Pie legends name the SLICES; a bar legend names the series. Either
-        # way each entry is editable in place — a legend IS the label.
-        pie = kind in ("pie", "donut") and series
+        # A by-item chart's legend names the ITEMS (slices, bins, blocks); a
+        # bar or line legend names the series. Either way each entry is
+        # editable in place — a legend IS the label.
+        by_item = kind in CHART_BY_ITEM and series
         keys = ([{"name": labels[i] if i < len(labels) else f"#{i + 1}",
                   "color": _slice_color(c, i), "hook": f"label:{i}"}
                  for i in range(len(series[0]["data"]))]
-                if pie else [{**s, "hook": f"series:{i}"} for i, s in enumerate(series)])
+                if by_item else [{**s, "hook": f"series:{i}"} for i, s in enumerate(series)])
         gap = w / max(1, len(keys))
         for i, k in enumerate(keys):
             kx = x + i * gap
@@ -594,17 +617,27 @@ def _slice_color(c: dict, i: int) -> str:
 
 
 def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
-    """kind 'bar' = vertical columns; 'column' = horizontal bars."""
+    """'bar' = vertical columns, 'row' = horizontal bars ('column' is the old
+    name for row), each also available STACKED. Stacking is the same geometry
+    with the bars laid end to end instead of side by side, so it shares every
+    axis, gridline and label decision rather than forking the whole routine."""
     if not series:
         return ""
     n = max(len(labels), max((len(s["data"]) for s in series), default=0))
     if not n:
         return ""
-    vmax = _nice_max(max((v for s in series for v in s["data"]), default=0))
+    stacked = kind.startswith("stacked")
+    if stacked:
+        # The axis has to reach the tallest TOTAL, not the tallest single bar.
+        vmax = _nice_max(max(
+            (sum(s["data"][i] if i < len(s["data"]) else 0 for s in series)
+             for i in range(n)), default=0))
+    else:
+        vmax = _nice_max(max((v for s in series for v in s["data"]), default=0))
     grid = c.get("grid") is not False
     show_vals = bool(c.get("values"))
     parts = []
-    horizontal = kind == "column"
+    horizontal = kind in ("row", "column", "stacked-row")
     # Room for the tick labels along the value axis and the category names.
     pad_l = (fs * 2.6) if not horizontal else (fs * 3.4)
     pad_b = fs * 1.6
@@ -632,28 +665,35 @@ def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
 
     slot = (ph if horizontal else pw) / n
     inner = slot * 0.78
-    bw = inner / max(1, len(series))
+    bw = inner if stacked else inner / max(1, len(series))
     for gi in range(n):
         base = (py if horizontal else px) + gi * slot + (slot - inner) / 2
+        run = 0.0                       # how far along the stack we have got
         for si, s in enumerate(series):
             v = s["data"][gi] if gi < len(s["data"]) else 0
             frac = 0.0 if vmax == 0 else max(0.0, v / vmax)
             if horizontal:
                 blen = pw * frac
-                by = base + si * bw
-                parts.append(f'<rect x="{px:.4f}" y="{by:.4f}" width="{blen:.4f}" '
+                by = base if stacked else base + si * bw
+                bx0 = px + (pw * run if stacked else 0)
+                parts.append(f'<rect x="{bx0:.4f}" y="{by:.4f}" width="{blen:.4f}" '
                              f'height="{bw * 0.86:.4f}" fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
-                if show_vals:
+                if stacked:
+                    run += frac
+                if show_vals and not stacked:
                     parts.append(f'<text x="{px + blen + fs * 0.22:.4f}" '
                                  f'y="{by + bw * 0.62:.4f}" font-size="{fs * 0.78:.4f}" '
                                  f'fill="{ink["label"]}">{_fmt_num(v)}</text>')
             else:
                 bh = ph * frac
-                bx = base + si * bw
-                parts.append(f'<rect x="{bx:.4f}" y="{py + ph - bh:.4f}" '
+                bx = base if stacked else base + si * bw
+                by0 = py + ph - bh - (ph * run if stacked else 0)
+                parts.append(f'<rect x="{bx:.4f}" y="{by0:.4f}" '
                              f'width="{bw * 0.86:.4f}" height="{bh:.4f}" '
                              f'fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
-                if show_vals:
+                if stacked:
+                    run += frac
+                if show_vals and not stacked:
                     parts.append(f'<text x="{bx + bw * 0.43:.4f}" '
                                  f'y="{py + ph - bh - fs * 0.22:.4f}" text-anchor="middle" '
                                  f'font-size="{fs * 0.78:.4f}" fill="{ink["label"]}">{_fmt_num(v)}</text>')
@@ -676,6 +716,285 @@ def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
     else:
         parts.append(f'<line x1="{px:.4f}" y1="{py + ph:.4f}" x2="{px + pw:.4f}" '
                      f'y2="{py + ph:.4f}" stroke="{ink["axis"]}" stroke-width="0.008"/>')
+    return "".join(parts)
+
+
+def _plot_frame(px, py, pw, ph, vmin, vmax, ink, fs, grid, xlabels=None,
+                xmin=None, xmax=None) -> str:
+    """Gridlines, ticks and the two axis rules — shared by every chart drawn in
+    a value plane (line, scatter, histogram), so they cannot drift apart."""
+    parts = []
+    if grid:
+        for i in range(5):
+            t = i / 4
+            gy = py + ph - ph * t
+            parts.append(f'<line x1="{px:.4f}" y1="{gy:.4f}" x2="{px + pw:.4f}" '
+                         f'y2="{gy:.4f}" stroke="{ink["grid"]}" stroke-width="0.006"/>')
+            parts.append(f'<text x="{px - fs * 0.3:.4f}" y="{gy + fs * 0.3:.4f}" '
+                         f'text-anchor="end" font-size="{fs * 0.8:.4f}" '
+                         f'fill="{ink["axis"]}">{_fmt_num(vmin + (vmax - vmin) * t)}</text>')
+    if xlabels is not None:
+        for i, name in enumerate(xlabels):
+            if not name:
+                continue
+            gx = px + (pw * (i + 0.5) / len(xlabels) if len(xlabels) else 0)
+            parts.append(f'<text x="{gx:.4f}" y="{py + ph + fs:.4f}" text-anchor="middle" '
+                         f'font-size="{fs * 0.82:.4f}" fill="{ink["label"]}"'
+                         f'{_ch_hook({}, f"label:{i}")}>{_xml(name)}</text>')
+    elif xmin is not None:
+        for i in range(5):
+            t = i / 4
+            gx = px + pw * t
+            parts.append(f'<text x="{gx:.4f}" y="{py + ph + fs:.4f}" text-anchor="middle" '
+                         f'font-size="{fs * 0.8:.4f}" '
+                         f'fill="{ink["axis"]}">{_fmt_num(xmin + (xmax - xmin) * t)}</text>')
+    parts.append(f'<line x1="{px:.4f}" y1="{py + ph:.4f}" x2="{px + pw:.4f}" '
+                 f'y2="{py + ph:.4f}" stroke="{ink["axis"]}" stroke-width="0.008"/>')
+    parts.append(f'<line x1="{px:.4f}" y1="{py:.4f}" x2="{px:.4f}" y2="{py + ph:.4f}" '
+                 f'stroke="{ink["axis"]}" stroke-width="0.008"/>')
+    return "".join(parts)
+
+
+def _xy_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """'line' joins each series across the categories; 'scatter' plots points
+    in a numeric plane. Scatter reads the FIRST TWO series as x and y — that
+    is what a scatter plot is — and falls back to index-vs-value when only one
+    was given, so switching type from a bar chart still shows something."""
+    if not series:
+        return ""
+    pad_l, pad_b = fs * 2.6, fs * 1.6
+    px, py = x + pad_l, y
+    pw, ph = max(0.1, w - pad_l - fs * 0.4), max(0.1, h - pad_b)
+    grid = c.get("grid") is not False
+    parts = []
+
+    if kind == "scatter":
+        if len(series) >= 2:
+            xs, ys = series[0]["data"], series[1]["data"]
+            col = series[1]["color"]
+        else:
+            xs = list(range(len(series[0]["data"])))
+            ys = series[0]["data"]
+            col = series[0]["color"]
+        n = min(len(xs), len(ys))
+        if not n:
+            return ""
+        xmin, xmax = min(xs[:n]), max(xs[:n])
+        if xmax == xmin:
+            xmax = xmin + 1
+        ymax = _nice_max(max(ys[:n]))
+        parts.append(_plot_frame(px, py, pw, ph, 0, ymax, ink, fs, grid,
+                                 xmin=xmin, xmax=xmax))
+        for i in range(n):
+            cx = px + pw * (xs[i] - xmin) / (xmax - xmin)
+            cy = py + ph - ph * (ys[i] / ymax if ymax else 0)
+            parts.append(f'<circle cx="{cx:.4f}" cy="{cy:.4f}" r="{fs * 0.34:.4f}" '
+                         f'fill="{col}" fill-opacity="0.85"/>')
+        return "".join(parts)
+
+    n = max(len(labels), max((len(s["data"]) for s in series), default=0))
+    if not n:
+        return ""
+    vmax = _nice_max(max((v for s in series for v in s["data"]), default=0))
+    parts.append(_plot_frame(px, py, pw, ph, 0, vmax, ink, fs, grid,
+                             xlabels=[labels[i] if i < len(labels) else "" for i in range(n)]))
+    show_vals = bool(c.get("values"))
+    for s in series:
+        pts = []
+        for i in range(n):
+            v = s["data"][i] if i < len(s["data"]) else 0
+            cx = px + pw * (i + 0.5) / n
+            cy = py + ph - ph * (v / vmax if vmax else 0)
+            pts.append((cx, cy, v))
+        parts.append(f'<polyline points="{" ".join(f"{a:.4f},{b:.4f}" for a, b, _ in pts)}" '
+                     f'fill="none" stroke="{s["color"]}" stroke-width="0.022" '
+                     f'stroke-linejoin="round" stroke-linecap="round"/>')
+        for cx, cy, v in pts:
+            parts.append(f'<circle cx="{cx:.4f}" cy="{cy:.4f}" r="{fs * 0.26:.4f}" '
+                         f'fill="{s["color"]}"/>')
+            if show_vals:
+                parts.append(f'<text x="{cx:.4f}" y="{cy - fs * 0.45:.4f}" '
+                             f'text-anchor="middle" font-size="{fs * 0.75:.4f}" '
+                             f'fill="{ink["label"]}">{_fmt_num(v)}</text>')
+    return "".join(parts)
+
+
+def _histogram_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """Bins the FIRST series' raw numbers — a histogram's input is a list of
+    observations, not one value per category, which is what separates it from
+    a bar chart."""
+    if not series or not series[0]["data"]:
+        return ""
+    vals = series[0]["data"]
+    lo, hi = min(vals), max(vals)
+    if hi == lo:
+        hi = lo + 1
+    nb = max(3, min(10, int(len(vals) ** 0.5 + 0.5) or 3))
+    step = (hi - lo) / nb
+    counts = [0] * nb
+    for v in vals:
+        k = min(nb - 1, int((v - lo) / step))
+        counts[k] += 1
+    cmax = _nice_max(max(counts))
+    pad_l, pad_b = fs * 2.6, fs * 1.6
+    px, py = x + pad_l, y
+    pw, ph = max(0.1, w - pad_l - fs * 0.4), max(0.1, h - pad_b)
+    parts = [_plot_frame(px, py, pw, ph, 0, cmax, ink, fs,
+                         c.get("grid") is not False, xmin=lo, xmax=hi)]
+    bw = pw / nb
+    for i, ct in enumerate(counts):
+        bh = ph * (ct / cmax if cmax else 0)
+        parts.append(f'<rect x="{px + i * bw + bw * 0.06:.4f}" y="{py + ph - bh:.4f}" '
+                     f'width="{bw * 0.88:.4f}" height="{bh:.4f}" '
+                     f'fill="{_slice_color(c, i)}"/>')
+        if c.get("values") and ct:
+            parts.append(f'<text x="{px + i * bw + bw / 2:.4f}" y="{py + ph - bh - fs * 0.22:.4f}" '
+                         f'text-anchor="middle" font-size="{fs * 0.75:.4f}" '
+                         f'fill="{ink["label"]}">{ct}</text>')
+    return "".join(parts)
+
+
+def _radar_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """One spoke per label, one closed polygon per series."""
+    n = max(len(labels), max((len(s["data"]) for s in series), default=0))
+    if n < 3 or not series:
+        return ""
+    cx, cy = x + w / 2, y + h / 2
+    r = max(0.05, min(w, h) / 2 - fs * 1.5)
+    vmax = _nice_max(max((v for s in series for v in s["data"]), default=0))
+    ang = lambda i: -math.pi / 2 + 2 * math.pi * i / n
+    parts = []
+    if c.get("grid") is not False:
+        for ring in range(1, 5):
+            rr = r * ring / 4
+            pts = " ".join(f"{cx + rr * math.cos(ang(i)):.4f},{cy + rr * math.sin(ang(i)):.4f}"
+                           for i in range(n))
+            parts.append(f'<polygon points="{pts}" fill="none" '
+                         f'stroke="{ink["grid"]}" stroke-width="0.006"/>')
+    for i in range(n):
+        parts.append(f'<line x1="{cx:.4f}" y1="{cy:.4f}" '
+                     f'x2="{cx + r * math.cos(ang(i)):.4f}" y2="{cy + r * math.sin(ang(i)):.4f}" '
+                     f'stroke="{ink["grid"]}" stroke-width="0.006"/>')
+    for s in series:
+        pts = []
+        for i in range(n):
+            v = s["data"][i] if i < len(s["data"]) else 0
+            rr = r * (v / vmax if vmax else 0)
+            pts.append(f"{cx + rr * math.cos(ang(i)):.4f},{cy + rr * math.sin(ang(i)):.4f}")
+        parts.append(f'<polygon points="{" ".join(pts)}" fill="{s["color"]}" '
+                     f'fill-opacity="0.28" stroke="{s["color"]}" stroke-width="0.018"/>')
+    for i in range(n):
+        if i >= len(labels) or not labels[i]:
+            continue
+        lx, ly = cx + (r + fs * 0.7) * math.cos(ang(i)), cy + (r + fs * 0.7) * math.sin(ang(i))
+        anchor = "middle" if abs(math.cos(ang(i))) < 0.3 else ("start" if math.cos(ang(i)) > 0 else "end")
+        parts.append(f'<text x="{lx:.4f}" y="{ly + fs * 0.3:.4f}" text-anchor="{anchor}" '
+                     f'font-size="{fs * 0.8:.4f}" fill="{ink["label"]}"'
+                     f'{_ch_hook(c, f"label:{i}")}>{_xml(labels[i])}</text>')
+    return "".join(parts)
+
+
+def _funnel_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """Stages narrowing top to bottom, each band's width its share of the
+    largest — the first series only, since a funnel is one flow."""
+    data = series[0]["data"] if series else []
+    if not data:
+        return ""
+    top = max(data) or 1
+    band = h / len(data)
+    parts = []
+    for i, v in enumerate(data):
+        nxt = data[i + 1] if i + 1 < len(data) else v
+        w0 = w * 0.86 * (v / top)
+        w1 = w * 0.86 * (nxt / top)
+        cx = x + w / 2
+        y0, y1 = y + i * band, y + (i + 1) * band - band * 0.08
+        parts.append(f'<polygon points="{cx - w0 / 2:.4f},{y0:.4f} {cx + w0 / 2:.4f},{y0:.4f} '
+                     f'{cx + w1 / 2:.4f},{y1:.4f} {cx - w1 / 2:.4f},{y1:.4f}" '
+                     f'fill="{_slice_color(c, i)}"/>')
+        name = labels[i] if i < len(labels) else ""
+        txt = f"{_xml(name)}" + (f"  {_fmt_num(v)}" if c.get("values") else "")
+        if name or c.get("values"):
+            parts.append(f'<text x="{cx:.4f}" y="{(y0 + y1) / 2 + fs * 0.3:.4f}" '
+                         f'text-anchor="middle" font-size="{fs * 0.8:.4f}" fill="#fff" '
+                         f'font-weight="600"{_ch_hook(c, f"label:{i}")}>{txt}</text>')
+    return "".join(parts)
+
+
+def _packed_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """Circles sized by value. Laid out largest-first in rows rather than by a
+    physics solver: deterministic output matters more here than perfect
+    packing, because the same layout.json must render identically in the
+    browser preview and the PDF."""
+    data = series[0]["data"] if series else []
+    if not data:
+        return ""
+    order = sorted(range(len(data)), key=lambda i: -data[i])
+    total = sum(v for v in data if v > 0) or 1
+    # AREA proportional to value: with r = k*sqrt(v), the total area is
+    # pi*k^2*total, so k falls straight out of the share of the box to fill.
+    # (An earlier version multiplied k by sqrt(pi) as well, which put the pi
+    # back in and made the largest circle wider than the box — the loop then
+    # broke on the first item and the chart rendered empty.)
+    k = math.sqrt(w * h * 0.45 / (math.pi * total))
+    # ...and no circle may exceed the box, however lopsided the data.
+    cap = min(w, h) / 2
+    circles = [(i, min(cap, max(fs * 0.4, math.sqrt(max(data[i], 0)) * k)))
+               for i in order]
+    parts = []
+    cx, cy, row_h = x, y, 0.0
+    for i, r in circles:
+        if cx + 2 * r > x + w and cx > x:
+            cx, cy, row_h = x, cy + row_h, 0.0
+        if cy + 2 * r > y + h:
+            break                                   # out of room; drop the tail
+        parts.append(f'<circle cx="{cx + r:.4f}" cy="{cy + r:.4f}" r="{r:.4f}" '
+                     f'fill="{_slice_color(c, i)}"/>')
+        name = labels[i] if i < len(labels) else ""
+        if name and r > fs * 1.1:
+            parts.append(f'<text x="{cx + r:.4f}" y="{cy + r + fs * 0.28:.4f}" '
+                         f'text-anchor="middle" font-size="{min(fs * 0.8, r * 0.5):.4f}" '
+                         f'fill="#fff" font-weight="600"'
+                         f'{_ch_hook(c, f"label:{i}")}>{_xml(name)}</text>')
+        cx += 2 * r
+        row_h = max(row_h, 2 * r)
+    return "".join(parts)
+
+
+def _treemap_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+    """Squarified treemap: split the remaining strip along its shorter side so
+    the blocks stay near-square, which is what makes areas comparable."""
+    data = [(i, v) for i, v in enumerate(series[0]["data"] if series else []) if v > 0]
+    if not data:
+        return ""
+    data.sort(key=lambda t: -t[1])
+    total = sum(v for _, v in data)
+    parts = []
+    rx, ry, rw, rh = x, y, w, h
+    rest = total
+    idx = 0
+    while idx < len(data) and rw > 0.01 and rh > 0.01:
+        i, v = data[idx]
+        share = v / rest if rest else 0
+        if rw >= rh:                                 # cut a column off the left
+            bw = rw * share
+            bx, by, bh2 = rx, ry, rh
+            bw2 = bw
+            rx, rw = rx + bw, rw - bw
+        else:                                        # cut a row off the top
+            bh = rh * share
+            bx, by, bw2 = rx, ry, rw
+            bh2 = bh
+            ry, rh = ry + bh, rh - bh
+        parts.append(f'<rect x="{bx:.4f}" y="{by:.4f}" width="{max(0, bw2 - 0.012):.4f}" '
+                     f'height="{max(0, bh2 - 0.012):.4f}" fill="{_slice_color(c, i)}" rx="0.02"/>')
+        name = labels[i] if i < len(labels) else ""
+        if name and bw2 > fs * 2 and bh2 > fs * 1.2:
+            parts.append(f'<text x="{bx + fs * 0.35:.4f}" y="{by + fs * 1.0:.4f}" '
+                         f'font-size="{fs * 0.78:.4f}" fill="#fff" font-weight="600"'
+                         f'{_ch_hook(c, f"label:{i}")}>{_xml(name)}</text>')
+        rest -= v
+        idx += 1
     return "".join(parts)
 
 
@@ -1641,6 +1960,12 @@ class Layout:
             # unreliable; a full-size rect with pointer-events:all is the
             # standard way to make a mostly-empty drawing grabbable, and it is
             # what actually catches the pointer here.
+            # Where this drawing was laid out, stamped on the node. A chart is
+            # many elements at absolute inch coordinates, so there is no single
+            # attribute the editor can nudge to move it — it translates the
+            # group by how far it has travelled from this origin, and the next
+            # full render redraws it at its new home.
+            attrs.append(f'data-ox="{x}" data-oy="{y}" data-ow="{w}" data-oh="{h}"')
             return (f'<g {" ".join(attrs)}>'
                     f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{bg}"'
                     f' pointer-events="all"/>'
