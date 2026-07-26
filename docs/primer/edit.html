@@ -8766,7 +8766,11 @@ async function refreshEngineFiles() {
 // donut") and, having no data-ox stamp to translate from, left charts sitting
 // still while their selection ring slid away. Watch both and say so plainly;
 // never reload on someone's behalf, since unsaved edits live in this document.
-const STAMP_FILES = ['edit.html', 'engine/docsync/layout.py'];
+// Only edit.html. The ENGINE is refreshed into Pyodide by _pull() on every
+// version bump, so an engine change heals itself and warning about it was a
+// false alarm — one that fired every time a rebuild restaged the engine, which
+// during active development is constantly.
+const STAMP_FILES = ['edit.html'];
 let buildStamp = null;
 async function buildChangedOnDisk() {
   try {
@@ -8779,11 +8783,17 @@ async function buildChangedOnDisk() {
     return stamp !== buildStamp;
   } catch (e) { return false; }
 }
+const STALE_MSG = 'the editor was updated on disk — click to reload';
 function offerEditorReload() {
   const s = $('stat');
-  if (s.dataset.stale) return;                    // say it once, keep it up
+  // Idempotent, NOT once-only. It used to return early after the first call,
+  // and _pull() then overwrote the text with "reloaded" — so the notice
+  // flashed red for an instant and was gone for good, which is the opposite
+  // of what a "you are running stale code" warning is for. Now it can be
+  // re-asserted after anything that overwrites the row.
   s.dataset.stale = '1';
-  s.textContent = 'the editor was updated on disk — click to reload';
+  if (s.textContent === STALE_MSG) return;
+  s.textContent = STALE_MSG;
   s.classList.add('err');
   s.style.cursor = 'pointer';
   s.title = 'Reload to pick up the new build. Save first if you have unsaved edits.';
@@ -8839,7 +8849,11 @@ async function _pull() {
   // current source/layout, so an unsaved prose edit is preserved, not clobbered.
   let engineOk = true;
   try { await refreshEngineFiles(); } catch (e) { engineOk = false; }
-  if (engineOk && !clash) { await render(); $('stat').textContent = took ? 'updated from disk' : 'reloaded'; }
+  if (engineOk && !clash) {
+    await render();
+    $('stat').textContent = took ? 'updated from disk' : 'reloaded';
+    if ($('stat').dataset.stale) offerEditorReload();   // the warning outranks the status
+  }
   else if (took) { markDirty(); await render(); $('stat').textContent = 'updated from disk'; }
   if (clash) {
     $('stat').textContent = 'Claude changed the same thing you have unsaved — '
