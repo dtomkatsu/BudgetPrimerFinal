@@ -8837,7 +8837,13 @@ async function _pull() {
     else clash = true;
   }
   if (M.layout && freshLayout !== layoutOrig) {
-    const mineChanged = JSON.stringify(layout) !== JSON.stringify(JSON.parse(layoutOrig || '{}'));
+    // layoutSaid(), not a raw compare — the SAME normalisation that made a
+    // freshly opened report look dirty made this see edits that do not exist.
+    // The editor fills in empty containers on load, so an untouched layout
+    // differs from the file byte-wise, and every disk change then came back as
+    // "Claude changed the same thing you have unsaved" over an editor the
+    // person had not typed in. markDirty was fixed for this; this was not.
+    const mineChanged = layoutSaid(layout) !== layoutSaid(JSON.parse(layoutOrig || '{}'));
     if (!mineChanged) { layoutOrig = freshLayout; layout = JSON.parse(freshLayout || '{}');
       layout.positions = layout.positions || {}; layout.shapes = layout.shapes || []; layout.sections = layout.sections || {}; took = true; }
     else clash = true;
