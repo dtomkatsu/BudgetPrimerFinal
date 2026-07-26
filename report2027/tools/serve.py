@@ -271,6 +271,53 @@ def rebuild(pid: str, reason: str = "") -> None:
 # is published in /__ping so the editor can say so instead of going quiet.
 WATCH_BEAT = [time.time()]
 
+# ---- staying current --------------------------------------------------------
+# The app is distributed as a real checkout that fast-forwards itself, and it
+# used to do that ONLY at launch — so anyone who leaves the editor open (which
+# is the normal way to use it) ran whatever was current the day they last
+# quit. This polls in the background and publishes the result; the editor shows
+# it and can ask for it to be applied. Applying restarts this process, because
+# the update includes this file.
+UPDATE_POLL = 20 * 60
+UPDATE = {"behind": 0, "can": False, "log": [], "sha": "", "date": "", "why": ""}
+UPDATER = SELF_ROOT / "tools" / "selfupdate.py"
+
+
+def _update_status(apply: bool = False) -> dict:
+    """Ask the updater what it sees, or (apply=True) have it act. Kept in the
+    updater rather than reimplemented here: it already knows every way an
+    update can be unsafe, and one of those decisions living in two places is
+    how the last three bugs in this file happened."""
+    if not UPDATER.is_file():
+        return dict(UPDATE, why="no updater in this checkout")
+    cmd = [sys.executable, str(UPDATER), "--json"] + ([] if apply else ["--check"])
+    try:
+        r = subprocess.run(cmd, cwd=str(SELF_ROOT), capture_output=True,
+                           text=True, timeout=180)
+        return json.loads(r.stdout.strip().splitlines()[-1])
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError) as e:
+        return dict(UPDATE, why=f"update check failed: {e}")
+
+
+def update_watcher():
+    """One check at startup so the version is known immediately, then every
+    UPDATE_POLL. Never applies anything on its own — a running editor holds
+    unsaved work, and only the person at the keyboard can say when."""
+    while True:
+        try:
+            UPDATE.update(_update_status())
+        except Exception as e:                       # noqa: BLE001 — never die
+            print(f"  update check error (continuing): {e!r}")
+        time.sleep(UPDATE_POLL)
+
+
+def _update_payload() -> dict:
+    """What the editor needs to show a version and, when there is one, an
+    offer. Trimmed: the full status carries fields only the CLI uses."""
+    return {"behind": UPDATE.get("behind", 0), "can": bool(UPDATE.get("can")),
+            "log": UPDATE.get("log", [])[:5], "why": UPDATE.get("why", ""),
+            "sha": UPDATE.get("sha", ""), "date": UPDATE.get("date", "")}
+
 
 def watcher():
     patterns = {pid: _watch_patterns(p["root"], p["binding"]) for pid, p in PROJECTS.items()}
@@ -433,7 +480,7 @@ class Handler(SimpleHTTPRequestHandler):
         # button flipping between two repos' commit counts). A payload that says
         # who it belongs to can be checked instead of trusted.
         payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"]),
-                   "project": pid,
+                   "project": pid, "update": _update_payload(),
                    "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
         if st.error:
             payload["error"] = st.error
@@ -532,6 +579,7 @@ class Handler(SimpleHTTPRequestHandler):
                 # rides along so a Save elsewhere (another tab, another Claude
                 # session) updates every open editor's Push button too.
                 payload = {"v": v, "ahead": _ahead(root), "project": pid,
+                           "update": _update_payload(),
                            "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
                 if err:
                     payload["error"] = err
@@ -543,13 +591,15 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
-        if path not in ("/__save", "/__push", "/__export", "/__upload"):
+        if path not in ("/__save", "/__push", "/__export", "/__upload", "/__update"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
             req = json.loads(self.rfile.read(n) or b"{}")
         except json.JSONDecodeError as e:
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
+        if path == "/__update":
+            return self._apply_update()              # writes its own response
         if path == "/__export":
             return self._export(req)                 # writes its own response
         pid = req.get("project") or DEFAULT_PROJECT
@@ -569,6 +619,36 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"ok": False, "error": str(e),
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
+
+    def _apply_update(self):
+        """Take the update, then restart into it.
+
+        The update includes THIS FILE, so there is no version of this that
+        does not end in a restart — a process cannot swap out its own running
+        code. The response goes out first and the restart happens a moment
+        later on another thread, because execv never returns and a client
+        waiting on a reply it will never get looks exactly like a crash.
+
+        Nothing here decides whether the update is safe; selfupdate.py does,
+        and refuses in every case it cannot handle without losing work."""
+        st = _update_status(apply=True)
+        UPDATE.update(st)
+        applied = bool(st.get("applied"))
+        self._json(200, {"ok": applied, "restarting": applied,
+                         "why": st.get("why", ""), "sha": st.get("sha", ""),
+                         "behind": st.get("behind", 0)})
+        if not applied:
+            return
+        print("  updated — restarting into the new version")
+
+        def restart():
+            time.sleep(0.4)                  # let the response reach the browser
+            try:
+                os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve())])
+            except OSError as e:             # nothing left to do but say so
+                print(f"  restart failed ({e}) — quit and reopen the app")
+
+        threading.Thread(target=restart, daemon=True).start()
 
     def _upload(self, pid: str, req) -> dict:
         """Write an uploaded image into the project's assets dir, on disk.
@@ -856,6 +936,7 @@ def main():
     for pid in PROJECTS:
         rebuild(pid, "startup")
     threading.Thread(target=watcher, daemon=True).start()
+    threading.Thread(target=update_watcher, daemon=True).start()
     # Two loopback listeners (IPv4 + IPv6), NOT a dual-stack `::` bind — the save/
     # push/export endpoints must stay off the LAN. If IPv6 loopback is somehow
     # unavailable, fall back to IPv4-only rather than refuse to start.

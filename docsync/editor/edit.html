@@ -86,6 +86,18 @@
            background:rgba(255,255,255,.07); padding:2px 8px; border-radius:99px; }
   #fit { background:#C0392B; color:#fff; padding:3px 10px; border-radius:99px;
          font:12px system-ui; cursor:help; }
+  /* Which build is running. Deliberately the quietest thing in the bar — it is
+     reference, not news, and it is read maybe twice in an install's life. */
+  #ver { font:11px ui-monospace,monospace; color:var(--dim); opacity:.65;
+         cursor:help; letter-spacing:.2px; }
+  /* An update, on the other hand, IS news — but it is never urgent, and it
+     must not read like an error. Sage (the primary colour used elsewhere for
+     Save) says "there is something good here" without demanding the click. */
+  #upd { background:var(--sage); color:#fff; border:0; border-radius:99px;
+         padding:4px 12px; font:600 11.5px system-ui; cursor:pointer;
+         white-space:nowrap; transition:filter .12s; }
+  #upd:hover { filter:brightness(1.12); }
+  #upd[disabled] { opacity:.6; cursor:default; }
   /* one button language everywhere: quiet by default, sage when primary.
      Scoped to the bar's OWN buttons (direct children, plus the zoom segment):
      the .pop popovers are children of #bar too, and a bare "#bar button" (id +
@@ -830,6 +842,12 @@
        report, where it only ever repeated the project id. -->
   <span id="title" class="ds-id"></span>
   <span id="stat">loading the render engine…</span>
+  <!-- Staying current, in two parts. The chip says which build is running —
+       without it "what version are you on?" has no answer, which makes every
+       support conversation guesswork. The button appears only when there is
+       an update this checkout can actually take, and names what is in it. -->
+  <button id="upd" hidden aria-label="Install the available update"></button>
+  <span id="ver" hidden title=""></span>
   <span id="fit" hidden title="">⚠</span>
   <!-- Text / Shape / Icon / Table live in the left rail (#leftrail) now. -->
   <button id="tok" aria-label="Check or replace the GitHub token used to save">Token…</button>
@@ -8637,7 +8655,8 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  startLive(d => { setPushState(d.ahead); watchHealth(d); onBump(d.v, d.error); });
+  startLive(d => { setPushState(d.ahead); watchHealth(d); updateHealth(d); onBump(d.v, d.error); });
+  $('upd').onclick = installUpdate;
 }
 
 // ONE connection for ALL tabs. Each tab opening its own /__events stream piled
@@ -8864,6 +8883,93 @@ function watchHealth(d) {
   $('stat').classList.add('err');
   $('stat').title = 'The file watcher is no longer running, so edits on disk will '
     + 'not reach this page. Your work here is unaffected.';
+}
+
+/** Which build is running, and whether a newer one is waiting.
+ *
+ *  The app is a real git checkout that fast-forwards itself, and it used to do
+ *  that only when it was launched — so anyone who leaves the editor open, which
+ *  is how it is actually used, kept running whatever was current the last time
+ *  they quit. The server now watches for updates in the background and says so
+ *  here; nothing is ever applied without a click, because this document is
+ *  where unsaved work lives.
+ */
+let updateOffer = null;
+function updateHealth(d) {
+  const u = d && d.update;
+  if (!u) return;                       // older server: no update reporting
+  const ver = $('ver');
+  if (u.sha) {
+    ver.hidden = false;
+    ver.textContent = u.sha;
+    ver.title = 'Running version ' + u.sha + (u.date ? ' (' + u.date + ')' : '')
+      + (u.behind ? '\n' + u.behind + ' newer version'
+                    + (u.behind > 1 ? 's are' : ' is') + ' available.'
+                  : '\nThis is the latest version.');
+  }
+  const b = $('upd');
+  // Only offer what can actually be taken. An update held back because the
+  // person has work of their own is real information, but it belongs in the
+  // tooltip of the thing they already look at — not in a button that would
+  // do nothing when pressed.
+  if (!u.behind || !u.can) {
+    b.hidden = true;
+    updateOffer = null;
+    if (u.behind && !u.can && u.why) ver.title += '\nNot applied: ' + u.why;
+    return;
+  }
+  updateOffer = u;
+  b.hidden = false;
+  b.disabled = false;
+  b.textContent = 'Update (' + u.behind + ')';
+  b.setAttribute('aria-label', 'Install ' + u.behind + ' available update'
+    + (u.behind > 1 ? 's' : '') + ' and restart the editor');
+  // What is IN it, not just how many. "3 updates available" is ignorable;
+  // a line saying charts stopped dragging is not.
+  b.title = (u.log && u.log.length
+    ? 'This update contains:\n  • ' + u.log.join('\n  • ')
+    : u.behind + ' new version' + (u.behind > 1 ? 's' : ''))
+    + '\n\nInstalling takes a few seconds and reloads this page.';
+}
+
+async function installUpdate() {
+  const b = $('upd');
+  // Never mid-edit. The install restarts the server and reloads this document,
+  // and unsaved work lives only here — so this refuses rather than asking a
+  // question whose wrong answer loses the afternoon.
+  if (dirty) {
+    $('stat').textContent = 'save your changes first — installing an update reloads the editor';
+    return;
+  }
+  b.disabled = true;
+  b.textContent = 'Installing…';
+  let j = {};
+  try {
+    j = await (await fetch(withProject('/__update'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+    })).json();
+  } catch (e) { j = { ok: false, why: e.message }; }
+  if (!j.ok) {
+    b.disabled = false;
+    b.textContent = 'Update (' + (updateOffer ? updateOffer.behind : '') + ')';
+    $('stat').textContent = 'update not installed: ' + (j.why || 'unknown reason');
+    return;
+  }
+  // The server is replacing itself with the new code, so it goes away and
+  // comes back. Wait for it to answer again before reloading — reloading into
+  // the gap gives a browser error page, which reads as "the update broke it".
+  $('stat').textContent = 'installed — restarting…';
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 500));
+    try {
+      if ((await fetch(withProject('/__ping'), { cache: 'no-store' })).ok) {
+        location.reload();
+        return;
+      }
+    } catch (e) { /* still down — keep waiting */ }
+  }
+  $('stat').textContent = 'the update installed but the editor did not come back — quit and reopen the app';
 }
 
 async function _pull() {
