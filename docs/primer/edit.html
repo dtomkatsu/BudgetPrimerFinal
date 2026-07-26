@@ -436,7 +436,11 @@
   .tp-preset-grid { display:grid; grid-template-columns:repeat(3, 1fr);
         grid-template-rows:repeat(4, 1fr); width:100%; aspect-ratio:1;
         border-radius:3px; overflow:hidden; }
-  .tp-sw { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 4px; }
+  /* A grid, not wrapping flex. Wrapping packed as many as would fit and left
+     the remainder orphaned — nine palette colours fell 7 + 2. balanceSwatches()
+     sets the column count so the rows come out even (5 + 4) instead. */
+  .tp-sw { display:grid; gap:5px; margin:0 0 4px; }
+  .tp-sw > * { width:auto; min-width:0; }
   .tp-swatch { width:24px; height:24px; padding:0; border-radius:6px;
         border:1px solid rgba(0,0,0,.16); cursor:pointer; }
   .tp-swatch:hover { outline:2px solid var(--ink); outline-offset:1px; }
@@ -510,10 +514,26 @@
         white-space:nowrap; font:12px system-ui; color:#52796F; }
   .ch-colsw { flex:none; width:30px; height:24px; padding:1px; cursor:pointer;
         border:1px solid #DCE4DE; border-radius:6px; background:#fff; }
-  .ch-reset { flex:none; border:0; background:none; color:#B4BFB7; cursor:pointer;
-        font-size:12px; padding:2px 4px; border-radius:4px; line-height:1; }
-  .ch-reset:hover:not(:disabled) { background:#EDF4EE; color:var(--deep); }
-  .ch-reset:disabled { opacity:.3; cursor:default; }
+  /* An unset colour wears the same red slash the "none" swatch uses elsewhere,
+     so "no background" cannot be mistaken for "white background". The swatch
+     itself is a native colour input, so the mark goes on a wrapper drawn
+     behind its transparent padding. */
+  .ch-colsw.unset { background:#fff url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 30 24%27 preserveAspectRatio=%27none%27%3E%3Cpath d=%27M1 23L29 1%27 stroke=%27%23C0392B%27 stroke-width=%272%27/%3E%3C/svg%3E") center/100% 100% no-repeat;
+        border-style:dashed; }
+  .ch-colsw.unset::-webkit-color-swatch { opacity:0; }
+  .ch-colsw.unset::-webkit-color-swatch-wrapper { opacity:0; }
+  /* Reset-to-default. It reads as an ACTION when there is something to undo
+     and disappears when there is not — at a flat near-white grey it was
+     invisible in both states, so the only affordance for "put this back" was
+     invisible too. */
+  .ch-reset { flex:none; border:1px solid #DCE4DE; background:#fff; color:var(--deep);
+        cursor:pointer; font-size:11px; width:22px; height:22px; padding:0;
+        border-radius:6px; line-height:1; display:grid; place-items:center;
+        transition:background .12s, border-color .12s, color .12s; }
+  .ch-reset:hover:not(:disabled) { background:var(--sage); border-color:var(--sage);
+        color:#fff; }
+  /* Nothing to reset: take the space so the row does not jump, show nothing. */
+  .ch-reset:disabled { visibility:hidden; }
 
   /* the icon panel: search over a scrolling array of the same tiles */
   .pop.docked #icon-q, .pop.docked #icon-set { border-radius:9px; padding:9px 11px;
@@ -876,8 +896,8 @@
         fill="#CAD2C5" stroke="#52796F" stroke-width="1.2"><ellipse cx="7.5" cy="7.5"
         rx="6" ry="4.6"/></svg></span>Ellipse</button>
       <button class="shp" data-k="line"><span class="tile-art"><svg viewBox="0 0 15 15"
-        stroke="#52796F" stroke-width="1.6" stroke-linecap="round"><path
-        d="M2 12.5L13 2.5"/></svg></span>Line</button>
+        stroke="#52796F" stroke-width="2.6" stroke-linecap="round"><path
+        d="M2.5 12L12.5 3"/></svg></span>Line</button>
       <button class="shp" data-k="triangle"><span class="tile-art"><svg viewBox="0 0 15 15"
         fill="#CAD2C5" stroke="#52796F" stroke-width="1.2" stroke-linejoin="round"><path
         d="M7.5 2.5L13 12.5H2z"/></svg></span>Triangle</button>
@@ -4637,6 +4657,7 @@ function renderChartCustomize(pop, s, c, isPie, mk) {
       }));
       ramp.appendChild(b);
     });
+    balanceSwatches(ramp);
     const names = isPie ? (c.labels || []) : c.series.map(x => x.name);
     names.forEach((nm, i) => {
       const row = document.createElement('div');
@@ -4667,7 +4688,13 @@ function renderChartCustomize(pop, s, c, isPie, mk) {
     bgNone.addEventListener('click', () => chartWrite((ch, sh) => { sh.fill = 'none'; }));
     const bgSw = document.createElement('input');
     bgSw.type = 'color'; bgSw.className = 'ch-colsw';
-    bgSw.value = (typeof s.fill === 'string' && s.fill !== 'none') ? s.fill : '#FFFFFF';
+    const bgSet = typeof s.fill === 'string' && s.fill !== 'none';
+    bgSw.value = bgSet ? s.fill : '#FFFFFF';
+    // "No background" and "white background" are different states that looked
+    // identical: an unset chart showed a white chip on a white panel, which
+    // read as a white fill — or as nothing at all. Mark the unset one.
+    bgSw.classList.toggle('unset', !bgSet);
+    bgSw.title = bgSet ? `Background ${s.fill}` : 'No background';
     bgSw.addEventListener('change', () =>
       chartWrite((ch, sh) => { sh.fill = bgSw.value.toUpperCase(); }));
     bgRow.append(bgLab, bgNone, bgSw);
@@ -4763,6 +4790,16 @@ $('chart').onclick = async () => {
 };
 $('ar-chart').addEventListener('click', () => openChartPanel(selectedChartId()));
 
+/** Choose a column count that leaves EVEN rows rather than an orphan. Packing
+ *  greedily fits 7 of 9 and strands 2; splitting across the rows it will need
+ *  anyway gives 5 and 4. Called after a swatch host is filled. */
+function balanceSwatches(host, maxCols = 7) {
+  const n = host.children.length;
+  if (!n) return;
+  const rows = Math.ceil(n / maxCols);
+  host.style.gridTemplateColumns = `repeat(${Math.ceil(n / rows)}, 1fr)`;
+}
+
 /** The report's palette as a swatch row, plus a "none" and a custom picker. */
 function tpSwatches(host, current, onPick, opts = {}) {
   const wrap = document.createElement('div');
@@ -4791,6 +4828,7 @@ function tpSwatches(host, current, onPick, opts = {}) {
   custom.title = 'Custom colour';
   custom.addEventListener('change', () => onPick(custom.value.toUpperCase()));
   wrap.appendChild(custom);
+  balanceSwatches(wrap);
   host.appendChild(wrap);
 }
 
