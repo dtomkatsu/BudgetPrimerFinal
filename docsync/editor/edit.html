@@ -8653,11 +8653,27 @@ async function detectLocal() {
 function startLive(onEvent) {
   // Scoped by project id: two projects' edit.html tabs open at once must not
   // elect a shared leader or relay each other's rebuild events.
-  const LK = 'primer-live-leader:' + (M && M.id || ''), EV = 'primer-live-event:' + (M && M.id || '');
   const HB_MS = 2000, STALE_MS = 6000;
   const meId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  // Sharing a connection is only safe between tabs editing the SAME project.
+  // An id-less manifest used to scope to the empty string, which is not a
+  // project — it is a bucket every id-less tab falls into together, whatever
+  // each is really editing. Such a tab now scopes to itself, so it leads its
+  // own stream and shares with nobody; the pooling this election exists for
+  // still applies wherever there IS an id to pool by.
+  const scope = (M && M.id) || 'tab:' + meId;
+  const LK = 'primer-live-leader:' + scope, EV = 'primer-live-event:' + scope;
   let es = null, leading = false, hb = 0, evN = 0;
-  const apply = d => { if (d) onEvent(d); };
+  // The key scoping above is necessary but NOT sufficient: it is built from
+  // M.id, so any tab whose manifest has no id lands in a shared '' bucket
+  // together with every other such tab — whatever project they are actually
+  // editing. Those tabs then relay each other's events, and each applies the
+  // other's numbers as its own; the visible symptom is a Push button flipping
+  // between two repositories' commit counts. Every payload now says which
+  // project it describes, so provenance is checked rather than assumed. A
+  // payload with no stamp is from an older server and is still trusted.
+  const mine = d => !d || d.project == null || !M || !M.id || d.project === M.id;
+  const apply = d => { if (d && mine(d)) onEvent(d); };
   const relay = d => {
     try { localStorage.setItem(EV, JSON.stringify({ ...d, _n: ++evN + '.' + Date.now() })); } catch (e) {}
   };

@@ -424,9 +424,16 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _ping_payload(self, pid: str | None) -> dict:
         if pid not in STATE:
-            return {"ok": True, "v": 0, "ahead": 0}
+            return {"ok": True, "v": 0, "ahead": 0, "project": pid}
         st = STATE[pid]
+        # Stamp WHOSE numbers these are. Tabs relay live events to each other
+        # through localStorage, and the key alone used to be the only thing
+        # keeping two projects apart — a tab with no project id fell into a
+        # shared bucket and applied another project's counts as its own (a Push
+        # button flipping between two repos' commit counts). A payload that says
+        # who it belongs to can be checked instead of trusted.
         payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"]),
+                   "project": pid,
                    "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
         if st.error:
             payload["error"] = st.error
@@ -524,7 +531,7 @@ class Handler(SimpleHTTPRequestHandler):
                 # A heartbeat keeps proxies from closing an idle stream. ahead
                 # rides along so a Save elsewhere (another tab, another Claude
                 # session) updates every open editor's Push button too.
-                payload = {"v": v, "ahead": _ahead(root),
+                payload = {"v": v, "ahead": _ahead(root), "project": pid,
                            "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
                 if err:
                     payload["error"] = err
@@ -556,9 +563,11 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             msg = self._push(pid) if path == "/__push" else self._save(pid, req)
             return self._json(200, {"ok": True, "message": msg, "v": STATE[pid].version,
+                                     "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
         except Exception as e:                       # noqa: BLE001 — report it
             return self._json(200, {"ok": False, "error": str(e),
+                                     "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
 
     def _upload(self, pid: str, req) -> dict:
