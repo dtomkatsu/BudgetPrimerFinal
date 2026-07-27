@@ -33,7 +33,7 @@
           --txt:#EDF2EF; --dim:#A9BCB4;
           /* One number for the tool rail's width: #leftrail is that wide, and
              the floating panel starts exactly where it ends. */
-          --rail-w:56px; }
+          --rail-w:67px; }
   html { height:100%; }
   /* Flex column, so the iframe takes whatever the bars leave. The old fixed
      calc() heights lied whenever a toolbar wrapped to a second line. */
@@ -89,7 +89,14 @@
   #open-list button[aria-current="true"] { font-weight:700; }
 
   /* Left tool rail — Canva-style: a narrow column of icon-over-label buttons. */
-  #leftrail { flex:none; width:var(--rail-w); background:var(--chrome2);
+  /* border-box, so --rail-w is the rail's REAL outer width. It was content-box,
+     which made the rail 11px wider than the variable (5px padding each side
+     plus the border) — and #side, positioned at left:var(--rail-w), therefore
+     started INSIDE the rail. Everything anchored to the panel's edge inherited
+     that error, the collapse chevron most visibly: it sat on top of whichever
+     tool the middle of the rail reached. The content area is unchanged (67
+     minus the same padding and border is the 56 it always had). */
+  #leftrail { flex:none; width:var(--rail-w); box-sizing:border-box; background:var(--chrome2);
               border-right:1px solid var(--line); display:flex; flex-direction:column;
               align-items:stretch; gap:3px; padding:8px 5px; overflow-y:auto;
               position:relative; z-index:2; }
@@ -243,10 +250,6 @@
   #push.pending:hover { background:#2F5A85; border-color:#2F5A85; }
   #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
   #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
-  #proj { font:12.5px system-ui; background:var(--ctl); color:#E8EDE6;
-          border:1px solid var(--ctl-line); border-radius:5px; padding:4px 6px;
-          cursor:pointer; max-width:220px; }
-  #proj:hover { border-color:var(--sage); }
   /* Below the bars: the page rail and the canvas, side by side. */
   #work { flex:1; min-height:0; display:flex; position:relative; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
@@ -366,8 +369,13 @@
           border-radius:0 9px 9px 0; box-shadow:3px 0 10px rgba(20,30,35,.14);
           transition:color .12s, background .12s; }
   #side-fold:hover { background:#EDF4EE; color:var(--ink); }
+  /* Folded, the panel has no width, so a chevron hung at right:-13px straddles
+     the panel's own left edge — which IS the rail — and sat on top of whichever
+     tool the middle of the rail happened to reach (Chart, at most heights).
+     Pushed out by its full width instead, so it begins exactly where the rail
+     ends and covers nothing. */
   #side.folded #side-fold { transform:rotate(180deg); border-left:1px solid #C9D6CD;
-          border-radius:0 9px 9px 0; }
+          border-radius:0 9px 9px 0; right:-26px; }
   #side-head { display:flex; align-items:center; justify-content:space-between;
           padding:13px 14px 6px; font:700 15.5px/1.2 system-ui; letter-spacing:-.2px; }
   #side-x { border:0; background:none; font-size:15px; line-height:1; cursor:pointer;
@@ -886,7 +894,6 @@
   <button id="save" disabled>Save draft</button>
   <button id="push" hidden disabled aria-label="Send commits saved locally to GitHub">Push</button>
   <span class="bar-sep"></span>
-  <select id="proj" hidden title="Switch project"></select>
   <!-- Kept, but only shown when it says something the picker does not: which
        DRAFT branch you are on. detectLocal() hides it for the live local
        report, where it only ever repeated the project id. -->
@@ -1478,21 +1485,10 @@ async function loadRegistry() {
   if (!REGISTRY) { PROJECT = ''; return; }
   if (PROJECT && REGISTRY[PROJECT]) PBASE = REGISTRY[PROJECT].base || '';
   else PROJECT = '';            // unknown id: fall back to the default engine
-  const ids = Object.keys(REGISTRY);
-  if (ids.length < 2) return;   // one project: no picker, nothing to switch to
-  const defaultId = ids.find(id => !(REGISTRY[id].base || '')) || ids[0];
-  const sel = $('proj');
-  sel.innerHTML = ids.map(id =>
-    `<option value="${id}">${REGISTRY[id].name || id}</option>`).join('');
-  sel.value = PROJECT || defaultId;
-  sel.hidden = false;
-  sel.onchange = async () => {
-    if (dirty && !await dsConfirm('Switch project? Unsaved edits here are lost.',
-        { okLabel: 'Switch', danger: true })) {
-      sel.value = PROJECT || defaultId; return;
-    }
-    location.href = location.pathname + '?project=' + encodeURIComponent(sel.value);
-  };
+  // Switching reports is File > Open now. The <select> that used to sit in the
+  // bar was a second way to do the same thing, in a place that had to explain
+  // itself; the menu is where a document app keeps it, and the window title
+  // already says which report this is.
 }
 
 // content.md is [[key]] lines followed by their text. Reading and rewriting a
@@ -2922,6 +2918,10 @@ function contextify(d) {
     if (e.button === 2) return;
     if (!e.target.closest || !e.target.closest('.ds-menu')) closeMenu(d);
   });
+  // A click on the report also dismisses the chrome's own menus — see
+  // bindOutsideClose. Same per-render binding, because the render replaces
+  // this document wholesale.
+  bindOutsideClose(d);
 }
 
 // ---------------------------------------------------------------- resizing
@@ -3497,10 +3497,57 @@ function togglePop(pop, anchor) {
   pop.style.left = Math.max(8, Math.min(r.left,
     document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
-addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers, #download, #file'))
-    document.querySelectorAll('.pop:not(.docked)').forEach(p => { p.hidden = true; });
-});
+// Anything whose own handler already toggles: clicking one of these must not
+// be treated as "outside", or the close would race the open and the menu would
+// never appear.
+// Only the controls that OPEN one of these surfaces. #tok and the File menu's
+// own entries are inside .pop already, and #guides is a plain toggle, not an
+// anchor — listing either would just stop a click there from closing anything.
+const POP_ANCHORS = '#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers,'
+  + ' #download, #file';
+
+// The rail's PICKERS — the panels that exist to put a new object on the page.
+// They are menus, and a menu closes when you click away from it.
+//
+// Deliberately NOT Table, Chart or Colour. Those describe the thing you have
+// selected and are meant to be used WHILE working on the canvas: styling a
+// cell, recolouring one shape then the next. Dismissing them on a canvas click
+// would close them on the very gesture they exist to serve.
+const RAIL_PICKERS = new Set(['text', 'shape', 'icon']);
+
+/** Close what a click landed outside of. `insideChrome` is false for clicks
+ *  that came from the report itself, where nothing is ever "inside" a menu. */
+function closeOnOutsideClick(target, insideChrome) {
+  // A modal is ON TOP of everything, so a click while one is open is not a
+  // click away from what is behind it. Renaming a source proved the point: the
+  // rename dialog opens FROM the Sources panel, and every keystroke and button
+  // in it landed outside that panel — dismissing the thing the dialog was
+  // editing, mid-edit.
+  if (document.querySelector('dialog[open]')) return;
+  const chrome = insideChrome && target.closest ? target : null;
+  if (chrome && (chrome.closest('.pop') || chrome.closest(POP_ANCHORS))) return;
+  document.querySelectorAll('.pop:not(.docked)').forEach(p => { p.hidden = true; });
+  // Sources is a floating surface of its own rather than a .pop, so it needs
+  // saying separately — and it was the one the report named.
+  if (typeof srcPanel !== 'undefined' && srcPanel && !(chrome && chrome.closest('#srcpanel')))
+    closeSources();
+  if (RAIL_PICKERS.has(sidePanelTool) && !(chrome && chrome.closest('#side, #leftrail')))
+    closeSide();
+}
+
+addEventListener('mousedown', e => closeOnOutsideClick(e.target, true));
+
+/** The same rule, for clicks on the REPORT. The canvas is an iframe, and a
+ *  mousedown inside one does not bubble to this document at all — so clicking
+ *  the page, which is the most natural way to dismiss a menu, did nothing to
+ *  any of them. Bound per render, because each render replaces the document.
+ */
+function bindOutsideClose(d) {
+  d.addEventListener('mousedown', e => {
+    if (e.button === 2) return;         // a right-click is opening a menu of its own
+    closeOnOutsideClick(e.target, false);
+  });
+}
 
 // ------------------------------------------------ the rail's docked panels
 // A rail tool's picker opens in the LEFT PANEL, the way Canva's does, instead
