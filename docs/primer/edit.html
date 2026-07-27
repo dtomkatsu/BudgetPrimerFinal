@@ -33,7 +33,15 @@
           --txt:#EDF2EF; --dim:#A9BCB4;
           /* One number for the tool rail's width: #leftrail is that wide, and
              the floating panel starts exactly where it ends. */
-          --rail-w:67px; }
+          --rail-w:67px;
+          /* One radius scale for the whole chrome. Rounding each surface by
+             eye is how an interface ends up with five nearly-equal corners
+             that read as sloppiness rather than as a choice. */
+          --r-ctl:9px;      /* buttons, inputs — anything you click */
+          --r-card:14px;    /* a floating surface holding controls */
+          --r-edge:18px;    /* where a panel meets the canvas */
+          --shadow-card:0 2px 10px rgba(16,26,32,.16);
+          --shadow-edge:2px 0 14px rgba(16,26,32,.13); }
   html { height:100%; }
   /* Flex column, so the iframe takes whatever the bars leave. The old fixed
      calc() heights lied whenever a toolbar wrapped to a second line. */
@@ -53,9 +61,11 @@
   /* One line at a regular width: nowrap, and #stat (flex:1) absorbs the slack
      and ellipsises rather than pushing buttons onto a second row. Moving the
      add-object tools to the left rail and hiding zoom is what makes it fit. */
-  #bar { position:relative; display:flex; gap:8px; align-items:center; padding:8px 14px;
-         background:var(--chrome); color:var(--txt); flex-wrap:nowrap;
-         border-bottom:1px solid var(--line); }
+  /* The two top rows read as ONE chrome zone now: same dark ground, no rule
+     between them, and the contextual controls floating on it as a light card.
+     A hairline border under each row cut the chrome into stripes. */
+  #bar { position:relative; display:flex; gap:8px; align-items:center; padding:9px 14px;
+         background:var(--chrome); color:var(--txt); flex-wrap:nowrap; }
   /* A thin rule between the history/commit group and the rest. */
   .bar-sep { flex:none; width:1px; height:20px; background:var(--line); margin:0 3px; }
   #stat { flex:1 1 40px; min-width:40px; opacity:.9; overflow:hidden;
@@ -96,17 +106,25 @@
      that error, the collapse chevron most visibly: it sat on top of whichever
      tool the middle of the rail reached. The content area is unchanged (67
      minus the same padding and border is the 56 it always had). */
+  /* Rounded on the canvas side and lifted with a shadow instead of a 1px rule.
+     A hairline is the cheapest way to separate two surfaces and the least
+     convincing: it reads as a seam, where a shadow reads as one thing sitting
+     in front of another. overflow-y stays auto for a rail taller than the
+     window; overflow-x visible would defeat the rounding, so it is clipped. */
   #leftrail { flex:none; width:var(--rail-w); box-sizing:border-box; background:var(--chrome2);
-              border-right:1px solid var(--line); display:flex; flex-direction:column;
-              align-items:stretch; gap:3px; padding:8px 5px; overflow-y:auto;
-              position:relative; z-index:2; }
+              display:flex; flex-direction:column;
+              align-items:stretch; gap:4px; padding:9px 5px; overflow-y:auto;
+              overflow-x:hidden; position:relative; z-index:2;
+              border-radius:0 var(--r-edge) var(--r-edge) 0;
+              box-shadow:var(--shadow-edge); }
   #leftrail button { display:flex; flex-direction:column; align-items:center; gap:5px;
                      background:none; border:0; color:var(--txt); cursor:pointer;
-                     padding:8px 2px 7px; border-radius:10px;
+                     padding:9px 2px 8px; border-radius:var(--r-card);
                      font:600 9px system-ui; letter-spacing:.1px;
-                     transition:background .12s, color .12s; }
-  #leftrail button:hover { background:var(--ctl); }
-  #leftrail button.on { background:var(--sage); color:#fff; }
+                     transition:background .14s, color .14s; }
+  #leftrail button:hover { background:rgba(255,255,255,.10); }
+  #leftrail button.on { background:var(--sage); color:#fff;
+                     box-shadow:0 1px 6px rgba(107,158,120,.42); }
   #leftrail button svg { width:19px; height:19px; }
   /* A boot failure is the one status the row must not quietly ellipsis away:
      it is the only thing on screen telling you why nothing works. */
@@ -139,8 +157,9 @@
   #bar > button, #zoom button {
                 display:inline-flex; align-items:center; gap:6px; font:12.5px system-ui;
                 background:var(--ctl); color:var(--txt); border:1px solid var(--ctl-line);
-                border-radius:7px; padding:5px 12px; cursor:pointer; height:29px;
-                transition:background .12s, border-color .12s; }
+                border-radius:var(--r-ctl); padding:5px 13px; cursor:pointer; height:30px;
+                transition:background .12s, border-color .12s, transform .08s; }
+  #bar > button:active:not(:disabled) { transform:translateY(1px); }
   /* The flex rule above beats [hidden]'s own (non-!important) display:none —
      Share/Publish/Push all render anyway once "hidden" is only an attribute.
      Pre-existing (Share/Publish never had a test asserting the local-mode
@@ -353,7 +372,11 @@
      positioning context; #stage keeps the full width underneath. */
   #side { position:absolute; left:var(--rail-w); top:0; bottom:0; z-index:5; width:252px;
           display:flex; flex-direction:column; background:#fff; color:var(--ink);
-          border-right:1px solid #C9D6CD; box-shadow:6px 0 22px rgba(20,30,35,.20);
+          /* Rounded on the canvas side only, and no border: the same treatment
+             as the rail it sits against, so the two read as one assembly
+             rather than two panels that happen to touch. */
+          border-radius:0 var(--r-edge) var(--r-edge) 0;
+          box-shadow:6px 0 22px rgba(20,30,35,.20);
           /* visible, so the fold chevron can sit on the outer edge */
           overflow:visible; transition:width .16s ease; }
   #side[hidden] { display:none; }
@@ -630,8 +653,8 @@
      whole flex column — the canvas visibly "jumped up" on every select, by
      a full 100px when the strip wrapped. Fixed height, no wrap, horizontal
      scroll if a row runs long: the chrome never moves again. */
-  #context { height:46px; flex:none; background:var(--chrome2);
-          border-bottom:1px solid var(--line); }
+  #context { height:46px; flex:none; background:var(--chrome);
+          padding:0 12px 8px; box-sizing:border-box; }
   #type, #arrange { display:flex; gap:6px; align-items:center;
           justify-content:safe center;   /* Canva's centered strip */
           flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
@@ -692,8 +715,18 @@
   /* Canva-style LIGHT formatting toolbar: clean white controls, segmented
      groups, sage for the active/primary state — matching the reference. Only
      the context (#type/#arrange) row is re-themed; the dark top chrome stays. */
-  #context { background:#F5F8F6; border-bottom:1px solid #D9E1DB; }
-  #type, #arrange { background:#F5F8F6; gap:5px; }
+  /* The contextual controls are a CARD on the chrome rather than a second
+     full-bleed strip. Same height as before — the row's fixed height is what
+     stops the canvas jumping every time something is selected — so this is
+     purely how it reads, not where anything sits. */
+  #type, #arrange { background:#fff; gap:5px; border-radius:var(--r-card);
+          box-shadow:var(--shadow-card); padding:0 10px;
+          /* Shrink-wrapped to its controls and centred, like the floating
+             toolbar that appears on a selection — a card the width of the
+             window with six buttons in the middle of it reads as an empty
+             strip, which is what it was. max-width keeps a long row scrolling
+             inside the card instead of pushing past the window. */
+          width:max-content; max-width:100%; margin-inline:auto; }
   #type select, #type input[type=number], #arrange input[type=number],
   #type button, #arrange button {
     background:#fff; color:#2F3E46; border-color:#D9E1DB;
