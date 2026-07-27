@@ -80,6 +80,29 @@
      stays intact. !important beats the later #zoom{display:inline-flex} rule;
      delete this one line to bring the zoom controls back. */
   #zoom { display:none !important; }
+  /* Canva's zoom control: a track between two end dots, a round handle, and
+     the level read out beside it. Sized to sit on the bar's 30px button row
+     without setting its own height. */
+  #zoombar { display:inline-flex; align-items:center; gap:7px; flex:none;
+             padding:0 4px; }
+  .zb-end { width:5px; height:5px; border-radius:50%; background:var(--ctl-line);
+            flex:none; }
+  #zb-range { -webkit-appearance:none; appearance:none; width:96px; height:5px;
+             border-radius:99px; background:var(--ctl-line); cursor:pointer;
+             flex:none; margin:0; }
+  #zb-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none;
+             width:15px; height:15px; border-radius:50%; background:#fff;
+             border:1px solid rgba(20,30,35,.28);
+             box-shadow:0 1px 3px rgba(16,26,32,.35); cursor:grab; }
+  #zb-range::-webkit-slider-thumb:active { cursor:grabbing; }
+  #zb-range::-moz-range-thumb { width:15px; height:15px; border-radius:50%;
+             background:#fff; border:1px solid rgba(20,30,35,.28);
+             box-shadow:0 1px 3px rgba(16,26,32,.35); cursor:grab; }
+  #zb-range:focus-visible { outline:2px solid rgba(107,158,120,.55); outline-offset:3px; }
+  /* Tabular figures: the readout changes constantly while dragging, and
+     proportional digits make the whole bar twitch as it does. */
+  #zb-val { font:12px system-ui; font-variant-numeric:tabular-nums;
+            color:var(--dim); min-width:38px; text-align:right; flex:none; }
   /* +Section, hidden for now. Same treatment as the zoom segment above: the
      button and every handler stay live, so bringing it back is deleting this
      one line — not rebuilding a feature. */
@@ -971,6 +994,16 @@
   <span id="zoom" title="Zoom">
     <button data-z="fit">Fit</button><button data-z="1">100</button><button
       data-z="1.25">125</button><button data-z="1.5">150</button>
+  </span>
+  <!-- The zoom control proper. The four preset buttons above stay in the DOM,
+       hidden, because several handlers and tests still address them by
+       data-z — this replaces them on screen, not in the wiring. -->
+  <span id="zoombar">
+    <span class="zb-end" aria-hidden="true"></span>
+    <input id="zb-range" type="range" min="25" max="200" step="1" value="100"
+           aria-label="Zoom" title="Zoom — ⌘+ / ⌘- to step, ⌘0 to fit">
+    <span class="zb-end" aria-hidden="true"></span>
+    <output id="zb-val" for="zb-range">100%</output>
   </span>
   <button id="guides" aria-label="Rulers and snap guides — drag from a ruler to add one">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
@@ -6701,6 +6734,22 @@ function applyZoom(recompute = true) {
   // (s>1 extends them, keeping a zoomed canvas's real scroll range).
   out.style.marginRight = (VIEW_W * (s - 1)) + 'px';
   out.style.marginBottom = ((stage.clientHeight / s) * (s - 1)) + 'px';
+  syncZoomBar();
+}
+
+/** The bar shows the scale ACTUALLY in effect, never the choice that asked for
+ *  it: 'fit' and auto derive their scale from the pane, so the number is only
+ *  known after applyZoom has run — which is why this is called from its end
+ *  rather than from setZoom. A window resize in auto mode moves the handle for
+ *  the same reason. */
+function syncZoomBar() {
+  const pct = Math.round(curScale * 100);
+  const r = $('zb-range'), v = $('zb-val');
+  // Safe to write while the handle is being dragged: applyZoom was called
+  // WITH that value, so this puts back what is already there. It only moves
+  // the handle when something else changed the scale.
+  if (r) r.value = String(pct);
+  if (v) v.textContent = pct + '%';
 }
 
 /** Set the zoom and tell everything that cares. '' means auto (fit the width,
@@ -6723,6 +6772,16 @@ function setZoom(choice, say = true) {
 document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click', () => {
   setZoom(zoomChoice === b.dataset.z ? '' : b.dataset.z);       // toggle off = auto
 }));
+
+// Dragging sets an explicit scale. 'input', not 'change', so the report
+// follows the handle rather than jumping when it is let go.
+$('zb-range').addEventListener('input', () => {
+  setZoom(String(+$('zb-range').value / 100), false);
+  $('stat').textContent = 'zoom ' + $('zb-range').value + '%';
+});
+// Double-click the readout to go back to fitting the width — the same thing
+// ⌘0 does, for anyone who reaches for the mouse.
+$('zb-val').addEventListener('dblclick', () => setZoom(''));
 
 // The ladder ⌘+ / ⌘- walk. Coarse at the small end and fine around 100%, where
 // the difference between 90% and 110% is worth having and the difference
