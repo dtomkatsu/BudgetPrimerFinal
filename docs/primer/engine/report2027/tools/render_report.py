@@ -976,6 +976,7 @@ pages.append(f"""
           (C.t("categories.legend.capital", esc=True), SAGE_MID),
           (C.t("categories.legend.onetime", esc=True), DARK),
           (C.t("categories.legend.emergency", esc=True), DARKEST)])}
+ {C.html("categories.fig2.note", cls="fig2-note")}
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}

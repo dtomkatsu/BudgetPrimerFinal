@@ -194,8 +194,11 @@ One-Time Appr
 [[categories.legend.emergency]]
 Emergency Appr
 
+[[categories.fig2.note]]
+Note: some capital dollars appear under the department that builds a project rather than the one whose program it funds — for example, the Department of Accounting and General Services often manages construction on other departments' behalf.
+
 [[categories.explore]]
-Want program-level detail, veto changes, and historical trends?
+For detailed, program-level data on the state budget:
 
 [[categories.explore.link]]
 Explore the interactive Budget Tracker →
