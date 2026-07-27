@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(docsync/**)",
+      "Write(docsync/**)",
+      "Edit(report2027/tools/**)",
+      "Write(report2027/tools/**)"
+    ]
+  }
+}

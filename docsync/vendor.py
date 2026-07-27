@@ -11,6 +11,15 @@ each stays self-contained for CI, other machines and madison. The copies
 used to be synced by hand — "fix here, remember to copy" — which is exactly
 the kind of accounting that rots. Now:
 
+- Every consumer ALSO gets a permission guard in its own .claude/settings.json
+  (permissions.ask on docsync/** and the EXTRA paths below) — an AI session
+  working on that report defaults to driving the editor's UI for content
+  changes (see the consumer's own CLAUDE.md) and has to ask before editing
+  engine code directly. This is added and kept up to date the same way the
+  code is: automatically, on every vendor run, to every consumer in
+  vendor.yml/vendor.local.yml — including ones added after this was written.
+  Merged in, never overwritten: existing permissions are left alone.
+
 - WHAT the engine is needs no manifest: every file git tracks under
   docsync/ plus report2027/tools/serve.py. Add a module to the package and
   it vendors itself.
@@ -30,6 +39,7 @@ consumer's live server is running, it reminds you to relaunch the app.
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
@@ -103,6 +113,52 @@ def stage_ids(repo: Path) -> list[str]:
         return []
 
 
+def _ask_patterns(extra: list[str]) -> list[str]:
+    """Edit(...)/Write(...) patterns for the engine paths a consumer should
+    confirm before touching directly: docsync/ itself, plus the directory
+    each EXTRA file lives in (report2027/tools/serve.py -> report2027/tools/**).
+    Derived rather than hard-coded so it stays correct if EXTRA ever grows."""
+    dirs = {"docsync"} | {str(Path(rel).parent) for rel in extra}
+    patterns = []
+    for d in sorted(dirs):
+        patterns += [f"Edit({d}/**)", f"Write({d}/**)"]
+    return patterns
+
+
+def ensure_permission_guard(repo: Path, extra: list[str], *, dry: bool) -> bool:
+    """Make editing the engine directly ask first, in this consumer.
+
+    `ask`, not `deny`: an engine change is sometimes exactly what is wanted
+    (this very script is proof — it lives under docsync/), and `ask` lets it
+    through with one confirmation instead of requiring settings.json to be
+    hand-edited first to allow it. The default this backstops is "drive the
+    editor's UI for content changes," stated in the consumer's own CLAUDE.md;
+    this is what happens on the rare occasion an AI session reaches for a file
+    edit instead — asked once, not silently blocked and not silently allowed.
+
+    Merges into whatever is already there. Only ever ADDS missing patterns to
+    permissions.ask; nothing existing is removed, reordered or overwritten.
+    Returns whether anything changed."""
+    settings_path = repo / ".claude" / "settings.json"
+    try:
+        cur = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+    except json.JSONDecodeError:
+        print(f"  {settings_path.relative_to(repo)} is not valid JSON — leaving it alone")
+        return False
+    ask = cur.setdefault("permissions", {}).setdefault("ask", [])
+    added = [p for p in _ask_patterns(extra) if p not in ask]
+    if not added:
+        return False
+    if dry:
+        print(f"  would guard engine edits in .claude/settings.json: {', '.join(added)}")
+        return True
+    ask.extend(added)
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    settings_path.write_text(json.dumps(cur, indent=2) + "\n")
+    print(f"  guarded engine edits in .claude/settings.json: {', '.join(added)}")
+    return True
+
+
 def vendor_one(repo: Path, files: list[str], *, dry: bool, force: bool,
                commit: bool) -> bool:
     print(f"\n{repo}")
@@ -126,7 +182,14 @@ def vendor_one(repo: Path, files: list[str], *, dry: bool, force: bool,
         if not dry:
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
-    if not changed:
+
+    # Checked every run, independent of whether the engine files themselves
+    # changed — an already-in-sync consumer still needs this the first time,
+    # and a consumer added to vendor.yml after this was written gets it the
+    # very next time vendor runs, with no extra step.
+    guarded = ensure_permission_guard(repo, EXTRA, dry=dry)
+
+    if not changed and not guarded:
         print("  already in sync")
         return True
     for rel in changed:
@@ -134,25 +197,31 @@ def vendor_one(repo: Path, files: list[str], *, dry: bool, force: bool,
     if dry:
         return True
 
-    ids = stage_ids(repo)
-    for bid in ids:
-        r = subprocess.run([sys.executable, "-m", "docsync.stage", "--id", bid],
-                           cwd=repo)
-        if r.returncode != 0:
-            print(f"  STAGE FAILED for '{bid}' — fix and re-run "
-                  f"python3 -m docsync.stage --id {bid} in {repo}",
-                  file=sys.stderr)
-            return False
+    if changed:
+        ids = stage_ids(repo)
+        for bid in ids:
+            r = subprocess.run([sys.executable, "-m", "docsync.stage", "--id", bid],
+                               cwd=repo)
+            if r.returncode != 0:
+                print(f"  STAGE FAILED for '{bid}' — fix and re-run "
+                      f"python3 -m docsync.stage --id {bid} in {repo}",
+                      file=sys.stderr)
+                return False
 
     if commit:
         # engine paths plus the restaged editor bundles (each binding's
         # editor dir lives under docs/ by convention; add skips the unchanged)
         paths = ["docsync", *EXTRA] + (["docs"] if (repo / "docs").is_dir() else [])
+        if guarded:
+            paths.append(".claude")
         subprocess.run(["git", "add", "--", *paths], cwd=repo, capture_output=True)
+        bits = ([f"Files: {', '.join(changed)}"] if changed else []) \
+             + (["Added a permissions.ask guard on engine paths in "
+                 ".claude/settings.json"] if guarded else [])
         msg = ("vendor engine from primer-editor\n\n"
                "Automated copy by python3 -m docsync.vendor (primer-editor "
                "is the engine's canonical home; see its CLAUDE.md). "
-               f"Files: {', '.join(changed)}")
+               + " ".join(bits))
         r = subprocess.run(["git", "commit", "-m", msg], cwd=repo,
                            capture_output=True, text=True)
         if r.returncode == 0:
