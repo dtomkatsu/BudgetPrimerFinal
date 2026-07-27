@@ -6265,6 +6265,8 @@ function marquee(d, pg, e0) {
  *  (undo was dead whenever focus sat in the report — a real bug until now). */
 function keysFor(d) {
   d.addEventListener('keydown', e => {
+    // Before the `editing` guard too — see the top-level listener.
+    if (zoomKey(e)) return;
     if (editing) return;
     const t = e.target;
     if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT'
@@ -6701,15 +6703,70 @@ function applyZoom(recompute = true) {
   out.style.marginBottom = ((stage.clientHeight / s) * (s - 1)) + 'px';
 }
 
-document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click', () => {
-  zoomChoice = zoomChoice === b.dataset.z ? '' : b.dataset.z;   // toggle off = auto
+/** Set the zoom and tell everything that cares. '' means auto (fit the width,
+ *  never past 100%); a number is an explicit scale. */
+function setZoom(choice, say = true) {
+  zoomChoice = choice;
   try { localStorage.setItem('ds-zoom', zoomChoice); } catch (e) { /* file: */ }
   document.querySelectorAll('#zoom button').forEach(x =>
     x.classList.toggle('on', x.dataset.z === zoomChoice));
   applyZoom();
   const d = $('out').contentDocument;
   if (d) paintSel(d);
+  // Zoom has no visible control at the moment (#zoom is display:none), so the
+  // status row is the only feedback that anything happened.
+  if (say) $('stat').textContent = zoomChoice
+    ? 'zoom ' + Math.round(curScale * 100) + '%'
+    : 'zoom fit to width';
+}
+
+document.querySelectorAll('#zoom button').forEach(b => b.addEventListener('click', () => {
+  setZoom(zoomChoice === b.dataset.z ? '' : b.dataset.z);       // toggle off = auto
 }));
+
+// The ladder ⌘+ / ⌘- walk. Coarse at the small end and fine around 100%, where
+// the difference between 90% and 110% is worth having and the difference
+// between 25% and 33% is not.
+const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+
+/** ⌘+ / ⌘- / ⌘0, from either document.
+ *
+ *  Without this, those keys were Chrome's OWN page zoom — which scales the
+ *  whole interface rather than the report, and works BACKWARDS here: zooming
+ *  in shrinks the CSS viewport, so the auto-fit scale (stage width ÷ VIEW_W)
+ *  gets smaller and the page you were trying to enlarge gets smaller too.
+ *  Worse, Chrome persists page zoom per origin, so quitting and reopening the
+ *  app restored the same wrong zoom — with no way back, because the editor's
+ *  own zoom buttons are hidden.
+ *
+ *  ⌘0 is deliberately NOT prevented: it resets the editor's zoom here AND
+ *  falls through to Chrome so any page zoom already stuck from before this
+ *  existed is reset by the same keystroke. It is the way out.
+ *
+ *  Returns true when it handled the key. */
+function zoomKey(e) {
+  if (!(e.metaKey || e.ctrlKey) || e.altKey) return false;
+  // e.code, so it works on layouts where ⌘+ is really ⌘⇧= and on the numpad;
+  // e.key alone is '=' , '+' , '-' or '_' depending on shift and layout.
+  const code = e.code, key = e.key;
+  const isIn = code === 'Equal' || code === 'NumpadAdd' || key === '+' || key === '=';
+  const isOut = code === 'Minus' || code === 'NumpadSubtract' || key === '-' || key === '_';
+  const isReset = code === 'Digit0' || code === 'Numpad0' || key === '0';
+  if (!isIn && !isOut && !isReset) return false;
+  if (isReset) { setZoom(''); return false; }    // false: let Chrome reset too
+  e.preventDefault();
+  const cur = curScale;
+  const next = isIn
+    ? ZOOM_STEPS.find(z => z > cur + 0.001)
+    : [...ZOOM_STEPS].reverse().find(z => z < cur - 0.001);
+  if (next == null) {                            // already at an end of the ladder
+    $('stat').textContent = 'zoom ' + Math.round(cur * 100) + '% — '
+      + (isIn ? 'as far in as it goes' : 'as far out as it goes');
+    return true;
+  }
+  setZoom(String(next));
+  return true;
+}
 
 // Re-fit whenever the CANVAS PANE changes size — a window resize, OR the left
 // panel docking in and out (every rail tool moves the stage edge by 318px now,
@@ -8569,6 +8626,10 @@ document.querySelectorAll('#shapepop .shp').forEach(b => b.addEventListener('cli
 }));
 
 addEventListener('keydown', e => {
+  // Zoom first, and before the text-field guards below: ⌘+/⌘- mean the same
+  // thing wherever focus happens to be, and a caret sitting in a field is no
+  // reason for them to fall through to Chrome's page zoom.
+  if (zoomKey(e)) return;
   const t = e.target;
   if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.tagName === 'SELECT')) return;
   if (t && t.isContentEditable) return;
