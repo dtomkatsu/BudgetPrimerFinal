@@ -4,6 +4,24 @@
 > — load it when adding or restyling anything on a report page. This file is the
 > always-on summary.
 
+## Default to driving the editor UI, not editing files
+
+When asked for a visual/content change — move, resize, restyle, retext,
+recolor an element, swap an image, adjust a chart — **drive the draft editor
+in the browser** (open it, click, drag, type) instead of editing
+`report2027/content.md` / `report2027/layout.json` or any other file
+directly. A drag in the editor writes `layout.json` and nothing else, and
+Save is a local commit reviewed before Push — the browser session has no
+reach into the renderer or engine code even by accident.
+
+Only edit repo files directly when the instruction is explicitly about the
+files or the code — "edit content.md", "fix the renderer", "update
+render_report.py", or similar. If a request is ambiguous ("make the intro
+shorter"), prefer the UI. This matters more here than in most repos: an
+engine-code edit is unusual (this repo mostly just vendors `docsync/` from
+`~/primer-editor`, see below), so a direct file edit is more likely to be a
+content change that should have gone through the editor instead.
+
 ## Adding SVGs / graphics the editor can move & resize
 
 **Any SVG, diagram, icon-lockup, or decorative graphic you add to the report
