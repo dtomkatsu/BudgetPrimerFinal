@@ -38,6 +38,49 @@ from .content import block_html, md_inline
 # different page passes its own size in — this is a default, not a law. It is
 # the only thing in this package that ever knew about one particular report.
 PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
+# A pageless document has no bottom. It still needs SOME number for the rules
+# that keep content on the page (clamping a drag, an align-to-page reference),
+# so it gets one no report will reach rather than a special case in every
+# caller.
+PAGELESS_H = 200.0
+# What a page may be. Wide enough for A3 and long enough for a US Legal sheet,
+# with room either side; narrow enough that a typo in a hand-edited layout.json
+# cannot ask the renderer for a page a mile across.
+PAGE_MIN_IN, PAGE_MAX_IN = 1.0, 100.0
+
+
+def _check_page(v, where: str):
+    """A page-size override from layout.json, or None.
+
+    A report is BUILT at a size — docsync.yml's editor.page, which the manifest
+    carries — and this overrides it. It belongs in layout.json rather than the
+    report's stylesheet because every coordinate in this file is inches
+    measured against the page: the geometry and the CSS have to come from ONE
+    value, or a resize moves everything that was placed before it.
+
+    {"w": 8.5, "h": 11} — or "h": null for pageless, a fixed width with no
+    bottom."""
+    if v is None:
+        return None
+    if not isinstance(v, dict):
+        raise LayoutError(f"{where}: page must be an object like "
+                          f'{{"w": 8.5, "h": 11}}, not {type(v).__name__}')
+    w = v.get("w")
+    if not isinstance(w, (int, float)) or isinstance(w, bool):
+        raise LayoutError(f"{where}: page width {w!r} is not a number")
+    if not PAGE_MIN_IN <= w <= PAGE_MAX_IN:
+        raise LayoutError(f"{where}: page width {w}in is outside "
+                          f"{PAGE_MIN_IN}–{PAGE_MAX_IN}in")
+    h = v.get("h")
+    if h is None:
+        return (float(w), None)                       # pageless
+    if not isinstance(h, (int, float)) or isinstance(h, bool):
+        raise LayoutError(f"{where}: page height {h!r} is not a number "
+                          f"(use null for a pageless document)")
+    if not PAGE_MIN_IN <= h <= PAGE_MAX_IN:
+        raise LayoutError(f"{where}: page height {h}in is outside "
+                          f"{PAGE_MIN_IN}–{PAGE_MAX_IN}in")
+    return (float(w), float(h))
 KINDS = ("rect", "ellipse", "line", "triangle", "arrow", "icon", "chart")
 LINE_ENDS = ("none", "start", "end", "both")
 
@@ -1207,6 +1250,15 @@ class Layout:
                 raw = json.loads(path.read_text() or "{}")
             except json.JSONDecodeError as e:
                 raise LayoutError(f"{path.name}: not valid JSON — {e}")
+        # The page this layout is drawn on. The constructor default is what the
+        # report was BUILT at; layout.json may override it, which is what
+        # File > Resize writes. Read before anything else, because every
+        # geometry rule below measures against it.
+        self.page = _check_page(raw.get("page"), path.name)
+        if self.page:
+            self.page_w = self.page[0]
+            self.page_h = self.page[1] if self.page[1] is not None else PAGELESS_H
+        self._page_style_sent = False
         self.positions = raw.get("positions") or {}
         self.shapes = raw.get("shapes") or []
         self.text = raw.get("text") or {}
@@ -1882,16 +1934,52 @@ class Layout:
 
     # ---- shapes ----------------------------------------------------------
 
+    def page_style(self) -> str:
+        """The page-size override as CSS, or "" when there is none.
+
+        Both halves matter: `.page` is the box on screen and in the editor,
+        `@page` is the sheet the PDF is printed on, and a report whose preview
+        and print size disagree is worse than one that cannot be resized.
+
+        Only width and min-height are set. `.page`'s own max-width:100% is left
+        alone, so a narrow screen still shrinks the sheet to fit instead of
+        forcing a horizontal scrollbar on a reader."""
+        if not self.page:
+            return ""
+        w, h = self.page
+        box = (f".page{{width:{w}in;min-height:{h}in}}" if h is not None
+               else f".page{{width:{w}in;min-height:0}}")
+        sheet = (f"@page{{size:{w}in {h}in;margin:0}}" if h is not None
+                 else f"@page{{size:{w}in auto;margin:0}}")
+        return f"<style>{box}{sheet}</style>"
+
+    def _page_style_once(self) -> str:
+        """Rides out with the first layer() of a render.
+
+        Deliberately not something each report's renderer has to remember: a
+        consumer repo vendors this package but owns its own renderer, so a
+        change that needed a line added THERE would not reach the reports that
+        already exist. Every renderer already calls layer() for each page, so
+        hanging it off that gets page sizing to all of them for free. A
+        <style> in the body is valid and applies document-wide."""
+        if self._page_style_sent or not self.page:
+            return ""
+        self._page_style_sent = True
+        return self.page_style()
+
     def layer(self, page: int) -> str:
         """Shapes for one page, grouped into one SVG per layer. Empty when there
-        are none, so a report without shapes renders exactly as before."""
+        are none, so a report without shapes renders exactly as before — except
+        for the page-size override, which has to reach the document even on a
+        page that holds no shapes."""
+        head = self._page_style_once()
         mine = [s for s in self.shapes if s.get("page") == page]
         if not mine:
-            return ""
+            return head
         by_z: dict[int, list] = {}
         for s in mine:
             by_z.setdefault(_z(s), []).append(s)
-        return "".join(self._svg(by_z[z], z) for z in sorted(by_z))
+        return head + "".join(self._svg(by_z[z], z) for z in sorted(by_z))
 
     def _svg(self, shapes: list, z: int) -> str:
         body = "".join(self._shape(s) for s in shapes)

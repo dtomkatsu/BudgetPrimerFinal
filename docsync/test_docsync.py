@@ -895,6 +895,65 @@ check_eq("a gradient lends its first stop",
          icon_color({"type": "linear", "stops": [{"color": "#123456", "at": 0}]}), "#123456")
 check_eq("no fill falls back to the report's ink", icon_color(None), "#2F3E46")
 
+# ------------------------------------------------------- page size override
+# A report is BUILT at a size; layout.json can override it, which is what
+# File > Resize writes. It lives in the layout rather than the report's
+# stylesheet because every coordinate in layout.py is inches measured against
+# the page — the geometry and the CSS have to come from ONE value, or a resize
+# moves everything that was placed before it.
+import json as _json                                        # noqa: E402
+import tempfile as _tempfile                                # noqa: E402
+from docsync.layout import Layout, LayoutError, PAGELESS_H  # noqa: E402
+
+
+def _layout(d):
+    f = Path(_tempfile.mkstemp(suffix=".json")[1])
+    f.write_text(_json.dumps(d))
+    return Layout(f)
+
+
+def check_page_raises(name, raw, expect):
+    try:
+        _layout(raw)
+    except LayoutError as e:
+        if expect not in str(e):
+            FAILS.append(f"{name}\n  want error containing: {expect!r}\n  got: {e}")
+        return
+    FAILS.append(f"{name}\n  expected LayoutError containing {expect!r}, none raised")
+
+
+check_eq("no override leaves the built size alone",
+         (lambda L: (L.page_w, L.page_h, L.page_style()))(_layout({})), (8.5, 11.0, ""))
+check_eq("an override moves the geometry too",
+         (lambda L: (L.page_w, L.page_h))(_layout({"page": {"w": 11.69, "h": 16.54}})),
+         (11.69, 16.54))
+# Both halves, or the preview and the printed sheet disagree — which is worse
+# than not being able to resize at all.
+check("the box is restyled", _layout({"page": {"w": 11.69, "h": 16.54}}).page_style(),
+      ".page{width:11.69in;min-height:16.54in}")
+check("and so is the printed sheet", _layout({"page": {"w": 11.69, "h": 16.54}}).page_style(),
+      "@page{size:11.69in 16.54in")
+# Pageless is a height of NULL, not a large height: the sheet grows with its
+# content, and the rules that keep content on the page get a number no report
+# will reach rather than a special case in each of them.
+check("pageless drops the fixed height",
+      _layout({"page": {"w": 8.5, "h": None}}).page_style(), ".page{width:8.5in;min-height:0}")
+check_eq("pageless clamps against a sentinel",
+         _layout({"page": {"w": 8.5, "h": None}}).page_h, PAGELESS_H)
+# It rides out with the first layer() call, so a report gets page sizing
+# without its own renderer being changed — a consumer repo vendors this
+# package but owns its renderer, so a line added THERE would reach nobody.
+_L = _layout({"page": {"w": 8.5, "h": None}})
+check("the style rides out with the first layer", _L.layer(1), "<style>")
+check_eq("and only once", _L.layer(2), "")
+check_eq("a report with no override renders exactly as before", _layout({}).layer(1), "")
+
+check_page_raises("a non-object page is refused", {"page": [8.5, 11]}, "must be an object")
+check_page_raises("a non-numeric width is refused", {"page": {"w": "wide", "h": 11}},
+                  "is not a number")
+check_page_raises("an absurd width is refused", {"page": {"w": 0.2, "h": 11}}, "outside")
+check_page_raises("an absurd height is refused", {"page": {"w": 8.5, "h": 900}}, "outside")
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

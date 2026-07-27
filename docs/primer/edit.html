@@ -6580,7 +6580,11 @@ function visiblePageId() {
 // queries see a desktop, always) and the CANVAS is scaled — Canva's model.
 // Events map through the transform, so every inch of drag math is untouched.
 // "Fit" tracks the pane; the numbers are absolute canvas scales.
-const VIEW_W = 1200;
+// The canvas's design width. It was a constant, chosen when every report was
+// Letter and 1200px comfortably held one; a resized document can be wider than
+// that, so it follows the page now — applyZoom() scales whatever this says
+// down to fit the stage, which is how a 13in sheet stays entirely visible.
+let VIEW_W = 1200;
 let zoomChoice = '';
 try { zoomChoice = localStorage.getItem('ds-zoom') || ''; } catch (e) { /* file: */ }
 
@@ -8272,6 +8276,7 @@ async function restoreCachedDraft() {
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
   layout.sections = layout.sections || {};
+  syncPageSize();          // a layout may override the size the report was built at
   cachedRestored = true;
 }
 
@@ -9243,6 +9248,14 @@ open('/repo/' + OUT).read()
   // default project, whose deploy puts assets beside the editor; a switched
   // project's assets live under its own base, so point the document there.
   if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
+  // The editor draws at TRUE size. Every coordinate in a layout is inches and
+  // the editor converts at a fixed 96dpi, so a sheet squashed by .page's
+  // max-width:100% would put every shape somewhere it is not. The published
+  // page keeps that rule — a reader on a phone should not have to scroll
+  // sideways to see a report — so it is lifted only here, in the editor's own
+  // copy, where the canvas scrolls instead. Matters the moment a page is wider
+  // than the canvas, which File > Resize makes easy to ask for.
+  html = html.replace(/<\/head>/i, '<style>.page{max-width:none}</style></head>');
   // DOUBLE-BUFFERED: the new document loads in a hidden twin while the old one
   // stays on screen, and they swap only when it is ready. Assigning srcdoc to
   // the visible iframe blanks it to white for however long the ~1s render's
@@ -10734,6 +10747,7 @@ $('revert').onclick = async () => {
 // (see layout.py) and the page box is sized in them too. Pageless has no
 // height: it is one continuous surface, so its ratio is drawn as a tall sheet
 // with the bottom edge running off.
+const PAGELESS_H = 200;   // matches layout.py's PAGELESS_H
 const DOC_SIZES = [
   { id: 'digital',  name: 'Doc (Digital)',  w: 13.33, h: 7.5,   note: 'Widescreen, for reading on a screen' },
   { id: 'pageless', name: 'Doc (Pageless)', w: 8.5,   h: null,  note: 'One continuous page, no breaks' },
@@ -10748,6 +10762,15 @@ const DOC_SIZES = [
  *  changed anywhere else. Nothing matches when a report uses a size not on the
  *  list, which is a fine answer: no tile is marked current. */
 function currentDocSize() {
+  const p = layout && layout.page;
+  if (p) {
+    // Pageless is a height of null, not a height that happens to be large —
+    // matching on PAGE_H_IN alone would report it as whatever the sentinel is
+    // nearest to.
+    const pageless = p.h === null || p.h === undefined;
+    return DOC_SIZES.find(d => Math.abs(d.w - p.w) < 0.02
+      && (pageless ? d.h === null : d.h !== null && Math.abs(d.h - p.h) < 0.02)) || null;
+  }
   return DOC_SIZES.find(d => d.h !== null
     && Math.abs(d.w - PAGE_W_IN) < 0.02 && Math.abs(d.h - PAGE_H_IN) < 0.02) || null;
 }
@@ -10834,21 +10857,57 @@ $('open-list').onclick = async (e) => {
   location.href = location.pathname + '?project=' + encodeURIComponent(id);
 };
 
-$('size-list').onclick = (e) => {
+$('size-list').onclick = async (e) => {
   const b = e.target.closest('[data-size]');
   if (!b) return;
   const d = DOC_SIZES.find(x => x.id === b.dataset.size);
   const cur = currentDocSize();
-  if (cur && d.id === cur.id) { $('resizepop').hidden = true; return; }
-  // Choosing a size does not resize anything yet, and saying so is better than
-  // a control that looks like it worked. The page box is set by the report's
-  // own stylesheet and by docsync.yml's editor.page, and every layout
-  // coordinate is in inches against it — so this is a build-time change to the
-  // report, not a switch the editor can flip on its own.
   $('resizepop').hidden = true;
-  $('stat').textContent = d.name + ' (' + (d.h === null ? d.w + 'in wide' : d.w + ' × ' + d.h + ' in')
-    + ') — page size is set when the report is built; changing it here is not wired up yet';
+  if (cur && d.id === cur.id) return;
+  await applyDocSize(d);
 };
+
+/** Resize the document.
+ *
+ *  The size is written into layout.json, not into the report's stylesheet,
+ *  because every coordinate in a layout is inches measured against the page —
+ *  so the geometry and the CSS have to come from ONE value or a resize moves
+ *  everything placed before it. layout.py reads the same field and emits the
+ *  matching `.page` and `@page` rules, which is what makes the preview, the
+ *  published HTML and the printed PDF agree.
+ *
+ *  Going back to the size the report was BUILT at removes the override rather
+ *  than restating it, so a layout that was never resized stays byte-identical
+ *  to one that was resized and put back. */
+async function applyDocSize(d) {
+  const built = M.page || {};
+  const isBuilt = d.h !== null && Math.abs(d.w - built.w) < 0.02
+                               && Math.abs(d.h - built.h) < 0.02;
+  if (isBuilt) delete layout.page;
+  else layout.page = d.h === null ? { w: d.w, h: null } : { w: d.w, h: d.h };
+  syncPageSize();
+  markDirty();
+  await render();          // re-renders at the new size and re-runs the print-cut check
+  $('stat').textContent = 'page is now ' + d.name + ' ('
+    + (d.h === null ? d.w + 'in wide, no fixed height' : d.w + ' × ' + d.h + ' in')
+    + ') — Save to keep it';
+}
+
+/** PAGE_W_IN / PAGE_H_IN are what every clamp, guide and align rule measures
+ *  against, so they follow the layout's override the moment it changes. */
+function syncPageSize() {
+  const p = layout && layout.page;
+  PAGE_W_IN = p ? p.w : M.page.w;
+  // The canvas has to be at least as wide as the sheet plus its margin, or a
+  // page wider than the old 1200px design width is cut off behind the IFRAME's
+  // own scrollbar. applyZoom() then scales it to fit the stage.
+  VIEW_W = Math.max(1200, Math.round(PAGE_W_IN * DPI) + 80);
+  if (typeof applyZoom === 'function' && $('out')) applyZoom();
+  // A pageless document has no bottom. The rules that keep content on the page
+  // still need a number, so they get one no report will reach — the same
+  // sentinel layout.py uses, so the two sides agree.
+  PAGE_H_IN = p ? (p.h === null || p.h === undefined ? PAGELESS_H : p.h) : M.page.h;
+}
 
 $('download').onclick = () => {
   $('dl-png').disabled = !local;
