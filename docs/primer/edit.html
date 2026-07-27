@@ -65,6 +65,28 @@
      stays intact. !important beats the later #zoom{display:inline-flex} rule;
      delete this one line to bring the zoom controls back. */
   #zoom { display:none !important; }
+  /* +Section, hidden for now. Same treatment as the zoom segment above: the
+     button and every handler stay live, so bringing it back is deleting this
+     one line — not rebuilding a feature. */
+  #add { display:none !important; }
+
+  /* The File menu's own picker surfaces. Doc sizes read as a gallery of
+     shapes rather than a list of names: the whole point of choosing one is
+     the proportion, which a word cannot show. */
+  .pop-sizes { width:auto; max-width:min(560px, 92vw); }
+  .sizegrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+  .sizegrid button { display:flex; flex-direction:column; align-items:center; gap:6px;
+        background:none; border:1px solid transparent; border-radius:9px;
+        padding:9px 6px 8px; cursor:pointer; color:var(--ink);
+        font:600 11.5px system-ui; text-align:center; }
+  .sizegrid button:hover { background:#F2F6F3; border-color:#D8E2DB; }
+  .sizegrid button[aria-current="true"] { border-color:var(--sage); background:#EFF5F0; }
+  .size-art { display:flex; align-items:flex-end; justify-content:center; height:46px; }
+  .size-art i { display:block; background:#fff; border:1.5px solid #7E9C88;
+        border-radius:2px; box-shadow:0 1px 4px rgba(47,62,70,.16); }
+  .size-dim { font:400 10px ui-monospace,monospace; color:var(--dim); }
+  #open-list { display:flex; flex-direction:column; gap:2px; margin-bottom:6px; }
+  #open-list button[aria-current="true"] { font-weight:700; }
 
   /* Left tool rail — Canva-style: a narrow column of icon-over-label buttons. */
   #leftrail { flex:none; width:var(--rail-w); background:var(--chrome2);
@@ -834,6 +856,31 @@
        you reach for constantly, at the edge nearest the canvas. The wordmark
        and the "<project> · live" pill that used to sit here are gone — the
        project picker beside them already says which report this is. -->
+  <!-- File leads the bar, where every document app puts it. It collects the
+       things you do to the REPORT AS A WHOLE — open another one, change the
+       page size, take a copy out, check the token — as against the bar's
+       remaining controls, which act on what is selected right now. -->
+  <button id="file" aria-label="File — open, resize, download">File ▾</button>
+  <div class="pop" id="filepop" hidden>
+    <button class="shp" id="file-open">Open…</button>
+    <button class="shp" id="file-resize">Resize…</button>
+    <p class="pop-h">This report</p>
+    <!-- Download and Token MOVED here from the bar. Same ids and the same
+         handlers: nothing about either flow changed, only where it is
+         reached from. -->
+    <button class="shp" id="download" aria-label="Download the report as a PDF or per-page PNGs">Download…</button>
+    <button class="shp" id="tok" aria-label="Check or replace the GitHub token used to save">Token…</button>
+  </div>
+  <div class="pop" id="openpop" hidden>
+    <p class="pop-h">Open a report</p>
+    <div id="open-list"></div>
+    <button class="shp" id="open-all">All reports…</button>
+  </div>
+  <div class="pop pop-sizes" id="resizepop" hidden>
+    <p class="pop-h">Doc size</p>
+    <div class="sizegrid" id="size-list"></div>
+  </div>
+  <span class="bar-sep"></span>
   <button id="undo" disabled aria-label="Undo (⌘Z)">↶</button>
   <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
   <button id="save" disabled>Save draft</button>
@@ -852,8 +899,8 @@
   <button id="upd" hidden aria-label="Install the available update"></button>
   <span id="ver" hidden title=""></span>
   <span id="fit" hidden title="">⚠</span>
-  <!-- Text / Shape / Icon / Table live in the left rail (#leftrail) now. -->
-  <button id="tok" aria-label="Check or replace the GitHub token used to save">Token…</button>
+  <!-- Text / Shape / Icon / Table live in the left rail (#leftrail) now.
+       Token moved into the File menu. -->
   <!-- Zoom (Fit / 100 / 125 / 150) is hidden for now via CSS (#zoom{display:none}). -->
   <span id="zoom" title="Zoom">
     <button data-z="fit">Fit</button><button data-z="1">100</button><button
@@ -872,6 +919,9 @@
     <p class="pop-h" id="layers-title">Layers</p>
     <div id="layers-list"></div>
   </div>
+  <!-- +Section is hidden for now. Kept in the DOM and fully wired — hiding a
+       control is a presentation decision, and deleting its markup would make
+       bringing it back a code change instead of a CSS one. -->
   <button id="add" aria-label="Add a new prose section to a page">+ Section</button>
   <button id="sources" aria-label="View, edit, reorder and remove citations">Sources</button>
   <!-- Discard is off the local bar: undo covers stepping an edit back. It is
@@ -881,7 +931,7 @@
   <button id="revert" disabled hidden>Discard</button>
   <button id="share" disabled aria-label="Copy a link that shows this draft to anyone">Share</button>
   <button id="publish" disabled aria-label="Make this draft the live report">Publish</button>
-  <button id="download" aria-label="Download the report as a PDF or per-page PNGs">Download ▾</button>
+  <!-- Download moved into the File menu; its popover stays here. -->
   <div class="pop" id="downloadpop" hidden>
     <p class="pop-h">Download this draft</p>
     <button class="shp" id="dl-pdf">PDF — the whole report</button>
@@ -3448,7 +3498,7 @@ function togglePop(pop, anchor) {
     document.documentElement.clientWidth - pop.offsetWidth - 16)) + 'px';
 }
 addEventListener('mousedown', e => {
-  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers, #download'))
+  if (!e.target.closest('.pop') && !e.target.closest('#ty-colorbtn, #ty-spacebtn, #text, #shape, #icon, #layers, #download, #file'))
     document.querySelectorAll('.pop:not(.docked)').forEach(p => { p.hidden = true; });
 });
 
@@ -8487,6 +8537,12 @@ async function boot() {
   PAGE_W_IN = M.page.w; PAGE_H_IN = M.page.h;
   MARGIN_IN = M.margins.side; TOP_IN = M.margins.top;
   $('title').textContent = M.id;
+  // The window/tab title is the report, not the tool. Several of these are
+  // open at once in normal use, and "Draft editor" on every one of them named
+  // the thing they had in common instead of the thing that told them apart.
+  // The registry's display name when there is one, the id otherwise.
+  document.title = (REGISTRY && REGISTRY[PROJECT] && REGISTRY[PROJECT].name) || M.id
+    || 'Draft editor';
   await detectLocal();          // local live server? then Save writes to disk
   // Seed the build stamp with what THIS page was loaded from, then keep an
   // eye on it — a rebuild whose bump never reached this tab is exactly the
@@ -10622,6 +10678,131 @@ $('revert').onclick = async () => {
 // the in-memory content+layout, so nothing is written or pushed. Without the
 // server there is no build host: PDF falls back to the browser's own print-to-
 // PDF of the preview, and PNG (which needs Chrome screenshots) is unavailable.
+// ---------------------------------------------------------------- File menu
+// Report-level actions, collected where a document app puts them. Download and
+// Token kept their ids and their handlers when they moved in here — only the
+// route to them changed.
+//
+// The six doc sizes. Inches, because every coordinate in a layout is inches
+// (see layout.py) and the page box is sized in them too. Pageless has no
+// height: it is one continuous surface, so its ratio is drawn as a tall sheet
+// with the bottom edge running off.
+const DOC_SIZES = [
+  { id: 'digital',  name: 'Doc (Digital)',  w: 13.33, h: 7.5,   note: 'Widescreen, for reading on a screen' },
+  { id: 'pageless', name: 'Doc (Pageless)', w: 8.5,   h: null,  note: 'One continuous page, no breaks' },
+  { id: 'a4',       name: 'Doc (A4)',       w: 8.27,  h: 11.69, note: 'ISO A4' },
+  { id: 'a3',       name: 'Doc (A3)',       w: 11.69, h: 16.54, note: 'ISO A3' },
+  { id: 'legal',    name: 'Doc (Legal)',    w: 8.5,   h: 14,    note: 'US Legal' },
+  { id: 'letter',   name: 'Doc (Letter)',   w: 8.5,   h: 11,    note: 'US Letter' },
+];
+
+/** Which of the six this report is currently built at — matched on the actual
+ *  page geometry rather than a stored name, so it stays honest if the size is
+ *  changed anywhere else. Nothing matches when a report uses a size not on the
+ *  list, which is a fine answer: no tile is marked current. */
+function currentDocSize() {
+  return DOC_SIZES.find(d => d.h !== null
+    && Math.abs(d.w - PAGE_W_IN) < 0.02 && Math.abs(d.h - PAGE_H_IN) < 0.02) || null;
+}
+
+function renderSizes() {
+  const cur = currentDocSize();
+  const host = $('size-list');
+  host.textContent = '';
+  // Built as nodes, not an HTML string: a report name or a size label is text,
+  // and the only escape helper in this file (escAttr) does not escape '<'.
+  // Each sheet is drawn to its own proportion inside a fixed box, so the tiles
+  // share a baseline and stay comparable — A3 reads as taller than A4,
+  // Digital as wider than either.
+  const MAX_H = 42, MAX_W = 38;
+  DOC_SIZES.forEach(d => {
+    const ratio = d.h === null ? 1.55 : d.h / d.w;   // pageless: drawn as a tall sheet
+    let hh = MAX_H, ww = hh / ratio;
+    if (ww > MAX_W) { ww = MAX_W; hh = ww * ratio; } // wide sizes are width-bound
+    const b = document.createElement('button');
+    b.dataset.size = d.id;
+    b.title = d.note;
+    if (cur && cur.id === d.id) b.setAttribute('aria-current', 'true');
+    const art = document.createElement('span');
+    art.className = 'size-art';
+    const sheet = document.createElement('i');
+    sheet.style.width = ww.toFixed(1) + 'px';
+    sheet.style.height = hh.toFixed(1) + 'px';
+    art.appendChild(sheet);
+    const dim = document.createElement('span');
+    dim.className = 'size-dim';
+    dim.textContent = d.h === null ? d.w + 'in wide' : d.w + ' \u00d7 ' + d.h + ' in';
+    b.append(art, document.createTextNode(d.name), dim);
+    host.appendChild(b);
+  });
+}
+
+/** The reports this server knows about, so switching is a click rather than a
+ *  trip through the start page. The <select> that used to do this still works;
+ *  this is the discoverable route to it. */
+/** Which report is open. PROJECT is empty when the editor was opened with no
+ *  ?project= — the default report — so "which one am I in?" has to fall back
+ *  the same way the <select> picker does, or the default report is the one
+ *  case where nothing is marked. */
+function activeProjectId() {
+  const ids = REGISTRY ? Object.keys(REGISTRY) : [];
+  if (PROJECT) return PROJECT;
+  return ids.find(id => !(REGISTRY[id].base || '')) || ids[0] || '';
+}
+
+function renderOpenList() {
+  const host = $('open-list');
+  host.textContent = '';
+  const ids = REGISTRY ? Object.keys(REGISTRY) : [];
+  const active = activeProjectId();
+  if (!ids.length) {
+    const p = document.createElement('p');
+    p.className = 'pop-h'; p.style.margin = '0';
+    p.textContent = 'No other reports on this server';
+    host.appendChild(p);
+    return;
+  }
+  ids.forEach(id => {
+    const b = document.createElement('button');
+    b.className = 'shp';
+    b.dataset.open = id;
+    if (id === active) b.setAttribute('aria-current', 'true');
+    b.textContent = (REGISTRY[id] || {}).name || id;
+    host.appendChild(b);
+  });
+}
+
+$('file').onclick = () => togglePop($('filepop'), $('file'));
+$('file-open').onclick = () => { renderOpenList(); togglePop($('openpop'), $('file')); };
+$('file-resize').onclick = () => { renderSizes(); togglePop($('resizepop'), $('file')); };
+$('open-all').onclick = () => { location.href = 'start.html'; };
+
+$('open-list').onclick = async (e) => {
+  const b = e.target.closest('[data-open]');
+  if (!b) return;
+  const id = b.dataset.open;
+  if (id === activeProjectId()) { $('openpop').hidden = true; return; }
+  if (dirty && !await dsConfirm('Open ' + ((REGISTRY[id] || {}).name || id)
+      + '? Unsaved edits here are lost.', { okLabel: 'Open', danger: true })) return;
+  location.href = location.pathname + '?project=' + encodeURIComponent(id);
+};
+
+$('size-list').onclick = (e) => {
+  const b = e.target.closest('[data-size]');
+  if (!b) return;
+  const d = DOC_SIZES.find(x => x.id === b.dataset.size);
+  const cur = currentDocSize();
+  if (cur && d.id === cur.id) { $('resizepop').hidden = true; return; }
+  // Choosing a size does not resize anything yet, and saying so is better than
+  // a control that looks like it worked. The page box is set by the report's
+  // own stylesheet and by docsync.yml's editor.page, and every layout
+  // coordinate is in inches against it — so this is a build-time change to the
+  // report, not a switch the editor can flip on its own.
+  $('resizepop').hidden = true;
+  $('stat').textContent = d.name + ' (' + (d.h === null ? d.w + 'in wide' : d.w + ' × ' + d.h + ' in')
+    + ') — page size is set when the report is built; changing it here is not wired up yet';
+};
+
 $('download').onclick = () => {
   $('dl-png').disabled = !local;
   $('dl-png').title = local ? '' : 'PNG export needs the local live server (make live)';
