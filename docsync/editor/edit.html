@@ -34,6 +34,11 @@
           /* One number for the tool rail's width: #leftrail is that wide, and
              the floating panel starts exactly where it ends. */
           --rail-w:67px;
+          /* The colour BEHIND the report — the editor's own ground. Named
+             because three surfaces have to agree on it: the canvas, the band
+             the contextual controls float in, and whatever shows through a
+             rounded corner. */
+          --canvas:#EDF1EE;
           /* One radius scale for the whole chrome. Rounding each surface by
              eye is how an interface ends up with five nearly-equal corners
              that read as sloppiness rather than as a choice. */
@@ -270,14 +275,19 @@
   #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
   #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
   /* Below the bars: the page rail and the canvas, side by side. */
-  #work { flex:1; min-height:0; display:flex; position:relative; }
+  /* The ground the rail's rounded corners are cut out of. Without this it was
+     the page's default white, so each curve showed a white wedge against the
+     grey canvas beside it — the rounding read as a rendering fault rather than
+     a shape. */
+  #work { flex:1; min-height:0; display:flex; position:relative;
+          background:var(--canvas); }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
      whole iframe is SCALED to the pane, never reflowed. A narrow pane would
      otherwise fire the report's mobile media queries, and a drag would record
      the phone layout's geometry into layout.json as if it were the page. */
-  #stage { flex:1; min-height:0; overflow:auto; position:relative; background:#EDF1EE; }
+  #stage { flex:1; min-height:0; overflow:auto; position:relative; background:var(--canvas); }
   #out { border:0; display:block; width:1200px; height:100%;
-         transform-origin:0 0; background:#EDF1EE; }
+         transform-origin:0 0; background:var(--canvas); }
   /* Page strip: Canva's filmstrip across the bottom — each chip is a real
      PREVIEW of its page (the rendered section itself, cloned into a shadow
      root and scaled), numbered, drag to reorder, eye to hide. */
@@ -307,6 +317,19 @@
   .chip.hidden-pg + .chip.hidden-pg { margin-left:9px; }
   #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
           color:var(--dim); flex:none; padding:24px 4px 0 0; align-self:center; }
+  #rail-fold { flex:none; align-self:center; margin-top:24px; width:22px; height:22px;
+          display:grid; place-items:center; padding:0; cursor:pointer;
+          border:1px solid var(--ctl-line); border-radius:50%;
+          background:var(--ctl); color:var(--txt);
+          transition:background .12s, border-color .12s, transform .16s; }
+  #rail-fold:hover { border-color:var(--sage); background:#4B5B68; }
+  /* Folded: the thumbnails and the add-page button go, the label and this
+     control stay — so what is left says what bringing it back would give you.
+     The chevron turns to point at what the click does. */
+  #rail.folded { padding:6px 12px; }
+  #rail.folded #rail-list, #rail.folded #rail-add { display:none; }
+  #rail.folded #rail-head, #rail.folded #rail-fold { margin-top:0; padding-top:0; }
+  #rail.folded #rail-fold { transform:rotate(180deg); }
   .chip { position:relative; display:flex; flex-direction:column; align-items:center;
           gap:4px; flex:none; width:52px; padding:0; border:0; background:none;
           color:var(--txt); cursor:pointer; font:12px system-ui;
@@ -653,7 +676,10 @@
      whole flex column — the canvas visibly "jumped up" on every select, by
      a full 100px when the strip wrapped. Fixed height, no wrap, horizontal
      scroll if a row runs long: the chrome never moves again. */
-  #context { height:46px; flex:none; background:var(--chrome);
+  /* The band the contextual card floats in is the canvas colour, not chrome:
+     the card belongs to what you have selected on the page, so it reads as
+     hovering over the document rather than as a second row of toolbar. */
+  #context { height:46px; flex:none; background:var(--canvas);
           padding:0 12px 8px; box-sizing:border-box; }
   #type, #arrange { display:flex; gap:6px; align-items:center;
           justify-content:safe center;   /* Canva's centered strip */
@@ -1288,6 +1314,13 @@
   <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
 </div>
 <div id="rail" hidden>
+  <!-- Thirteen page thumbnails are worth their room while you are moving
+       between pages and pure cost while you are working on one. The strip
+       folds to its own label. -->
+  <button id="rail-fold" aria-label="Collapse the page strip" aria-expanded="true">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 4.5L6 7.5L9 4.5"/></svg></button>
   <span id="rail-head">Pages</span>
   <div id="rail-list"></div>
   <button id="rail-add" aria-label="Insert a blank page after the one in view">
@@ -5616,9 +5649,19 @@ function arrangeBar(d) {
   if (n || !editing) $('type').hidden = true;
   const wholeGroup = n > 0 && selGroups().length === 1 && selGroups()[0].length === n
     && selGroups()[0].every(id => selIds.has(id));
-  $('ar-count').textContent = !n ? '—'
-    : wholeGroup ? `group of ${n}`
-    : n === 1 ? [...selIds][0] : `${n} selected`;
+  // What is selected, in words — never its INTERNAL ID. "cover.logo" is the
+  // name a slot has inside content.md; on screen it is noise at best and, on a
+  // designed element, a name the person never chose and cannot change. A count
+  // is worth saying; one thing being selected is already obvious from the
+  // handles around it. The id stays reachable on hover, where it costs nothing
+  // and still answers "which slot is this?".
+  const label = !n ? '' : wholeGroup ? `group of ${n}` : n > 1 ? `${n} selected` : '';
+  $('ar-count').textContent = label;
+  $('ar-count').hidden = !label;
+  $('ar-count').title = n === 1 ? [...selIds][0] : '';
+  // The rule after it would otherwise lead the strip with a bare divider.
+  const sep = $('ar-count').nextElementSibling;
+  if (sep && sep.classList.contains('ty-sep')) sep.hidden = !label;
   document.querySelectorAll('.ar-al').forEach(b => { b.disabled = !n; });
   $('ar-front').disabled = $('ar-back').disabled = !n;
   $('ar-del').disabled = !n || [...selIds].every(isLocked);
@@ -7519,6 +7562,22 @@ $('side-fold').addEventListener('click', () => {
   $('side-fold').setAttribute('aria-expanded', String(!folded));
 });
 
+// The page strip folds the same way, and REMEMBERS: whether you want the
+// thumbnails is a standing preference about how you work, not a decision to be
+// retaken every time the editor opens. Per project, since a thirteen-page
+// report and a one-pager do not want the same thing.
+const RAIL_FOLD_KEY = () => 'primer-rail-folded:' + ((M && M.id) || '');
+function setRailFolded(folded) {
+  $('rail').classList.toggle('folded', folded);
+  $('rail-fold').setAttribute('aria-label',
+    folded ? 'Show the page thumbnails' : 'Collapse the page strip');
+  $('rail-fold').setAttribute('aria-expanded', String(!folded));
+  try { localStorage.setItem(RAIL_FOLD_KEY(), folded ? '1' : ''); } catch (e) {}
+}
+$('rail-fold').addEventListener('click', () => {
+  setRailFolded(!$('rail').classList.contains('folded'));
+});
+
 
 // The Canva text bar's own B / I / lists, acting on the open editor's live
 // selection down in the iframe. mousedown is prevented so focus (and with it
@@ -8309,7 +8368,9 @@ async function restoreCachedDraft() {
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
   layout.sections = layout.sections || {};
-  syncPageSize();          // a layout may override the size the report was built at
+  // A restored draft can carry its own page size, so the geometry follows it
+  // here too — not only in boot.
+  syncPageSize();
   cachedRestored = true;
 }
 
@@ -8685,6 +8746,11 @@ async function boot() {
   layout.positions = layout.positions || {};
   layout.shapes = layout.shapes || [];
   layout.sections = layout.sections || {};
+  // A layout may override the size the report was BUILT at, and every clamp,
+  // guide and align rule measures against those two numbers — so they follow
+  // the file before anything is drawn or placed.
+  syncPageSize();
+  try { if (localStorage.getItem(RAIL_FOLD_KEY())) setRailFolded(true); } catch (e) {}
   // Put the rebuilt checkout on the path once, here, rather than inside the
   // render call — the type row asks the engine for its font list before
   // anything has rendered.
