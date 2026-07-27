@@ -283,6 +283,20 @@ UPDATE = {"behind": 0, "can": False, "log": [], "sha": "", "date": "", "why": ""
 UPDATER = SELF_ROOT / "tools" / "selfupdate.py"
 
 
+def _run_updater(*flags: str) -> dict:
+    """Run the updater and read its JSON back. Every git decision lives there,
+    not here — one of those decisions living in two places is how the last
+    three bugs in this file happened."""
+    if not UPDATER.is_file():
+        return {"ok": False, "why": "no updater in this checkout"}
+    try:
+        r = subprocess.run([sys.executable, str(UPDATER), "--json", *flags],
+                           cwd=str(SELF_ROOT), capture_output=True, text=True, timeout=180)
+        return json.loads(r.stdout.strip().splitlines()[-1])
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError) as e:
+        return {"ok": False, "why": f"updater failed: {e}"}
+
+
 def _update_status(apply: bool = False) -> dict:
     """Ask the updater what it sees, or (apply=True) have it act. Kept in the
     updater rather than reimplemented here: it already knows every way an
@@ -316,7 +330,8 @@ def _update_payload() -> dict:
     offer. Trimmed: the full status carries fields only the CLI uses."""
     return {"behind": UPDATE.get("behind", 0), "can": bool(UPDATE.get("can")),
             "log": UPDATE.get("log", [])[:5], "why": UPDATE.get("why", ""),
-            "sha": UPDATE.get("sha", ""), "date": UPDATE.get("date", "")}
+            "sha": UPDATE.get("sha", ""), "date": UPDATE.get("date", ""),
+            "rollback": UPDATE.get("rollback", "")}
 
 
 def watcher():
@@ -591,7 +606,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
-        if path not in ("/__save", "/__push", "/__export", "/__upload", "/__update"):
+        if path not in ("/__save", "/__push", "/__export", "/__upload",
+                        "/__update", "/__rollback"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
@@ -600,6 +616,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
         if path == "/__update":
             return self._apply_update()              # writes its own response
+        if path == "/__rollback":
+            return self._rollback()                  # writes its own response
         if path == "/__export":
             return self._export(req)                 # writes its own response
         pid = req.get("project") or DEFAULT_PROJECT
@@ -640,15 +658,35 @@ class Handler(SimpleHTTPRequestHandler):
         if not applied:
             return
         print("  updated — restarting into the new version")
+        self._restart_soon()
 
-        def restart():
-            time.sleep(0.4)                  # let the response reach the browser
+    def _rollback(self):
+        """Go back to the version in use before the last update, and restart.
+
+        Updates arrive on their own now, so a bad one reaches everybody at
+        once — and the person it reaches has no git at their fingertips and,
+        in the worst case, an app that will not start. This is the way back,
+        and it is deliberately reachable from inside the editor rather than
+        only from a terminal."""
+        r = _run_updater("--rollback")
+        UPDATE.update(_update_status())
+        self._json(200, {"ok": bool(r.get("ok")), "restarting": bool(r.get("ok")),
+                         "why": r.get("why", ""), "sha": r.get("sha", "")})
+        if r.get("ok"):
+            print(f"  rolled back to {r.get('sha')} — restarting")
+            self._restart_soon()
+
+    def _restart_soon(self):
+        """execv on another thread, a beat after the response is on the wire.
+        execv never returns, and a client waiting on a reply it will never get
+        looks exactly like a crash."""
+        def go():
+            time.sleep(0.4)
             try:
                 os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve())])
-            except OSError as e:             # nothing left to do but say so
+            except OSError as e:
                 print(f"  restart failed ({e}) — quit and reopen the app")
-
-        threading.Thread(target=restart, daemon=True).start()
+        threading.Thread(target=go, daemon=True).start()
 
     def _upload(self, pid: str, req) -> dict:
         """Write an uploaded image into the project's assets dir, on disk.

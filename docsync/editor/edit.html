@@ -90,6 +90,9 @@
      reference, not news, and it is read maybe twice in an install's life. */
   #ver { font:11px ui-monospace,monospace; color:var(--dim); opacity:.65;
          cursor:help; letter-spacing:.2px; }
+  /* Only when there is somewhere to go back TO. A chip that looks clickable
+     and does nothing is worse than one that looks like the label it is. */
+  #ver.can-undo { cursor:pointer; text-decoration:underline dotted; opacity:.85; }
   /* An update, on the other hand, IS news — but it is never urgent, and it
      must not read like an error. Sage (the primary colour used elsewhere for
      Save) says "there is something good here" without demanding the click. */
@@ -8657,6 +8660,7 @@ async function detectLocal() {
   };
   startLive(d => { setPushState(d.ahead); watchHealth(d); updateHealth(d); onBump(d.v, d.error); });
   $('upd').onclick = installUpdate;
+  $('ver').onclick = goBackAVersion;
 }
 
 // ONE connection for ALL tabs. Each tab opening its own /__events stream piled
@@ -8894,7 +8898,72 @@ function watchHealth(d) {
  *  here; nothing is ever applied without a click, because this document is
  *  where unsaved work lives.
  */
-let updateOffer = null;
+let updateOffer = null, rollbackTo = '';
+
+/** Undo the last update. Same shape as installing one — the server replaces
+ *  itself either way — so the two share the wait-then-reload below. */
+async function goBackAVersion() {
+  if (!rollbackTo) return;
+  if (dirty) {
+    $('stat').textContent = 'save your changes first — going back a version reloads the editor';
+    return;
+  }
+  const yes = await dsConfirm(
+    'Go back to version ' + rollbackTo + '? This undoes the last update and '
+    + 'restarts the editor. Your reports and your saved edits are not affected '
+    + "— only the editor's own code changes.",
+    { okLabel: 'Go back' });
+  if (!yes) return;
+  await restartThrough('/__rollback', 'went back to an earlier version');
+}
+
+async function installUpdate() {
+  const b = $('upd');
+  // Never mid-edit. The install restarts the server and reloads this document,
+  // and unsaved work lives only here — so this refuses rather than asking a
+  // question whose wrong answer loses the afternoon.
+  if (dirty) {
+    $('stat').textContent = 'save your changes first — installing an update reloads the editor';
+    return;
+  }
+  b.disabled = true;
+  b.textContent = 'Installing…';
+  const ok = await restartThrough('/__update', 'installed');
+  if (!ok) {
+    b.disabled = false;
+    b.textContent = 'Update (' + (updateOffer ? updateOffer.behind : '') + ')';
+  }
+}
+
+/** POST an endpoint that swaps the server's own code and restarts it, then
+ *  wait for it to come back before reloading. Reloading into the gap gives a
+ *  browser error page, which reads as "the update broke it". */
+async function restartThrough(endpoint, verb) {
+  let j = {};
+  try {
+    j = await (await fetch(withProject(endpoint), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+    })).json();
+  } catch (e) { j = { ok: false, why: e.message }; }
+  if (!j.ok) {
+    $('stat').textContent = 'nothing changed: ' + (j.why || 'unknown reason');
+    return false;
+  }
+  $('stat').textContent = verb + ' — restarting…';
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 500));
+    try {
+      if ((await fetch(withProject('/__ping'), { cache: 'no-store' })).ok) {
+        location.reload();
+        return true;
+      }
+    } catch (e) { /* still down — keep waiting */ }
+  }
+  $('stat').textContent = 'the editor did not come back — quit and reopen the app';
+  return true;
+}
+
 function updateHealth(d) {
   const u = d && d.update;
   if (!u) return;                       // older server: no update reporting
@@ -8906,6 +8975,16 @@ function updateHealth(d) {
       + (u.behind ? '\n' + u.behind + ' newer version'
                     + (u.behind > 1 ? 's are' : ' is') + ' available.'
                   : '\nThis is the latest version.');
+    // Updates arrive on their own, so a bad one reaches everyone at once and
+    // the people it reaches have no git at their fingertips. The way back has
+    // to be somewhere they will actually find it, which is the thing already
+    // showing them a version — not a terminal command in a README.
+    rollbackTo = u.rollback || '';
+    ver.classList.toggle('can-undo', !!rollbackTo);
+    if (rollbackTo) {
+      ver.title += '\n\nClick to go back to ' + rollbackTo
+        + ', the version in use before the last update.';
+    }
   }
   const b = $('upd');
   // Only offer what can actually be taken. An update held back because the
@@ -8930,46 +9009,6 @@ function updateHealth(d) {
     ? 'This update contains:\n  • ' + u.log.join('\n  • ')
     : u.behind + ' new version' + (u.behind > 1 ? 's' : ''))
     + '\n\nInstalling takes a few seconds and reloads this page.';
-}
-
-async function installUpdate() {
-  const b = $('upd');
-  // Never mid-edit. The install restarts the server and reloads this document,
-  // and unsaved work lives only here — so this refuses rather than asking a
-  // question whose wrong answer loses the afternoon.
-  if (dirty) {
-    $('stat').textContent = 'save your changes first — installing an update reloads the editor';
-    return;
-  }
-  b.disabled = true;
-  b.textContent = 'Installing…';
-  let j = {};
-  try {
-    j = await (await fetch(withProject('/__update'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
-    })).json();
-  } catch (e) { j = { ok: false, why: e.message }; }
-  if (!j.ok) {
-    b.disabled = false;
-    b.textContent = 'Update (' + (updateOffer ? updateOffer.behind : '') + ')';
-    $('stat').textContent = 'update not installed: ' + (j.why || 'unknown reason');
-    return;
-  }
-  // The server is replacing itself with the new code, so it goes away and
-  // comes back. Wait for it to answer again before reloading — reloading into
-  // the gap gives a browser error page, which reads as "the update broke it".
-  $('stat').textContent = 'installed — restarting…';
-  const deadline = Date.now() + 30000;
-  while (Date.now() < deadline) {
-    await new Promise(r => setTimeout(r, 500));
-    try {
-      if ((await fetch(withProject('/__ping'), { cache: 'no-store' })).ok) {
-        location.reload();
-        return;
-      }
-    } catch (e) { /* still down — keep waiting */ }
-  }
-  $('stat').textContent = 'the update installed but the editor did not come back — quit and reopen the app';
 }
 
 async function _pull() {
