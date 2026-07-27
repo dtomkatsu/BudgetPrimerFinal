@@ -9241,8 +9241,23 @@ async function render() {
   }
 }
 
+// The status row has many writers, and render is the only one that fires
+// without anyone asking. A render that starts while a Save is in flight
+// finishes afterwards and used to overwrite "draft saved" with its own idle
+// text — the confirmation vanished, and under load it vanished before it could
+// be read at all. So render only ever replaces a message IT put there: if
+// something else has spoken since, that something else was deliberate and this
+// was not.
+let statFromRender = '';
+function renderSays(msg) {
+  if ($('stat').textContent !== statFromRender) return;   // someone else is talking
+  $('stat').textContent = statFromRender = msg;
+}
+
 async function renderOnce() {
-  $('stat').textContent = 'rendering…';
+  // Unconditional: this one ANNOUNCES the render, and claims the row for the
+  // pair of writes that follow.
+  $('stat').textContent = statFromRender = 'rendering…';
   py.globals.set('SRC', source);
   py.globals.set('LAYOUT', JSON.stringify(layout, null, 2));
   py.globals.set('CONTENT', M.content);
@@ -9339,8 +9354,8 @@ open('/repo/' + OUT).read()
     nu.srcdoc = html;
     old.parentNode.appendChild(nu);
   });
-  $('stat').textContent = dirty ? 'unsaved changes'
-                                : 'click selects and drags · double-click edits text';
+  renderSays(dirty ? 'unsaved changes'
+                   : 'click selects and drags · double-click edits text');
 }
 let pendingFrame = null;              // the hidden twin mid-load, if any
 let pendingResolve = null;            // its render()'s resolver, for supersede
@@ -11168,6 +11183,23 @@ async function downloadSource() {
   }
 }
 
+/** What an exported file should be CALLED.
+ *
+ *  The report as a person knows it — "Budget-Primer-FY2026-27.pdf" — not its
+ *  slug. A PDF lands in a Downloads folder among a hundred others, where the
+ *  id it happens to have inside this tool means nothing. It regressed to the
+ *  id when multi-project support landed and the id became conveniently to
+ *  hand; the test for it has been red ever since, saying so.
+ *
+ *  Falls back to the id when the registry has no display name, which is every
+ *  project that was never given one. */
+function exportBasename() {
+  const entry = REGISTRY && REGISTRY[activeProjectId()];
+  const name = (entry && entry.name) || M.id || 'report';
+  return String(name).trim().replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+         || M.id || 'report';
+}
+
 async function doExport(fmt) {
   $('downloadpop').hidden = true;
   if (!local) {                        // GitHub mode: browser print-to-PDF only
@@ -11175,7 +11207,7 @@ async function doExport(fmt) {
     return;
   }
   const marks = $('dl-marks').checked;
-  const slug = M.id || 'report';
+  const slug = exportBasename();
   const name = fmt === 'pdf' ? `${slug}.pdf` : `${slug}-pages.zip`;
   $('stat').textContent = `rendering the ${fmt.toUpperCase()}… (a full report takes a moment)`;
   try {
