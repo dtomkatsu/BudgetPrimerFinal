@@ -901,6 +901,21 @@ window.buildDeptDetailParts = function (d) {
     });
     const progList = Object.values(byProg).sort((a, b) => b.total - a.total);
 
+    // The budget bill sometimes prints a DIFFERENT department as the one
+    // spending a program's dollars than the department the program itself
+    // belongs to — most often capital construction that AGS builds on behalf
+    // of another department. departments.json groups programs by that
+    // spending ("expending") agency, so a program here can carry a
+    // program_id prefix that doesn't match this department's own code.
+    const foreignPrograms = progList.filter(p => p.id.slice(0, 3).toUpperCase() !== d.code);
+    const programsNoteHtml = foreignPrograms.length ? `
+        <p class="programs-note">Note: ${foreignPrograms.length === 1
+            ? `One program below (${foreignPrograms[0].id}) belongs`
+            : `${foreignPrograms.length} programs below (${foreignPrograms.map(p => p.id).join(', ')}) belong`}
+        to another department, but the budget bill names ${d.code} as the agency spending its money —
+        commonly capital construction one department builds on another's behalf. Amounts here reflect
+        the bill's own attribution, not the department the project ultimately serves.</p>` : '';
+
     const fundEntries = Object.entries(d.fund_breakdown || {}).sort(([, a], [, b]) => b - a);
     const fundLegendHtml = fundEntries.map(([fund, amt], i) => {
         const pct = total ? (amt / total * 100) : 0;
@@ -949,7 +964,7 @@ window.buildDeptDetailParts = function (d) {
         total,
     };
 
-    return { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData };
+    return { total, progList, fundEntries, fundLegendHtml, programCardsHtml, programsNoteHtml, fundData };
 };
 
 window.departmentDetailPage = async function (params) {
@@ -963,7 +978,7 @@ window.departmentDetailPage = async function (params) {
     // departmentsData) supplies the header metadata; the budget figures come
     // from the Act 175 FY2026 dataset for this department.
     const detailSrc = (byDeptDatasets['2026'] || []).find(d => d.code === dept.code) || dept;
-    const { total, progList, fundEntries, fundLegendHtml, programCardsHtml, fundData } = window.buildDeptDetailParts(detailSrc);
+    const { total, progList, fundEntries, fundLegendHtml, programCardsHtml, programsNoteHtml, fundData } = window.buildDeptDetailParts(detailSrc);
     // Stash fund data for initDepartmentDetailPage's doughnut chart.
     window.__deptFundData = fundData;
 
@@ -1084,6 +1099,7 @@ window.departmentDetailPage = async function (params) {
                     <span class="prog-legend-item"><span class="prog-stat-dot prog-stat-cap"></span>Capital</span>
                     <span class="prog-legend-item"><span class="prog-stat-dot prog-stat-pos"></span>Positions</span>
                 </div>
+                <div id="dept-programs-note">${programsNoteHtml}</div>
                 <div class="programs-card-list" id="dept-programs-list">
                     ${programCardsHtml}
                 </div>
@@ -1350,6 +1366,7 @@ window.initDepartmentDetailPage = async function () {
         const parts = window.buildDeptDetailParts(detailDept);
         const set = (id, html, prop = 'innerHTML') => { const el = document.getElementById(id); if (el) el[prop] = html; };
         set('dept-fund-legend', parts.fundLegendHtml);
+        set('dept-programs-note', parts.programsNoteHtml);
         set('dept-programs-list', parts.programCardsHtml);
         set('dept-programs-count', String(parts.progList.length), 'textContent');
         set('dept-fund-sub', `Where ${dept.code}'s ${labelText} budget comes from. ${parts.fundEntries.length} fund type${parts.fundEntries.length === 1 ? '' : 's'}.`, 'textContent');

@@ -111,13 +111,16 @@ a { color: var(--dark); }
 .branch-card li { font-weight: 600; margin: 3px 0; }
 
 /* cards */
-.cards3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin: 14px 0 18px; }
+/* Bottom margin is deliberately tighter than the top: this row is the last
+   thing on pages 9 and 10, so the space below it only eats into the clearance
+   above the folio. Page 9 is the tightest page in the report. */
+.cards3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin: 14px 0 10px; }
 .cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 10px 0 18px; }
 /* page 8's One-Time/Emergency cards run tall (6 bullets); tighten their internal
    spacing so the section clears the page folio when printed. Scoped to .cards2,
    which appears only on page 8 (other card sections use .cards3). */
-.cards2 .card { padding: 12px 17px; }
-.cards2 .card li { margin: 2px 0; }
+.cards2 .card { padding: 9px 17px; }
+.cards2 .card li { margin: 1px 0; }
 .card { border-radius: 16px; padding: 16px 18px; color: #fff; }
 .card.light { color: var(--ink); }
 .card h4 { font-size: 15px; margin-bottom: 8px; }
@@ -128,6 +131,9 @@ a { color: var(--dark); }
   font-size: 20px; line-height: 1.13; margin-bottom: 12px; }
 .card .card-ico { flex: none; width: 40px; height: 40px; }
 .card .card-ico svg { display: block; width: 100%; height: 100%; }
+/* Square glyphs (32x32 viewBox) must not be stretched to the 40px box the
+   original 24x24 header icons assumed. */
+.card h4.card-ico-h .card-ico { height: auto; }
 /* A free-standing, editor-movable SVG graphic (render_report.graphic()). The
    wrapper carries the width; the SVG fills it and its viewBox keeps the aspect,
    so a proportional corner-resize just changes the wrapper width. */
@@ -156,6 +162,26 @@ a { color: var(--dark); }
    flips this class on, exactly as .card.light does. */
 .callout.onlight { color: var(--ink); }
 
+/* tax-reform panels (page 12) */
+.taxfair-intro { font-size: 14.5px; color: #586A6D; margin: -6px 0 10px; }
+.reforms { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.reform { border-radius: 14px; padding: 11px 17px 3px; }
+.reform-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.reform-num { flex: none; width: 23px; height: 23px; border-radius: 50%; color: #fff;
+              font-family: var(--heading); font-weight: 800; font-size: 13px;
+              display: flex; align-items: center; justify-content: center; }
+.reform h4 { font-size: 15.5px; color: var(--forest); }
+/* Pushed right, so the revenue figure lands on a common edge down the stack. */
+.reform-tag { margin-left: auto; flex: none; background: #fff; color: var(--forest);
+              border: 1px solid var(--sage-light); border-radius: 999px;
+              padding: 3px 11px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.reform p { font-size: 13.2px; margin: 0 0 7px; }
+/* Same contract as .card.light / .callout.onlight — set when the editor
+   refills the panel with a colour the luminance test calls dark. */
+.reform.ondark { color: #fff; }
+.reform.ondark h4 { color: #fff; }
+.reform.ondark .reform-tag { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+
 /* obligated-costs expandable (web only) */
 .obligated { margin: -8px 0 18px; }
 .obligated > summary { cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
@@ -171,6 +197,7 @@ a { color: var(--dark); }
 .obligated-panel .legend .lg { font-size: 14px; }
 .obligated-panel .legend .sw { width: 20px; height: 20px; }
 .obligated-note { font-size: 12px; color: #586A6D; margin-top: 10px; }
+.fig-note { font-size: 12px; color: #586A6D; margin: 8px 0 4px; }
 
 /* print-only page holding the obligated chart, injected by primer.js when the
    expandable is open at print time (see beforeprint handler) */
@@ -190,7 +217,10 @@ a { color: var(--dark); }
            flex-wrap: nowrap; margin-inline: -0.34in; }
 .pie-row .pie { flex: 0 0 auto; }
 .pie-cip { width: 5.10in; }
-.pie-mof { width: 5.45in; }
+/* Must stay in step with the width_in passed to pie() in render_report.py:
+   that argument does not size the pie (this rule does) — it converts label_pt
+   into user units, so a mismatch silently mis-sizes the slice labels. */
+.pie-mof { width: 4.85in; }
 .pie-tax { width: 4.80in; }
 .pie-row .legend { flex: 0 1 auto; min-width: 0; gap: 20px; }
 .pie-row .legend .lg { line-height: 1.2; white-space: nowrap; }
@@ -212,8 +242,10 @@ svg .ph { font-size: 12px; font-family: var(--body); }
 
 /* Figure 2's legend sits directly under its chart and runs horizontally.
    Scoped to direct children of .page so it never captures .pie-row legends. */
+/* Margins kept tight: Figure 2 is 6.2in tall, so page 6 has almost no room
+   between the chart and the folio. */
 .page > .chart + .legend { flex-direction: row; flex-wrap: wrap;
-                           justify-content: center; margin: 8px 0 14px; }
+                           justify-content: center; margin: 5px 0 7px; }
 .page > .chart + .legend .lg { font-size: 15px; }
 .page > .chart + .legend .sw { width: 22px; height: 22px; }
 
@@ -235,8 +267,13 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .photocap { font-size: 11.5px; line-height: 1.4; margin-top: 7px !important; }
 
 /* endnotes */
-.endnotes { columns: 2; column-gap: .45in; padding-left: 20px; font-size: 13px; }
-.endnotes li { margin-bottom: 12px; break-inside: avoid; }
+/* Three columns, and tighter leading than body copy: 26 reference entries with
+   full URLs do not otherwise fit the page, and .page is overflow:hidden — the
+   overflow would silently disappear rather than fail the build. Font size is
+   deliberately left at 13px; the space comes from leading and gaps instead. */
+.endnotes { columns: 3; column-gap: .34in; padding-left: 20px; font-size: 13px;
+            line-height: 1.4; }
+.endnotes li { margin-bottom: 6px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
 
 /* toolbar + tooltip (screen only) */

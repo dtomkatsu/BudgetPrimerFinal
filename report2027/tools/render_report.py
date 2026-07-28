@@ -360,7 +360,10 @@ def fig2_chart_for(year):
                     + ("" if year == 2027 else " hidden"))
 
 def fig2_svg(rows, attrs=""):
-    W, LEFT, RH, GAP = 720, 150, 17, 7
+    # GAP is the single biggest lever on this chart's height: it multiplies by
+    # the 24 rows, and at 720 units to 7.26in one unit per row is ~0.24in on
+    # the page. Page 6 has no room to spare between the chart and the folio.
+    W, LEFT, RH, GAP = 720, 150, 17, 6
     maxv = 5.5e9
     plot_w = W - LEFT - 60
     H = len(rows) * (RH + GAP) + 40
@@ -601,6 +604,81 @@ WARNING_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd
 CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
 
+# Page 9's fund tiles, in the same icon-left-of-title lockup page 8 uses.
+# GENERAL — a stack of coins: the main pot, spendable on almost anything.
+# SPECIAL — a padlock: money that may only be spent on one stated purpose.
+# FEDERAL — a columned government building: where the grants come from.
+GENERAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<ellipse cx="16" cy="8.2" rx="10" ry="3.9"/>'
+    '<path d="M6 11.6c2.2 1.9 6 2.9 10 2.9s7.8-1 10-2.9V15c0 2.2-4.5 3.9-10 3.9S6 17.2 6 15z"/>'
+    '<path d="M6 18.8c2.2 1.9 6 2.9 10 2.9s7.8-1 10-2.9v3.4c0 2.2-4.5 3.9-10 3.9S6 24.4 6 22.2z"/>'
+    '</svg>')
+SPECIAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<path d="M9.2 14V9.4a6.8 6.8 0 0 1 13.6 0V14h-3.5V9.4a3.3 3.3 0 0 0-6.6 0V14z"/>'
+    '<path fill-rule="evenodd" d="M7 15.4h18a1.8 1.8 0 0 1 1.8 1.8v11a1.8 1.8 0 0 1-1.8 1.8H7'
+    'a1.8 1.8 0 0 1-1.8-1.8v-11A1.8 1.8 0 0 1 7 15.4zm9 3.6a2.3 2.3 0 0 0-1.2 4.3l-.7 3.5h3.8'
+    'l-.7-3.5A2.3 2.3 0 0 0 16 19z"/>'
+    '</svg>')
+FEDERAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<path d="M16 2.4 30 9.8V12H2V9.8z"/>'
+    '<path d="M5 13.8h3.6v11.4H5zm6.6 0h3.6v11.4h-3.6zm6.6 0H21v11.4h-2.8zm6.6 0H27v11.4h-3.6z"/>'
+    '<path d="M3 26.6h26v3.2H3z"/>'
+    '</svg>')
+
+# Page 10's tax tiles. Same rules as the two above: currentColor so they flip
+# with the tile's text colour, and every interior detail is an even-odd CUTOUT
+# (never a white shape) so a recoloured tile shows through the holes.
+# GET — a grocery bag, with banknotes either side: the tax lands on everyday
+# purchases, which is the point the tile's text makes.
+GET_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    # groceries first, so the folded rim below paints over their base and they
+    # read as standing IN the bag. They are spaced apart on purpose: at this
+    # size two same-coloured shapes that touch merge into one blob.
+    # A baguette and a bottle, standing well clear of the bag. Two tall, clearly
+    # food-shaped silhouettes with a wide gap read better at 34px than three
+    # crowded ones, which merge into a single blob.
+    '<rect x="8.4" y="1.4" width="3.4" height="12.4" rx="1.7" transform="rotate(-11 10.1 7.6)"/>'
+    '<path d="M16.8 3h2.6v2.6l1.5 2.2v6h-5.6v-6l1.5-2.2z"/>'
+    # The bag carries a punched-out handle. Every handle-less version of this
+    # read as a bucket or a flowerpot no matter how the rim was drawn — the
+    # handle is the one shape that says "bag" on its own.
+    '<path fill-rule="evenodd" d="M8.2 13.5h15.6a1.6 1.6 0 0 1 1.6 1.6v13.3a1.6 1.6 0 0 1-1.6 1.6H8.2'
+    'a1.6 1.6 0 0 1-1.6-1.6V15.1a1.6 1.6 0 0 1 1.6-1.6zm3.6 3.2a4.2 4.2 0 0 0 8.4 0h-1.7'
+    'a2.5 2.5 0 0 1-5 0z"/>'
+    # banknotes flanking the bag, clear of it on both sides
+    '<g fill-rule="evenodd">'
+    '<path transform="rotate(-14 3 22)" d="M.4 20.2h5.2v3.6H.4zm2.6.8a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'
+    '<path transform="rotate(14 29 22)" d="M26.4 20.2h5.2v3.6h-5.2zm2.6.8a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'
+    '</g></svg>')
+# IIT — bars stepping up under a rising arrow: higher incomes, higher rate.
+IIT_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    # Bars stop at y=14 and the arrow runs above them: an arrow crossing the
+    # tallest bar reads as a notch cut out of it, not as a trend line.
+    '<path d="M3 24h6.4V30H3zm9.8-5h6.4v11h-6.4zm9.8-5H29v16h-6.4z"/>'
+    '<path d="M3.5 12.8 24.5 3.8l1.1 2.5-21 9zM29.6 3 23.8 2.2l2.4 5.6z"/>'
+    '</svg>')
+# TAT — a hotel with a flag: the tile's own example, and the one readers picture.
+TAT_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    # the hotel, flag and all, ending above the luggage line
+    '<path d="M14.8.9h1.8v3.4h-1.8z"/><path d="m16.6 1.3 6 1.8-6 1.8z"/>'
+    '<path fill-rule="evenodd" d="M6.4 4.3h19.2V19H6.4zm3 3.1v3.2h3.4V7.4zm5.9 0v3.2h3.4V7.4z'
+    'm5.9 0v3.2h3.4V7.4zm-11.8 5.9v3.2h3.4v-3.2zm5.9 0v3.2h3.4v-3.2zm5.9 0v3.2h3.4v-3.2z"/>'
+    # two suitcases at its base — separated by open gaps rather than outlines,
+    # so they stay distinct whatever colour the tile is recoloured to
+    '<path d="M7.5 21.6a2.9 2.9 0 0 1 5.8 0h-1.5a1.4 1.4 0 0 0-2.8 0z"/>'
+    '<path fill-rule="evenodd" d="M4.3 21.9h12.2a1.4 1.4 0 0 1 1.4 1.4v5.3a1.4 1.4 0 0 1-1.4 1.4'
+    'H4.3a1.4 1.4 0 0 1-1.4-1.4v-5.3a1.4 1.4 0 0 1 1.4-1.4zm-1.4 2.7v1.5h15v-1.5z"/>'
+    '<path d="M20.6 23.4a2.5 2.5 0 0 1 5 0h-1.3a1.2 1.2 0 0 0-2.4 0z"/>'
+    '<path fill-rule="evenodd" d="M19.6 23.7h9.5a1.3 1.3 0 0 1 1.3 1.3v3.6a1.3 1.3 0 0 1-1.3 1.3'
+    'h-9.5a1.3 1.3 0 0 1-1.3-1.3V25a1.3 1.3 0 0 1 1.3-1.3zm-1.3 2.4v1.4h12.1v-1.4z"/>'
+    '</svg>')
+
 
 def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable=False, min_h=None):
     """One tile. The bullets' key names it: it is already unique per card, and a
@@ -668,6 +746,40 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable
     return (f'{L.spacer(el_id) if el_id else ""}'
             f'<div class="{cls}"{tag} style="{style}">'
             f'{head}{bullets_el}</div>')
+
+
+def reform(n, key, accent, bg=MINT):
+    """One numbered tax-reform panel (page 12).
+
+    Same contract as card(): a movable, recolourable surface whose text stays
+    in content.md. `accent` paints the number badge — the panel's own
+    furniture, so a recolour of the panel background leaves it alone; only the
+    body text has to re-decide its contrast, which is_light_bg does on
+    whatever colour is actually in use.
+
+    The number is furniture too, not prose: it says which of three this is, so
+    it is generated rather than typed into a slot someone could renumber out
+    of step with its neighbours.
+    """
+    el_id = f"reform.{key}"
+    if L.refilled(el_id):
+        bg = L.fill(el_id)
+    light = is_light_bg(fill_repr(bg))
+    cls = "reform" if light else "reform ondark"
+    base = f"taxfair.items.{key}"
+    style = f"background:{fill_css(bg)}"
+    override = L.style(el_id, "")
+    if override:
+        style += f";{override}"
+    return (
+        f'{L.spacer(el_id)}<div class="{cls}"{L.tag(el_id)}{L.fill_tag(el_id)} style="{style}">'
+        f'<div class="reform-head">'
+        f'<span class="reform-num" style="background:{accent}">{n}</span>'
+        f'<h4>{C.t(f"{base}.title")}</h4>'
+        f'<span class="reform-tag">{C.t(f"{base}.tag")}</span>'
+        f'</div>'
+        f'{C.html(f"{base}.body")}'
+        f'</div>')
 
 
 def graphic(el_id, svg, w=1.5, cls=""):
@@ -976,6 +1088,7 @@ pages.append(f"""
           (C.t("categories.legend.capital", esc=True), SAGE_MID),
           (C.t("categories.legend.onetime", esc=True), DARK),
           (C.t("categories.legend.emergency", esc=True), DARKEST)])}
+ {C.html("categories.fig2.note", cls="fig-note")}
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
@@ -1026,12 +1139,13 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
- <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=4.85, label_pt=14.6)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
+ {C.html("funding.fig4.note", cls="fig-note")}
  {C.html("funding.p1")}
  <div class="cards3">
-  {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets")}
-  {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
-  {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
+  {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets", icon=GENERAL_FUNDS_ICON, icon_id="funding.cards.general.icon")}
+  {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets", icon=SPECIAL_FUNDS_ICON, icon_id="funding.cards.special.icon")}
+  {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets", icon=FEDERAL_FUNDS_ICON, icon_id="funding.cards.federal.icon")}
  </div>
 {C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{L.tables_html(9)}{folio(9)}
 </section>""")
@@ -1043,9 +1157,9 @@ pages.append(f"""
  {L.spacer("taxes.fig5.caption")}<p class="figcap"{L.attr("taxes.fig5.caption")}><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
-  {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets")}
-  {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets")}
-  {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets")}
+  {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets", icon=GET_ICON, icon_id="taxes.cards.get.icon")}
+  {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets", icon=IIT_ICON, icon_id="taxes.cards.iit.icon")}
+  {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets", icon=TAT_ICON, icon_id="taxes.cards.tat.icon")}
  </div>
 {C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{L.tables_html(10)}{folio(10)}
 </section>""")
@@ -1067,6 +1181,13 @@ pages.append(f"""
 # page 11 -> first of page 12), so endnote numbering is unchanged.
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.12")}>
+ {L.spacer("taxfair.h2")}<h2 class="sub"{L.attr("taxfair.h2")}>{C.t("taxfair.h2")}</h2>
+ {C.html("taxfair.intro", cls="taxfair-intro")}
+ <div class="reforms">
+  {reform(1, "capgains", DARK)}
+  {reform(2, "conveyance", SAGE)}
+  {reform(3, "loopholes", FOREST)}
+ </div>
 {callout_open("whopays")}
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}

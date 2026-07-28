@@ -5847,6 +5847,16 @@ mark.search-highlight {
     align-items: center;
     gap: 0.35rem;
 }
+.programs-note {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #586A6D;
+    background: #f8f9fa;
+    border-left: 3px solid #b9c4c2;
+    border-radius: 4px;
+    padding: 0.6rem 0.85rem;
+    margin: 0 0 0.85rem;
+}
 .prog-stat-dot {
     width: 9px;
     height: 9px;
