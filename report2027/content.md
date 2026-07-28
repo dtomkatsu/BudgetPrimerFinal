@@ -342,7 +342,7 @@ Three changes would raise revenue from those best able to pay—without affectin
 ### Tax Investment Profits Like Paychecks
 
 [[taxfair.items.capgains.tag]]
-+$130M a year
+Up to $132M a year
 
 [[taxfair.items.capgains.body]]
 Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. As a result, someone who earns their income working a regular job pays the same tax rate—or potentially more—than an investor who profits off their stocks.[^capgains-loophole]
@@ -364,10 +364,10 @@ House Bill 2049 would have shifted the tax to marginal rates—cutting it for mo
 ### Close Corporate Loopholes
 
 [[taxfair.items.loopholes.tag]]
-+$85 million a year
++$85M a year
 
 [[taxfair.items.loopholes.body]]
-Multinational corporations shift profits earned here to other jurisdictions to avoid being taxed on them.[^corp-loopholes] Worldwide Combined Reporting would close that gap, holding large corporations to the standard small businesses and working families already meet.[^itep-wcr]
+Multinational corporations are able to shift profits they earn in Hawaiʻi to other jurisdictions to avoid being taxed on them.[^corp-loopholes] Worldwide Combined Reporting would close that loophole, holding large corporations to the same standard as small businesses and working families already meet.[^itep-wcr]
 
 [[whopays.callout.title]]
 ### Tax Credits
