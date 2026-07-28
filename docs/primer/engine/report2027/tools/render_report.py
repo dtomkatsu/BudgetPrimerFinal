@@ -933,7 +933,7 @@ EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
 # and its number follows. The markup lives here, not in docsync, because "•
 # BUDGET PRIMER" and the left/right alternation are this report's, not the
 # engine's; docsync only computes the order.
-DESIGNED_PAGES = 13
+DESIGNED_PAGES = 14
 PAGE_ORDER = L.page_order(DESIGNED_PAGES)
 PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 
@@ -946,7 +946,7 @@ PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process
                5: "How Money Is Spent", 6: "Spending Categories",
                7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
                9: "Funding the Budget", 10: "Taxes", 11: "Who Pays",
-               12: "Tax Credits", 13: "Endnotes"}
+               12: "Tax Credits", 13: "Endnotes", 14: "Endnotes (cont.)"}
 
 def stamp_page(html, pid):
     """Tag a section with its identity, edit mode only (like data-el)."""
@@ -1196,21 +1196,36 @@ pages.append(f"""
  {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>""")
 
-# -- page 13: endnotes ------------------------------------------------------
+# -- pages 13-14: endnotes ---------------------------------------------------
 # Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
 # assembled body FIRST so numbering follows the page ORDER, then build the
-# endnotes page from the order that produced.
+# endnotes pages from the order that produced.
 #
-# The endnotes list is a product of resolving the very body it sits in, so the
-# endnotes page is assembled as a shell holding a placeholder, the whole ordered
-# body is resolved, and the placeholder is filled with the numbered list after.
-ENDNOTES_SLOT = "<!--ds-endnotes-->"
+# The list is long enough to need two physical pages, not one cramped one: the
+# entries are split roughly in half by COUNT (not by measuring — every entry
+# is a similar few lines, so a count split tracks page-fill closely enough,
+# and it stays exact regardless of column count or font size). The second
+# page's <ol> carries start= so numbering continues instead of restarting.
+#
+# The endnotes list is a product of resolving the very body it sits in, so both
+# pages are assembled as shells holding placeholders, the whole ordered body is
+# resolved, and the placeholders are filled with their half of the numbered
+# list after — split at the same point the shells were built for.
+ENDNOTES_SLOT_A = "<!--ds-endnotes-a-->"
+ENDNOTES_SLOT_B = "<!--ds-endnotes-b-->"
+ENDNOTES_START_B = "ds-endnotes-start-b"  # replaced with start="N+1" once N is known
 by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..12
 by_id[13] = f"""
 <section class="page"{L.fill_attr("page.13")}>
  {L.spacer("endnotes.h1")}<h1{L.attr("endnotes.h1")}>{C.t("endnotes.h1")}</h1>
- <ol class="endnotes">{ENDNOTES_SLOT}</ol>
+ <ol class="endnotes">{ENDNOTES_SLOT_A}</ol>
  {L.layer(13)}{L.text_boxes(13)}{L.tables_html(13)}{folio(13)}
+</section>"""
+by_id[14] = f"""
+<section class="page"{L.fill_attr("page.14")}>
+ <h2 class="endnotes-cont">Endnotes <span>continued</span></h2>
+ <ol class="endnotes" {ENDNOTES_START_B}>{ENDNOTES_SLOT_B}</ol>
+ {L.layer(14)}{L.text_boxes(14)}{L.tables_html(14)}{folio(14)}
 </section>"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
@@ -1250,8 +1265,15 @@ elif missing_src:
         + " — if you're moving the text that cites one, finish the move (paste it "
         + "back in); this blocks publishing only, not the live preview.")
 
-en = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(C.fn.endnotes_with_ids()))
+entries = list(C.fn.endnotes_with_ids())
 notes = C.fn.endnotes()
+# Split by count, first half on page 13, the rest on page 14. A qualifying
+# entry earlier in the doc always lands before one later, so the split point
+# is just "how many", independent of how the two halves are laid out.
+_split = (len(entries) + 1) // 2
+en_a = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(entries[:_split]))
+en_b = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(entries[_split:], start=_split))
+start_b_attr = f'start="{_split + 1}"' if _split < len(entries) else ""
 
 def linkify_footnotes(markup):
     """Turn every <sup>N</sup> marker into a clickable ref the JS can pop.
@@ -1274,10 +1296,11 @@ def linkify_footnotes(markup):
         return "<sup>" + "&thinsp;".join(out) + "</sup>"
     return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
 
-# The endnotes page was assembled as a shell holding a placeholder; fill it now
-# that the numbering it depends on exists. `en` carries no footnote markers, so
-# this substitution is safe after resolve.
-body = body.replace(ENDNOTES_SLOT, en)
+# The endnotes pages were assembled as shells holding placeholders; fill them
+# now that the numbering they depend on exists. Neither half carries footnote
+# markers, so these substitutions are safe after resolve.
+body = body.replace(ENDNOTES_SLOT_A, en_a).replace(ENDNOTES_SLOT_B, en_b)
+body = body.replace(ENDNOTES_START_B, start_b_attr)
 
 # Teach the editor's rail every designed page and its name (edit mode only, so
 # the published bytes are untouched). Hidden pages are absent from the DOM; this

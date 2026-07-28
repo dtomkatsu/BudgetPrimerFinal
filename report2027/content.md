@@ -332,7 +332,7 @@ Percentage of Income Paid in State and Local Taxes by Household Income Quintile 
 [[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
-This is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.
+This is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] These households deserve
 
 [[taxfair.h2]]
 ## Making Hawaiʻi's Tax System Fairer
@@ -421,6 +421,7 @@ OHA[^act248]
 [hb2049]: "House Bill 2049," Hawaiʻi State Legislature, 2026. — https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026
 [corp-loopholes]: "Tax Loopholes for Multinational Corporations," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations
 [itep-wcr]: "Revenue Effect of Mandatory Worldwide Combined Reporting by State," Institute on Taxation and Economic Policy. — https://itep.org/revenue-effect-of-mandatory-worldwide-combined-reporting-by-state/
+[nhpi-poverty]: "Poverty Status in the Past 12 Months," American Community Survey 1-Year Estimates (Table S1701), U.S. Census Bureau, 2024. — https://data.census.gov/table/ACSST1Y2024.S1701?q=poverty+ethnicity&g=040XX00US15&moe=false
 [itep-whopays]: "Hawaiʻi: Who Pays? 7th Edition," Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes. — https://itep.org/whopays/hawaii-who-pays-7th-edition
 [tax-credits]: "Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024. — https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf
 [exec-biennium]: "Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
