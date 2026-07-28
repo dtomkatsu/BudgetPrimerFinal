@@ -332,7 +332,7 @@ Percentage of Income Paid in State and Local Taxes by Household Income Quintile 
 [[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
-This is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] These households deserve
+This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] These households deserve the opportunity to pursue a fulfilling, stable lives and thrive with their families
 
 [[taxfair.h2]]
 ## Making Hawaiʻi's Tax System Fairer
