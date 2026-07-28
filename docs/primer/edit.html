@@ -1355,6 +1355,11 @@
   <button id="ar-del" aria-label="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
+  <!-- Shown only while a PAGE is selected (see pageBar): what the strip is
+       talking about, and the one action a sheet has of its own. -->
+  <span class="ar-count ds-pageonly" id="ar-pagelabel" hidden></span>
+  <button id="ar-pagedup" class="ds-pageonly" hidden
+    aria-label="Duplicate page — adds a copy after this one">Duplicate page</button>
   <button id="ar-fill" aria-label="Fill colour" hidden><span class="A">◆</span><span
     class="Abar" id="ar-fillbar"></span></button>
   <div class="pop" id="ar-fillpop" hidden>
@@ -3040,6 +3045,67 @@ function submenuRow(d, parent, label, build) {
   return b;
 }
 
+/** Right-clicking the sheet itself. It used to drop the colour swatches
+ *  straight into the menu, which answered exactly one question and made the
+ *  page the only thing in the editor whose right-click was a picker rather
+ *  than a menu. Canva's own set: copy the page, copy just its look, paste,
+ *  duplicate — with the colour behind a row like every other submenu. */
+function pageMenu(d, pg, e) {
+  closeMenu(d);
+  const pid = pageIdOf(pg);
+  setSelPage(d, pid);           // right-click selects, so the strip agrees
+  const m = d.createElement('div');
+  m.className = 'ds-menu';
+  m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
+  m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
+  const item = (label, fn, on = true) => {
+    const b = d.createElement('button');
+    b.textContent = label;
+    b.disabled = !on;
+    b.addEventListener('click', async () => { closeMenu(d); await fn(); });
+    m.appendChild(b);
+    return b;
+  };
+  const sep = () => {
+    const x = d.createElement('div'); x.className = 'ds-menu-sep'; m.appendChild(x);
+  };
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head';
+  head.textContent = 'Page ' + pageLabel(pid);
+  m.appendChild(head);
+
+  item('Copy', () => {
+    pageClip = pageContents(pid);
+    const n = pageClip.boxes.length + pageClip.tables.length + pageClip.shapes.length;
+    $('stat').textContent = `page ${pageLabel(pid)} copied — ${n} item${n === 1 ? '' : 's'}`;
+  });
+  item('Copy page style', () => {
+    pageStyleClip = { fill: (layout.fill || {})[pageFillId(pid)] };
+    $('stat').textContent = 'page style copied — paste it onto another page';
+  });
+  // One Paste, whichever clipboard has something on it: the style is the more
+  // specific intent, so it wins when both do.
+  item('Paste', async () => {
+    pushHistory();
+    if (pageStyleClip) {
+      layout.fill = layout.fill || {};
+      if (pageStyleClip.fill) layout.fill[pageFillId(pid)] = clone(pageStyleClip.fill);
+      else delete layout.fill[pageFillId(pid)];
+    } else {
+      pastePageContents(pid, pageClip);
+    }
+    markDirty();
+    await render();
+  }, !!(pageClip || pageStyleClip));
+  item('Duplicate page', () => duplicatePage(pid));
+  sep();
+  submenuRow(d, m, 'Page colour ▸', sub => fillRow(d, sub, pageFillId(pid)));
+  d.body.appendChild(m);
+  const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
+  if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
+  if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
+
 function layerMenu(d, el, e) {
   closeMenu(d);
   const id = el.dataset.shape || el.dataset.el || el.dataset.fill;
@@ -3395,7 +3461,10 @@ function contextify(d) {
       let target = el;
       if (el.tagName === 'SECTION') {
         const hit = hitPlaced(d, el, e);
-        if (hit) target = hit;
+        // Nothing placed under the pointer: the click means the PAGE, and a
+        // page has its own menu rather than the generic surface one.
+        if (!hit) { pageMenu(d, el, e); return; }
+        target = hit;
       }
       // A TABLE's right-click is always its own menu, wherever on it the
       // click landed. Cells carry that menu themselves, but the table's
@@ -5964,6 +6033,37 @@ const selGroups = () => {
   return [...gs];
 };
 
+/** The arrange strip, dressed for a selected page. Same card, different
+ *  contents. Everything that describes an OBJECT is hidden rather than greyed
+ *  — a row of dead controls is worse than a short row. */
+function pageBar(d) {
+  $('type').hidden = true;
+  $('arrange').hidden = false;
+  ['ar-count', 'ar-pos', 'ar-group', 'ar-ungroup', 'ar-dup', 'ar-lock', 'ar-del',
+   'ar-fxbtn', 'ar-table', 'ar-chart', 'ar-border', 'ar-alpha'].forEach(id => {
+    const el = $(id); if (el) el.hidden = true;
+  });
+  document.querySelectorAll('.ar-pos, #ar-possep').forEach(x => { x.hidden = true; });
+  document.querySelectorAll('#arrange > .ty-seg, #arrange > .ty-sep')
+    .forEach(x => { x.hidden = true; });
+  document.querySelectorAll('.ds-pageonly').forEach(x => { x.hidden = false; });
+  $('ar-pagelabel').textContent = 'Page ' + pageLabel(selPage);
+  // Fill points at the page — fillTargets already understands 'page.<id>'.
+  const fid = pageFillId(selPage);
+  const ft = fillTargets(fid);
+  $('ar-fill').hidden = false;
+  $('ar-fillbar').style.background = fillPreview(ft.get());
+  $('ar-fill').setAttribute('aria-label', 'Page colour');
+  if (!$('side').hidden && !sidePanelTool && sideFillId !== fid) openColorPanel(fid);
+}
+
+/** What to call a page on screen: its position in the order, which is what the
+ *  page strip shows, rather than the internal id ('p3'). */
+function pageLabel(pid) {
+  const i = pageOrder().findIndex(x => String(x) === String(pid));
+  return i >= 0 ? String(i + 1) : String(pid);
+}
+
 /** A placed shape's box in page inches. Measuring the DOM is right for the
  *  shapes whose drawing IS their box, but a chart draws axis numbers and
  *  value labels OUTSIDE the box it declares, so its bbox is bigger than the
@@ -5983,6 +6083,15 @@ function paintSel(d) {
     el.classList.remove('ds-sel', 'ds-grouped'));
   d.querySelectorAll('.ds-selbox').forEach(el => el.remove());
   hideHandles(d);
+  // The page ring: a quiet outline round the sheet, no handles. A page has no
+  // geometry to drag — it is the thing everything else is placed ON — so the
+  // ring says "this is what the toolbar is talking about" and nothing more.
+  d.querySelectorAll('.ds-pagesel').forEach(el => el.classList.remove('ds-pagesel'));
+  if (selPage != null) {
+    const pg = d.querySelector(`section.page[data-page="${CSS.escape(selPage)}"]`);
+    if (pg) pg.classList.add('ds-pagesel');
+    else selPage = null;              // the page went away under us
+  }
   const els = selEls(d);
   // A selection that is exactly one whole group reads as a group: a lighter
   // dashed ring, so it looks like one object rather than N loose ones.
@@ -6070,8 +6179,33 @@ function showMini(d, els) {
   }
   page.appendChild(bar);
 }
-const setSel = (d, ids) => { selIds.clear(); ids.forEach(i => selIds.add(i)); paintSel(d); };
-const clearSel = d => { selIds.clear(); paintSel(d); };
+/** The PAGE selection, deliberately separate from selIds.
+ *
+ *  A page is not an object: it does not drag, group, lock, layer or delete
+ *  like one, and putting it into selIds would mean teaching every one of
+ *  those paths to make an exception. It is a surface you recolour, copy or
+ *  duplicate — so it gets its own one-slot state, mutually exclusive with the
+ *  element selection, and everything that reads selIds carries on unaware. */
+let selPage = null;
+
+const setSel = (d, ids) => {
+  selIds.clear(); ids.forEach(i => selIds.add(i));
+  if (ids.length) selPage = null;
+  paintSel(d);
+};
+const clearSel = d => { selIds.clear(); selPage = null; paintSel(d); };
+/** Select a page — clicking its background, the way clicking an object's own
+ *  pixels selects the object. */
+const setSelPage = (d, pid) => {
+  selIds.clear();
+  selPage = pid == null ? null : String(pid);
+  paintSel(d);
+};
+/** The page id a <section> carries, as a string (blank pages have string ids
+ *  like 'p3', designed ones are numbers — both arrive as data-page). */
+const pageIdOf = pg => (pg && pg.dataset ? pg.dataset.page : null);
+/** The layout.fill key for a page's background colour. */
+const pageFillId = pid => 'page.' + pid;
 
 /** The one place a mouse-selection is decided, so dragify and the hit-test
  *  agree. Returns whether the element ends up selected (so a drag may follow).
@@ -6094,6 +6228,10 @@ function selectClick(d, id, e) {
 
 function arrangeBar(d) {
   const n = selIds.size;
+  // A selected PAGE gets its own strip: the only things that mean anything to
+  // a sheet are its colour and making another one.
+  if (!n && selPage != null) { pageBar(d); return; }
+  document.querySelectorAll('.ds-pageonly').forEach(x => { x.hidden = true; });
   // Nothing selected, nothing to arrange, no card. It used to be always
   // present and greyed out, first because it sat in a fixed-height row (a card
   // that came and went made the canvas jump) and then because Insert Image
@@ -6726,7 +6864,11 @@ function marquee(d, pg, e0) {
     d.removeEventListener('mousemove', move);
     d.removeEventListener('mouseup', up);
     box.remove();
-    if (!r || (r.w < 0.05 && r.h < 0.05)) { clearSel(d); return; }
+    // A click that never travelled is not a marquee — it is a click on the
+    // page itself, and that selects the page (Canva's own behaviour). It used
+    // to clear the selection and leave nothing in hand, so the page's own
+    // colour was reachable only by right-clicking it.
+    if (!r || (r.w < 0.05 && r.h < 0.05)) { setSelPage(d, pageIdOf(pg)); return; }
     const hit = [];
     pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
       if (el.parentElement && el.parentElement.closest('[data-el]')) return;
@@ -7096,6 +7238,63 @@ function chip(pid, pos, label, isHidden) {
 /** Insert a blank page at a position in the order. `at` is an index INTO the
  *  visible order (0 = before the first page); undefined means "after the page
  *  in view", which is what the end-of-strip + button has always meant. */
+// A page's own clipboards, in memory like `clip`/`styleClip` and equally out
+// of snapshot() — undo has nothing to do with what is on a clipboard.
+let pageClip = null, pageStyleClip = null;
+
+/** Everything on a page that the EDITOR owns: boxes, tables, shapes and the
+ *  sheet's own colour.
+ *
+ *  Not the designed content. A designed page's headings, figures and prose are
+ *  emitted by the report's renderer from content.md — the page exists because
+ *  the renderer says so, and there is no way to ask it for a second copy from
+ *  here. So a duplicate carries the movable layer and says so; it is a real
+ *  answer for the blank pages people build up, and an honest partial one
+ *  everywhere else. */
+function pageContents(pid) {
+  const mine = x => String(x.page) === String(pid);
+  return {
+    boxes: boxes().filter(mine).map(clone),
+    tables: tables().filter(mine).map(clone),
+    shapes: (layout.shapes || []).filter(mine).map(clone),
+    fill: (layout.fill || {})[pageFillId(pid)],
+  };
+}
+
+/** Drop a pageContents() payload onto page `pid`, with fresh ids so the copy
+ *  and the original are independent objects rather than two views of one. */
+function pastePageContents(pid, c) {
+  let n = 0;
+  (c.boxes || []).forEach(b => { const x = clone(b); x.id = freeTId(); x.page = pid; boxes().push(x); n++; });
+  (c.tables || []).forEach(t => { const x = clone(t); x.id = freeTId(); x.page = pid; tables().push(x); n++; });
+  (c.shapes || []).forEach(sh => { const x = clone(sh); x.id = freeTId(); x.page = pid; layout.shapes.push(x); n++; });
+  if (c.fill) { layout.fill = layout.fill || {}; layout.fill[pageFillId(pid)] = clone(c.fill); }
+  return n;
+}
+
+/** A new blank page right after `pid`, carrying a copy of what was on it. */
+async function duplicatePage(pid) {
+  pushHistory();
+  const order = pageOrder();
+  const blanks = pageBlanks();
+  let n = 1;
+  while (blanks.some(b => b.id === 'p' + n)) n++;
+  const bid = 'p' + n;
+  const at = order.findIndex(x => String(x) === String(pid));
+  order.splice(at >= 0 ? at + 1 : order.length, 0, bid);
+  writeOrder(order, [...blanks, { id: bid }]);
+  const c = pageContents(pid);
+  const moved = pastePageContents(bid, c);
+  markDirty();
+  await render();
+  setSelPage($('out').contentDocument, bid);
+  const designed = designedPages.some(p2 => String(p2.id) === String(pid));
+  $('stat').textContent = designed
+    ? `page duplicated — ${moved} placed item${moved === 1 ? '' : 's'} copied; `
+      + 'the designed content stays on its own page (the renderer owns it)'
+    : `page duplicated — ${moved} item${moved === 1 ? '' : 's'} copied`;
+}
+
 async function addBlankPage(at) {
   pushHistory();
   const order = pageOrder();
@@ -7114,6 +7313,9 @@ async function addBlankPage(at) {
 }
 
 $('rail-add').addEventListener('click', () => addBlankPage());
+$('ar-pagedup').addEventListener('click', () => {
+  if (selPage != null) duplicatePage(selPage);
+});
 
 /** Where a newly-placed object of width `w` should land: centred across the
  *  page rather than hard against the left margin. The left margin is exactly
@@ -10284,6 +10486,10 @@ function wire() {
     /* Selected shapes get an OVERLAY ring drawn at their box (paintSel) —
        outline on an SVG child paints around the whole page-sized viewport,
        and a glow was tried and rejected as noise. The overlay is exact. */
+    /* Selected PAGE: an outline just outside the sheet, so it reads as the
+       page being picked up rather than as a border drawn on it. outline, not
+       border — a border would change the box and reflow the whole page. */
+    .ds-pagesel { outline:2px solid rgba(107,158,120,.85); outline-offset:3px; }
     .ds-selbox { position:absolute; z-index:9995; pointer-events:none;
        outline:2px solid #6B9E78; outline-offset:2px; }
     .ds-selbox.grouped { outline:1.5px dashed #52796F; outline-offset:3px; }
