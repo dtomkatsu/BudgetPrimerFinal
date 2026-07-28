@@ -49,6 +49,14 @@ def process_budget_data(
     # Filter by section if specified
     if section is not None and section != 'all':
         df = df[df['section'] == section]
+    elif 'section' in df.columns:
+        # Chapter 42F grants-in-aid are a SEPARATE Part IV appropriation, not
+        # part of a program's Part II operating/capital request. They are parsed
+        # and available, but folding them into the default view would move every
+        # published department total and summary_stats figure (which sums all
+        # rows). Callers that want them must ask by name:
+        #     process_budget_data(allocs, section='Grants in Aid')
+        df = df[df['section'] != BudgetSection.GRANTS_IN_AID.value]
 
     # Convert amount to numeric
     df['amount'] = pd.to_numeric(df['amount'], errors='coerce')

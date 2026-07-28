@@ -161,6 +161,23 @@ class FastBudgetParser(BaseBudgetParser):
     # Regex compilation
     # ------------------------------------------------------------------
 
+    # --- Chapter 42F grants-in-aid (Part IV) -------------------------------
+    # Block header: names the lump sum and the fiscal year. Note "thereof" is
+    # hyphenated as "there-of" in the HB1800 CD1 conversion, hence the optional
+    # hyphen; and the grant year is the SECOND year ("2026-2027" -> FY2027).
+    GIA_HEADER = re.compile(
+        r'There is appropriated out of the general revenues of the State of Hawaii\s+'
+        r'the sum of \$([\d,]+)\s+or so much there\s*-?\s*of as may be necessary\s+'
+        r'for fiscal year (\d{4})-(\d{4})',
+        re.IGNORECASE,
+    )
+    # Numbered grant item: "1.  $225,000.00       808 CLEANUPS"
+    GIA_ITEM = re.compile(r'^\s*(\d+)\.\s+\$([\d,]+)\.\d{2}\s+(\S.*?)\s*$')
+    # Program code inside the header or an ADD FUNDS paragraph: "(LBR903)"
+    GIA_PROGRAM_CODE = re.compile(r'\(([A-Z]{3}\d{3})\)')
+    # A new SECTION at line start ends the block.
+    GIA_BLOCK_END = re.compile(r'^\s*"?SECTION\s+\d+')
+
     def _compile_patterns(self) -> Dict[str, Pattern]:
         """Compile all regex patterns used for parsing.
 
@@ -375,8 +392,16 @@ class FastBudgetParser(BaseBudgetParser):
             # the same totals everywhere.
             self._reconcile_projects_to_allocations(allocations)
 
+            # Part IV Chapter 42F grants-in-aid. Extracted separately (they sit
+            # outside the Part II tables) and tagged GRANTS_IN_AID, which the
+            # default 'all' view filters out -- so adding these moves no
+            # published total. See process_budget_data().
+            grants = self._extract_grants_in_aid(content, allocations)
+            allocations.extend(grants)
+
             self.logger.info(
                 f"Successfully parsed {len(allocations)} budget allocations "
+                f"({len(grants)} Ch.42F grants-in-aid) "
                 f"and {len(self.projects)} Section 14 projects"
             )
             return allocations
@@ -1414,6 +1439,146 @@ class FastBudgetParser(BaseBudgetParser):
                 continue
 
         return allocations
+
+    # ------------------------------------------------------------------
+    # Chapter 42F grants-in-aid (Part IV)
+    # ------------------------------------------------------------------
+
+    def _extract_grants_in_aid(
+        self, content: str, allocations: List[BudgetAllocation]
+    ) -> List[BudgetAllocation]:
+        """Parse Part IV Chapter 42F grants-in-aid blocks.
+
+        These sit outside the Part II program tables the main state machine
+        reads, so they are extracted separately. A block opens with a header
+        naming the total and the fiscal year, e.g.
+
+            "There is appropriated out of the general revenues of the State of
+             Hawaii the sum of $20,000,000 or so much thereof as may be
+             necessary for fiscal year 2026-2027 to the office of community
+             services (LBR903) ..."
+
+        and is followed by numbered items, each with an ADD FUNDS paragraph
+        naming the expending program:
+
+            1. $200,000.00      808 CLEANUPS
+            ADD FUNDS AS A GRANT ... FOR OFFICE OF COMMUNITY SERVICES (LBR903) ...
+
+        Two shapes occur: a single expending agency named in the header
+        (HB1800 CD1 sec 13.1, all 112 items -> LBR903), or "the expending
+        agencies listed in this part" with a different program per item
+        (HB 300 CD 1, 12+ programs). Per-item codes win; the header agency is
+        the fallback.
+
+        The itemized amounts sum to the header total in both bills, so any
+        mismatch means the block was mis-read -- logged loudly rather than
+        silently absorbed.
+        """
+        lines = content.split('\n')
+        # Context (name/dept/category) reused from the Part II allocations so a
+        # grant row describes its program the same way every other row does.
+        ctx: Dict[str, BudgetAllocation] = {}
+        for a in allocations:
+            ctx.setdefault(a.program_id, a)
+
+        results: List[BudgetAllocation] = []
+        self.gia_blocks: List[Dict[str, Any]] = []
+
+        for idx, line in enumerate(lines):
+            header = self.GIA_HEADER.search(line)
+            if not header:
+                continue
+
+            total_declared = float(header.group(1).replace(',', ''))
+            fiscal_year = int(header.group(3))  # "2026-2027" -> FY2027
+            default_pid_match = self.GIA_PROGRAM_CODE.search(line)
+            default_pid = default_pid_match.group(1) if default_pid_match else None
+
+            items: List[BudgetAllocation] = []
+            pending: Optional[Dict[str, Any]] = None
+            for offset, body in enumerate(lines[idx + 1:], start=idx + 2):
+                # A new SECTION at line start closes the block.
+                if self.GIA_BLOCK_END.match(body):
+                    break
+
+                item = self.GIA_ITEM.match(body)
+                if item:
+                    if pending:
+                        items.append(self._make_gia_allocation(
+                            pending, default_pid, fiscal_year, ctx))
+                    pending = {
+                        'amount': float(item.group(2).replace(',', '')),
+                        'recipient': item.group(3).strip(),
+                        'line_number': offset,
+                        'program_id': None,
+                    }
+                    continue
+
+                # The ADD FUNDS paragraph following an item names its program.
+                if pending and pending['program_id'] is None:
+                    code = self.GIA_PROGRAM_CODE.search(body)
+                    if code:
+                        pending['program_id'] = code.group(1)
+
+            if pending:
+                items.append(self._make_gia_allocation(
+                    pending, default_pid, fiscal_year, ctx))
+
+            total_itemized = sum(i.amount for i in items)
+            reconciles = abs(total_itemized - total_declared) < 0.01
+            self.gia_blocks.append({
+                'line_number': idx + 1,
+                'fiscal_year': fiscal_year,
+                'declared_total': total_declared,
+                'itemized_total': total_itemized,
+                'item_count': len(items),
+                'reconciles': reconciles,
+            })
+
+            if not reconciles:
+                self.logger.error(
+                    f"L{idx + 1}: grants-in-aid FY{fiscal_year} does not reconcile -- "
+                    f"header declares ${total_declared:,.0f} but {len(items)} items "
+                    f"sum to ${total_itemized:,.0f} "
+                    f"(difference ${total_itemized - total_declared:+,.0f})"
+                )
+            else:
+                self.logger.info(
+                    f"L{idx + 1}: grants-in-aid FY{fiscal_year} -- {len(items)} items, "
+                    f"${total_itemized:,.0f}, reconciles with header"
+                )
+
+            results.extend(items)
+
+        return results
+
+    def _make_gia_allocation(
+        self,
+        item: Dict[str, Any],
+        default_pid: Optional[str],
+        fiscal_year: int,
+        ctx: Dict[str, BudgetAllocation],
+    ) -> BudgetAllocation:
+        """Build one grants-in-aid allocation, borrowing program context when known."""
+        pid = item['program_id'] or default_pid or 'UNKNOWN'
+        known = ctx.get(pid)
+        dept_code = pid[:3].upper()
+
+        return BudgetAllocation(
+            program_id=pid,
+            program_name=known.program_name if known else pid,
+            department_code=dept_code if dept_code in DEPARTMENT_NAMES else (
+                known.department_code if known else dept_code),
+            department_name=DEPARTMENT_NAMES.get(
+                dept_code, known.department_name if known else dept_code),
+            section=BudgetSection.GRANTS_IN_AID,
+            fund_type=FundType.GENERAL,  # "out of the general revenues"
+            fiscal_year=fiscal_year,
+            amount=item['amount'],
+            category=known.category if known else None,
+            notes=f"Ch.42F grant: {item['recipient']}",
+            line_number=item['line_number'],
+        )
 
     # ------------------------------------------------------------------
     # Post-processing

@@ -433,11 +433,18 @@ class TestFullDocumentRegression:
         assert sec["Capital Improvement"] >= 189
 
     def test_total_amount_fy2026_at_least_baseline(self, full_parse):
-        total = sum(a.amount for a in full_parse if a.fiscal_year == 2026)
+        # Part II/Section 14 only — Chapter 42F grants-in-aid are a separate
+        # appropriation and are excluded everywhere these baselines are used,
+        # so counting them here would move the baseline without a real change.
+        total = sum(a.amount for a in full_parse
+                    if a.fiscal_year == 2026
+                    and a.section != BudgetSection.GRANTS_IN_AID)
         assert total >= 23_320_369_599
 
     def test_total_amount_fy2027(self, full_parse):
-        total = sum(a.amount for a in full_parse if a.fiscal_year == 2027)
+        total = sum(a.amount for a in full_parse
+                    if a.fiscal_year == 2027
+                    and a.section != BudgetSection.GRANTS_IN_AID)
         assert total == pytest.approx(21_925_812_598, rel=1e-6)
 
     def test_unique_departments(self, full_parse):
@@ -620,3 +627,65 @@ class TestEndToEnd:
         df = process_budget_data(post_veto, fiscal_year=2026)
         one_time = df[df['section'] == 'One-Time']
         assert len(one_time) > 0, "One-time appropriations should be present"
+
+
+# ---------------------------------------------------------------------------
+# Chapter 42F grants-in-aid (Part IV)
+# ---------------------------------------------------------------------------
+
+HB1800_CD1_PATH = Path("data/raw/drafts/HB1800_CD1.txt")
+
+
+class TestGrantsInAid:
+    """Part IV grants-in-aid parsing, and its isolation from published totals."""
+
+    def test_hb300_block_reconciles(self, parser, full_parse):
+        """HB 300 CD 1: one block, $10M across many programs, items == header."""
+        assert len(parser.gia_blocks) == 1
+        block = parser.gia_blocks[0]
+        assert block['reconciles'], block
+        assert block['declared_total'] == 10_000_000
+        assert block['itemized_total'] == 10_000_000
+        assert block['fiscal_year'] == 2026
+
+    def test_hb300_grants_span_multiple_programs(self, full_parse):
+        """"Expending agencies listed in this part" -> per-item program codes."""
+        grants = [a for a in full_parse if a.section == BudgetSection.GRANTS_IN_AID]
+        assert len(grants) == 69
+        assert sum(g.amount for g in grants) == 10_000_000
+        # Not all attributed to a single program.
+        assert len({g.program_id for g in grants}) > 5
+        assert all(g.fund_type == FundType.GENERAL for g in grants)
+        assert all(g.notes.startswith("Ch.42F grant: ") for g in grants)
+
+    @pytest.mark.skipif(not HB1800_CD1_PATH.exists(), reason="HB1800 CD1 not present")
+    def test_hb1800_single_agency_block(self):
+        """HB1800 CD1 sec 13.1: header names one agency; all 112 items are LBR903."""
+        p = FastBudgetParser(fy1=2026, fy2=2027)
+        allocs = p.parse(str(HB1800_CD1_PATH))
+        grants = [a for a in allocs if a.section == BudgetSection.GRANTS_IN_AID]
+
+        assert p.gia_blocks[0]['reconciles']
+        assert len(grants) == 112
+        assert sum(g.amount for g in grants) == 20_000_000
+        assert {g.program_id for g in grants} == {"LBR903"}
+        # "fiscal year 2026-2027" is FY2027, not FY2026.
+        assert {g.fiscal_year for g in grants} == {2027}
+
+    def test_excluded_from_default_view(self, full_parse):
+        """Grants-in-aid must not reach the default ('all') DataFrame.
+
+        Department totals and summary_stats sum whatever arrives here, so
+        letting these through would silently move every published figure.
+        """
+        for section_arg in (None, 'all'):
+            df = process_budget_data(full_parse, fiscal_year=2026, section=section_arg)
+            assert (df['section'] != 'Grants in Aid').all(), (
+                f"grants-in-aid leaked into section={section_arg!r}"
+            )
+
+    def test_available_when_asked_for_by_name(self, full_parse):
+        """The data is reachable -- it is held back, not dropped."""
+        df = process_budget_data(full_parse, fiscal_year=2026, section='Grants in Aid')
+        assert len(df) == 69
+        assert df['amount'].sum() == 10_000_000

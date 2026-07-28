@@ -14,6 +14,9 @@ class BudgetSection(Enum):
     OPERATING = "Operating"
     CAPITAL_IMPROVEMENT = "Capital Improvement"
     ONE_TIME = "One-Time"
+    # Chapter 42F grants-in-aid (Part IV of the budget bill). Parsed, but held
+    # out of the default 'all' view -- see process_budget_data() for why.
+    GRANTS_IN_AID = "Grants in Aid"
     UNSPECIFIED = "Unspecified"
 
 

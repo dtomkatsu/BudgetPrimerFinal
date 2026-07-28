@@ -84,7 +84,13 @@ def parse_one_bill(session_year: int, bill_info: dict,
         df = df[df["section"] == BudgetSection.OPERATING.value].copy()
     elif scope == "capital":
         df = df[df["section"] == BudgetSection.CAPITAL_IMPROVEMENT.value].copy()
-    # scope == "combined" → keep everything
+    # scope == "combined" → keep everything EXCEPT Chapter 42F grants-in-aid,
+    # which are a separate Part IV appropriation. This builds its DataFrame from
+    # raw allocations rather than process_budget_data(), so it does not inherit
+    # that function's exclusion and has to say so itself — otherwise the grants
+    # would silently inflate historical_trends.json for every session whose
+    # bill carries a 42F block.
+    df = df[df["section"] != BudgetSection.GRANTS_IN_AID.value].copy()
 
     if df.empty:
         logger.warning(
