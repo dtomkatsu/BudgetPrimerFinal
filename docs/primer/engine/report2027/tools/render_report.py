@@ -360,7 +360,10 @@ def fig2_chart_for(year):
                     + ("" if year == 2027 else " hidden"))
 
 def fig2_svg(rows, attrs=""):
-    W, LEFT, RH, GAP = 720, 150, 17, 7
+    # GAP is the single biggest lever on this chart's height: it multiplies by
+    # the 24 rows, and at 720 units to 7.26in one unit per row is ~0.24in on
+    # the page. Page 6 has no room to spare between the chart and the folio.
+    W, LEFT, RH, GAP = 720, 150, 17, 6
     maxv = 5.5e9
     plot_w = W - LEFT - 60
     H = len(rows) * (RH + GAP) + 40
