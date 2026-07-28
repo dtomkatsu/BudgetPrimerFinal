@@ -358,7 +358,7 @@ $300M a year
 [[taxfair.items.conveyance.body]]
 Paid when a property changes hands, the conveyance tax is one of the few tools that captures revenue from Hawaiʻi's real estate market.[^conveyance-modernize] Its rates have not moved since 2009, even though out-of-state buyers have continued to make housing more expensive for everyone.
 
-House Bill 2049 would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, housing revolving funds, and DHHL.[^hb2049]
+House Bill 2049 would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, affordable housing funds, and the Department of Hawaiian Homelands.[^hb2049]
 
 [[taxfair.items.loopholes.title]]
 ### Close Corporate Loopholes
