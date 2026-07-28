@@ -26,6 +26,12 @@
       "x": 5.31,
       "y": 2.04,
       "w": 1.58
+    },
+    "para.whopays.p1": {
+      "x": 0.62,
+      "y": 5.65,
+      "w": 7.26,
+      "reserve": 1.36
     }
   },
   "shapes": [],
@@ -35,7 +41,7 @@
       "page": 11,
       "md": "**Act 46 **",
       "x": 0.62,
-      "y": 7.28,
+      "y": 8.69,
       "w": 7.26,
       "z": 3,
       "style": {
@@ -47,7 +53,7 @@
       "page": 11,
       "md": "Act 46 (2024) reduced income taxes for most people in Hawaiʻi, although wealthier taxpayers benefited the most. In addition, these tax cuts cost the state budget $240.3 million in FY25—and these costs would have eventually risen to $1.45 billion annually by 2031.[^cor-forecast]\n\nIn order to",
       "x": 0.62,
-      "y": 7.59,
+      "y": 9,
       "w": 7.26,
       "z": 3,
       "style": {
