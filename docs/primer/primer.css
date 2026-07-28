@@ -171,7 +171,7 @@ a { color: var(--dark); }
 .obligated-panel .legend .lg { font-size: 14px; }
 .obligated-panel .legend .sw { width: 20px; height: 20px; }
 .obligated-note { font-size: 12px; color: #586A6D; margin-top: 10px; }
-.fig2-note { font-size: 12px; color: #586A6D; margin: 8px 0 4px; }
+.fig-note { font-size: 12px; color: #586A6D; margin: 8px 0 4px; }
 
 /* print-only page holding the obligated chart, injected by primer.js when the
    expandable is open at print time (see beforeprint handler) */

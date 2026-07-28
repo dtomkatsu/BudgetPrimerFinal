@@ -976,7 +976,7 @@ pages.append(f"""
           (C.t("categories.legend.capital", esc=True), SAGE_MID),
           (C.t("categories.legend.onetime", esc=True), DARK),
           (C.t("categories.legend.emergency", esc=True), DARKEST)])}
- {C.html("categories.fig2.note", cls="fig2-note")}
+ {C.html("categories.fig2.note", cls="fig-note")}
  <div class="explore noprint">{C.t("categories.explore")}
   <a href="{TRACKER}#/enacted" target="_blank" rel="noopener">{C.t("categories.explore.link").replace(" →", "&nbsp;→")}</a></div>
  {C.html("categories.p1")}
@@ -1028,6 +1028,7 @@ pages.append(f"""
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
+ {C.html("funding.fig4.note", cls="fig-note")}
  {C.html("funding.p1")}
  <div class="cards3">
   {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets")}

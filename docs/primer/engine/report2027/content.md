@@ -272,6 +272,9 @@ Hawaiʻi Budget Means of Finance,
 [[funding.fig4.caption.suffix]]
 ($Billions)[^act175-mof]
 
+[[funding.fig4.note]]
+Note: A few smaller related categories — including "other federal funds" — are currently grouped into "Other Funds"
+
 [[funding.p1]]
 The state's spending primarily falls under three main categories: general funds, special funds and federal funds.
 
