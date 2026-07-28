@@ -131,12 +131,9 @@ a { color: var(--dark); }
   font-size: 20px; line-height: 1.13; margin-bottom: 12px; }
 .card .card-ico { flex: none; width: 40px; height: 40px; }
 .card .card-ico svg { display: block; width: 100%; height: 100%; }
-/* Corner-icon tiles (page 10's tax cards): title keeps its normal size and the
-   glyph is pushed to the top right of the title row. Height is auto so the
-   square SVG is not stretched to the 40px the header variant assumes. */
-.card h4.card-ico-tr { font-size: 15px; line-height: 1.28; margin-bottom: 8px;
-  align-items: flex-start; gap: 10px; }
-.card h4.card-ico-tr .card-ico { margin-left: auto; height: auto; }
+/* Square glyphs (32x32 viewBox) must not be stretched to the 40px box the
+   original 24x24 header icons assumed. */
+.card h4.card-ico-h .card-ico { height: auto; }
 /* A free-standing, editor-movable SVG graphic (render_report.graphic()). The
    wrapper carries the width; the SVG fills it and its viewBox keeps the aspect,
    so a proportional corner-resize just changes the wrapper width. */
@@ -166,9 +163,9 @@ a { color: var(--dark); }
 .callout.onlight { color: var(--ink); }
 
 /* tax-reform panels (page 12) */
-.taxfair-intro { font-size: 14.5px; color: #586A6D; margin: -6px 0 14px; }
-.reforms { display: flex; flex-direction: column; gap: 11px; margin-bottom: 18px; }
-.reform { border-radius: 14px; padding: 13px 18px 4px; }
+.taxfair-intro { font-size: 14.5px; color: #586A6D; margin: -6px 0 10px; }
+.reforms { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.reform { border-radius: 14px; padding: 11px 17px 3px; }
 .reform-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
 .reform-num { flex: none; width: 23px; height: 23px; border-radius: 50%; color: #fff;
               font-family: var(--heading); font-weight: 800; font-size: 13px;
@@ -178,7 +175,7 @@ a { color: var(--dark); }
 .reform-tag { margin-left: auto; flex: none; background: #fff; color: var(--forest);
               border: 1px solid var(--sage-light); border-radius: 999px;
               padding: 3px 11px; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.reform p { font-size: 13.2px; margin: 0 0 9px; }
+.reform p { font-size: 13.2px; margin: 0 0 7px; }
 /* Same contract as .card.light / .callout.onlight — set when the editor
    refills the panel with a colour the luminance test calls dark. */
 .reform.ondark { color: #fff; }
@@ -220,7 +217,10 @@ a { color: var(--dark); }
            flex-wrap: nowrap; margin-inline: -0.34in; }
 .pie-row .pie { flex: 0 0 auto; }
 .pie-cip { width: 5.10in; }
-.pie-mof { width: 5.45in; }
+/* Must stay in step with the width_in passed to pie() in render_report.py:
+   that argument does not size the pie (this rule does) — it converts label_pt
+   into user units, so a mismatch silently mis-sizes the slice labels. */
+.pie-mof { width: 4.85in; }
 .pie-tax { width: 4.80in; }
 .pie-row .legend { flex: 0 1 auto; min-width: 0; gap: 20px; }
 .pie-row .legend .lg { line-height: 1.2; white-space: nowrap; }

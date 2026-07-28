@@ -632,17 +632,24 @@ FEDERAL_FUNDS_ICON = (
 # purchases, which is the point the tile's text makes.
 GET_ICON = (
     '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
-    # a leafy sprig, drawn FIRST so the bag paints over its base and it reads as
-    # sitting IN the bag rather than floating above it
-    '<path d="M16.9 12c-.2-3.2 1.4-5.6 4.2-6.5 0 3.1-1.5 5.3-4.2 6.5zm-1.6 0c-1.9-1.5-2.6-3.6-2-6.1 1.9 1.4 2.6 3.5 2 6.1z"/>'
-    # the bag — the handle is punched out, so the tile colour shows through it
-    # and a recolour carries the whole glyph, as with the two icons above
-    '<path fill-rule="evenodd" d="M6.5 12h19v14.8a3.2 3.2 0 0 1-3.2 3.2H9.7a3.2 3.2 0 0 1-3.2-3.2z'
-    'm5 2.5a4.5 4.5 0 0 0 9 0h-1.6a2.9 2.9 0 0 1-5.8 0z"/>'
-    # banknotes at the upper corners, clear of the bag on both sides
+    # groceries first, so the folded rim below paints over their base and they
+    # read as standing IN the bag. They are spaced apart on purpose: at this
+    # size two same-coloured shapes that touch merge into one blob.
+    # A baguette and a bottle, standing well clear of the bag. Two tall, clearly
+    # food-shaped silhouettes with a wide gap read better at 34px than three
+    # crowded ones, which merge into a single blob.
+    '<rect x="8.4" y="1.4" width="3.4" height="12.4" rx="1.7" transform="rotate(-11 10.1 7.6)"/>'
+    '<path d="M16.8 3h2.6v2.6l1.5 2.2v6h-5.6v-6l1.5-2.2z"/>'
+    # The bag carries a punched-out handle. Every handle-less version of this
+    # read as a bucket or a flowerpot no matter how the rim was drawn — the
+    # handle is the one shape that says "bag" on its own.
+    '<path fill-rule="evenodd" d="M8.2 13.5h15.6a1.6 1.6 0 0 1 1.6 1.6v13.3a1.6 1.6 0 0 1-1.6 1.6H8.2'
+    'a1.6 1.6 0 0 1-1.6-1.6V15.1a1.6 1.6 0 0 1 1.6-1.6zm3.6 3.2a4.2 4.2 0 0 0 8.4 0h-1.7'
+    'a2.5 2.5 0 0 1-5 0z"/>'
+    # banknotes flanking the bag, clear of it on both sides
     '<g fill-rule="evenodd">'
-    '<path transform="rotate(-16 4 7)" d="M.6 4.7h6.8v4.6H.6zm3.4 1.1a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>'
-    '<path transform="rotate(16 28 7)" d="M24.6 4.7h6.8v4.6h-6.8zm3.4 1.1a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>'
+    '<path transform="rotate(-14 3 22)" d="M.4 20.2h5.2v3.6H.4zm2.6.8a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'
+    '<path transform="rotate(14 29 22)" d="M26.4 20.2h5.2v3.6h-5.2zm2.6.8a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>'
     '</g></svg>')
 # IIT — bars stepping up under a rising arrow: higher incomes, higher rate.
 IIT_ICON = (
@@ -655,14 +662,22 @@ IIT_ICON = (
 # TAT — a hotel with a flag: the tile's own example, and the one readers picture.
 TAT_ICON = (
     '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
-    '<path d="M15 2.4h1.9v6H15z"/><path d="m16.9 2.9 6.3 1.9-6.3 1.9z"/>'
-    '<path fill-rule="evenodd" d="M5.6 8.4h20.8V30H5.6zm3.6 3.6v3.6h4.1V12zm9.3 0v3.6h4.1V12z'
-    'm-9.3 7.1v3.6h4.1v-3.6zm9.3 0v3.6h4.1v-3.6zM13.5 26v4h5v-4z"/>'
+    # the hotel, flag and all, ending above the luggage line
+    '<path d="M14.8.9h1.8v3.4h-1.8z"/><path d="m16.6 1.3 6 1.8-6 1.8z"/>'
+    '<path fill-rule="evenodd" d="M6.4 4.3h19.2V19H6.4zm3 3.1v3.2h3.4V7.4zm5.9 0v3.2h3.4V7.4z'
+    'm5.9 0v3.2h3.4V7.4zm-11.8 5.9v3.2h3.4v-3.2zm5.9 0v3.2h3.4v-3.2zm5.9 0v3.2h3.4v-3.2z"/>'
+    # two suitcases at its base — separated by open gaps rather than outlines,
+    # so they stay distinct whatever colour the tile is recoloured to
+    '<path d="M7.5 21.6a2.9 2.9 0 0 1 5.8 0h-1.5a1.4 1.4 0 0 0-2.8 0z"/>'
+    '<path fill-rule="evenodd" d="M4.3 21.9h12.2a1.4 1.4 0 0 1 1.4 1.4v5.3a1.4 1.4 0 0 1-1.4 1.4'
+    'H4.3a1.4 1.4 0 0 1-1.4-1.4v-5.3a1.4 1.4 0 0 1 1.4-1.4zm-1.4 2.7v1.5h15v-1.5z"/>'
+    '<path d="M20.6 23.4a2.5 2.5 0 0 1 5 0h-1.3a1.2 1.2 0 0 0-2.4 0z"/>'
+    '<path fill-rule="evenodd" d="M19.6 23.7h9.5a1.3 1.3 0 0 1 1.3 1.3v3.6a1.3 1.3 0 0 1-1.3 1.3'
+    'h-9.5a1.3 1.3 0 0 1-1.3-1.3V25a1.3 1.3 0 0 1 1.3-1.3zm-1.3 2.4v1.4h12.1v-1.4z"/>'
     '</svg>')
 
 
-def card(title, bullets, bg, light=None, key="", icon="", icon_id="", icon_pos="left",
-         detachable=False, min_h=None):
+def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable=False, min_h=None):
     """One tile. The bullets' key names it: it is already unique per card, and a
     second name for the same thing is a second thing to keep in step.
 
@@ -699,18 +714,10 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id="", icon_pos="
     # out of the header and scale — while a plain icon (no id) stays a fixed
     # header glyph. Without any icon the heading is byte-for-byte what it always
     # was, so every other card is untouched.
-    # icon_pos="right" parks the glyph at the TOP RIGHT of the title row. It is
-    # pushed there by margin-left:auto, NOT by absolute positioning: .card has
-    # to stay unpositioned or it becomes the offset parent, and a dragged icon
-    # would then measure from the tile instead of the page like every other
-    # movable. graphic() writes the width inline, so the size comes from `w`
-    # here rather than from CSS.
     if icon:
-        right = icon_pos == "right"
-        ico = (graphic(icon_id, icon, w=0.34 if right else 0.42, cls="card-ico")
+        ico = (graphic(icon_id, icon, w=0.42, cls="card-ico")
                if icon_id else f'<span class="card-ico">{icon}</span>')
-        h4_inner = (title + ico) if right else (ico + title)
-        h4_cls = "card-ico-h card-ico-tr" if right else "card-ico-h"
+        h4_inner, h4_cls = ico + title, "card-ico-h"
     else:
         h4_inner, h4_cls = title, ""
 
@@ -1129,7 +1136,7 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
- <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=5.45, label_pt=15.5)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=4.85, label_pt=14.6)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
  {C.html("funding.fig4.note", cls="fig-note")}
  {C.html("funding.p1")}
  <div class="cards3">
@@ -1147,9 +1154,9 @@ pages.append(f"""
  {L.spacer("taxes.fig5.caption")}<p class="figcap"{L.attr("taxes.fig5.caption")}><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
  <div class="cards3">
-  {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets", icon=GET_ICON, icon_id="taxes.cards.get.icon", icon_pos="right")}
-  {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets", icon=IIT_ICON, icon_id="taxes.cards.iit.icon", icon_pos="right")}
-  {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets", icon=TAT_ICON, icon_id="taxes.cards.tat.icon", icon_pos="right")}
+  {card(C.t("taxes.cards.get.title"), C.list("taxes.cards.get.bullets"), DARK, key="taxes.cards.get.bullets", icon=GET_ICON, icon_id="taxes.cards.get.icon")}
+  {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets", icon=IIT_ICON, icon_id="taxes.cards.iit.icon")}
+  {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets", icon=TAT_ICON, icon_id="taxes.cards.tat.icon")}
  </div>
 {C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{L.tables_html(10)}{folio(10)}
 </section>""")

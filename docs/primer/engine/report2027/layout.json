@@ -26,27 +26,6 @@
       "x": 5.31,
       "y": 2.04,
       "w": 1.58
-    },
-    "funding.cards.special.icon": {
-      "x": 3.32,
-      "y": 8.74,
-      "w": 0.42,
-      "reserve": 0.42,
-      "scale": 0.84
-    },
-    "funding.cards.general.icon": {
-      "x": 0.81,
-      "y": 8.78,
-      "w": 0.42,
-      "reserve": 0.42,
-      "scale": 0.821
-    },
-    "funding.cards.federal.icon": {
-      "x": 5.82,
-      "y": 8.77,
-      "w": 0.42,
-      "reserve": 0.42,
-      "scale": 0.861
     }
   },
   "shapes": [],
