@@ -50,8 +50,15 @@
   html { height:100%; }
   /* Flex column, so the iframe takes whatever the bars leave. The old fixed
      calc() heights lied whenever a toolbar wrapped to a second line. */
+  /* The canvas colour is the page's own ground, so anything that goes
+     `background:transparent` (the folded page strip) shows the canvas rather
+     than a white seam. */
+  /* position:relative so the folded page strip, which leaves the flex column
+     to float over the canvas, anchors to the window rather than to whatever
+     the initial containing block happens to be. */
   body { margin:0; height:100%; font:13px/1.45 system-ui, sans-serif;
-         display:flex; flex-direction:column; }
+         display:flex; flex-direction:column; position:relative;
+         background:var(--canvas); }
 
   /* -- hover tooltips ------------------------------------------------------ */
   #tt { position:fixed; z-index:10000; background:var(--ink); color:var(--txt);
@@ -85,8 +92,19 @@
      without setting its own height. */
   #zoombar { display:inline-flex; align-items:center; gap:7px; flex:none;
              padding:0 4px; }
-  .zb-end { width:5px; height:5px; border-radius:50%; background:var(--ctl-line);
-            flex:none; }
+  /* The two ends of the track are the step buttons — one click per rung of
+     ZOOM_STEPS, the same ladder ⌘+ / ⌘- walk. They replaced a pair of purely
+     decorative dots: the ends of a zoom track are exactly where a hand
+     reaches, so spending them on ornament was a waste of the only two
+     obvious targets the control has. #bar's button styling is a CHILD
+     selector, so these need their own rules. */
+  .zb-step { flex:none; width:19px; height:19px; padding:0; display:grid;
+            place-items:center; border:1px solid var(--ctl-line); border-radius:50%;
+            background:var(--ctl); color:var(--txt); cursor:pointer;
+            font:15px/1 system-ui; transition:background .12s, border-color .12s; }
+  .zb-step:hover:not(:disabled) { border-color:var(--sage); background:#4B5B68; }
+  .zb-step:disabled { opacity:.4; cursor:default; }
+  .zb-step:focus-visible { outline:2px solid rgba(107,158,120,.55); outline-offset:2px; }
   #zb-range { -webkit-appearance:none; appearance:none; width:96px; height:5px;
              border-radius:99px; background:var(--ctl-line); cursor:pointer;
              flex:none; margin:0; }
@@ -314,9 +332,17 @@
   /* Page strip: Canva's filmstrip across the bottom — each chip is a real
      PREVIEW of its page (the rendered section itself, cloned into a shadow
      root and scaled), numbered, drag to reorder, eye to hide. */
-  #rail { flex:none; display:flex; align-items:flex-start; gap:10px;
+  /* Both states share their padding and their vertical anchor, so the label
+     and the chevron — the only two things present in BOTH — stay on the exact
+     same pixel through a fold. They used to jump 67px across and 40 down as
+     the strip changed size and position, which reads as the control running
+     away from the click that hit it. align-items:flex-end pins everything to
+     the bottom edge, which is the one edge the strip has in common with
+     itself open and closed. */
+  #rail { flex:none; display:flex; align-items:flex-end; gap:10px;
           overflow-x:auto; overflow-y:hidden; background:var(--chrome);
-          border-top:1px solid var(--line); padding:10px 12px; scrollbar-width:thin; }
+          border-top:1px solid var(--line); scrollbar-width:thin;
+          padding:10px 12px 10px calc(var(--rail-w) + 12px); }
   #rail-list { display:flex; align-items:flex-start; gap:2px; }
   /* Insert point between two pages: a hit strip that shows a small + and a
      guide line only on hover, so thirteen of them add no standing noise. It
@@ -338,9 +364,11 @@
   /* The hidden run has no insert points between its chips, so it needs the
      gap the inserts would otherwise have provided. */
   .chip.hidden-pg + .chip.hidden-pg { margin-left:9px; }
+  /* No align-self/padding nudges any more: the strip anchors everything to its
+     bottom edge, which is what makes the two states line up. */
   #rail-head { font:600 10px system-ui; letter-spacing:.7px; text-transform:uppercase;
-          color:var(--dim); flex:none; padding:24px 4px 0 0; align-self:center; }
-  #rail-fold { flex:none; align-self:center; margin-top:24px; width:22px; height:22px;
+          color:var(--dim); flex:none; padding:0 4px 4px 0; }
+  #rail-fold { flex:none; width:22px; height:22px;
           display:grid; place-items:center; padding:0; cursor:pointer;
           border:1px solid var(--ctl-line); border-radius:50%;
           background:var(--ctl); color:var(--txt);
@@ -349,10 +377,29 @@
   /* Folded: the thumbnails and the add-page button go, the label and this
      control stay — so what is left says what bringing it back would give you.
      The chevron turns to point at what the click does. */
-  #rail.folded { padding:6px 12px; }
+  /* Folded, the strip stops being a BAR at all: it leaves the flex column and
+     floats over the canvas, so the document runs to the bottom of the window
+     and only the label and the chevron sit on top of it. Reserving a band of
+     window height to say one word was the single largest piece of standing
+     chrome in the app. pointer-events:none is what makes the rest of the strip
+     genuinely not there — a transparent bar that still swallowed clicks on the
+     page underneath would be worse than the opaque one. The two things that
+     remain re-colour for a light ground; var(--dim) on canvas grey is barely
+     there. */
+  /* left:var(--rail-w), not 0: floating it put the label and chevron on top of
+     the dark tool rail, where a colour chosen for the light canvas is barely
+     legible. Starting where the rail ends keeps both on the ground they were
+     coloured for. */
+  #rail.folded { position:absolute; left:0; right:0; bottom:0; z-index:6;
+          background:transparent; border-top-color:transparent;
+          pointer-events:none; }
   #rail.folded #rail-list, #rail.folded #rail-add { display:none; }
-  #rail.folded #rail-head, #rail.folded #rail-fold { margin-top:0; padding-top:0; }
+  #rail.folded #rail-head, #rail.folded #rail-fold { pointer-events:auto; }
   #rail.folded #rail-fold { transform:rotate(180deg); }
+  #rail.folded #rail-head { color:#5B6E66; }
+  #rail.folded #rail-fold { background:rgba(255,255,255,.92); border-color:#C9D6CD;
+          color:var(--ink); box-shadow:var(--shadow-card); }
+  #rail.folded #rail-fold:hover { background:#fff; border-color:var(--sage); }
   .chip { position:relative; display:flex; flex-direction:column; align-items:center;
           gap:4px; flex:none; width:52px; padding:0; border:0; background:none;
           color:var(--txt); cursor:pointer; font:12px system-ui;
@@ -699,15 +746,18 @@
      whole flex column — the canvas visibly "jumped up" on every select, by
      a full 100px when the strip wrapped. Fixed height, no wrap, horizontal
      scroll if a row runs long: the chrome never moves again. */
-  /* The band the contextual card floats in is the canvas colour, not chrome:
-     the card belongs to what you have selected on the page, so it reads as
-     hovering over the document rather than as a second row of toolbar. */
-  #context { height:46px; flex:none; background:var(--canvas);
-          padding:0 12px 8px; box-sizing:border-box; }
+  /* The contextual card genuinely floats now: #context is an overlay inside
+     #work with no ground of its own, so there is no band — just the card,
+     hovering over the document it describes, and nothing at all when nothing
+     is selected. pointer-events:none on the overlay is what keeps the page
+     underneath clickable everywhere the card itself is not. */
+  #context { position:absolute; z-index:6; top:4px; left:var(--rail-w); right:0;
+          display:flex; justify-content:center; pointer-events:none; }
   #type, #arrange { display:flex; gap:6px; align-items:center;
           justify-content:safe center;   /* Canva's centered strip */
           flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;
-          padding:0 14px; height:100%; box-sizing:border-box;
+          padding:0 14px; height:46px; box-sizing:border-box;
+          pointer-events:auto;   /* the card is the only part that takes clicks */
           background:var(--chrome2); scrollbar-width:thin; }
   #type > *, #arrange > * { flex:none; }
   /* display:flex would silently beat the hidden attribute's display:none */
@@ -999,10 +1049,10 @@
        hidden, because several handlers and tests still address them by
        data-z — this replaces them on screen, not in the wiring. -->
   <span id="zoombar">
-    <span class="zb-end" aria-hidden="true"></span>
+    <button id="zb-out" class="zb-step" aria-label="Zoom out (⌘−)">−</button>
     <input id="zb-range" type="range" min="25" max="200" step="1" value="100"
            aria-label="Zoom" title="Zoom — ⌘+ / ⌘- to step, ⌘0 to fit">
-    <span class="zb-end" aria-hidden="true"></span>
+    <button id="zb-in" class="zb-step" aria-label="Zoom in (⌘+)">+</button>
     <output id="zb-val" for="zb-range">100%</output>
   </span>
   <button id="guides" aria-label="Rulers and snap guides — drag from a ruler to add one">
@@ -1095,6 +1145,12 @@
        selected chart (renderChartPanel). -->
   <div class="pop" id="chartpop" hidden></div>
 </div>
+<div id="work">
+<!-- The contextual controls live INSIDE #work now and float over the canvas.
+     They used to sit in their own 46px band between the top bar and the page —
+     a strip of chrome held open whether or not anything was selected, so the
+     document started 46px lower for no reason most of the time. As an overlay
+     the card appears only with a selection, on top of the page it describes. -->
 <div id="context">
 <div id="type" hidden>
   <span class="ty-key" id="ty-key"></span>
@@ -1301,7 +1357,6 @@
   </div>
 </div>
 </div>
-<div id="work">
   <!-- Left tool rail (Canva-style): the "add an object" tools live here, out of
        the top bar so it fits one line. Same button ids, so every handler and the
        popovers (positioned from the button's own rect) keep working. -->
@@ -1689,14 +1744,12 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
   // block_html()'s line-by-line state machine: '#'/'##' heading, '- '
   // bulleted, 'N.'/'N)' numbered, blank-line-separated paragraphs otherwise.
   const out = [];
-  let para = [], items = [], ordered = false;
+  let para = [], items = [];
   const flushPara = () => { if (para.length) { out.push(`<p>${mdInlineToHtml(para.join(' '))}</p>`); para = []; } };
+  // The whole run at once, indentation intact — that is what lets a sub-item
+  // nest instead of joining its parent as a sibling.
   const flushItems = () => {
-    if (items.length) {
-      const tag = ordered ? 'ol' : 'ul';
-      out.push(`<${tag}>${items.map(i => `<li>${mdInlineToHtml(i)}</li>`).join('')}</${tag}>`);
-      items = [];
-    }
+    if (items.length) { out.push(listsHtml(listItems(items))); items = []; }
   };
   for (const raw of (md || '').split('\n')) {
     const s = raw.trim();
@@ -1707,13 +1760,9 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
       out.push(h[1].length <= 2 ? `<h2>${mdInlineToHtml(h[2])}</h2>` : `<h3>${mdInlineToHtml(h[2])}</h3>`);
       continue;
     }
-    const n = s.match(/^(\d+)[.)]\s+(.*)$/);
-    if (s.startsWith('- ') || n) {
-      const isOrdered = !!n;
-      if (items.length && ordered !== isOrdered) flushItems();
+    if (LIST_ITEM_RE.test(raw.replace(/\t/g, '  '))) {
       flushPara();
-      ordered = isOrdered;
-      items.push(n ? n[2].trim() : s.slice(2).trim());
+      items.push(raw);
       continue;
     }
     flushItems();
@@ -1721,6 +1770,150 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
   }
   flushPara(); flushItems();
   return out.length ? out.join('') : '<p><br></p>';
+}
+
+// --- nested lists -----------------------------------------------------------
+// TWO SPACES PER LEVEL, Markdown's own convention — and, more to the point,
+// exactly what docsync/content.py's _list_items reads back. The editor writes
+// this markdown into content.md and the Python renderer parses it, so the two
+// have to agree character for character; change the unit in one and sub-items
+// silently flatten in the published report while still looking nested here.
+const LIST_ITEM_RE = /^(\s*)(?:-\s+|(\d+)[.)]\s+)(.*)$/;
+
+/** List LINES -> [[depth, ordered, inlineHtml], ...], depth 0 at the margin.
+ *  A line indented more than one level past its predecessor is clamped rather
+ *  than rejected: people indent by 2, 3 or 4 spaces indifferently. */
+function listItems(lines) {
+  const out = [];
+  for (const raw of lines) {
+    const m = raw.replace(/\t/g, '  ').match(LIST_ITEM_RE);
+    if (!m || !raw.trim()) continue;
+    let depth = Math.floor(m[1].length / 2);
+    depth = out.length ? Math.min(depth, out[out.length - 1][0] + 1) : 0;
+    out.push([depth, m[2] != null, mdInlineToHtml(m[3].trim())]);
+  }
+  return out;
+}
+
+/** One <ul>/<ol> and everything nested under it, from items[i:]. Returns the
+ *  markup and the index of the first item that is NOT part of it. */
+function listHtml(items, i, depth) {
+  const ordered = items[i][1];
+  const tag = ordered ? 'ol' : 'ul';
+  const parts = [`<${tag}>`];
+  while (i < items.length) {
+    const [d, o, html] = items[i];
+    if (d < depth) break;
+    if (d > depth) {
+      // A deeper run belongs INSIDE the <li> just written, so reopen it.
+      const [sub, ni] = listHtml(items, i, d);
+      if (parts.length > 1) {
+        parts[parts.length - 1] =
+          parts[parts.length - 1].slice(0, -'</li>'.length) + sub + '</li>';
+      } else {
+        parts.push(`<li>${sub}</li>`);       // indented first item, no parent
+      }
+      i = ni;
+      continue;
+    }
+    if (o !== ordered) break;
+    parts.push(`<li>${html}</li>`);
+    i++;
+  }
+  parts.push(`</${tag}>`);
+  return [parts.join(''), i];
+}
+
+/** Every top-level list in a run — a bulleted run followed by a numbered one
+ *  is two lists, not one with mixed markers. */
+function listsHtml(items) {
+  const out = [];
+  let i = 0;
+  while (i < items.length) {
+    const [html, ni] = listHtml(items, i, items[i][0]);
+    out.push(html); i = ni;
+  }
+  return out.join('');
+}
+
+/** Tab / Shift-Tab on the item the caret is in: nest it under the item above,
+ *  or lift it back out. This is the only way to BUILD nesting — the round-trip
+ *  above preserves whatever nesting exists, but nothing was creating any.
+ *
+ *  The <li> element itself is moved, so its text nodes survive and the caret is
+ *  restored to the exact offset it was at rather than jumping to the end of the
+ *  line, which is what makes Tab usable mid-word.
+ *
+ *  Returns true when it handled the key — including the no-op cases (the first
+ *  item of a list has nothing to nest under, a margin item has nothing to lift
+ *  out of). Swallowing Tab there is deliberate: the alternative is the browser
+ *  moving focus out of the editor and committing the edit. */
+function indentListItem(d, dir) {
+  const sel = d.getSelection();
+  if (!sel || !sel.rangeCount) return false;
+  let n = sel.getRangeAt(0).startContainer;
+  if (n.nodeType === Node.TEXT_NODE) n = n.parentElement;
+  const li = n && n.closest ? n.closest('li') : null;
+  if (!li) return false;
+  const list = li.parentElement;
+  if (!list || (list.tagName !== 'UL' && list.tagName !== 'OL')) return false;
+  const r0 = sel.getRangeAt(0);
+  const at = { n: r0.startContainer, o: r0.startOffset };
+
+  if (dir > 0) {
+    const prev = li.previousElementSibling;
+    if (!prev) return true;                       // nothing above to nest under
+    // Reuse the sub-list already under that item, so two Tabs on consecutive
+    // items produce one sub-list of two rather than two of one.
+    let sub = [...prev.children].find(c => c.tagName === list.tagName);
+    if (!sub) { sub = d.createElement(list.tagName.toLowerCase()); prev.appendChild(sub); }
+    sub.appendChild(li);
+  } else {
+    const parentLi = list.parentElement && list.parentElement.closest('li');
+    if (!parentLi) return true;                   // already at the margin
+    // The items BELOW this one stay one level in — they now belong to it, the
+    // way every outliner does it. Without this they would silently jump a
+    // level too, which is not what "outdent this item" asked for.
+    const after = [];
+    for (let s = li.nextElementSibling; s; s = s.nextElementSibling) after.push(s);
+    parentLi.parentElement.insertBefore(li, parentLi.nextSibling);
+    if (after.length) {
+      const sub = d.createElement(list.tagName.toLowerCase());
+      after.forEach(x => sub.appendChild(x));
+      li.appendChild(sub);
+    }
+    if (!list.children.length) list.remove();
+  }
+  try {
+    const r = d.createRange();
+    r.setStart(at.n, at.o);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  } catch (e) { /* the offset outlived its node — leave the caret alone */ }
+  return true;
+}
+
+/** A <ul>/<ol> back to markdown, two spaces per level — the inverse of
+ *  listItems/listsHtml. A nested list is a CHILD of its parent <li>, so the
+ *  item's own text is everything in that <li> except the sub-lists. */
+function listToMd(el, depth) {
+  const lines = [];
+  const ordered = el.tagName === 'OL';
+  let n = 0;
+  [...el.children].forEach(li => {
+    if (li.tagName !== 'LI') return;
+    n++;
+    const subs = [...li.children].filter(c => c.tagName === 'UL' || c.tagName === 'OL');
+    const own = li.cloneNode(true);
+    [...own.children].forEach(c => {
+      if (c.tagName === 'UL' || c.tagName === 'OL') c.remove();
+    });
+    lines.push('  '.repeat(depth) + (ordered ? `${n}. ` : '- ')
+               + nodeToMdInline(own).trim());
+    subs.forEach(s => lines.push(listToMd(s, depth + 1)));
+  });
+  return lines.join('\n');
 }
 
 function nodeToMdInline(node) {
@@ -1750,10 +1943,12 @@ function htmlToMd(root, { allowLists = false, inline = false } = {}) {
   const parts = [];
   for (const el of blocks) {
     const tag = el.tagName;
-    if (allowLists && tag === 'UL') {
-      parts.push([...el.children].map(li => `- ${nodeToMdInline(li).trim()}`).join('\n'));
-    } else if (allowLists && tag === 'OL') {
-      parts.push([...el.children].map((li, i) => `${i + 1}. ${nodeToMdInline(li).trim()}`).join('\n'));
+    if (allowLists && (tag === 'UL' || tag === 'OL')) {
+      // listToMd walks nested sub-lists too. The old one-level map() read a
+      // sub-list through nodeToMdInline, which flattened it into its parent
+      // item's text — so indenting a bullet survived until the next save and
+      // then silently un-indented itself.
+      parts.push(listToMd(el, 0));
     } else if (allowLists && tag === 'H2') {
       parts.push(`## ${nodeToMdInline(el).trim()}`);
     } else if (allowLists && tag === 'H3') {
@@ -5107,6 +5302,12 @@ function editBox(d, el) {
   host.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
+    // Same bullet indent/outdent the slot editor has — a text box takes lists
+    // too, and Tab meaning two different things in the two editors would be
+    // worse than it not working in either.
+    if (e.key === 'Tab' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (indentListItem(d, e.shiftKey ? -1 : 1)) { e.preventDefault(); e.stopPropagation(); }
+    }
   });
   host.addEventListener('contextmenu', e => {
     e.preventDefault();
@@ -5648,9 +5849,11 @@ function selectClick(d, id, e) {
 
 function arrangeBar(d) {
   const n = selIds.size;
-  // The strip is ALWAYS present (disabled when nothing is selected) and the
-  // row it lives in is fixed-height — appearing and disappearing with the
-  // selection is what made the canvas jump on every click.
+  // ALWAYS present. It is an overlay now, so the original reason (a
+  // fixed-height row, and a card that came and went made the canvas jump) no
+  // longer applies — but the strip is not only about the selection: Insert
+  // Image is enabled with nothing selected and places into the page in view.
+  // Hiding the card on an empty selection takes that control away entirely.
   $('arrange').hidden = false;
   // One toolbar in the row at a time — but WHICH one depends on what is
   // selected. A single TEXT BOX is text: one click should put the full type
@@ -6477,6 +6680,11 @@ async function railThumbs() {
     if (!sec) { frame.classList.add('empty'); if (host.shadowRoot) host.shadowRoot.replaceChildren(); return; }
     const pw = sec.offsetWidth, ph = sec.offsetHeight;
     if (!pw || !ph) { frame.classList.add('empty'); return; }
+    // A FOLDED strip hides #rail-list, so every host measures 0 wide and the
+    // scale below comes out as scale(0) — a preview built to nothing, baked in
+    // and never recomputed, which is why unfolding showed twelve blank chips.
+    // Leave whatever is there and let setRailFolded rebuild on the way open.
+    if (!host.clientWidth) return;
     frame.classList.remove('empty');
     const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
     if (sheet) sr.adoptedStyleSheets = [sheet];
@@ -6707,9 +6915,63 @@ let curScale = 1;   // the scale in effect; changed ONLY by an explicit zoom/Fit
 // the scale you set and only its centring/height re-fit to the new pane — making
 // the window bigger no longer makes the VIEW bigger; that is what zoom and Fit
 // are for.
+// How much of the canvas top the floating #context card covers: its 4px offset
+// (it sits just clear of the top bar, not welded to it) plus its 46px height,
+// plus a little air.
+const CTX_CLEAR = 58;
+
+/** What the MIDDLE of the pane is currently looking at, in canvas coordinates
+ *  (iframe CSS pixels, i.e. before the scale transform).
+ *
+ *  Zoom used to keep the canvas's top-LEFT corner fixed — the stage's scroll
+ *  position was simply left alone while the canvas grew — so zooming in walked
+ *  the page off to the right and down, away from whatever you were looking at.
+ *  The two axes live in different scrollers: horizontally the STAGE scrolls the
+ *  scaled canvas, vertically the report scrolls inside the IFRAME (whose
+ *  viewport is clientHeight/s tall, so its visible span changes with the scale
+ *  too). Both have to be put back, or zoom fixes one axis and skews the other.
+ *
+ *  Horizontally the anchor is an offset from the FRAME'S CENTRE, not an
+ *  absolute canvas x: the frame's width changes with the scale (see applyZoom),
+ *  and the page re-centres itself inside it, so an absolute x means a different
+ *  place on the page before and after. An offset from the centre does not.
+ *
+ *  Null when there is no document yet — the first paint has no centre to keep. */
+function viewCentre() {
+  const out = $('out'), stage = $('stage');
+  const d = out && out.contentDocument;
+  const sc = d && d.scrollingElement;
+  if (!sc) return null;
+  const s = curScale;
+  const ml = parseFloat(out.style.marginLeft) || 0;
+  const frameW = parseFloat(out.style.width) || VIEW_W;
+  return {
+    dx: (stage.scrollLeft + stage.clientWidth / 2 - ml) / s - frameW / 2,
+    y: sc.scrollTop + (stage.clientHeight / s) / 2,
+  };
+}
+
+/** Put that same canvas point back under the middle of the pane at scale `s`.
+ *  Read AFTER applyZoom has written the new width and margin. Both scrollers
+ *  clamp their own values, so an edge just stays at the edge. */
+function restoreCentre(c, s) {
+  const out = $('out'), stage = $('stage');
+  const d = out && out.contentDocument;
+  const sc = d && d.scrollingElement;
+  if (!sc) return;
+  const ml = parseFloat(out.style.marginLeft) || 0;
+  const frameW = parseFloat(out.style.width) || VIEW_W;
+  stage.scrollLeft = (frameW / 2 + c.dx) * s + ml - stage.clientWidth / 2;
+  sc.scrollTop = c.y - (stage.clientHeight / s) / 2;
+}
+
 function applyZoom(recompute = true) {
   const out = $('out'), stage = $('stage');
   const availW = stage.clientWidth;
+  // What the middle of the pane is looking at RIGHT NOW, in canvas
+  // coordinates, so the new scale can be arranged around the same point.
+  const before = viewCentre();
+  const wasScale = curScale;
   if (recompute) {
     let s = zoomChoice === 'fit' || !zoomChoice
       ? Math.min(availW / VIEW_W, zoomChoice === 'fit' ? 10 : 1)
@@ -6719,21 +6981,49 @@ function applyZoom(recompute = true) {
     curScale = Math.max(0.25, Math.min(2, Math.floor(s * 1000) / 1000));
   }
   const s = curScale;
-  out.style.width = VIEW_W + 'px';
+  // The iframe's LAYOUT width, which is not the same thing as the design width.
+  // VIEW_W is the width the report is composed against — never go below it, or
+  // a narrow-enough pane fires the report's own mobile media queries. But a
+  // pane WIDER than that left the canvas floating in the middle of the stage,
+  // and the report scrolls INSIDE the iframe, so its scrollbar rides the
+  // canvas's right edge: on a wide window that put the scrollbar hundreds of
+  // pixels in from the side of the screen. Growing the frame to fill the pane
+  // puts it back on the window edge where a scrollbar belongs. The page itself
+  // stays centred — it centres on its own `margin: auto` within whatever
+  // viewport it is given, so a wider one just means more ground either side.
+  // EVEN, always. The page centres itself in the frame, so an odd frame around
+  // an even-width sheet lands it on a half pixel — and every hit test at the
+  // edge of anything on that page then rounds the wrong way. (An odd 1213
+  // put the sheet at x=96.5 and a right-click on a table's own left border
+  // started answering with the generic layer menu.) One pixel of width is a
+  // cheap price for whole-pixel geometry.
+  const frameW = Math.max(VIEW_W, 2 * Math.floor(availW / s / 2));
+  out.style.width = frameW + 'px';
   out.style.height = (stage.clientHeight / s) + 'px';
   out.style.transform = s === 1 ? '' : `scale(${s})`;
   // Centre a canvas narrower than the pane; let a wider one scroll.
-  const slack = availW - VIEW_W * s;
+  const slack = availW - frameW * s;
   out.style.marginLeft = slack > 0 ? (slack / 2) + 'px' : '0';
-  // The transform is VISUAL only — the iframe's layout box stays VIEW_W wide
-  // and clientHeight/s tall, so any pane narrower than VIEW_W kept a phantom
+  // The transform is VISUAL only — the iframe's layout box stays frameW wide
+  // and clientHeight/s tall, so any pane narrower than the frame kept a phantom
   // horizontal scroll range (scrollWidth 1200 in a 1094px pane) even though
   // nothing visible overflowed. Latent while the stage was usually wider than
   // 1200; the left panel docking in made narrow panes the normal case. Pull
   // the layout edges back to the visual size, both axes, both directions
   // (s>1 extends them, keeping a zoomed canvas's real scroll range).
-  out.style.marginRight = (VIEW_W * (s - 1)) + 'px';
+  out.style.marginRight = (frameW * (s - 1)) + 'px';
   out.style.marginBottom = ((stage.clientHeight / s) * (s - 1)) + 'px';
+  if (before && s !== wasScale) restoreCentre(before, s);
+  // Keep whatever gets scrolled into view clear of the floating #context card.
+  // The report scrolls inside the IFRAME, so the padding belongs to the
+  // iframe's own document — and in iframe pixels, which the transform makes
+  // 1/s of the card's on-screen height. Without it, scrollIntoView parks the
+  // object you just navigated to under the one thing covering the canvas, and
+  // the editor's own toolbar starts eating clicks the way the report's sticky
+  // toolbar used to (see charts.spec.js).
+  const d = out.contentDocument;
+  if (d && d.documentElement)
+    d.documentElement.style.scrollPaddingTop = Math.round(CTX_CLEAR / s) + 'px';
   syncZoomBar();
 }
 
@@ -6750,6 +7040,11 @@ function syncZoomBar() {
   // the handle when something else changed the scale.
   if (r) r.value = String(pct);
   if (v) v.textContent = pct + '%';
+  // Grey the step button that has nowhere left to go, so the ladder's ends are
+  // visible rather than something you discover by clicking and nothing moving.
+  const out = $('zb-out'), inn = $('zb-in');
+  if (out) out.disabled = curScale <= ZOOM_STEPS[0] + 0.001;
+  if (inn) inn.disabled = curScale >= ZOOM_STEPS[ZOOM_STEPS.length - 1] - 0.001;
 }
 
 /** Set the zoom and tell everything that cares. '' means auto (fit the width,
@@ -6788,6 +7083,26 @@ $('zb-val').addEventListener('dblclick', () => setZoom(''));
 // between 25% and 33% is not.
 const ZOOM_STEPS = [0.25, 0.33, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 
+/** One rung of that ladder, in either direction. Factored out of zoomKey so the
+ *  − / + buttons at the ends of the zoom track and the keystrokes step
+ *  identically — two controls that disagreed about what "one step" means would
+ *  be worse than having only one of them. Returns false at either end. */
+function stepZoom(dir) {
+  const cur = curScale;
+  const next = dir > 0
+    ? ZOOM_STEPS.find(z => z > cur + 0.001)
+    : [...ZOOM_STEPS].reverse().find(z => z < cur - 0.001);
+  if (next == null) {
+    $('stat').textContent = 'zoom ' + Math.round(cur * 100) + '% — '
+      + (dir > 0 ? 'as far in as it goes' : 'as far out as it goes');
+    return false;
+  }
+  setZoom(String(next));
+  return true;
+}
+$('zb-out').addEventListener('click', () => stepZoom(-1));
+$('zb-in').addEventListener('click', () => stepZoom(1));
+
 /** ⌘+ / ⌘- / ⌘0, from either document.
  *
  *  Without this, those keys were Chrome's OWN page zoom — which scales the
@@ -6814,16 +7129,7 @@ function zoomKey(e) {
   if (!isIn && !isOut && !isReset) return false;
   if (isReset) { setZoom(''); return false; }    // false: let Chrome reset too
   e.preventDefault();
-  const cur = curScale;
-  const next = isIn
-    ? ZOOM_STEPS.find(z => z > cur + 0.001)
-    : [...ZOOM_STEPS].reverse().find(z => z < cur - 0.001);
-  if (next == null) {                            // already at an end of the ladder
-    $('stat').textContent = 'zoom ' + Math.round(cur * 100) + '% — '
-      + (isIn ? 'as far in as it goes' : 'as far out as it goes');
-    return true;
-  }
-  setZoom(String(next));
+  stepZoom(isIn ? 1 : -1);                       // says so itself at either end
   return true;
 }
 
@@ -7689,6 +7995,9 @@ function setRailFolded(folded) {
     folded ? 'Show the page thumbnails' : 'Collapse the page strip');
   $('rail-fold').setAttribute('aria-expanded', String(!folded));
   try { localStorage.setItem(RAIL_FOLD_KEY(), folded ? '1' : ''); } catch (e) {}
+  // Any render that happened while the strip was folded skipped its previews —
+  // there was nothing to measure them against. Build them now that there is.
+  if (!folded) railThumbs();
 }
 $('rail-fold').addEventListener('click', () => {
   setRailFolded(!$('rail').classList.contains('folded'));
@@ -9812,17 +10121,30 @@ function wire() {
        page corner instead of the box. */
     .ds-handles { position:absolute; z-index:9997; pointer-events:none;
                   outline:1px solid rgba(107,158,120,.5); }
+    /* Every handle sits ENTIRELY outside the content box, flush against it.
+       Straddling the edge (the old -4px on a 7-9px grip) painted 3-5px of
+       white-and-green over the first and last characters of every line, which
+       is clutter exactly where the user is trying to read the text they are
+       editing. Each offset is therefore MINUS THE HANDLE'S OWN SIZE — the
+       grip's inner edge lands exactly on the box edge, so it covers the
+       selection outline and nothing else.
+       Do not open a gap here. Flush is load-bearing: the box's own boundary
+       pixel belongs to the handle, and a right-click there routes through the
+       page section back to the selected element. Move the grip even 1px out
+       and that pixel falls through to whatever element's box happens to
+       overlap the edge — a figure caption beside a table, say — which then
+       answers with the generic layer menu instead of the table's own. */
     .ds-h { position:absolute; pointer-events:auto; background:#fff;
             border:1.5px solid #6B9E78; border-radius:2px; }
     .ds-h:hover { background:#6B9E78; }
-    .ds-h-e { right:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
-    .ds-h-w { left:-4px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
-    .ds-h-s { bottom:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
-    .ds-h-n { top:-4px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
-    .ds-h-se { right:-4px; bottom:-4px; width:9px; height:9px; cursor:nwse-resize; }
-    .ds-h-nw { left:-4px; top:-4px; width:9px; height:9px; cursor:nwse-resize; }
-    .ds-h-ne { right:-4px; top:-4px; width:9px; height:9px; cursor:nesw-resize; }
-    .ds-h-sw { left:-4px; bottom:-4px; width:9px; height:9px; cursor:nesw-resize; }
+    .ds-h-e { right:-7px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
+    .ds-h-w { left:-7px; top:50%; width:7px; height:18px; margin-top:-9px; cursor:ew-resize; }
+    .ds-h-s { bottom:-7px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
+    .ds-h-n { top:-7px; left:50%; width:18px; height:7px; margin-left:-9px; cursor:ns-resize; }
+    .ds-h-se { right:-9px; bottom:-9px; width:9px; height:9px; cursor:nwse-resize; }
+    .ds-h-nw { left:-9px; top:-9px; width:9px; height:9px; cursor:nwse-resize; }
+    .ds-h-ne { right:-9px; top:-9px; width:9px; height:9px; cursor:nesw-resize; }
+    .ds-h-sw { left:-9px; bottom:-9px; width:9px; height:9px; cursor:nesw-resize; }
     /* the rotate grip hangs above the box on a short stem — only for elements
        with no corner to rotate from (a width-only prose slot, a table) */
     .ds-rot { top:-20px; left:50%; width:11px; height:11px; margin-left:-6px;
@@ -9832,25 +10154,29 @@ function wire() {
     /* Corner rotate ring: invisible, larger than its resize square and
        centred on the same point, so the square (painted after, same stacking
        context) claims the shared centre and only the ring outside it rotates —
-       exactly the affordance Canva's own corner handles give. */
+       exactly the affordance Canva's own corner handles give. The square's
+       centre is no longer the box corner but 4.5px diagonally outside it
+       (half of the 9px square, which now sits flush outside), so each ring's
+       offset is 4.5px further out than half its own 22px width — keep the two
+       in step or the ring stops surrounding the square. */
     .ds-rot-corner { width:22px; height:22px; background:transparent; border:0; }
     .ds-rot-corner:hover { background:transparent; }   /* stays invisible — the cursor is the affordance */
-    .ds-rot-se { right:-11px; bottom:-11px; cursor:url('data:image/svg+xml;utf8,\
+    .ds-rot-se { right:-15.5px; bottom:-15.5px; cursor:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
 <path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
 stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
 stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
-    .ds-rot-sw { left:-11px; bottom:-11px; cursor:url('data:image/svg+xml;utf8,\
+    .ds-rot-sw { left:-15.5px; bottom:-15.5px; cursor:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
 <path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
 stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
 stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
-    .ds-rot-ne { right:-11px; top:-11px; cursor:url('data:image/svg+xml;utf8,\
+    .ds-rot-ne { right:-15.5px; top:-15.5px; cursor:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
 <path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
 stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
 stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
-    .ds-rot-nw { left:-11px; top:-11px; cursor:url('data:image/svg+xml;utf8,\
+    .ds-rot-nw { left:-15.5px; top:-15.5px; cursor:url('data:image/svg+xml;utf8,\
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">\
 <path d="M4 10a6 6 0 1 1 1.8 4.3" fill="none" stroke="%232F3E46" stroke-width="2" \
 stroke-linecap="round"/><path d="M4 10 2 7.3M4 10 1 11" fill="none" stroke="%232F3E46" \
@@ -10433,6 +10759,12 @@ function edit(d, key) {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && inline) { e.preventDefault(); finish(true); }
     if (allowMd && e.key === 'k' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); link(d, host); }
+    // Tab indents the bullet the caret is in. stopPropagation as well as
+    // preventDefault: the document-level handler treats Tab as chrome
+    // navigation, and letting it through moved focus out and committed the edit.
+    if (allowLists && e.key === 'Tab' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (indentListItem(d, e.shiftKey ? -1 : 1)) { e.preventDefault(); e.stopPropagation(); }
+    }
   });
   // Right-click in the prose to drop an endnote at the caret — the intuitive
   // path, without hunting for the Cite button. (Inline single-line fields — a

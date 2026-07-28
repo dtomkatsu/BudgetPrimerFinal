@@ -97,16 +97,106 @@ def md_inline(s: str) -> str:
     return s
 
 
+# Two spaces per level, Markdown's own convention. A line indented further
+# than one level past its predecessor is clamped rather than rejected: hand-typed
+# lists indent by 2, 3 or 4 spaces indifferently, and refusing to render is a
+# worse answer than reading the obvious intent.
+_ITEM_RE = re.compile(r"^(\s*)(?:-\s+|(\d+)[.)]\s+)(.*)$")
+
+
+def _list_items(text: str) -> list[tuple[int, bool, str]]:
+    """List lines -> [(depth, ordered, inline_html)], depth 0 at the margin.
+
+    Non-item lines are ignored, which is what every caller wants: bullets()
+    rejects a block with no items at all, and block_html() has already peeled
+    off headings and prose before it gets here.
+    """
+    out: list[tuple[int, bool, str]] = []
+    for line in text.splitlines():
+        m = _ITEM_RE.match(line.replace("\t", "  "))
+        if not m or not line.strip():
+            continue
+        depth = len(m.group(1)) // 2
+        if out:
+            depth = min(depth, out[-1][0] + 1)   # no skipping a level
+        else:
+            depth = 0                            # the first item is the margin
+        out.append((depth, m.group(2) is not None, md_inline(m.group(3).strip())))
+    return out
+
+
+def _list_html(items: list[tuple[int, bool, str]], i: int, depth: int,
+               top: bool) -> tuple[str, int]:
+    """One <ul>/<ol> and everything nested under it, from items[i:].
+
+    Returns the markup and the index of the first item that does NOT belong to
+    it — either a shallower item, or one of the other kind at the same depth,
+    which starts a sibling list. Only the outermost list carries the report's
+    class: a nested list inherits its look from the CSS rather than repeating
+    a class that means "this is an overflow slot's list".
+    """
+    ordered = items[i][1]
+    tag = "ol" if ordered else "ul"
+    cls = ""
+    if top:
+        cls = ' class="extra-numbers"' if ordered else ' class="extra-bullets"'
+    parts = [f"<{tag}{cls}>"]
+    while i < len(items):
+        d, o, html = items[i]
+        if d < depth:
+            break
+        if d > depth:
+            # A deeper run belongs INSIDE the <li> just written, so reopen it.
+            sub, i = _list_html(items, i, d, False)
+            if len(parts) > 1:
+                parts[-1] = parts[-1][: -len("</li>")] + sub + "</li>"
+            else:
+                parts.append(f"<li>{sub}</li>")   # indented first item, no parent
+            continue
+        if o != ordered:
+            break
+        parts.append(f"<li>{html}</li>")
+        i += 1
+    parts.append(f"</{tag}>")
+    return "".join(parts), i
+
+
+def _lists_html(items: list[tuple[int, bool, str]], top: bool = True) -> str:
+    """Every top-level list in a run — a bulleted run followed by a numbered
+    one is two lists, not one with mixed markers."""
+    out, i = [], 0
+    while i < len(items):
+        html, i = _list_html(items, i, items[i][0], top)
+        out.append(html)
+    return "".join(out)
+
+
 def bullets(block: str) -> list[str]:
-    """'- item' lines -> [html, ...]. Errors if the block isn't a list.
+    """'- item' lines -> [html, ...], one string per TOP-LEVEL item. Errors if
+    the block isn't a list.
+
+    An item with sub-items carries them as a nested <ul>/<ol> appended to its
+    own html, so a caller that wraps each string in <li>…</li> gets correct
+    nesting without knowing anything about it.
 
     In EDIT mode an empty list is a placeholder instead of an error: cutting
     the last bullet to move it elsewhere is a normal mid-move state, and
     crashing the live preview over it blocked exactly that move. Publishing
     still refuses, so a list left empty doesn't quietly ship a hollow card.
     """
-    items = [md_inline(l.strip()[2:].strip())
-             for l in _unhead(block).splitlines() if l.strip().startswith("- ")]
+    parsed = _list_items(_unhead(block))
+    items: list[str] = []
+    i = 0
+    while i < len(parsed):
+        html = parsed[i][2]
+        i += 1
+        start = i
+        while i < len(parsed) and parsed[i][0] > 0:
+            i += 1
+        if i > start:
+            sub = [(d - 1, o, h) for d, o, h in parsed[start:i]]
+            html += _lists_html(sub, top=False)
+        items.append(html)
     if not items:
         if os.environ.get("DOCSYNC_EDIT"):
             return ['<i style="opacity:.55">empty list — add a "- " bullet '
@@ -131,8 +221,7 @@ def block_html(block: str) -> str:
     report's existing styles."""
     out: list[str] = []
     para: list[str] = []
-    items: list[str] = []
-    ordered = False
+    items: list[str] = []          # the raw list LINES of the current run
 
     def flush_para():
         if para:
@@ -140,10 +229,11 @@ def block_html(block: str) -> str:
             para.clear()
 
     def flush_items():
+        # Parsed as one run, so leading indentation survives to _list_items and
+        # a sub-item nests instead of joining its parent as a sibling. Mixed
+        # bulleted/numbered runs split into sibling lists in _lists_html.
         if items:
-            tag, cls = ("ol", "extra-numbers") if ordered else ("ul", "extra-bullets")
-            out.append(f'<{tag} class="{cls}">'
-                       + "".join(f"<li>{i}</li>" for i in items) + f"</{tag}>")
+            out.append(_lists_html(_list_items("\n".join(items))))
             items.clear()
 
     for line in block.splitlines():
@@ -159,16 +249,10 @@ def block_html(block: str) -> str:
                        else f'<h3 class="sub2">{txt}</h3>')
             continue
         # A list item is either "- text" (bulleted) or "N. text" / "N) text"
-        # (numbered). Switching between the two starts a fresh list.
-        mo = re.match(r"^(\d+)[.)]\s+(.*)$", s)
-        if s.startswith("- ") or mo:
-            is_ordered = bool(mo)
-            content = mo.group(2).strip() if mo else s[2:].strip()
+        # (numbered), at any indentation.
+        if _ITEM_RE.match(line.replace("\t", "  ")):
             flush_para()
-            if items and ordered != is_ordered:
-                flush_items()
-            ordered = is_ordered
-            items.append(md_inline(content))
+            items.append(line)
             continue
         flush_items()
         para.append(s)
