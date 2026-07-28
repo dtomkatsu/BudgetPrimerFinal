@@ -341,6 +341,8 @@ Tax credits can lower or even eliminate the taxes that people or businesses owe 
 [[whopays.callout.p2]]
 In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Renewable Energy Technologies Tax Credit and Film/Media Production Credit.
 
+We should be investing more money in tax credits and other means of helping working families. The Child Tax Credit is a federal program that lifted 2.9 million children out of poverty in 2021. In addition, we should be looking at programs such as RxKids.
+
 [[endnotes.h1]]
 # ENDNOTES
 
