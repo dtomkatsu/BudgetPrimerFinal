@@ -336,7 +336,7 @@ In Hawaiʻi, low- and middle-income families spend a larger share of their alrea
 ## Making Hawaiʻi's Tax System Fairer
 
 [[taxfair.intro]]
-Three changes would raise revenue from those best able to pay—without affecting working families.
+These three policies would raise revenue from those best able to pay more, without affecting working families.
 
 [[taxfair.items.capgains.title]]
 ### Tax Investment Profits Like Paychecks
