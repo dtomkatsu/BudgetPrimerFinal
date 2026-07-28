@@ -45,14 +45,15 @@
     {
       "id": "t2",
       "page": 11,
-      "md": "Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25, and they would have eventually risen to $1.45 billion annually by 2031.[^cor-forecast]",
+      "md": "Act 46 (2024) reduced income taxes for most people. However, these tax cuts cost the state budget $240.3 million in FY25, and they would have eventually risen to $1.45 billion annually by 2031.[^cor-forecast] Furthermore,",
       "x": 0.62,
       "y": 7.67,
-      "w": 7.260061571311895,
+      "w": 7.26,
       "z": 3,
       "style": {
         "size": 14.5
-      }
+      },
+      "h": 0.43
     }
   ],
   "tables": [],
