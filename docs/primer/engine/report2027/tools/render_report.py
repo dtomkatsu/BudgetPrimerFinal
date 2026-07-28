@@ -601,6 +601,30 @@ WARNING_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd
 CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
 
+# Page 9's fund tiles, in the same icon-left-of-title lockup page 8 uses.
+# GENERAL — a stack of coins: the main pot, spendable on almost anything.
+# SPECIAL — a padlock: money that may only be spent on one stated purpose.
+# FEDERAL — a columned government building: where the grants come from.
+GENERAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<ellipse cx="16" cy="8.2" rx="10" ry="3.9"/>'
+    '<path d="M6 11.6c2.2 1.9 6 2.9 10 2.9s7.8-1 10-2.9V15c0 2.2-4.5 3.9-10 3.9S6 17.2 6 15z"/>'
+    '<path d="M6 18.8c2.2 1.9 6 2.9 10 2.9s7.8-1 10-2.9v3.4c0 2.2-4.5 3.9-10 3.9S6 24.4 6 22.2z"/>'
+    '</svg>')
+SPECIAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<path d="M9.2 14V9.4a6.8 6.8 0 0 1 13.6 0V14h-3.5V9.4a3.3 3.3 0 0 0-6.6 0V14z"/>'
+    '<path fill-rule="evenodd" d="M7 15.4h18a1.8 1.8 0 0 1 1.8 1.8v11a1.8 1.8 0 0 1-1.8 1.8H7'
+    'a1.8 1.8 0 0 1-1.8-1.8v-11A1.8 1.8 0 0 1 7 15.4zm9 3.6a2.3 2.3 0 0 0-1.2 4.3l-.7 3.5h3.8'
+    'l-.7-3.5A2.3 2.3 0 0 0 16 19z"/>'
+    '</svg>')
+FEDERAL_FUNDS_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<path d="M16 2.4 30 9.8V12H2V9.8z"/>'
+    '<path d="M5 13.8h3.6v11.4H5zm6.6 0h3.6v11.4h-3.6zm6.6 0H21v11.4h-2.8zm6.6 0H27v11.4h-3.6z"/>'
+    '<path d="M3 26.6h26v3.2H3z"/>'
+    '</svg>')
+
 # Page 10's tax tiles. Same rules as the two above: currentColor so they flip
 # with the tile's text colour, and every interior detail is an even-odd CUTOUT
 # (never a white shape) so a recoloured tile shows through the holes.
@@ -623,8 +647,10 @@ GET_ICON = (
 # IIT — bars stepping up under a rising arrow: higher incomes, higher rate.
 IIT_ICON = (
     '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
-    '<path d="M3 21.5h6.4V30H3zm9.8-5.2h6.4V30h-6.4zm9.8-5.2H29V30h-6.4z"/>'
-    '<path d="m4.2 15.4 18.4-8.2-1.3-2.9 8.2 1.2-2.7 7.8-1.3-2.9-19 8.5z"/>'
+    # Bars stop at y=14 and the arrow runs above them: an arrow crossing the
+    # tallest bar reads as a notch cut out of it, not as a trend line.
+    '<path d="M3 24h6.4V30H3zm9.8-5h6.4v11h-6.4zm9.8-5H29v16h-6.4z"/>'
+    '<path d="M3.5 12.8 24.5 3.8l1.1 2.5-21 9zM29.6 3 23.8 2.2l2.4 5.6z"/>'
     '</svg>')
 # TAT — a hotel with a flag: the tile's own example, and the one readers picture.
 TAT_ICON = (
@@ -1107,9 +1133,9 @@ pages.append(f"""
  {C.html("funding.fig4.note", cls="fig-note")}
  {C.html("funding.p1")}
  <div class="cards3">
-  {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets")}
-  {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets")}
-  {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets")}
+  {card(C.t("funding.cards.general.title"), C.list("funding.cards.general.bullets"), DARK, key="funding.cards.general.bullets", icon=GENERAL_FUNDS_ICON, icon_id="funding.cards.general.icon")}
+  {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets", icon=SPECIAL_FUNDS_ICON, icon_id="funding.cards.special.icon")}
+  {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets", icon=FEDERAL_FUNDS_ICON, icon_id="funding.cards.federal.icon")}
  </div>
 {C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{L.tables_html(9)}{folio(9)}
 </section>""")

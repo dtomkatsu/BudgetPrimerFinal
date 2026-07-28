@@ -111,7 +111,10 @@ a { color: var(--dark); }
 .branch-card li { font-weight: 600; margin: 3px 0; }
 
 /* cards */
-.cards3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin: 14px 0 18px; }
+/* Bottom margin is deliberately tighter than the top: this row is the last
+   thing on pages 9 and 10, so the space below it only eats into the clearance
+   above the folio. Page 9 is the tightest page in the report. */
+.cards3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin: 14px 0 10px; }
 .cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 10px 0 18px; }
 /* page 8's One-Time/Emergency cards run tall (6 bullets); tighten their internal
    spacing so the section clears the page folio when printed. Scoped to .cards2,
