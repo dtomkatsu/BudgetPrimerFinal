@@ -367,7 +367,7 @@ House Bill 2049 would have shifted the tax to marginal rates—cutting it for mo
 +$85M a year
 
 [[taxfair.items.loopholes.body]]
-Multinational corporations are able to shift profits they earn in Hawaiʻi to other jurisdictions to avoid being taxed on them.[^corp-loopholes] Worldwide Combined Reporting would close that loophole, holding large corporations to the same standard as small businesses and working families already meet.[^itep-wcr]
+Multinational corporations are able to shift profits they earn in Hawaiʻi to other jurisdictions to avoid being taxed on them.[^corp-loopholes] Worldwide Combined Reporting would close that loophole, holding large corporations to the same standard as small businesses and working families.[^itep-wcr]
 
 [[whopays.callout.title]]
 ### Tax Credits
@@ -378,7 +378,7 @@ Tax credits can lower or even eliminate the taxes that people or businesses owe 
 [[whopays.callout.p2]]
 In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Renewable Energy Technologies Tax Credit and Film/Media Production Credit.
 
-We should be investing more money in tax credits and other means of helping working families. The Child Tax Credit is a federal program that lifted 2.9 million children out of poverty in 2021. In addition, we should be looking at programs such as RxKids.
+The state should be investing more money in tax credits and other means of lifting up working families. It could, for example, create a state-level Child Tax Credit (CTC). At the national level, the CTC brought 2.9 million children out of poverty in 2021. Other options include programs like RxKids—which has successfully delivered millions of dollars in no-strings-attached benefits to mothers with infants throughout Michigan.
 
 [[endnotes.h1]]
 # ENDNOTES
