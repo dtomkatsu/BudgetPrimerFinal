@@ -353,7 +353,7 @@ Over 70 percent of capital gains flow to households making more than $400,000. T
 ### Modernize the Conveyance Tax
 
 [[taxfair.items.conveyance.tag]]
-Up to $300M a year
+$300M a year
 
 [[taxfair.items.conveyance.body]]
 Paid when a property changes hands, the conveyance tax is one of the few tools that [captures revenue from Hawaiʻi's real estate market](https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax). Its rates have not moved since 2009, while out-of-state buyers have kept bidding prices up.
@@ -364,7 +364,7 @@ Paid when a property changes hands, the conveyance tax is one of the few tools t
 ### Close Corporate Loopholes
 
 [[taxfair.items.loopholes.tag]]
-Fairness for local business
++$85 million a year
 
 [[taxfair.items.loopholes.body]]
 Multinational corporations [shift profits earned here to other jurisdictions](https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations) to avoid being taxed on them. Worldwide Combined Reporting would close that gap, holding large corporations to the standard small businesses and working families already meet.
