@@ -8,7 +8,8 @@ Organized into:
   - TestRegexPatterns: Individual regex patterns against known inputs
   - TestExcerptParsing: Parser behavior on small document fragments
   - TestEdgeCases: Specific bug-fix regressions (blank FY columns, grant lines, etc.)
-  - TestFullDocumentRegression: Baseline counts against the real HB 300 document
+  - TestFullDocumentRegression: Baseline counts against HB 300 CD1 (Act 250)
+  - TestHB1800Regression: Baselines against HB1800 CD1 (Act 175, the enacted bill)
   - TestPipeline: End-to-end flow from parse → process → transform → veto
 """
 import pytest
@@ -706,3 +707,91 @@ class TestGrantsInAid:
         df = process_budget_data(full_parse, fiscal_year=2026, section='Grants in Aid')
         assert len(df) == 69
         assert df['amount'].sum() == 10_000_000
+
+
+# ---------------------------------------------------------------------------
+# HB1800 CD1 — the ENACTED bill (Act 175), and the harder parse
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def hb1800_parse():
+    """Parse HB1800 CD1 once. Its biennium is FY2026/FY2027, not the default."""
+    return FastBudgetParser(fy1=2026, fy2=2027).parse(str(HB1800_CD1_PATH))
+
+
+@pytest.mark.skipif(not HB1800_CD1_PATH.exists(), reason="HB1800 CD1 not present")
+class TestHB1800Regression:
+    """Baselines for HB1800 CD1 — Act 175, the supplemental that AMENDS Act 250
+    and is what the live site actually publishes.
+
+    HB 300 CD 1 (TestFullDocumentRegression above) is a plain two-column bill.
+    This one is the three-column supplemental format: ~316 bare continuation
+    lines carry the amended figure BELOW the original, and reading the original
+    instead is silent and plausible — LBR902 would come out $364K high, DEF118
+    would lose $17.65M of capital. Those are the cases pinned below.
+
+    The two totals match docs/js/departments_act175_fy{2026,2027}.json to the
+    dollar; if this drifts, the published department figures drift with it.
+    """
+
+    def test_totals_match_published_datasets(self, hb1800_parse):
+        core = [a for a in hb1800_parse
+                if a.section != BudgetSection.GRANTS_IN_AID]
+        by_fy = {fy: sum(a.amount for a in core if a.fiscal_year == fy)
+                 for fy in (2026, 2027)}
+        assert by_fy[2026] == pytest.approx(23_151_851_288, rel=1e-9)
+        assert by_fy[2027] == pytest.approx(24_849_034_838, rel=1e-9)
+
+    def test_shape(self, hb1800_parse):
+        core = [a for a in hb1800_parse
+                if a.section != BudgetSection.GRANTS_IN_AID]
+        sec = Counter(a.section.value for a in core)
+        fy = Counter(a.fiscal_year for a in core)
+        assert len(core) >= 1396
+        assert sec["Operating"] >= 1146
+        assert sec["Capital Improvement"] >= 250
+        assert fy[2026] >= 687
+        assert fy[2027] >= 709
+        assert all(a.fund_type != FundType.UNKNOWN for a in core)
+
+    def _fy27(self, allocs, program_id):
+        return {(a.section.value, a.fund_type.value): a.amount
+                for a in allocs
+                if a.program_id == program_id and a.fiscal_year == 2027}
+
+    def test_amended_value_wins_over_original(self, hb1800_parse):
+        """The continuation line supersedes the column above it."""
+        # LBR902: general funds 2,912,790 -> 2,748,713, special 200,000 -> 0.
+        lbr = self._fy27(hb1800_parse, "LBR902")
+        assert lbr[("Operating", "A")] == 2_748_713
+        assert lbr[("Operating", "B")] == 0
+        assert lbr[("Operating", "P")] == 6_000_000      # unamended, unchanged
+
+        # LNR906: special funds 3,475,827 -> 19,028,077, a 5x swing.
+        assert self._fy27(hb1800_parse, "LNR906")[("Operating", "B")] == 19_028_077
+
+    def test_capital_amended_from_zero(self, hb1800_parse):
+        """0C amended upward is a real appropriation, not an absent one."""
+        # LNR407 capital: FY27 column reads 0C, continuation raises it to $5M.
+        assert self._fy27(hb1800_parse, "LNR407")[("Capital Improvement", "C")] == 5_000_000
+        # LNR906 capital: FY1 blank, FY2 26,000,000C — belongs to FY2027 only.
+        assert self._fy27(hb1800_parse, "LNR906")[("Capital Improvement", "C")] == 26_000_000
+
+    def test_expending_agency_is_taken_as_printed(self, hb1800_parse):
+        """DEF118's capital is printed against AGS, and is kept that way.
+
+        The bill's department column is the EXPENDING agency, which is not
+        always the program's own department. Rewriting it to match the program
+        prefix would move $17.65M out of AGS.
+        """
+        rows = [a for a in hb1800_parse
+                if a.program_id == "DEF118" and a.fiscal_year == 2027
+                and a.section == BudgetSection.CAPITAL_IMPROVEMENT]
+        assert {a.department_code for a in rows} == {"AGS"}
+        assert sum(a.amount for a in rows) == 17_650_000
+
+    def test_section_14_projects_present(self, hb1800_parse):
+        p = FastBudgetParser(fy1=2026, fy2=2027)
+        p.parse(str(HB1800_CD1_PATH))
+        assert len(p.projects) >= 632
