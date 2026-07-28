@@ -273,12 +273,6 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .endnotes { columns: 2; column-gap: .45in; padding-left: 20px; font-size: 13px; }
 .endnotes li { margin-bottom: 12px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
-/* Page 14's continuation heading — lighter than a section h1, since this is
-   the same section carrying on, not a new one starting. */
-.endnotes-cont { font-family: var(--heading); font-weight: 700; color: var(--sage);
-                 font-size: 22px; margin-bottom: 18px; padding-bottom: 10px;
-                 border-bottom: 1.5px solid var(--sage-light); }
-.endnotes-cont span { font-weight: 400; color: #8AA39E; }
 
 /* toolbar + tooltip (screen only) */
 /* Sits at the top of the document and scrolls away with the content — NOT

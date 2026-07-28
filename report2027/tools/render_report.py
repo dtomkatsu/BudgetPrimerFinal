@@ -1223,7 +1223,6 @@ by_id[13] = f"""
 </section>"""
 by_id[14] = f"""
 <section class="page"{L.fill_attr("page.14")}>
- <h2 class="endnotes-cont">Endnotes <span>continued</span></h2>
  <ol class="endnotes" {ENDNOTES_START_B}>{ENDNOTES_SLOT_B}</ol>
  {L.layer(14)}{L.text_boxes(14)}{L.tables_html(14)}{folio(14)}
 </section>"""
