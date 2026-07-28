@@ -342,10 +342,10 @@ Three changes would raise revenue from those best able to pay—without affectin
 ### Tax Investment Profits Like Paychecks
 
 [[taxfair.items.capgains.tag]]
-+$85M a year
++$130M a year
 
 [[taxfair.items.capgains.body]]
-Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. Earn your money by working and you pay more than someone who earns it by owning—a glaring loophole.[^capgains-loophole]
+Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. As a result, someone who earns their income working a regular job pays the same tax rate—or potentially more—than an investor who profits off their stocks.[^capgains-loophole]
 
 Over 70 percent of capital gains flow to households making more than $400,000. Taxing them as ordinary income would raise at least $85 million a year, 88 percent of it from the top 1 percent.
 
