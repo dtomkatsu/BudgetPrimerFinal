@@ -125,6 +125,9 @@
      button and every handler stay live, so bringing it back is deleting this
      one line — not rebuilding a feature. */
   #add { display:none !important; }
+  /* Layers, hidden for now — same treatment as the two above: the button and
+     its popover stay wired, so bringing it back is deleting this one line. */
+  #layers { display:none !important; }
 
   /* The File menu's own picker surfaces. Doc sizes read as a gallery of
      shapes rather than a list of names: the whole point of choosing one is
@@ -157,12 +160,20 @@
      convincing: it reads as a seam, where a shadow reads as one thing sitting
      in front of another. overflow-y stays auto for a rail taller than the
      window; overflow-x visible would defeat the rounding, so it is clipped. */
-  #leftrail { flex:none; width:var(--rail-w); box-sizing:border-box; background:var(--chrome2);
+  /* The rail ENDS after its last button. It used to stretch the full height of
+     the window as a solid column, most of it holding nothing — a wall down the
+     side of the document. Now it is only as tall as the tools it carries, and
+     it floats over the canvas rather than taking a slice out of it, so the
+     report runs underneath. */
+  #leftrail { position:absolute; left:0; top:0; z-index:2;
+              width:var(--rail-w); box-sizing:border-box; background:var(--chrome2);
               display:flex; flex-direction:column;
-              align-items:stretch; gap:4px; padding:9px 5px; overflow-y:auto;
-              overflow-x:hidden; position:relative; z-index:2;
+              align-items:stretch; gap:4px; padding:9px 5px; overflow:visible;
               border-radius:0 var(--r-edge) var(--r-edge) 0;
               box-shadow:var(--shadow-edge); }
+  /* Below the buttons there is NOTHING — not a veil, not a tint. The rail is
+     the tools and stops there; the canvas owns the rest of that column, which
+     is what frees the bottom-left corner for the page strip's own control. */
   #leftrail button { display:flex; flex-direction:column; align-items:center; gap:5px;
                      background:none; border:0; color:var(--txt); cursor:pointer;
                      padding:9px 2px 8px; border-radius:var(--r-card);
@@ -321,7 +332,7 @@
      grey canvas beside it — the rounding read as a rendering fault rather than
      a shape. */
   #work { flex:1; min-height:0; display:flex; position:relative;
-          background:var(--canvas); }
+          background:var(--canvas); overflow:hidden; }
   /* The canvas: the report renders in a fixed desktop-width viewport and the
      whole iframe is SCALED to the pane, never reflowed. A narrow pane would
      otherwise fire the report's mobile media queries, and a drag would record
@@ -342,7 +353,7 @@
   #rail { flex:none; display:flex; align-items:flex-end; gap:10px;
           overflow-x:auto; overflow-y:hidden; background:var(--chrome);
           border-top:1px solid var(--line); scrollbar-width:thin;
-          padding:10px 12px 10px calc(var(--rail-w) + 12px); }
+          padding:10px 12px; }
   #rail-list { display:flex; align-items:flex-start; gap:2px; }
   /* Insert point between two pages: a hit strip that shows a small + and a
      guide line only on hover, so thirteen of them add no standing noise. It
@@ -386,10 +397,11 @@
      page underneath would be worse than the opaque one. The two things that
      remain re-colour for a light ground; var(--dim) on canvas grey is barely
      there. */
-  /* left:var(--rail-w), not 0: floating it put the label and chevron on top of
-     the dark tool rail, where a colour chosen for the light canvas is barely
-     legible. Starting where the rail ends keeps both on the ground they were
-     coloured for. */
+  /* Flush to the window's left edge, in both states. It used to start where
+     the tool rail ended, because the rail ran the full height and the label
+     would have landed on dark ground. The rail stops after its last button
+     now, so the corner is free and the control that opens the strip belongs
+     in it. */
   #rail.folded { position:absolute; left:0; right:0; bottom:0; z-index:6;
           background:transparent; border-top-color:transparent;
           pointer-events:none; }
@@ -1327,14 +1339,10 @@
   <span class="ar-lab" id="ar-hint"></span>
     </div>
   </div>
-  <span class="ty-sep"></span>
-  <!-- Insert is not selection-contextual, but it lives here so "put a photo
-       on the page" is answered at a glance, like Group is. Always enabled. -->
-  <button id="ar-img" aria-label="Insert image — uploads into the project's assets and places it on this page">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
-      stroke-width="1.4" stroke-linecap="round"><rect x="1.5" y="2" width="11" height="10"
-      rx="1.5"/><circle cx="5" cy="5.6" r="1.1" fill="currentColor" stroke="none"/>
-      <path d="M2.5 10.5l3-3 2.2 2.2 2-2 1.8 1.8"/></svg></button>
+  <!-- Insert image MOVED to the left tool rail (#leftrail). It was the one
+       control here that had nothing to do with the selection, and this strip
+       now hides itself when nothing is selected — which would have taken
+       "put a photo on the page" with it. -->
   <span class="ty-sep"></span>
   <button id="ar-dup" aria-label="Duplicate (⌘D) — a designed element's copy becomes a floating text box">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
@@ -1374,6 +1382,12 @@
       <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
         stroke-width="1.4" stroke-linejoin="round"><path d="M7 1.6l1.7 3.4 3.8.55-2.75 2.68.65 3.77L7 10.22 3.6 12l.65-3.77L1.5 5.55l3.8-.55z"/></svg>
       Icon</button>
+    <button id="ar-img" aria-label="Insert image — uploads into the project's assets and places it on this page">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+        stroke-width="1.4" stroke-linecap="round"><rect x="1.5" y="2" width="11" height="10"
+        rx="1.5"/><circle cx="5" cy="5.6" r="1.1" fill="currentColor" stroke="none"/>
+        <path d="M2.5 10.5l3-3 2.2 2.2 2-2 1.8 1.8"/></svg>
+      Image</button>
     <button id="table" aria-label="Add a table to the page in view">
       <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor"
         stroke-width="1.4"><rect x="1.5" y="2" width="11" height="10" rx="1"/>
@@ -2155,6 +2169,23 @@ function saveRange(d, host) {
   return host.contains(r.commonAncestorContainer) ? r.cloneRange() : null;
 }
 
+/** Put a range saved by saveRange() back as the live selection.
+ *
+ *  Opening a menu does not move the caret, but CLICKING a row in it can: the
+ *  menu prevents mousedown precisely so the editor keeps focus, and this is
+ *  the belt to that braces — bold/italic/link act on a selection, and acting
+ *  on a lost one silently does nothing. Returns false when the range no
+ *  longer belongs to the host (a re-render replaced it). */
+function restoreRange(d, range) {
+  if (!range) return false;
+  try {
+    const sel = d.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    return true;
+  } catch (e) { return false; }
+}
+
 /** Insert `node` at `range`'s START (or the end of `host` if the range was
  *  lost to a modal) and collapse the selection just after it. Never deletes
  *  a selection — a citation/image dropped in belongs AT the caret, not in
@@ -2298,16 +2329,39 @@ async function link(d, host) {
  *  sequential prompts — a dismissed field no longer throws away the id and
  *  text already typed, and the duplicate-id check is inline. Shared by the Cite
  *  panel's "+ new source" and the right-click "Add endnote here". */
+/** The house citation style, assembled from the parts rather than typed as
+ *  one blob. Every existing endnote in content.md reads
+ *
+ *      [id]: Author, "Title," Publisher, detail, date. — url
+ *
+ *  with everything but the title optional, so asking for one free-text
+ *  "citation text" left it to the writer to remember the commas, the quotes
+ *  and the order — and a citation that does not match its neighbours is
+ *  exactly the kind of thing nobody notices until it is printed. */
+function citationText({ author, title, publisher, detail, date }) {
+  const t = (title || '').trim().replace(/[.,]+$/, '');
+  const tail = [publisher, detail, date].map(x => (x || '').trim())
+    .filter(Boolean).join(', ');
+  const head = (author || '').trim() ? (author.trim().replace(/,$/, '') + ', ') : '';
+  // The comma lives INSIDE the quotes when something follows, the full stop
+  // when nothing does — the convention the existing entries already follow.
+  return tail ? `${head}"${t}," ${tail}.` : `${head}"${t}."`;
+}
+
 async function newSourceAt(d, host, range) {
   const r = await dsForm('New endnote', [
     { name: 'id', label: 'Short id (e.g. act99, itep-whopays)', type: 'text', required: true },
-    { name: 'text', label: 'Citation text, e.g. "Act 99," 2026.', type: 'text', required: true },
+    { name: 'title', label: 'Title', type: 'text', required: true },
+    { name: 'author', label: 'Author (optional, e.g. Kawafuchi, Kurt)', type: 'text' },
+    { name: 'publisher', label: 'Publisher / organisation (optional)', type: 'text' },
+    { name: 'detail', label: 'Detail (optional, e.g. p. 5, Part II)', type: 'text' },
+    { name: 'date', label: 'Date (optional, e.g. December 16, 2024)', type: 'text' },
     { name: 'url', label: 'Source URL', type: 'text', value: 'https://', required: true },
   ], { okLabel: 'Add & cite', validate: vals => {
     const id = vals.id.trim();
     if (!id) return 'A short id is required.';
     if (sourceIds().includes(id)) return `[${id}] already exists — pick it from the list.`;
-    if (!vals.text.trim()) return 'Citation text is required.';
+    if (!vals.title.trim()) return 'A title is required.';
     if (!vals.url.trim()) return 'A source URL is required.';
     // The sources line format ends "— url" with no spaces in the url; a space
     // here would be refused at the write (see writeSlot's gate) AFTER the
@@ -2317,9 +2371,29 @@ async function newSourceAt(d, host, range) {
   } });
   if (!r) return null;
   const id = r.id.trim();
-  addSource(id, r.text.trim(), r.url.trim());
+  addSource(id, citationText(r), r.url.trim());
   insertNodeAt(d, host, range, makeFnChip(d, id));
   return id;
+}
+
+/** id -> the number the reader actually sees.
+ *
+ *  Not readable from the DOM: the rendered <a class="fn"> carries the NUMBER
+ *  in data-fn, not the source id, so there is nothing there to join on.
+ *  Numbering is by order of first [^id] reference in content.md — the rule
+ *  content.py's Footnotes applies — so this reads it off the same source of
+ *  truth in the same order. A source that is never cited has no number and
+ *  gets a dash; that is worth showing, because an uncited endnote is usually
+ *  a mistake. */
+function endnoteNumbers() {
+  const map = new Map();
+  // The [[sources]] block declares "[id]: …" — never "[^id]" — so scanning the
+  // whole document cannot pick a declaration up as a reference.
+  let n = 0;
+  for (const m of (source || '').matchAll(/\[\^([^\]\s]+)\]/g)) {
+    if (!map.has(m[1])) map.set(m[1], String(++n));
+  }
+  return map;
 }
 
 function makeFnChip(d, id) {
@@ -2352,21 +2426,111 @@ function endnoteMenu(d, host, e) {
     b.addEventListener('click', async () => { closeMenu(d); await fn(); });
     m.appendChild(b);
   };
-  item('Add endnote here…', () => newSourceAt(d, host, range));
-  // Most-recent first, so a source you just added is right at the top; capped
-  // so the menu stays short. The Cite button holds the full list.
-  const ids = sourceIds().slice().reverse();
-  if (ids.length) {
-    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
-    const h2 = d.createElement('div'); h2.className = 'ds-menu-head'; h2.textContent = 'Cite existing'; m.appendChild(h2);
-    ids.slice(0, 12).forEach(id =>
-      item(`[${id}] ${(sourceText(id) || '').slice(0, 34)}`, async () => insertNodeAt(d, host, range, makeFnChip(d, id))));
-  }
+  buildEndnoteRows(d, m, host, range);
   d.body.appendChild(m);
   // Nudge back on-screen if it would spill off the right/bottom edge.
   const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
   if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
   if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
+
+/** Right-clicking prose. It used to open the endnote menu and nothing else,
+ *  which made "insert a citation" the only thing the report's own text could
+ *  be asked to do. The formatting the toolbar carries belongs here too — a
+ *  context menu should answer "what can I do to this?" for whatever is under
+ *  the pointer, the same way the page's and an element's do. */
+function textMenu(d, host, e) {
+  closeMenu(d);
+  const range = saveRange(d, host);
+  const m = d.createElement('div');
+  m.className = 'ds-menu';
+  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
+  m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
+
+  const item = (label, fn, on = true) => {
+    const b = d.createElement('button');
+    b.textContent = label;
+    b.disabled = !on;
+    b.addEventListener('click', async () => { closeMenu(d); await fn(); });
+    m.appendChild(b);
+    return b;
+  };
+  const sep = () => {
+    const x = d.createElement('div'); x.className = 'ds-menu-sep'; m.appendChild(x);
+  };
+  const sel = d.getSelection();
+  const hasRange = !!(sel && sel.rangeCount && !sel.getRangeAt(0).collapsed);
+
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head'; head.textContent = 'Text'; m.appendChild(head);
+  // Bold/italic act on a SELECTION, so they say so by greying out when the
+  // caret is just sitting there rather than silently doing nothing.
+  item('Bold', () => { restoreRange(d, range); toggleMark(d, host, 'B'); },
+       hasRange && !boldItalicBlocked(d, 'bold'));
+  item('Italic', () => { restoreRange(d, range); toggleMark(d, host, 'I'); },
+       hasRange && !boldItalicBlocked(d, 'italic'));
+  item('Link…', () => { restoreRange(d, range); return link(d, host); }, hasRange);
+  sep();
+  buildEndnoteRows(d, m, host, range);
+  d.body.appendChild(m);
+  const r = m.getBoundingClientRect(), vw = d.defaultView.innerWidth, vh = d.defaultView.innerHeight;
+  if (r.right > vw) m.style.left = (e.clientX + d.defaultView.scrollX - r.width) + 'px';
+  if (r.bottom > vh) m.style.top = (e.clientY + d.defaultView.scrollY - r.height) + 'px';
+}
+
+/** The endnote rows: one for a brand-new source, one that opens the list of
+ *  sources already in the document. Shared by the endnote menu and the text
+ *  menu, so right-clicking prose offers the same thing wherever it is done. */
+function buildEndnoteRows(d, m, host, range) {
+  const item = (label, fn) => {
+    const b = d.createElement('button');
+    b.textContent = label;
+    b.addEventListener('click', async () => { closeMenu(d); await fn(); });
+    m.appendChild(b);
+    return b;
+  };
+  item('New endnote…', () => newSourceAt(d, host, range));
+  // In READING order — 1, 2, 3 — not the order the sources block happens to
+  // declare them in. The number is how the list is scanned, so a column of
+  // numbers that jumps 3, 16, 15, 14 is a list you have to search rather than
+  // read. Never-cited sources have no number and settle at the end.
+  const nums = endnoteNumbers();
+  const ids = sourceIds().slice().sort((a2, b2) => {
+    const na = +(nums.get(a2) || Infinity), nb = +(nums.get(b2) || Infinity);
+    return na - nb;
+  });
+  submenuRow(d, m, 'Existing endnote ▸', sub => {
+    if (!ids.length) {
+      const none = d.createElement('div');
+      none.className = 'ds-menu-head';
+      none.textContent = 'no endnotes yet';
+      sub.appendChild(none);
+      return;
+    }
+    sub.classList.add('ds-notes');
+    ids.forEach(id => {
+      const b = d.createElement('button');
+      b.className = 'ds-note';
+      const n = d.createElement('span');
+      n.className = 'ds-note-n';
+      // The number the reader sees is the only handle most people have on an
+      // endnote — "[cor-forecast]" is an internal id nobody chose.
+      n.textContent = nums.get(id) || '–';
+      const t = d.createElement('span');
+      t.className = 'ds-note-t';
+      // Verbatim. Stripping the opening quote left the one after the title
+      // dangling — `Act 99," State of…` — which reads as damage.
+      t.textContent = (sourceText(id) || '').trim() || id;
+      b.append(n, t);
+      b.title = `[${id}] ${sourceText(id) || ''}`;
+      b.addEventListener('click', async () => {
+        closeMenu(d);
+        await insertNodeAt(d, host, range, makeFnChip(d, id));
+      });
+      sub.appendChild(b);
+    });
+  }).disabled = false;
 }
 
 /** Toggle a bulleted/numbered list on the block-level elements ($host's
@@ -2830,6 +2994,52 @@ function closeMenu(d) {
   d.querySelectorAll('.ds-menu').forEach(m => m.remove());
 }
 
+/** A row that opens a NESTED menu beside itself. Used where a single action
+ *  hides a choice behind it — "Insert endnote" is really "a new one" or "one
+ *  you already have", and flattening both into the parent buried the common
+ *  case under a list of citations.
+ *
+ *  The child is a plain .ds-menu appended to <body>, so it escapes the
+ *  parent's own overflow and its position is worked out from the row's rect
+ *  the same way every other menu here is placed. Only one child is open at a
+ *  time; closing the parent takes it with it. */
+function submenuRow(d, parent, label, build) {
+  const b = d.createElement('button');
+  b.className = 'ds-sub';
+  b.textContent = label;
+  let child = null;
+  const shut = () => { if (child) { child.remove(); child = null; } };
+  const open = () => {
+    parent.querySelectorAll('.ds-submenu').forEach(x => x.remove());
+    shut();
+    child = d.createElement('div');
+    child.className = 'ds-menu ds-submenu';
+    child.addEventListener('mousedown', ev => ev.preventDefault());
+    build(child);
+    d.body.appendChild(child);
+    const r = b.getBoundingClientRect();
+    const sx = d.defaultView.scrollX, sy = d.defaultView.scrollY;
+    child.style.left = (r.right + sx - 2) + 'px';
+    child.style.top = (r.top + sy - 4) + 'px';
+    // Flip to the parent's left / lift it up rather than run off the viewport.
+    const cr = child.getBoundingClientRect();
+    if (cr.right > d.defaultView.innerWidth) {
+      child.style.left = (r.left + sx - cr.width + 2) + 'px';
+    }
+    if (cr.bottom > d.defaultView.innerHeight) {
+      child.style.top = Math.max(0, r.bottom + sy - cr.height) + 'px';
+    }
+  };
+  b.addEventListener('mouseenter', open);
+  b.addEventListener('click', ev => { ev.stopPropagation(); open(); });
+  // Leaving the row only closes the child if the pointer did not go INTO it.
+  parent.addEventListener('mouseleave', () => setTimeout(() => {
+    if (child && !child.matches(':hover') && !b.matches(':hover')) shut();
+  }, 160));
+  parent.appendChild(b);
+  return b;
+}
+
 function layerMenu(d, el, e) {
   closeMenu(d);
   const id = el.dataset.shape || el.dataset.el || el.dataset.fill;
@@ -3226,6 +3436,16 @@ function contextify(d) {
 // shapes) get corners too.
 const MIN_IN = 0.4;
 
+/** A designed heading slot: the renderer's own <h1>/<h2>/<h3>, as against a
+ *  paragraph, a table or a graphic. */
+function isHeadingEl(el) {
+  if (!el || !el.dataset || !el.dataset.el) return false;
+  if (/^H[1-6]$/.test(el.tagName)) return true;
+  // A heading wrapped for positioning: one heading child and nothing else.
+  const kids = [...el.children].filter(c => c.tagName !== 'BR');
+  return kids.length === 1 && /^H[1-6]$/.test(kids[0].tagName);
+}
+
 function handlesFor(el) {
   // Shapes and text boxes resize from every edge and corner. Graphics scale
   // uniformly, so their handles are the four corners (each drives the one
@@ -3240,6 +3460,13 @@ function handlesFor(el) {
   }
   if (el.classList.contains('ds-textbox')) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   if (isGraphic(el)) return ['ne', 'nw', 'se', 'sw'];
+  // A designed section HEADING is a text box that happens to have been placed
+  // by the renderer: same drag, same type controls, same handles. Its height
+  // is written as a floor (see hmin below and layout.py), so dragging the
+  // bottom edge sets how much room it takes without ever clipping the words —
+  // which is the reason prose is width-only, and the reason a heading, being
+  // a line or two rather than a paragraph, does not need to be.
+  if (isHeadingEl(el)) return ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   // A table is width-driven — its rows set the height — so it takes the two
   // horizontal edges, like a designed prose slot.
   return ['e', 'w'];
@@ -3462,7 +3689,17 @@ function startResize(d, el, e0, dir) {
       } else {
         const p = layout.positions[id];
         p.w = +size.w.toFixed(2);
-        if (dir.includes('s') || dir.includes('n')) p.h = +size.h.toFixed(2);
+        if (dir.includes('s') || dir.includes('n')) {
+          // Text grows; images do not. For a heading the dragged height is a
+          // minimum (hmin), so longer wording pushes the box open instead of
+          // being cut off by a number someone dragged weeks earlier.
+          const text = isHeadingEl(el);
+          if (text && size.h <= MIN_IN + 0.01) { delete p.h; delete p.hmin; }
+          else {
+            p.h = +size.h.toFixed(2);
+            if (text) p.hmin = true; else delete p.hmin;
+          }
+        }
       }
     } else {
       markDirty();
@@ -4071,8 +4308,16 @@ function deafenStickyChrome(d) {
   d.querySelectorAll('body > *:not(script):not(style)').forEach(el => {
     if (el.id === 'ds-edit-css' || (el.className || '').toString().startsWith('ds-')) return;
     if (el.tagName === 'SECTION' && el.classList.contains('page')) return;
-    const pos = d.defaultView.getComputedStyle(el).position;
-    if (pos === 'sticky' || pos === 'fixed') el.style.pointerEvents = 'none';
+    const cs = d.defaultView.getComputedStyle(el);
+    // Only what is ON SCREEN when this runs. A report's transient popovers are
+    // fixed-position children of <body> too, but they are hidden until the
+    // pointer summons them — they are not standing chrome, they ARE a response
+    // to the pointer, and they have to be able to receive it. The primer's
+    // footnote card (#fnpop) was being deafened here, so the link inside it
+    // could never be reached: it read as "the popover closes before I can get
+    // to it" when in truth the pointer was passing straight through.
+    if (el.hidden || cs.display === 'none' || cs.visibility === 'hidden') return;
+    if (cs.position === 'sticky' || cs.position === 'fixed') el.style.pointerEvents = 'none';
   });
 }
 
@@ -5312,7 +5557,7 @@ function editBox(d, el) {
   host.addEventListener('contextmenu', e => {
     e.preventDefault();
     e.stopPropagation();
-    endnoteMenu(d, host, e);
+    textMenu(d, host, e);
   });
 }
 
@@ -5849,12 +6094,14 @@ function selectClick(d, id, e) {
 
 function arrangeBar(d) {
   const n = selIds.size;
-  // ALWAYS present. It is an overlay now, so the original reason (a
-  // fixed-height row, and a card that came and went made the canvas jump) no
-  // longer applies — but the strip is not only about the selection: Insert
-  // Image is enabled with nothing selected and places into the page in view.
-  // Hiding the card on an empty selection takes that control away entirely.
-  $('arrange').hidden = false;
+  // Nothing selected, nothing to arrange, no card. It used to be always
+  // present and greyed out, first because it sat in a fixed-height row (a card
+  // that came and went made the canvas jump) and then because Insert Image
+  // lived here and works with no selection. Neither holds now: it floats, so
+  // showing it costs the document no space and hiding it moves nothing, and
+  // Insert Image has moved to the left tool rail. What was left was a card of
+  // dead controls parked on top of the page.
+  $('arrange').hidden = !n;
   // One toolbar in the row at a time — but WHICH one depends on what is
   // selected. A single TEXT BOX is text: one click should put the full type
   // controls (font, size, colour…) in hand, Canva's own behaviour. Everything
@@ -7995,6 +8242,13 @@ function setRailFolded(folded) {
     folded ? 'Show the page thumbnails' : 'Collapse the page strip');
   $('rail-fold').setAttribute('aria-expanded', String(!folded));
   try { localStorage.setItem(RAIL_FOLD_KEY(), folded ? '1' : ''); } catch (e) {}
+  // Resize the canvas in the SAME task the strip changed size in. #work grows
+  // the instant the class lands, but the iframe only follows when the stage's
+  // ResizeObserver fires — a frame later — so for that frame the vacated strip
+  // was bare canvas with no report painted into it. That is the white flash on
+  // collapse. Reading stage.clientHeight here forces the layout we need and
+  // applyZoom writes the matching iframe height before anything is painted.
+  applyZoom(false);
   // Any render that happened while the strip was folded skipped its previews —
   // there was nothing to measure them against. Build them now that there is.
   if (!folded) railThumbs();
@@ -10187,6 +10441,21 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
                min-width:190px; font:12px system-ui; max-height:84vh; overflow-y:auto; }
     .ds-menu-head { font:10px ui-monospace,monospace; color:#8B9A90; padding:4px 8px 6px; }
     .ds-menu-sep { height:1px; background:#E4EBE6; margin:4px 0; }
+    /* A row that opens a nested menu, and the nested menu itself. Above its
+       parent's z-index, or the child would paint behind the menu it came from. */
+    .ds-menu button.ds-sub { display:flex; justify-content:space-between; align-items:center; }
+    .ds-submenu { z-index:100000; }
+    /* The endnote list: a fixed-width, scrolling column of numbered rows.
+       Unbounded, a document's worth of citations ran off the screen and the
+       ones at the bottom could not be reached at all. */
+    .ds-notes { width:330px; max-height:min(52vh, 420px); overflow-y:auto; }
+    .ds-menu button.ds-note { display:flex; align-items:baseline; gap:9px;
+             padding:5px 8px; }
+    .ds-note-n { flex:none; min-width:20px; text-align:right;
+             font:700 11px ui-monospace,monospace; color:#7A8E92; }
+    .ds-menu button.ds-note:hover:not(:disabled) .ds-note-n { color:#EAF3EC; }
+    .ds-note-t { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+             white-space:nowrap; }
     .ds-menu button { display:block; width:100%; text-align:left; border:0; background:none;
                       padding:5px 8px; border-radius:4px; cursor:pointer; font:12px system-ui;
                       color:#2F3E46; }
@@ -10772,7 +11041,7 @@ function edit(d, key) {
   if (allowMd && !inline) host.addEventListener('contextmenu', e => {
     e.preventDefault();
     e.stopPropagation();   // else it bubbles to an ancestor's fill/colour menu
-    endnoteMenu(d, host, e);
+    textMenu(d, host, e);
   });
 }
 

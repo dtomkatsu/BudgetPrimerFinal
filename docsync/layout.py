@@ -1536,8 +1536,13 @@ class Layout:
         # Height is opt-in. A text box with a fixed height either clips its
         # words or leaves a hole when the prose changes, so only things whose
         # size is their content — images, shapes — should carry one.
+        #
+        # "hmin" makes it a FLOOR instead: the element is at least this tall
+        # and grows if its words need more. That is what lets a designed text
+        # slot (a section heading) take the same top/bottom handles a text box
+        # has without the drag becoming a way to clip your own heading.
         if p.get("h"):
-            s += f';height:{p["h"]}in'
+            s += f';{"min-height" if p.get("hmin") else "height"}:{p["h"]}in'
         # z is an integer layer: below 0 sits under the text, above 0 over it.
         s += f';z-index:{int(p.get("z", 1))}'
         # One transform declaration for all of it: a second would silently
