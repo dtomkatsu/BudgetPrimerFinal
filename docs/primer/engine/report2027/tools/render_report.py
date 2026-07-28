@@ -674,10 +674,10 @@ def reform(n, key, accent, bg=MINT):
     """One numbered tax-reform panel (page 12).
 
     Same contract as card(): a movable, recolourable surface whose text stays
-    in content.md. `accent` paints the rule and the number badge — those are
-    the panel's own furniture, so a recolour of the panel background leaves
-    them alone; only the body text has to re-decide its contrast, which
-    is_light_bg does on whatever colour is actually in use.
+    in content.md. `accent` paints the number badge — the panel's own
+    furniture, so a recolour of the panel background leaves it alone; only the
+    body text has to re-decide its contrast, which is_light_bg does on
+    whatever colour is actually in use.
 
     The number is furniture too, not prose: it says which of three this is, so
     it is generated rather than typed into a slot someone could renumber out
@@ -689,7 +689,7 @@ def reform(n, key, accent, bg=MINT):
     light = is_light_bg(fill_repr(bg))
     cls = "reform" if light else "reform ondark"
     base = f"taxfair.items.{key}"
-    style = f"background:{fill_css(bg)};border-left-color:{accent}"
+    style = f"background:{fill_css(bg)}"
     override = L.style(el_id, "")
     if override:
         style += f";{override}"

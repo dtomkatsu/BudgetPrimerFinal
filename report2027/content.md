@@ -345,7 +345,7 @@ Three changes would raise revenue from those best able to pay—without affectin
 +$85M a year
 
 [[taxfair.items.capgains.body]]
-Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. Earn your money by working and you pay more than someone who earns it by owning—[a glaring loophole](https://hiappleseed.org/blog/hawaii-two-tier-tax-system-glaring-loophole-rich-pay-less).
+Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. Earn your money by working and you pay more than someone who earns it by owning—a glaring loophole.[^capgains-loophole]
 
 Over 70 percent of capital gains flow to households making more than $400,000. Taxing them as ordinary income would raise at least $85 million a year, 88 percent of it from the top 1 percent.
 
@@ -356,9 +356,9 @@ Over 70 percent of capital gains flow to households making more than $400,000. T
 $300M a year
 
 [[taxfair.items.conveyance.body]]
-Paid when a property changes hands, the conveyance tax is one of the few tools that [captures revenue from Hawaiʻi's real estate market](https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax). Its rates have not moved since 2009, while out-of-state buyers have kept bidding prices up.
+Paid when a property changes hands, the conveyance tax is one of the few tools that captures revenue from Hawaiʻi's real estate market.[^conveyance-modernize] Its rates have not moved since 2009, even though out-of-state buyers have continued to make housing more expensive for everyone.
 
-[House Bill 2049](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026) would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, housing revolving funds, and DHHL.
+House Bill 2049 would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, housing revolving funds, and DHHL.[^hb2049]
 
 [[taxfair.items.loopholes.title]]
 ### Close Corporate Loopholes
@@ -367,7 +367,7 @@ Paid when a property changes hands, the conveyance tax is one of the few tools t
 +$85 million a year
 
 [[taxfair.items.loopholes.body]]
-Multinational corporations [shift profits earned here to other jurisdictions](https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations) to avoid being taxed on them. Worldwide Combined Reporting would close that gap, holding large corporations to the standard small businesses and working families already meet.
+Multinational corporations shift profits earned here to other jurisdictions to avoid being taxed on them.[^corp-loopholes] Worldwide Combined Reporting would close that gap, holding large corporations to the standard small businesses and working families already meet.[^itep-wcr]
 
 [[whopays.callout.title]]
 ### Tax Credits
@@ -414,6 +414,11 @@ OHA[^act248]
 [act175-mof]: "Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
 [revenue-plans]: "State Receipt and Revenue Plans FB25–27," Department of Budget and Finance, September 2024. — https://budget.hawaii.gov/wp-content/uploads/2024/12/05.-State-Receipt-and-Revenue-Plans-FB25-27-PFP7Lt.pdf
 [cor-forecast]: Kawafuchi, Kurt, "General Fund Forecast," Council on Revenues, March 12, 2025. — https://files.hawaii.gov/tax/useful/cor/2025gf03-12_with0416_Rpt2Gov.pdf
+[capgains-loophole]: "Hawaiʻi's Two-Tier Tax System," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-two-tier-tax-system-glaring-loophole-rich-pay-less
+[conveyance-modernize]: "Modernize the Conveyance Tax," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax
+[hb2049]: "House Bill 2049," Hawaiʻi State Legislature, 2026. — https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026
+[corp-loopholes]: "Tax Loopholes for Multinational Corporations," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations
+[itep-wcr]: "Revenue Effect of Mandatory Worldwide Combined Reporting by State," Institute on Taxation and Economic Policy. — https://itep.org/revenue-effect-of-mandatory-worldwide-combined-reporting-by-state/
 [itep-whopays]: "Hawaiʻi: Who Pays? 7th Edition," Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes. — https://itep.org/whopays/hawaii-who-pays-7th-edition
 [tax-credits]: "Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024. — https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf
 [exec-biennium]: "Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. Obligated-cost figures are drawn from the "Statewide Totals by Fixed vs. Non-Fixed (General Funds)" table (p. 18) of each biennium's Budget in Brief, FB 2017–19 through FB 2025–27. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
