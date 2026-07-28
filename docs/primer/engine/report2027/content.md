@@ -421,4 +421,4 @@ OHA[^act248]
 [itep-wcr]: "Revenue Effect of Mandatory Worldwide Combined Reporting by State," Institute on Taxation and Economic Policy. — https://itep.org/revenue-effect-of-mandatory-worldwide-combined-reporting-by-state/
 [itep-whopays]: "Hawaiʻi: Who Pays? 7th Edition," Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes. — https://itep.org/whopays/hawaii-who-pays-7th-edition
 [tax-credits]: "Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024. — https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf
-[exec-biennium]: "Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. Obligated-cost figures are drawn from the "Statewide Totals by Fixed vs. Non-Fixed (General Funds)" table (p. 18) of each biennium's Budget in Brief, FB 2017–19 through FB 2025–27. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
+[exec-biennium]: "Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
