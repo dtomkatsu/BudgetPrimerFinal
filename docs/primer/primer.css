@@ -128,6 +128,12 @@ a { color: var(--dark); }
   font-size: 20px; line-height: 1.13; margin-bottom: 12px; }
 .card .card-ico { flex: none; width: 40px; height: 40px; }
 .card .card-ico svg { display: block; width: 100%; height: 100%; }
+/* Corner-icon tiles (page 10's tax cards): title keeps its normal size and the
+   glyph is pushed to the top right of the title row. Height is auto so the
+   square SVG is not stretched to the 40px the header variant assumes. */
+.card h4.card-ico-tr { font-size: 15px; line-height: 1.28; margin-bottom: 8px;
+  align-items: flex-start; gap: 10px; }
+.card h4.card-ico-tr .card-ico { margin-left: auto; height: auto; }
 /* A free-standing, editor-movable SVG graphic (render_report.graphic()). The
    wrapper carries the width; the SVG fills it and its viewBox keeps the aspect,
    so a proportional corner-resize just changes the wrapper width. */

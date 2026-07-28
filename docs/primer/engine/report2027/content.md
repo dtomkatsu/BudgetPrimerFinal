@@ -315,7 +315,7 @@ Projected Hawaiʻi State Tax Revenue,
 ### Individual Income Tax
 
 [[taxes.cards.iit.bullets]]
-- Hawaiʻi taxes those with high incomes at a higher marginal rate.
+- Hawaiʻi taxes those with high incomes at a higher marginal rate. With the passage of Act 25, the new top rate for people earning over $1 million will be set at
 
 [[taxes.cards.tat.title]]
 ### Transient Accommodations Tax
