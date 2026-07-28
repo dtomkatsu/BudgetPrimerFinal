@@ -670,6 +670,40 @@ def card(title, bullets, bg, light=None, key="", icon="", icon_id="", detachable
             f'{head}{bullets_el}</div>')
 
 
+def reform(n, key, accent, bg=MINT):
+    """One numbered tax-reform panel (page 12).
+
+    Same contract as card(): a movable, recolourable surface whose text stays
+    in content.md. `accent` paints the rule and the number badge — those are
+    the panel's own furniture, so a recolour of the panel background leaves
+    them alone; only the body text has to re-decide its contrast, which
+    is_light_bg does on whatever colour is actually in use.
+
+    The number is furniture too, not prose: it says which of three this is, so
+    it is generated rather than typed into a slot someone could renumber out
+    of step with its neighbours.
+    """
+    el_id = f"reform.{key}"
+    if L.refilled(el_id):
+        bg = L.fill(el_id)
+    light = is_light_bg(fill_repr(bg))
+    cls = "reform" if light else "reform ondark"
+    base = f"taxfair.items.{key}"
+    style = f"background:{fill_css(bg)};border-left-color:{accent}"
+    override = L.style(el_id, "")
+    if override:
+        style += f";{override}"
+    return (
+        f'{L.spacer(el_id)}<div class="{cls}"{L.tag(el_id)}{L.fill_tag(el_id)} style="{style}">'
+        f'<div class="reform-head">'
+        f'<span class="reform-num" style="background:{accent}">{n}</span>'
+        f'<h4>{C.t(f"{base}.title")}</h4>'
+        f'<span class="reform-tag">{C.t(f"{base}.tag")}</span>'
+        f'</div>'
+        f'{C.html(f"{base}.body")}'
+        f'</div>')
+
+
 def graphic(el_id, svg, w=1.5, cls=""):
     """A free-standing SVG the editor can move/resize/rotate; placement lives
     in layout.json under el_id. One implementation for every report now —
@@ -1069,6 +1103,13 @@ pages.append(f"""
 # page 11 -> first of page 12), so endnote numbering is unchanged.
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.12")}>
+ {L.spacer("taxfair.h2")}<h2 class="sub"{L.attr("taxfair.h2")}>{C.t("taxfair.h2")}</h2>
+ {C.html("taxfair.intro", cls="taxfair-intro")}
+ <div class="reforms">
+  {reform(1, "capgains", DARK)}
+  {reform(2, "conveyance", SAGE)}
+  {reform(3, "loopholes", FOREST)}
+ </div>
 {callout_open("whopays")}
   <h4>{C.t("whopays.callout.title")}</h4>
   {C.html("whopays.callout.p1")}

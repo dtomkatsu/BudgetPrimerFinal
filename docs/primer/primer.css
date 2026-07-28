@@ -156,6 +156,27 @@ a { color: var(--dark); }
    flips this class on, exactly as .card.light does. */
 .callout.onlight { color: var(--ink); }
 
+/* tax-reform panels (page 12) */
+.taxfair-intro { font-size: 14.5px; color: #586A6D; margin: -6px 0 14px; }
+.reforms { display: flex; flex-direction: column; gap: 11px; margin-bottom: 18px; }
+.reform { border-left: 5px solid var(--dark); border-radius: 0 14px 14px 0;
+          padding: 13px 18px 4px; }
+.reform-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.reform-num { flex: none; width: 23px; height: 23px; border-radius: 50%; color: #fff;
+              font-family: var(--heading); font-weight: 800; font-size: 13px;
+              display: flex; align-items: center; justify-content: center; }
+.reform h4 { font-size: 15.5px; color: var(--forest); }
+/* Pushed right, so the revenue figure lands on a common edge down the stack. */
+.reform-tag { margin-left: auto; flex: none; background: #fff; color: var(--forest);
+              border: 1px solid var(--sage-light); border-radius: 999px;
+              padding: 3px 11px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.reform p { font-size: 13.2px; margin: 0 0 9px; }
+/* Same contract as .card.light / .callout.onlight — set when the editor
+   refills the panel with a colour the luminance test calls dark. */
+.reform.ondark { color: #fff; }
+.reform.ondark h4 { color: #fff; }
+.reform.ondark .reform-tag { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+
 /* obligated-costs expandable (web only) */
 .obligated { margin: -8px 0 18px; }
 .obligated > summary { cursor: pointer; display: inline-flex; align-items: center; gap: 7px;

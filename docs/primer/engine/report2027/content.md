@@ -332,6 +332,43 @@ Percentage of Income Paid in State and Local Taxes by Household Income Quintile 
 [[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the General Excise Tax, which is charged on basic needs like food, clothes and rent. When a low-income person and a wealthy person purchase the same groceries, they pay the same dollar amount of tax. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it much harder to budget for—and too often keeping low-income families trapped in cycles of poverty, debt and income insecurity.
 
+[[taxfair.h2]]
+## Making Hawaiʻi's Tax System Fairer
+
+[[taxfair.intro]]
+Three changes would raise revenue from those best able to pay—without affecting working families.
+
+[[taxfair.items.capgains.title]]
+### Tax Investment Profits Like Paychecks
+
+[[taxfair.items.capgains.tag]]
++$85M a year
+
+[[taxfair.items.capgains.body]]
+Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. Earn your money by working and you pay more than someone who earns it by owning—[a glaring loophole](https://hiappleseed.org/blog/hawaii-two-tier-tax-system-glaring-loophole-rich-pay-less).
+
+Over 70 percent of capital gains flow to households making more than $400,000. Taxing them as ordinary income would raise at least $85 million a year, 88 percent of it from the top 1 percent.
+
+[[taxfair.items.conveyance.title]]
+### Modernize the Conveyance Tax
+
+[[taxfair.items.conveyance.tag]]
+Up to $300M a year
+
+[[taxfair.items.conveyance.body]]
+Paid when a property changes hands, the conveyance tax is one of the few tools that [captures revenue from Hawaiʻi's real estate market](https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax). Its rates have not moved since 2009, while out-of-state buyers have kept bidding prices up.
+
+[House Bill 2049](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026) would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, housing revolving funds, and DHHL.
+
+[[taxfair.items.loopholes.title]]
+### Close Corporate Loopholes
+
+[[taxfair.items.loopholes.tag]]
+Fairness for local business
+
+[[taxfair.items.loopholes.body]]
+Multinational corporations [shift profits earned here to other jurisdictions](https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations) to avoid being taxed on them. Worldwide Combined Reporting would close that gap, holding large corporations to the standard small businesses and working families already meet.
+
 [[whopays.callout.title]]
 ### Tax Credits
 
