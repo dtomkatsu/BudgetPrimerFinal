@@ -240,7 +240,7 @@ The total budget for Capital Improvement Projects (CIP) in FY{fy} is {cip_total}
 Governor Josh Green and lawmakers at the HB 2296 bill signing
 
 [[onetime.photo.caption]]
-Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) into law as Act 236, SLH 2026. The law lowers the minimum share of meal preparation costs schools must recover, giving the Department of Education more room to offer free and reduced-price school meals. // Office of the Governor
+Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) into law as Act 236, SLH 2026. The law lowers the share of meal preparation costs that must be covered by schools, giving the Department of Education more leeway to offer free and reduced-price school meals. // Office of the Governor
 
 [[onetime.h3]]
 ### One-Time and Emergency Appropriations
