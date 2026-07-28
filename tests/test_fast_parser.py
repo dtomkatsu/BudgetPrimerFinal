@@ -413,10 +413,27 @@ TRN      1,000,000A     1,000,000A"""
 # ---------------------------------------------------------------------------
 
 class TestFullDocumentRegression:
-    """Baseline counts against the real HB 300 document.
+    """Baseline counts against the real HB 300 document (CD1 — the enacted
+    conference draft, Act 250 SLH 2025; the only HB 300 draft in the repo, and
+    a plain two-column bill with no amendment continuation lines, so the FY1/FY2
+    columns are final).
 
     Note: The allocation count increased from the original 1318 after fixing
     3 previously-missing capital allocations (TRN511 N, HTH212 R, EDN100 P).
+
+    The dollar baselines below were re-pinned after c57990a, which stopped
+    crediting FY2-only bill lines (blank FY1 column) to FY2026. Three capital
+    lines moved to where the bill actually puts them, FY2027:
+
+        EDN100 P  $120,000,000
+        HTH212 R  $ 25,000,000
+        TRN511 N  $ 19,200,000
+                  $164,200,000
+
+    The values that follow are what the parser produces today, and they agree
+    to the dollar with the published docs/js/departments_act250_fy2027.json.
+    A failure here is a real change in parser behaviour, not drift: check it
+    against the bill text before re-pinning it again.
     """
 
     def test_minimum_allocation_count(self, full_parse):
@@ -429,7 +446,7 @@ class TestFullDocumentRegression:
 
     def test_section_distribution(self, full_parse):
         sec = Counter(a.section.value for a in full_parse)
-        assert sec["Operating"] >= 1129
+        assert sec["Operating"] >= 1128
         assert sec["Capital Improvement"] >= 189
 
     def test_total_amount_fy2026_at_least_baseline(self, full_parse):
@@ -439,13 +456,13 @@ class TestFullDocumentRegression:
         total = sum(a.amount for a in full_parse
                     if a.fiscal_year == 2026
                     and a.section != BudgetSection.GRANTS_IN_AID)
-        assert total >= 23_320_369_599
+        assert total >= 23_320_250_524
 
     def test_total_amount_fy2027(self, full_parse):
         total = sum(a.amount for a in full_parse
                     if a.fiscal_year == 2027
                     and a.section != BudgetSection.GRANTS_IN_AID)
-        assert total == pytest.approx(21_925_812_598, rel=1e-6)
+        assert total == pytest.approx(22_090_012_598, rel=1e-6)
 
     def test_unique_departments(self, full_parse):
         depts = set(a.department_code for a in full_parse)
