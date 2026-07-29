@@ -40,7 +40,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -58,6 +57,20 @@ EXTRA = ["report2027/tools/serve.py"]
 def _sh(args: list[str], cwd: Path) -> str:
     return subprocess.run(args, cwd=cwd, capture_output=True, text=True,
                           check=True).stdout
+
+
+def _read_at_head(rel: str) -> bytes | None:
+    """Bytes of a tracked file as of the last commit — not the working tree.
+
+    Vendoring reads from HEAD, not disk, so an unrelated uncommitted edit
+    elsewhere in the repo (someone else's in-progress work on a different
+    engine file) can never ride along into a consumer. None means the path
+    has no committed version yet (e.g. staged but never committed), which is
+    treated the same as "doesn't exist" — nothing to vendor.
+    """
+    r = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=ROOT,
+                       capture_output=True, check=False)
+    return r.stdout if r.returncode == 0 else None
 
 
 def engine_files() -> list[str]:
@@ -173,15 +186,16 @@ def vendor_one(repo: Path, files: list[str], *, dry: bool, force: bool,
 
     changed = []
     for rel in files:
-        src, dst = ROOT / rel, repo / rel
-        if not src.exists():
+        src_bytes = _read_at_head(rel)
+        if src_bytes is None:
             continue
-        if dst.exists() and dst.read_bytes() == src.read_bytes():
+        dst = repo / rel
+        if dst.exists() and dst.read_bytes() == src_bytes:
             continue
         changed.append(rel)
         if not dry:
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst)
+            dst.write_bytes(src_bytes)
 
     # Checked every run, independent of whether the engine files themselves
     # changed — an already-in-sync consumer still needs this the first time,
