@@ -27,6 +27,7 @@ is no more one global ROOT/CONTENT/LAYOUT — see PROJECTS.
 from __future__ import annotations
 
 import base64
+import functools
 import glob
 import importlib.util
 import io
@@ -128,11 +129,18 @@ SELF_DIR_TO_PID = {
 }
 
 
+@functools.lru_cache(maxsize=1)
 def _default_registry() -> dict:
     """The editor's start-page registry, derived from what this server serves.
-    Used only when no projects.json exists — see do_GET. `base` is the staged
+    Merged UNDER any on-disk projects.json — see do_GET. `base` is the staged
     editor dir relative to docs/primer/, which is what start.html opens; a
-    project living in another repo is reached through its reserved mount."""
+    project living in another repo is reached through its reserved mount.
+
+    Cached: it depends only on PROJECTS, which is fixed at import, and it shells
+    out to `git remote get-url` once per project. Recomputing it per request
+    made the start page's registry fetch slow enough to still be in flight when
+    the page was first scripted, which reads as an EMPTY project list rather
+    than a slow one."""
     out = {}
     for pid, p in sorted(PROJECTS.items()):
         e = p["binding"].editor
@@ -469,10 +477,32 @@ class Handler(SimpleHTTPRequestHandler):
         # none — and the start page then showed "No reports yet" over a server
         # that was happily serving four of them, with "+ New report" disabled
         # because that needs a repo it had no way to know. Synthesise the file
-        # from what this process ACTUALLY serves. Writing nothing to disk keeps
-        # a real projects.json purely an override: present, it wins.
-        if clean.endswith("/projects.json") and not (DOCS / clean.lstrip("/")).is_file():
-            return self._json(200, _default_registry())
+        # from what this process ACTUALLY serves.
+        #
+        # The on-disk file is an OVERRIDE LAYER, not a whitelist. It used to win
+        # outright whenever it existed, which meant a file listing 2 of 5
+        # bindings silently hid the other three — the same "serving it but not
+        # showing it" bug as above, just harder to spot because the grid looked
+        # populated rather than empty.
+        #
+        # The merge is a UNION, deliberately: every disk entry survives even if
+        # this server cannot resolve its binding (a foreign repo whose checkout
+        # is missing is still in the user's list, and adopting that slug must
+        # still be refused as a duplicate), and every served project appears
+        # even if the disk file forgot it.
+        if clean.endswith("/projects.json"):
+            registry = _default_registry()
+            disk = DOCS / clean.lstrip("/")
+            if disk.is_file():
+                try:
+                    overrides = json.loads(disk.read_text())
+                except json.JSONDecodeError as exc:
+                    print(f"  (projects.json is not valid JSON — {exc}; "
+                          f"serving the synthesised registry)")
+                    overrides = {}
+                for pid, entry in overrides.items():
+                    registry[pid] = {**registry.get(pid, {}), **entry}
+            return self._json(200, registry)
         for mpid, mount_dir in EXTERNAL_MOUNTS.items():
             prefix = f"/_repo-{mpid}/"
             if clean == prefix[:-1] or clean.startswith(prefix):
