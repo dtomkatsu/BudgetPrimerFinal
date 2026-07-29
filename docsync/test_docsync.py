@@ -273,10 +273,10 @@ check_eq("an unmoved element keeps the renderer's own placement",
 
 moved = _layout({"positions": {"c.o": {"x": 1.2, "y": 3.4, "w": 5.0}}, "shapes": []})
 check("a moved element is absolutely placed", moved.attr("c.o"),
-      'style="position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1"')
+      'style="margin:0;position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1"')
 check_eq("an override beats the renderer's placement",
          moved.style("c.o", "left:9in;top:9in"),
-         "position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1")
+         "margin:0;position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1")
 
 # .page is overflow:hidden, so content dragged off it does not look broken —
 # it is simply gone. Nothing else would catch that, so it must be loud.
@@ -435,7 +435,7 @@ moved_para = _content(_layout({"positions": {"para.a.b": {"x": 1, "y": 2, "w": 4
                                                           "reserve": 0.5}}}))
 check("a moved prose block travels in one positioned wrapper",
       moved_para.html("a.b"),
-      '<div style="position:absolute;left:1in;top:2in;width:4in;z-index:1"><p>Text.</p></div>')
+      '<div style="margin:0;position:absolute;left:1in;top:2in;width:4in;z-index:1"><p>Text.</p></div>')
 check("its vacated flow space stays held", moved_para.html("a.b"),
       '<div class="ds-spacer" style="width:4in;height:0.5in;flex:0 0 auto"')
 os.environ["DOCSYNC_EDIT"] = "1"
@@ -555,7 +555,7 @@ check("a box's style is validated like any other",
 both = _layout({"positions": {"c.o": {"x": 1, "y": 2}}})
 check("attr merges a computed background into the move",
       both.attr("c.o", "background:#2F3E46"),
-      'style="position:absolute;left:1in;top:2in;z-index:1;background:#2F3E46"')
+      'style="margin:0;position:absolute;left:1in;top:2in;z-index:1;background:#2F3E46"')
 check_eq("extra alone still emits a style", empty.attr("c.o", "background:#2F3E46"),
          ' style="background:#2F3E46"')
 check_eq("no move, no extra, no attribute", empty.attr("c.o"), "")

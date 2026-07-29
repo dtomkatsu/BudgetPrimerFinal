@@ -1530,7 +1530,18 @@ class Layout:
     # ---- positions -------------------------------------------------------
 
     def _style(self, p: dict) -> str:
-        s = f'position:absolute;left:{p["x"]}in;top:{p["y"]}in'
+        # margin:0 FIRST, and it is load-bearing. A margin on an absolutely
+        # positioned element is ADDED to its left/top, so the element renders
+        # somewhere other than the coordinate stored here — and because the
+        # editor re-measures the RENDERED box on the next drag, the discrepancy
+        # is written back as the new coordinate and compounds on every save. An
+        # rxkids callout with margin-top:60px walked off the bottom of an 84in
+        # page that way, and three call sites there had grown hand-written
+        # margin-top:0 patches before the pattern was spotted.
+        # It comes first so a deliberate margin passed through attr()'s `extra`
+        # still wins: attr() joins css then extra, and the later declaration in
+        # an inline style is the one that applies.
+        s = f'margin:0;position:absolute;left:{p["x"]}in;top:{p["y"]}in'
         if p.get("w"):
             s += f';width:{p["w"]}in'
         # Height is opt-in. A text box with a fixed height either clips its
