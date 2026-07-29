@@ -278,6 +278,41 @@ check_eq("an override beats the renderer's placement",
          moved.style("c.o", "left:9in;top:9in"),
          "margin:0;position:absolute;left:1.2in;top:3.4in;width:5.0in;z-index:1")
 
+# Hidden elements: Delete on a designed element records it here rather than
+# editing output that is regenerated every build. Published: display:none,
+# appended LAST so it beats a display the caller's own css set (graphic()
+# passes display:inline-block), and the moved-away spacer gives its flow slot
+# back. Edit mode: a selectable ghost instead — still laid out, marked
+# data-hidden so the editor can offer restore.
+hid = _layout({"positions": {"c.o": {"x": 1, "y": 2, "reserve": 0.5}},
+               "hidden": ["c.o", "plain.el"], "shapes": []})
+check("a hidden element publishes display:none",
+      hid.attr("plain.el"), 'style="display:none"')
+check("hide beats the caller's own display, by coming last",
+      hid.attr("plain.el", "display:inline-block;width:2in"),
+      'style="display:inline-block;width:2in;display:none"')
+check_eq("a hidden moved element gives its flow slot back", hid.spacer("c.o"), "")
+check("style() hides for the tag()/style() call sites",
+      hid.style("plain.el", "left:1in"), "left:1in;display:none")
+check_eq("tag() publishes nothing extra for a hidden element",
+         hid.tag("plain.el"), "")
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    ghost = hid.attr("plain.el")
+    check("edit mode ghosts instead of hiding", ghost, 'data-hidden="1"')
+    check("the ghost is translucent, not display:none", ghost, "opacity:.35")
+    check_eq("no display:none in the editor",
+             "display:none" in ghost, False)
+    check("the editor keeps the vacated-slot spacer under a ghost",
+          hid.spacer("c.o"), "ds-spacer")
+    check("tag() marks the ghost for the editor",
+          hid.tag("plain.el"), 'data-hidden="1"')
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+check("hidden must be a list of element ids",
+      _layout_error({"positions": {}, "shapes": [], "hidden": "c.o"}),
+      "hidden: expected a list of element ids")
+
 # .page is overflow:hidden, so content dragged off it does not look broken —
 # it is simply gone. Nothing else would catch that, so it must be loud.
 off = _layout({"positions": {"c.o": {"x": 7.9, "y": 2, "w": 5.0}}, "shapes": []})

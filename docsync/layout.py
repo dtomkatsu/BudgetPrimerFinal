@@ -43,6 +43,11 @@ PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
 # so it gets one no report will reach rather than a special case in every
 # caller.
 PAGELESS_H = 200.0
+
+# How a hidden element renders IN THE EDITOR: a ghost, not a gap. It keeps its
+# box (so nothing reflows while it's "deleted"), stays clickable, and reads
+# unmistakably as not-part-of-the-page. Published output uses display:none.
+_GHOST_CSS = ("opacity:.35;outline:1.5px dashed #C0603F;outline-offset:2px")
 # What a page may be. Wide enough for A3 and long enough for a US Legal sheet,
 # with room either side; narrow enough that a typo in a hand-edited layout.json
 # cannot ask the renderer for a page a mile across.
@@ -1271,6 +1276,15 @@ class Layout:
         # cannot quietly disable a lock or dangle a group.
         self.locked = raw.get("locked") or []
         self.groups = raw.get("groups") or []
+        # Designed elements the user deleted. Unlike `locked` this DOES move
+        # published bytes: a hidden element renders display:none (attr()/
+        # style()) and its spacer is suppressed, so the flow closes over the
+        # gap. Reversible by design — the markup still ships, and the editor
+        # renders it as a selectable ghost so Delete can restore it. This is
+        # the only way to "remove" a renderer-emitted element: it is
+        # regenerated on every build, so absence has to be an override here,
+        # not an edit to the output.
+        self.hidden = raw.get("hidden") or []
         self.imgs = raw.get("img") or {}
         # Ruler guides the editor snaps to, as {x:[in…], y:[in…]}. Editor-only,
         # like `locked`: the renderer never emits a guide, so it cannot move a
@@ -1381,6 +1395,9 @@ class Layout:
         if not isinstance(self.locked, list) or any(
                 not isinstance(x, str) or not x for x in self.locked):
             raise LayoutError("locked: expected a list of element ids")
+        if not isinstance(self.hidden, list) or any(
+                not isinstance(x, str) or not x for x in self.hidden):
+            raise LayoutError("hidden: expected a list of element ids")
         if not isinstance(self.groups, list):
             raise LayoutError("groups: expected a list of groups")
         _grouped = set()
@@ -1584,11 +1601,21 @@ class Layout:
         with two style attributes silently keeps only the first.
         """
         bits = []
-        if os.environ.get("DOCSYNC_EDIT"):
+        edit = bool(os.environ.get("DOCSYNC_EDIT"))
+        hid = el_id in self.hidden
+        if edit:
             bits.append(f'data-el="{el_id}"')
+            if hid:
+                bits.append('data-hidden="1"')
         p = self.positions.get(el_id)
         css = self._style(p) if p else ""
-        both = ";".join(x for x in (css, extra) if x)
+        # The hide css goes LAST: `extra` routinely carries its own display
+        # (graphic() passes display:inline-block), and the later declaration
+        # in an inline style is the one that wins. In edit mode a hidden
+        # element ghosts instead of vanishing — still laid out, still
+        # selectable, so Delete can find it again and restore it.
+        hide = "" if not hid else (_GHOST_CSS if edit else "display:none")
+        both = ";".join(x for x in (css, extra, hide) if x)
         if both:
             bits.append(f'style="{both}"')
         return (" " + " ".join(bits)) if bits else ""
@@ -1612,6 +1639,12 @@ class Layout:
         reserves nothing, because it never occupied flow space. It is a
         different thing from 'h', which is how tall the element should be drawn.
         """
+        # A hidden element gives its flow slot back on publish — deleting
+        # something should close the gap, not leave a silent hole. The editor
+        # keeps the spacer so the ghost sits exactly where restoring would put
+        # it and nothing else shifts while it is "deleted".
+        if el_id in self.hidden and not os.environ.get("DOCSYNC_EDIT"):
+            return ""
         p = self.positions.get(el_id)
         if not p or not p.get("reserve"):
             return ""
@@ -1644,14 +1677,25 @@ class Layout:
     def tag(self, el_id: str) -> str:
         """Just the data-el hook, for elements that already carry a style of
         their own and must merge the override into it rather than grow a second
-        style attribute."""
-        return f' data-el="{el_id}"' if os.environ.get("DOCSYNC_EDIT") else ""
+        style attribute. Hiding for these call sites rides in style(), which is
+        what lands inside that one style attribute — tag() only marks the ghost
+        for the editor."""
+        if not os.environ.get("DOCSYNC_EDIT"):
+            return ""
+        extra = ' data-hidden="1"' if el_id in self.hidden else ""
+        return f' data-el="{el_id}"{extra}'
 
     def style(self, el_id: str, default: str = "") -> str:
         """For elements the renderer already positions itself (the lifecycle
-        callouts): the override wins, otherwise the computed placement stands."""
+        callouts): the override wins, otherwise the computed placement stands.
+        The tag()/style() pair's half of hiding lives here — appended last so
+        it beats whatever display the caller's own css set."""
         p = self.positions.get(el_id)
-        return self._style(p) if p else default
+        css = self._style(p) if p else default
+        if el_id in self.hidden:
+            hide = _GHOST_CSS if os.environ.get("DOCSYNC_EDIT") else "display:none"
+            css = ";".join(x for x in (css, hide) if x)
+        return css
 
     def moved(self, el_id: str) -> bool:
         return el_id in self.positions

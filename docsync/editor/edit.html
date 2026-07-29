@@ -1352,7 +1352,7 @@
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="6" width="9" height="6"
       rx="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg></button>
-  <button id="ar-del" aria-label="Delete (⌫) — removes shapes and text boxes; puts a designed element back">
+  <button id="ar-del" aria-label="Delete (⌫) — removes shapes and text boxes; a designed element goes back to its designed spot, then hides; delete its ghost to restore">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
       stroke-width="1.4" stroke-linecap="round"><path d="M2 3.5h10M5.5 3.5V2.2h3v1.3M3.5 3.5l.7 8.3h5.6l.7-8.3M5.9 6v3.5M8.1 6v3.5"/></svg></button>
   <!-- Shown only while a PAGE is selected (see pageBar): what the strip is
@@ -6003,6 +6003,8 @@ const selEls = d => [...selIds].map(id =>
   .filter(Boolean);
 const lockedList = () => (layout.locked = layout.locked || []);
 const isLocked = id => (layout.locked || []).includes(id);
+const hiddenList = () => (layout.hidden = layout.hidden || []);
+const isHidden = id => (layout.hidden || []).includes(id);
 
 // Clipboard + format painter, both IN-MEMORY only (no OS clipboard). `clip`
 // holds whole shape/box overrides for ⌘C/⌘V; `styleClip` holds one element's
@@ -6498,8 +6500,19 @@ async function deleteSel(d) {
       layout.boxes = boxes().filter(b => b.id !== id.replace(/^text\./, '')); touched = true; gone.push(id);
     } else if (tableOf(id)) {
       layout.tables = tables().filter(t => t.id !== id.replace(/^table\./, '')); touched = true; gone.push(id);
+    } else if (isHidden(id)) {
+      // Deleting a ghost restores it — hiding is a toggle, not a loss.
+      layout.hidden = hiddenList().filter(x => x !== id);
+      if (!layout.hidden.length) delete layout.hidden;
+      touched = true;
     } else if (layout.positions[id]) {
       delete layout.positions[id]; touched = true;
+    } else if (d.querySelector(`[data-el="${CSS.escape(id)}"]`)) {
+      // A designed element in its designed place: Delete used to be a silent
+      // no-op here (nothing in layout.json matched, so there was nothing to
+      // remove). Now it hides — the element ghosts in the editor, publishes
+      // as display:none, and its markup keeps shipping so this is reversible.
+      hiddenList().push(id); touched = true;
     }
   });
   forgetInGroups(gone);            // a group loses its deleted members
