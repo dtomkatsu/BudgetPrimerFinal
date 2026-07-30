@@ -125,6 +125,25 @@
      button and every handler stay live, so bringing it back is deleting this
      one line — not rebuilding a feature. */
   #add { display:none !important; }
+  /* Presentation mode: the document and nothing else. The chrome does not
+     shrink or fade — it leaves, and the stage becomes a dark room with one
+     page in it. The overlay is the whole input surface: it swallows every
+     click so nothing underneath can start an edit mid-presentation. */
+  body.ds-present #bar, body.ds-present #context, body.ds-present #leftrail,
+  body.ds-present #rail, body.ds-present #side { display:none !important; }
+  body.ds-present #work, body.ds-present #stage { background:#14181B; }
+  body.ds-present #stage { overflow:hidden; }
+  #present-ov { position:fixed; inset:0; z-index:99990; background:transparent;
+        cursor:pointer; outline:none; }
+  #present-n { position:fixed; right:16px; bottom:12px; z-index:99991;
+        font:12.5px system-ui; font-variant-numeric:tabular-nums;
+        color:rgba(255,255,255,.85); background:rgba(20,26,31,.6);
+        padding:4px 11px; border-radius:99px; pointer-events:none; }
+  #present-hint { position:fixed; left:50%; bottom:12px; transform:translateX(-50%);
+        z-index:99991; font:12.5px system-ui; color:rgba(255,255,255,.85);
+        background:rgba(20,26,31,.6); padding:4px 12px; border-radius:99px;
+        pointer-events:none; transition:opacity .6s; }
+  #present-hint.gone { opacity:0; }
   /* Layers, hidden for now — same treatment as the two above: the button and
      its popover stay wired, so bringing it back is deleting this one line. */
   #layers { display:none !important; }
@@ -1101,6 +1120,11 @@
        bringing it back a code change instead of a CSS one. -->
   <button id="add" aria-label="Add a new prose section to a page">+ Section</button>
   <button id="sources" aria-label="View, edit, reorder and remove citations">Sources</button>
+  <button id="present" aria-label="Present — fullscreen, one page at a time; arrows or click advance, Esc exits">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+      stroke-width="1.4"><rect x="1.5" y="2" width="11" height="8" rx="1.2"/>
+      <path d="M5.8 4.4l3.1 1.6-3.1 1.6z" fill="currentColor" stroke="none"/>
+      <path d="M7 10v1.4M4.6 13h4.8" stroke-linecap="round"/></svg></button>
   <!-- Discard is off the local bar: undo covers stepping an edit back. It is
        NOT redundant on a saved draft, where it is the only way to throw the
        draft branch away and return to the live report, so detectLocal() hides
@@ -7603,6 +7627,13 @@ $('zb-in').addEventListener('click', () => stepZoom(1));
  *
  *  Returns true when it handled the key. */
 function zoomKey(e) {
+  // While presenting the scale IS the presentation — fitting the page to the
+  // screen — so the zoom ladder stands down. Swallowed, not ignored: falling
+  // through to Chrome's page zoom would scale the deck off the screen.
+  if (presenting) {
+    if ((e.metaKey || e.ctrlKey) && !e.altKey) { e.preventDefault(); return true; }
+    return false;
+  }
   if (!(e.metaKey || e.ctrlKey) || e.altKey) return false;
   // e.code, so it works on layouts where ⌘+ is really ⌘⇧= and on the numpad;
   // e.key alone is '=' , '+' , '-' or '_' depending on shift and layout.
@@ -7628,8 +7659,14 @@ function zoomKey(e) {
 // feedback loop must have a fixed point.
 let stageW = 0, stageH = 0, stageT = 0;
 const stageRefit = () => {
-  applyZoom(zoomChoice === '' || zoomChoice === 'fit');
   const d = $('out').contentDocument;
+  // While presenting, the fit is the PAGE to the SCREEN, not the canvas to
+  // the pane — and entering presentation is itself a stage resize (the bars
+  // leave). Recomputing the auto fit here overrode the presentation scale a
+  // frame after it was set, which showed up as a page fitted to width and
+  // clipped at the bottom.
+  if (presenting) { if (d) presentFit(d); return; }
+  applyZoom(zoomChoice === '' || zoomChoice === 'fit');
   if (d) paintSel(d);
 };
 new ResizeObserver(() => {
@@ -9940,6 +9977,18 @@ const engineSig = new Map();
  *  FS; writing those back and then re-rendering off them costs about a second
  *  of frozen main thread and changes nothing on screen. Compare first. */
 async function refreshEngineFiles() {
+  // The MANIFEST first, not just the files it names: M.files is the snapshot
+  // this tab booted with, and a file a rebuild ADDED since (docsync/okina.py,
+  // carried into the engine by a later commit) was invisible to it — so the
+  // hot-reloaded renderer imported a module this loop had never fetched, and
+  // the draft "did not build" in a tab that was doing everything right. The
+  // failure is far from its cause, which is exactly why it is handled here
+  // rather than documented. A fetch failure keeps the boot-time list: stale
+  // is the state we were in anyway.
+  try {
+    const fresh = JSON.parse(await get(withBase('engine/manifest.json')));
+    if (fresh && fresh.files) M.files = fresh.files;
+  } catch (e) {}
   const urls = Object.keys(M.files).filter(
     u => M.files[u] !== M.content && M.files[u] !== M.layout);
   const datas = await Promise.all(
@@ -10400,6 +10449,7 @@ function wire() {
   applyZoom();
   reportFit(d);
   paintSel(d);                 // the selection is ids, so it survives a render
+  presentRewire(d);            // and so does a running presentation
   const meta = d.getElementById('ds-pagemeta');
   if (meta) { try { designedPages = JSON.parse(meta.textContent); } catch (e) {} }
   railRender();
@@ -10632,6 +10682,19 @@ function wire() {
     .ds-gd.v { background:linear-gradient(#12B5A5,#12B5A5) 4px 0/1px 100% no-repeat; }
     .ds-gd.h { background:linear-gradient(#12B5A5,#12B5A5) 0 4px/100% 1px no-repeat; }
     .ds-gd:hover { background-color:rgba(18,181,165,.12); }
+    /* Presentation mode (body.ds-present in the PARENT document). One page,
+       nothing else: the report's own chrome, the other pages and every editor
+       overlay leave, and the shown page drops its paper shadow and margin so
+       it reads as a slide rather than a sheet on a desk. */
+    .ds-present-doc, .ds-present-doc body { background:#14181B !important; }
+    .ds-present-doc { scrollbar-width:none; }
+    .ds-present-doc body > *:not(section):not(script):not(style) { display:none !important; }
+    .ds-present-doc section.page { display:none !important; }
+    .ds-present-doc section.page.ds-present-on { display:block !important;
+        margin:0 auto !important; box-shadow:none !important; }
+    .ds-present-doc .ds-cut, .ds-present-doc .ds-gd, .ds-present-doc .ds-sec-grip,
+    .ds-present-doc .ds-handles, .ds-present-doc .ds-mini,
+    .ds-present-doc .ds-selbox { display:none !important; }
     /* The print cut line, drawn where the PDF actually ends. */
     .ds-cut { position:absolute; left:0; right:0; z-index:9996; pointer-events:none;
               border-top:2px dashed #C0392B;
@@ -11314,6 +11377,132 @@ function edit(d, key) {
     textMenu(d, host, e);
   });
 }
+
+// ------------------------------------------------------------- presentation
+// Fullscreen, one page at a time, nothing else on screen. The mechanism is
+// deliberately the editor's own: the same iframe, the same zoom pipeline
+// (curScale + applyZoom), just a scale chosen to fit the page and CSS that
+// hides everything that is not the page. Nothing re-renders on entry, so it
+// opens instantly, and a live re-render mid-presentation (an edit landing
+// from Claude) passes straight through presentRewire below.
+let presenting = false, presentIdx = 0;
+const presentPages = d => [...d.querySelectorAll('section.page')];
+
+/** Scale the current page to fit the screen whole. Sized from the SECTION's
+ *  real box, not PAGE_H_IN — a pageless document's sentinel height would fit
+ *  the sheet to a speck. If whole-page fit is still absurd (that same
+ *  pageless document), fall back to fitting width and let it scroll. */
+function presentFit(d) {
+  const sec = presentPages(d)[presentIdx];
+  if (!sec) return;
+  const stage = $('stage');
+  // The RENDERED box, not offsetWidth/Height: the primer applies a 125%
+  // screen `zoom` to .page on wide viewports, which offset* is blind to —
+  // fitting from those numbers left every page a quarter too tall for the
+  // screen and clipped at the bottom.
+  const r = sec.getBoundingClientRect();
+  const pw = r.width || 1, ph = r.height || 1;
+  let sc = Math.min(stage.clientHeight / ph, stage.clientWidth / pw);
+  if (sc < 0.25) sc = Math.min(1, stage.clientWidth / pw);
+  curScale = Math.floor(sc * 1000) / 1000;
+  applyZoom(false);
+  const se = d.scrollingElement;
+  if (se) { se.scrollTop = 0; se.scrollLeft = 0; }
+  stage.scrollTop = 0;
+}
+
+/** Put the deck in its current state: doc class, exactly one page shown,
+ *  counter text, fit. Idempotent — entry, navigation and the post-render
+ *  rewire all funnel through here. */
+function presentApply(d) {
+  d.documentElement.classList.add('ds-present-doc');
+  const pages = presentPages(d);
+  presentIdx = Math.max(0, Math.min(presentIdx, pages.length - 1));
+  pages.forEach((p, i) => p.classList.toggle('ds-present-on', i === presentIdx));
+  const n = $('present-n');
+  if (n) n.textContent = (presentIdx + 1) + ' / ' + pages.length;
+  presentFit(d);
+}
+
+function presentGo(delta) {
+  const d = $('out').contentDocument;
+  if (!d) return;
+  const next = presentIdx + delta;
+  if (next < 0 || next >= presentPages(d).length) return;   // the ends stop; no wrap
+  presentIdx = next;
+  presentApply(d);
+}
+
+function enterPresent() {
+  const d = $('out').contentDocument;
+  if (!d || presenting) return;
+  presenting = true;
+  closeMenu(d);
+  clearSel(d);
+  // Start from the page being looked at, not page one.
+  const id = String(visiblePageId());
+  presentIdx = Math.max(0, presentPages(d).findIndex(p => String(p.dataset.page) === id));
+  document.body.classList.add('ds-present');
+  const ov = document.createElement('div');
+  ov.id = 'present-ov';
+  ov.tabIndex = -1;
+  ov.addEventListener('mousedown', e => e.preventDefault());
+  // Click advances; the left edge goes back — the two-button mouse a
+  // presenter actually has. Keyboard has the full set either way.
+  ov.addEventListener('click', e => presentGo(e.clientX < innerWidth / 4 ? -1 : 1));
+  const nEl = document.createElement('div');
+  nEl.id = 'present-n';
+  const hint = document.createElement('div');
+  hint.id = 'present-hint';
+  hint.textContent = 'Click or → to advance · left edge or ← back · Esc to exit';
+  document.body.append(ov, nEl, hint);
+  setTimeout(() => hint.classList.add('gone'), 3500);
+  ov.focus();
+  // Best-effort: presentation works identically un-fullscreened (the chrome
+  // is gone either way), so a refusal here is not an error.
+  const req = document.documentElement.requestFullscreen;
+  if (req) { try { req.call(document.documentElement).catch(() => {}); } catch (e) {} }
+  presentApply(d);
+}
+
+function exitPresent() {
+  if (!presenting) return;
+  presenting = false;
+  ['present-ov', 'present-n', 'present-hint'].forEach(id => { const el = $(id); if (el) el.remove(); });
+  document.body.classList.remove('ds-present');
+  const d = $('out').contentDocument;
+  let last = null;
+  if (d) {
+    d.documentElement.classList.remove('ds-present-doc');
+    const pages = presentPages(d);
+    last = pages[presentIdx] || null;
+    pages.forEach(p => p.classList.remove('ds-present-on'));
+  }
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  applyZoom();                        // the zoom the person had chosen, back
+  if (last) last.scrollIntoView();    // and the deck ends where it was left
+}
+
+/** Presentation state survives a re-render — the swap replaces the whole
+ *  iframe document, classes and all. Called from wire(). */
+function presentRewire(d) { if (presenting) presentApply(d); }
+
+$('present').addEventListener('click', enterPresent);
+// The browser's own Esc-exits-fullscreen and ours meet here: leaving
+// fullscreen by ANY route ends the presentation rather than stranding a
+// full-window deck with no chrome to escape from.
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && presenting) exitPresent();
+});
+// Capture phase, ahead of every other key handler in this document: while
+// presenting, navigation keys are the whole keyboard interface.
+document.addEventListener('keydown', e => {
+  if (!presenting) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); exitPresent(); return; }
+  const fwd = ['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key);
+  const back = ['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key);
+  if (fwd || back) { e.preventDefault(); e.stopPropagation(); presentGo(fwd ? 1 : -1); }
+}, true);
 
 // --- persistence -----------------------------------------------------------
 // The one credential: a fine-grained token, this repo only, Contents r/w (and
