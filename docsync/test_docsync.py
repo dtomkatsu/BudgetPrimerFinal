@@ -1069,6 +1069,12 @@ try:
     check("the button is drawn on the editor canvas", ed, "Download PDF")
     check("in the editor it defers to the chrome's exporter",
           ed, "parent.postMessage({ds:'export-pdf'}")
+    # The ds- prefix is what keeps it CLICKABLE there: deafenStickyChrome()
+    # pointer-deafens every other fixed/sticky child of <body>. Without this
+    # class, real clicks pass straight through the button (synthetic dispatch
+    # still fires, which is how that breakage got past a hand test).
+    check("the ds- class exempts it from sticky-chrome deafening",
+          ed, 'class="ds-pdfbtn noprint"')
     check_eq("never window.print() over the artboard",
              "window.print()" in ed, False)
     check("the print rules still ship in edit mode", ed, "@media print{")

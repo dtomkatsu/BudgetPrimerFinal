@@ -157,8 +157,15 @@ def pdf_button(L, label: str = "Download PDF", *, bg: str = "#2F3E46",
            'title="Download this draft as a PDF"' if edit else
            'onclick="window.print()" '
            'title="Opens your browser\'s print dialog — choose Save as PDF"')
+    # The ds- class prefix is the editor's "this control stays live" hook:
+    # deafenStickyChrome() sets pointer-events:none on every fixed/sticky child
+    # of <body> so a report's standing chrome cannot eat canvas clicks — which
+    # silently made this button unclickable on the artboard. Real clicks passed
+    # straight through it; only synthetic dispatch (which ignores
+    # pointer-events) still fired, which is how the breakage got past a test.
+    klass = "ds-pdfbtn noprint" if edit else "noprint"
     return sheet + (
-        f'<button type="button" class="noprint" {act} '
+        f'<button type="button" class="{klass}" {act} '
         f'style="position:fixed;top:{top};right:{right};z-index:60;'
         f'background:{bg};color:{ink};border:0;border-radius:8px;'
         f'padding:9px 15px;font-family:inherit;font-size:14px;font-weight:700;'
