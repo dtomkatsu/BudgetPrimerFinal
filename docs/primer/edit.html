@@ -1236,6 +1236,13 @@
   <select id="ty-fx" title="Effect"></select>
   <span id="ty-fxp"></span>
   <button id="ty-reset" aria-label="Put this text back the way the report designed it">Reset</button>
+  <!-- Delete lives HERE too: a single text object shows the type row, not the
+       arrange strip, so without this the only route was the keyboard — a
+       button people looked for and could not find. -->
+  <button id="ty-del" aria-label="Delete (⌫) — a designed element can be brought back from File > Restore deleted" hidden><svg
+    width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+    stroke-width="1.5" stroke-linecap="round">
+    <path d="M2.5 3.5h9M5.5 3.5V2.2h3v1.3M3.5 3.5l.6 8.3h5.8l.6-8.3M5.8 5.8v3.7M8.2 5.8v3.7"/></svg></button>
   <div class="pop" id="ty-colorpop" hidden>
     <p class="pop-h">Text colour</p>
     <div class="swgrid" id="ty-swgrid"></div>
@@ -5898,6 +5905,12 @@ function showType(key) {
     s.classList.toggle('on', s.dataset.c === cur));
   $('ty-Abar').style.background =
     st.color || 'linear-gradient(90deg,#e66,#6b9e78,#66e)';
+  // Deleting acts on the selected OBJECT, so the button only exists when there
+  // is one (a naked slot mid-edit has nothing deleteSel could act on — a dead
+  // button is worse than none, which is a lesson this editor has now learned
+  // twice). Hidden too while a text editor is open: Delete there is typing.
+  $('ty-del').hidden = !selIds.size || !!richHost;
+  $('ty-del').disabled = !selIds.size || [...selIds].every(isLocked);
   $('ty-fx').value = (st.effect && st.effect.kind) || '';
   showFxParams(key);
   $('ty-i').classList.toggle('on', !!st.italic);
@@ -10325,6 +10338,22 @@ open('/repo/' + OUT).read()
     // handler afterwards is a race the editor loses by silently going inert.
     nu.onload = () => {
       if (pendingFrame !== nu) return;  // superseded; its promise already resolved
+      // NEVER swap over an open inline editor. The old document is what holds
+      // the person's caret and their un-committed words; removing it destroyed
+      // the editor mid-thought, silently ate whatever they had typed, and —
+      // because a removed contenteditable fires no blur — left `editing` stuck
+      // true, after which every dblclick was ignored and every click was
+      // swallowed by the commit-the-editor path whose host no longer existed.
+      // The whole text side of the editor died until a reload ("takes several
+      // clicks to start editing", "still can't delete"). So the twin WAITS:
+      // finish() always calls render(), and that render supersedes this frame
+      // and carries the person's newest words with it. Resolve the promise
+      // though — the caller awaiting this render must not hang on their edit.
+      if (editing) {
+        pendingResolve = null;
+        resolve();
+        return;
+      }
       pendingFrame = null; pendingResolve = null;
       old.remove();
       nu.id = 'out';
@@ -10352,6 +10381,15 @@ let pendingResolve = null;            // its render()'s resolver, for supersede
 
 function wire() {
   const d = $('out').contentDocument;
+  // Self-heal: `editing` true with no editor in THIS document means an open
+  // editor was destroyed without its blur/Escape ever running (a removed
+  // contenteditable fires no blur). The deferred-swap rule above should make
+  // that impossible via renders — this is the net under it, because a stranded
+  // flag kills every text interaction: edit() refuses to open, and the
+  // commit-the-editor click path swallows every click into a dead host.
+  if (editing && !d.querySelector('.ds-edit')) {
+    editing = false; richHost = null; syncMarksBar();
+  }
   showLocalImages(d);
   // Native image-drag steals the gesture before the editor's mousemove ever
   // fires — grab a placed photo and a ghost image flies while the box stays
@@ -12050,6 +12088,7 @@ $('download').onclick = () => {
   $('dl-marks').disabled = !local;
   togglePop($('downloadpop'), $('download'));
 };
+$('ty-del').onclick = () => deleteSel($('out').contentDocument);
 $('dl-pdf').onclick = () => doExport('pdf');
 // A report's own on-page "Download PDF" button (docsync.blocks.pdf_button)
 // stays live on the canvas: it cannot window.print() there — that would print
