@@ -1031,6 +1031,12 @@
          handlers: nothing about either flow changed, only where it is
          reached from. -->
     <button class="shp" id="download" aria-label="Download the report as a PDF or per-page PNGs">Download…</button>
+    <!-- Deleting a designed element hides it (layout.hidden) rather than
+         editing markup the next build would regenerate anyway. Undo takes it
+         straight back, but once the deletion is a few steps old there has to be
+         somewhere to find it — a deleted element is invisible, so it cannot be
+         clicked to bring it back. Hidden entirely when nothing is deleted. -->
+    <button class="shp" id="file-restore" hidden>Restore deleted…</button>
     <button class="shp" id="tok" aria-label="Check or replace the GitHub token used to save">Token…</button>
   </div>
   <div class="pop" id="openpop" hidden>
@@ -1186,6 +1192,7 @@
   <span class="ty-seg" id="ty-marks" hidden title="Formatting — applies to the selected words">
     <button id="ty-mb" aria-label="Bold the selection"><b>B</b></button>
     <button id="ty-mi" aria-label="Italicise the selection"><i>I</i></button>
+    <button id="ty-mu" aria-label="Underline the selection"><u>U</u></button>
     <button id="ty-mul" aria-label="Bulleted list"><svg width="14" height="14" viewBox="0 0 14 14"
       stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3.5h7M5 7h7M5 10.5h7"/>
       <circle cx="2.2" cy="3.5" r="1" fill="currentColor" stroke="none"/>
@@ -1743,6 +1750,7 @@ function mdInlineToHtml(text) {
   });
   s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/__([\s\S]+?)__/g, '<u>$1</u>');   // see content.py's md_inline
   s = s.replace(/(?<![\w*])\*(?!\s)([\s\S]+?)(?<!\s)\*(?![\w*])/g, '<i>$1</i>');
   s = s.replace(/\x00LINK(\d+)\x00([\s\S]*?)\x01/g,
     (m, i, inner) => `<a href="${escAttr(urls[+i])}">${inner}</a>`);
@@ -1956,6 +1964,7 @@ function nodeToMdInline(node) {
     const tag = n.tagName;
     if (tag === 'B' || tag === 'STRONG') { out += `**${nodeToMdInline(n)}**`; return; }
     if (tag === 'I' || tag === 'EM') { out += `*${nodeToMdInline(n)}*`; return; }
+    if (tag === 'U') { out += `__${nodeToMdInline(n)}__`; return; }
     if (tag === 'A') { out += `[${nodeToMdInline(n)}](${n.getAttribute('href') || ''})`; return; }
     if (tag === 'IMG') { out += `![${n.getAttribute('alt') || ''}](${n.getAttribute('src') || ''})`; return; }
     if (tag === 'BR') { out += '\n'; return; }
@@ -2018,7 +2027,7 @@ function boldItalicBlocked(d, which) {
 // back <b>wor</b> and leaves <b>hello </b><b>ld</b> behind — so unbolding is
 // "extract, strip the tag, put it back", with the awkward half-covered case
 // already handled.
-const MARK_TAGS = { b: ['B', 'STRONG'], i: ['I', 'EM'] };
+const MARK_TAGS = { b: ['B', 'STRONG'], i: ['I', 'EM'], u: ['U'] };
 
 function hasMarkAncestor(node, tags, host) {
   for (let e = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
@@ -2309,12 +2318,15 @@ function pasteClean(d, host, e, { allowLists = false, inline = false, allowMd = 
 function wireMarkState(d) {
   d.addEventListener('selectionchange', () => {
     if (!richHost || richOpts.allowMd === false) return;
-    const mb = $('ty-mb'), mi = $('ty-mi');
-    if (!mb || !mi) return;
+    const mb = $('ty-mb'), mi = $('ty-mi'), mu = $('ty-mu');
+    if (!mb || !mi || !mu) return;
     mb.disabled = boldItalicBlocked(d, 'bold');
     mi.disabled = boldItalicBlocked(d, 'italic');
     mb.classList.toggle('on', !mb.disabled && markActive(d, richHost, 'b'));
     mi.classList.toggle('on', !mi.disabled && markActive(d, richHost, 'i'));
+    // Underline nests with neither b nor i in this grammar's serialisation, but
+    // it has no bold/italic-style conflict to block on either.
+    mu.classList.toggle('on', markActive(d, richHost, 'u'));
   });
 }
 
@@ -8507,6 +8519,7 @@ const richDo = fn => {
 };
 $('ty-mb').addEventListener('click', () => richDo(d => toggleMark(d, richHost, 'b')));
 $('ty-mi').addEventListener('click', () => richDo(d => toggleMark(d, richHost, 'i')));
+$('ty-mu').addEventListener('click', () => richDo(d => toggleMark(d, richHost, 'u')));
 $('ty-mul').addEventListener('click', () => richDo(d => toggleListRich(d, richHost, false)));
 $('ty-mol').addEventListener('click', () => richDo(d => toggleListRich(d, richHost, true)));
 
@@ -11909,7 +11922,39 @@ function renderOpenList() {
   });
 }
 
-$('file').onclick = () => togglePop($('filepop'), $('file'));
+$('file').onclick = () => {
+  // "Restore deleted" only exists when something IS deleted, and the count is
+  // the only place the number is surfaced — a hidden element draws nothing.
+  const h = (layout.hidden || []).length;
+  $('file-restore').hidden = !h;
+  // No "(0)" — the count only means something when there IS something.
+  $('file-restore').textContent = h ? `Restore deleted (${h})…` : 'Restore deleted…';
+  togglePop($('filepop'), $('file'));
+};
+
+// Bring back an element that Delete hid. Undo covers the moment right after,
+// so this is for later — and it lists what is gone, because by then the page
+// gives no clue that anything is missing.
+$('file-restore').onclick = async () => {
+  $('filepop').hidden = true;
+  const ids = [...(layout.hidden || [])];
+  if (!ids.length) return;
+  const pick = await dsForm('Restore deleted', [{
+    name: 'id', label: 'Deleted from this report', type: 'select',
+    options: [...ids.map(id => ({ value: id, label: id })),
+              { value: '\u0000all', label: `Everything (${ids.length})` }],
+    value: ids[0],
+  }], { okLabel: 'Restore' });
+  if (!pick) return;
+  pushHistory();
+  layout.hidden = pick.id === '\u0000all' ? [] : ids.filter(x => x !== pick.id);
+  if (!layout.hidden.length) delete layout.hidden;
+  markDirty();
+  await render();
+  $('stat').textContent = pick.id === '\u0000all'
+    ? `restored ${ids.length} deleted element${ids.length > 1 ? 's' : ''}`
+    : `restored ${pick.id}`;
+};
 $('file-open').onclick = () => { renderOpenList(); togglePop($('openpop'), $('file')); };
 $('file-resize').onclick = () => { renderSizes(); togglePop($('resizepop'), $('file')); };
 // A second editor window on this same server. The server does the opening —
@@ -12006,6 +12051,13 @@ $('download').onclick = () => {
   togglePop($('downloadpop'), $('download'));
 };
 $('dl-pdf').onclick = () => doExport('pdf');
+// A report's own on-page "Download PDF" button (docsync.blocks.pdf_button)
+// stays live on the canvas: it cannot window.print() there — that would print
+// the artboard iframe, edit affordances and all — so in edit mode it posts up
+// here and takes the same server-side Chrome export as File > Download > PDF.
+window.addEventListener('message', e => {
+  if (e.data && e.data.ds === 'export-pdf') doExport('pdf');
+});
 $('dl-png').onclick = () => doExport('png');
 $('dl-src').onclick = () => downloadSource();
 $('dl-html').onclick = () => exportHtml(false);
@@ -12236,7 +12288,12 @@ async function downloadSource() {
  *  Falls back to the id when the registry has no display name, which is every
  *  project that was never given one. */
 function exportBasename() {
-  const entry = REGISTRY && REGISTRY[activeProjectId()];
+  // M.id, not activeProjectId(): a per-project editor opened at its own URL
+  // (/tax-testimony/edit.html) has no ?project= param, and activeProjectId's
+  // fallback picks the base-less registry entry — the primer — so every other
+  // report's export was downloading as Budget-Primer-FY2026-27.pdf. The
+  // manifest that is actually loaded is the truth about what is being exported.
+  const entry = REGISTRY && (REGISTRY[M && M.id] || REGISTRY[activeProjectId()]);
   const name = (entry && entry.name) || M.id || 'report';
   return String(name).trim().replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
          || M.id || 'report';

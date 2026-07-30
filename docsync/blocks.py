@@ -143,17 +143,22 @@ def pdf_button(L, label: str = "Download PDF", *, bg: str = "#2F3E46",
     badly formatted PDF is worse than no button — the two halves are one
     capability. Call once per document; pass css=False for a second button.
 
-    Hidden while editing (DOCSYNC_EDIT): the draft editor has its own
-    File > Download, which exports through headless Chrome server-side, and a
-    fixed-position web control floating over the artboard is chrome the canvas
-    should not have to show.
+    Drawn in the editor too, and it WORKS there: it was hidden at first, then
+    drawn but inert — and an inert button that looks clickable reads as broken,
+    which is exactly what got reported. In the editor a click posts a message
+    up to the parent chrome, which runs the same server-side Chrome export as
+    File > Download > PDF — so the button downloads the current draft, unsaved
+    edits and all, rather than window.print()-ing the artboard iframe with its
+    selection handles and edit affordances baked in.
     """
     sheet = print_css(L, pad=pad, link_ink=link_ink) if css else ""
-    if os.environ.get("DOCSYNC_EDIT"):
-        return sheet
+    edit = bool(os.environ.get("DOCSYNC_EDIT"))
+    act = ('onclick="parent.postMessage({ds:\'export-pdf\'},\'*\')" '
+           'title="Download this draft as a PDF"' if edit else
+           'onclick="window.print()" '
+           'title="Opens your browser\'s print dialog — choose Save as PDF"')
     return sheet + (
-        f'<button type="button" class="noprint" onclick="window.print()" '
-        f'title="Opens your browser\'s print dialog — choose Save as PDF" '
+        f'<button type="button" class="noprint" {act} '
         f'style="position:fixed;top:{top};right:{right};z-index:60;'
         f'background:{bg};color:{ink};border:0;border-radius:8px;'
         f'padding:9px 15px;font-family:inherit;font-size:14px;font-weight:700;'

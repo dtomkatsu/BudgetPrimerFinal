@@ -44,10 +44,12 @@ PAGE_W_IN, PAGE_H_IN = 8.5, 11.0
 # caller.
 PAGELESS_H = 200.0
 
-# How a hidden element renders IN THE EDITOR: a ghost, not a gap. It keeps its
-# box (so nothing reflows while it's "deleted"), stays clickable, and reads
-# unmistakably as not-part-of-the-page. Published output uses display:none.
-_GHOST_CSS = ("opacity:.35;outline:1.5px dashed #C0603F;outline-offset:2px")
+# A hidden element is GONE in the editor too, exactly as it is on the published
+# page. It was first drawn as a translucent dashed ghost that kept its box, so
+# the deletion would be visibly reversible — but a half-faded element reads as a
+# broken delete, not an undoable one, and the box it kept meant the page never
+# closed the gap the way publishing would. Reversibility lives in Undo and in
+# the editor's "Restore deleted" list instead, where it belongs.
 # What a page may be. Wide enough for A3 and long enough for a US Legal sheet,
 # with room either side; narrow enough that a typo in a hand-edited layout.json
 # cannot ask the renderer for a page a mile across.
@@ -1614,7 +1616,7 @@ class Layout:
         # in an inline style is the one that wins. In edit mode a hidden
         # element ghosts instead of vanishing — still laid out, still
         # selectable, so Delete can find it again and restore it.
-        hide = "" if not hid else (_GHOST_CSS if edit else "display:none")
+        hide = "display:none" if hid else ""
         both = ";".join(x for x in (css, extra, hide) if x)
         if both:
             bits.append(f'style="{both}"')
@@ -1639,11 +1641,9 @@ class Layout:
         reserves nothing, because it never occupied flow space. It is a
         different thing from 'h', which is how tall the element should be drawn.
         """
-        # A hidden element gives its flow slot back on publish — deleting
-        # something should close the gap, not leave a silent hole. The editor
-        # keeps the spacer so the ghost sits exactly where restoring would put
-        # it and nothing else shifts while it is "deleted".
-        if el_id in self.hidden and not os.environ.get("DOCSYNC_EDIT"):
+        # A hidden element gives its flow slot back: deleting something should
+        # close the gap, in the editor exactly as on the published page.
+        if el_id in self.hidden:
             return ""
         p = self.positions.get(el_id)
         if not p or not p.get("reserve"):
@@ -1693,8 +1693,7 @@ class Layout:
         p = self.positions.get(el_id)
         css = self._style(p) if p else default
         if el_id in self.hidden:
-            hide = _GHOST_CSS if os.environ.get("DOCSYNC_EDIT") else "display:none"
-            css = ";".join(x for x in (css, hide) if x)
+            css = ";".join(x for x in (css, "display:none") if x)
         return css
 
     def moved(self, el_id: str) -> bool:

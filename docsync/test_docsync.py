@@ -296,16 +296,20 @@ check("style() hides for the tag()/style() call sites",
       hid.style("plain.el", "left:1in"), "left:1in;display:none")
 check_eq("tag() publishes nothing extra for a hidden element",
          hid.tag("plain.el"), "")
+# Deleting is deleting: the element is gone on the canvas exactly as it is on
+# the published page. It was drawn as a translucent dashed ghost at first, so the
+# deletion would look reversible — but a half-faded element reads as a delete
+# that did not work, and keeping its box meant the page never closed the gap the
+# way publishing would. Undo and File > Restore deleted carry reversibility.
 os.environ["DOCSYNC_EDIT"] = "1"
 try:
-    ghost = hid.attr("plain.el")
-    check("edit mode ghosts instead of hiding", ghost, 'data-hidden="1"')
-    check("the ghost is translucent, not display:none", ghost, "opacity:.35")
-    check_eq("no display:none in the editor",
-             "display:none" in ghost, False)
-    check("the editor keeps the vacated-slot spacer under a ghost",
-          hid.spacer("c.o"), "ds-spacer")
-    check("tag() marks the ghost for the editor",
+    ed = hid.attr("plain.el")
+    check("a deleted element is gone on the canvas too", ed, "display:none")
+    check_eq("no half-faded ghost is left behind", "opacity" in ed, False)
+    check_eq("the canvas closes the gap, like publishing", hid.spacer("c.o"), "")
+    check("the id is still marked, so the editor can list it for restore",
+          ed, 'data-hidden="1"')
+    check("tag() marks it too, for the call sites that own their style",
           hid.tag("plain.el"), 'data-hidden="1"')
 finally:
     del os.environ["DOCSYNC_EDIT"]
@@ -989,6 +993,23 @@ check_page_raises("a non-numeric width is refused", {"page": {"w": "wide", "h": 
 check_page_raises("an absurd width is refused", {"page": {"w": 0.2, "h": 11}}, "outside")
 check_page_raises("an absurd height is refused", {"page": {"w": 8.5, "h": 900}}, "outside")
 
+# ---- underline ---------------------------------------------------------
+# Markdown has no underline and md_inline escapes '<', so raw <u> cannot get
+# through — a reader who selects a word and presses U needs a token that
+# round-trips. '__' was unused by this grammar (bold '**', italic '*').
+from docsync.content import md_inline                      # noqa: E402
+
+check("underline renders", md_inline("pausing __all__ tax cuts"),
+      "pausing <u>all</u> tax cuts")
+check("underline coexists with bold and italic",
+      md_inline("a **b** and __u__ and *i* run"),
+      "a <b>b</b> and <u>u</u> and <i>i</i> run")
+# A single underscore is not a mark: identifiers and file names carry them.
+check_eq("a lone underscore is left alone",
+         md_inline("snake_case_name stays"), "snake_case_name stays")
+check_eq("raw <u> is still escaped, so markup cannot be smuggled in",
+         md_inline("<u>x</u>"), "&lt;u>x&lt;/u>")
+
 # ---- blocks: the PDF download capability -------------------------------
 # A "Download PDF" button and the print CSS that makes its output correct are
 # ONE capability: without @page/margin:0, forced breaks, shadow removal and
@@ -1037,12 +1058,18 @@ check_eq("css=False leaves the sheet rules to the caller",
 check("a second button can skip the duplicate css",
       pdf_button(letter, css=False), 'onclick="window.print()"')
 
-# The draft editor has its own File > Download (server-side headless Chrome),
-# and a fixed web control floating over the artboard is not document content.
+# On the editor canvas the button is drawn AND live — an inert button that
+# looks clickable reads as broken (reported as exactly that). It must not
+# window.print() there, which would print the artboard iframe with its edit
+# affordances; instead it posts up to the chrome, which runs the same
+# server-side export as File > Download > PDF.
 os.environ["DOCSYNC_EDIT"] = "1"
 try:
     ed = pdf_button(letter)
-    check_eq("the button is not drawn on the editor canvas",
+    check("the button is drawn on the editor canvas", ed, "Download PDF")
+    check("in the editor it defers to the chrome's exporter",
+          ed, "parent.postMessage({ds:'export-pdf'}")
+    check_eq("never window.print() over the artboard",
              "window.print()" in ed, False)
     check("the print rules still ship in edit mode", ed, "@media print{")
 finally:

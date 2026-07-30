@@ -88,6 +88,12 @@ def md_inline(s: str) -> str:
     s = re.sub(r"\[([^\]^][^\]]*)\]\((https?://[^)\s]+)\)", stash, s)
     s = s.replace("&", "&amp;").replace("<", "&lt;")
     s = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s, flags=re.S)
+    # Underline. Markdown has no underline of its own and raw <u> cannot get
+    # through the escaping above, so it needs a token: '__' is unused by this
+    # grammar (bold is '**', italic '*'), and reads as underline to anyone
+    # hand-editing content.md. Note CommonMark would call '__x__' strong — this
+    # engine has never implemented '__' at all, so nothing changes meaning.
+    s = re.sub(r"__(.+?)__", r"<u>\1</u>", s, flags=re.S)
     s = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<i>\1</i>", s, flags=re.S)
     s = re.sub(r"\x00LINK(\d+)\x00(.*?)\x01",
                lambda m: f'<a href="{urls[int(m.group(1))]}">{m.group(2)}</a>', s, flags=re.S)
