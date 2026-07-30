@@ -937,6 +937,10 @@
   .pop .shp { display:flex; align-items:center; gap:9px; width:100%; border:0;
         background:none; font:12.5px system-ui; color:var(--ink); padding:7px 8px;
         border-radius:7px; cursor:pointer; }
+  /* display:flex above beats [hidden]'s own non-!important display:none — the
+     same trap as #bar > button[hidden] and #type [hidden]. Without this a
+     File-menu row that hides itself (New window, local-only) stayed on screen. */
+  .pop .shp[hidden] { display:none; }
   .pop .shp:hover { background:var(--sage); color:#fff; }
   .pop .shp svg { display:block; }
   /* the layers panel: this page's objects, top of the stack first */
@@ -1015,6 +1019,12 @@
   <button id="file" aria-label="File — open, resize, download">File ▾</button>
   <div class="pop" id="filepop" hidden>
     <button class="shp" id="file-open">Open…</button>
+    <!-- A SECOND editor on the same server. The launcher deliberately raises
+         its existing window rather than adding one (a Dock icon that stacked
+         up full Pyodide boots was a real annoyance), so wanting two at once —
+         two projects side by side, or one report on two pages — is asked for
+         here instead. -->
+    <button class="shp" id="file-newwin" hidden>New window</button>
     <button class="shp" id="file-resize">Resize…</button>
     <p class="pop-h">This report</p>
     <!-- Download and Token MOVED here from the bar. Same ids and the same
@@ -9742,6 +9752,9 @@ async function detectLocal() {
   // Draft branches and PRs belong to the hosted editor, so those verbs hide.
   $('share').hidden = $('publish').hidden = true;
   $('push').hidden = false;
+  // Only the local server can open another app window; a hosted editor has
+  // ordinary browser tabs for that.
+  $('file-newwin').hidden = false;
   $('save').textContent = 'Save';
   // The pill said "<project> · live" next to a picker already naming the
   // project, on a bar whose whole state is "live" — pure repetition. It stays
@@ -11899,6 +11912,29 @@ function renderOpenList() {
 $('file').onclick = () => togglePop($('filepop'), $('file'));
 $('file-open').onclick = () => { renderOpenList(); togglePop($('openpop'), $('file')); };
 $('file-resize').onclick = () => { renderSizes(); togglePop($('resizepop'), $('file')); };
+// A second editor window on this same server. The server does the opening —
+// window.open() inside a Chrome `--app` window gives a plain browser window,
+// not another app window, so the second editor would have looked like a lesser
+// version of the first. One server serves them all; this starts nothing.
+//
+// Only in LOCAL mode: there is no server to ask otherwise, and a hosted editor
+// has ordinary browser tabs for this anyway.
+$('file-newwin').onclick = async () => {
+  $('filepop').hidden = true;
+  try {
+    const r = await fetch(withProject('/__window'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: location.href }),
+    });
+    const j = await r.json();
+    $('stat').textContent = j.ok
+      ? 'new window opened — both edit the same files, so save one at a time'
+      : 'could not open a window: ' + (j.error || 'unknown');
+  } catch (e) {
+    $('stat').textContent = 'could not open a window: ' + e.message;
+  }
+};
 $('open-all').onclick = () => { location.href = 'start.html'; };
 
 $('open-list').onclick = async (e) => {

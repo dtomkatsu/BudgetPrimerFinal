@@ -637,13 +637,15 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         path = self.path.split("?")[0]
         if path not in ("/__save", "/__push", "/__export", "/__upload",
-                        "/__update", "/__rollback"):
+                        "/__update", "/__rollback", "/__window"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
             req = json.loads(self.rfile.read(n) or b"{}")
         except json.JSONDecodeError as e:
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
+        if path == "/__window":
+            return self._new_window(req)
         if path == "/__update":
             return self._apply_update()              # writes its own response
         if path == "/__rollback":
@@ -667,6 +669,46 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"ok": False, "error": str(e),
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
+
+    def _new_window(self, req):
+        """A SECOND editor window on this same server.
+
+        The launcher deliberately raises its existing window rather than adding
+        one — every extra window is a full Pyodide boot, and a Dock icon that
+        stacked them up was a real annoyance. But wanting two at once is also
+        real: two projects side by side, or the same report on two pages. So
+        the extra window is asked for explicitly, from the editor's File menu,
+        and this is what opens it.
+
+        A `--app` window via `open`, the same shape the launcher makes, so the
+        second window is not a lesser browser-tab version of the first. Falls
+        back to the default browser when Chrome is absent, exactly as the
+        launcher does. One server serves them all; nothing here starts another.
+        """
+        # The URL comes from the client because the client is the one that
+        # knows it: which docs/<dir> or /_repo-<pid> mount a project is served
+        # under is already worked out in the browser's own location, and
+        # re-deriving it here would be a second copy of that mapping to keep in
+        # step. Checked against THIS server's own origin — nothing else is
+        # openable — and passed as a list, never a shell string.
+        url = str(req.get("url") or "")
+        allowed = (f"http://localhost:{PORT}/", f"http://127.0.0.1:{PORT}/",
+                   f"http://[::1]:{PORT}/")
+        if not url.startswith(allowed) or any(c in url for c in '"\'\\ \t\n'):
+            return self._json(200, {"ok": False,
+                                    "error": "url must be a plain path on this server"})
+        chrome = "/Applications/Google Chrome.app"
+        try:
+            if sys.platform == "darwin" and os.path.isdir(chrome):
+                # -n: a new window even though Chrome is already running. This
+                # is the one place that IS what we want.
+                subprocess.Popen(["open", "-na", "Google Chrome",
+                                  "--args", f"--app={url}"])
+            else:
+                webbrowser.open(url)
+        except Exception as e:                       # noqa: BLE001 — report it
+            return self._json(200, {"ok": False, "error": str(e)})
+        return self._json(200, {"ok": True, "url": url})
 
     def _apply_update(self):
         """Take the update, then restart into it.
