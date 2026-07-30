@@ -36,7 +36,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from docsync.registry import ROOT, Binding, RegistryError, get, load_registry  # noqa: E402
 
 EDITOR = Path(__file__).resolve().parent / "editor" / "edit.html"
-PACKAGE = ("content.py", "normalise.py", "layout.py", "blocks.py")
+# Every docsync module a project renderer may import, copied into Pyodide's
+# filesystem. Unlike vendor.py — where the package genuinely IS the manifest —
+# this list is explicit, so a new shared module has to be added here too or the
+# draft build dies with ModuleNotFoundError while the published page is fine.
+PACKAGE = ("content.py", "normalise.py", "layout.py", "blocks.py", "okina.py")
 
 
 def rel(p: Path) -> str:
