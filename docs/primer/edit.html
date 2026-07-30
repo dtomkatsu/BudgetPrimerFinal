@@ -1044,6 +1044,10 @@
          two projects side by side, or one report on two pages — is asked for
          here instead. -->
     <button class="shp" id="file-newwin" hidden>New window</button>
+    <!-- Local only, like New window: sign this COMPUTER in so the server's
+         own pushes are authorised — one code typed at github.com, no token
+         to mint, no keychain to have set up. -->
+    <button class="shp" id="file-ghconn" hidden>Connect GitHub…</button>
     <button class="shp" id="file-resize">Resize…</button>
     <p class="pop-h">This report</p>
     <!-- Download and Token MOVED here from the bar. Same ids and the same
@@ -9805,6 +9809,15 @@ async function detectLocal() {
   // Only the local server can open another app window; a hosted editor has
   // ordinary browser tabs for that.
   $('file-newwin').hidden = false;
+  // Same for signing THIS COMPUTER in: the server holds the credential and
+  // does the pushing, so the row only means something when there is one.
+  $('file-ghconn').hidden = false;
+  fetch('/__oauth/status').then(r => r.json()).then(j => {
+    if (j && j.ok) {
+      serverOauth = j;
+      if (j.connected) $('file-ghconn').textContent = 'GitHub: ' + j.login;
+    }
+  }).catch(() => {});
   $('save').textContent = 'Save';
   // The pill said "<project> · live" next to a picker already naming the
   // project, on a bar whose whole state is "live" — pure repetition. It stays
@@ -11561,19 +11574,50 @@ async function verifyToken(tok) {
 // two of them with CORS added. Configured per project in the manifest:
 //   "oauth": { "client_id": "Iv23…", "relay": "https://…workers.dev" }
 // Absent that config, the paste-a-token prompt below still does the job.
-const oauthOn = () => !!(M && M.oauth && M.oauth.client_id && M.oauth.relay);
+// The local server proxies GitHub's login endpoints itself (/__oauth/…), so
+// in local mode NO deployed relay is needed — only the one GitHub App client
+// id, which can come from the manifest OR the server's own PRIMER_GH_CLIENT
+// (learned at boot via /__oauth/status into serverOauth).
+let serverOauth = { connected: false, login: '', client_id: '' };
+const oauthClientId = () =>
+  (M && M.oauth && M.oauth.client_id) || (local && serverOauth.client_id) || '';
+const oauthOn = () => !!(oauthClientId() && ((M && M.oauth && M.oauth.relay) || local));
 
 async function relay(path, body) {
-  const r = await fetch(M.oauth.relay + path, {
+  const base = (M && M.oauth && M.oauth.relay) || (local ? '/__oauth' : null);
+  if (!base) throw new Error('no sign-in route');
+  const r = await fetch(base + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ client_id: M.oauth.client_id, ...body }),
+    body: JSON.stringify({ client_id: oauthClientId(), ...body }),
   });
   if (!r.ok) throw new Error(`sign-in relay ${r.status}`);
   return r.json();
 }
 
+/** Local mode: the SERVER pushes, so the server needs the credential too.
+ *  Verified and stored there (never in a file the repo could commit); the
+ *  browser keeps its own copy for the API calls it makes itself. */
+async function sendTokenToServer(tok) {
+  if (!local || !tok) return null;
+  try {
+    const r = await fetch('/__oauth/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: tok }),
+    });
+    const j = await r.json();
+    if (j.ok) {
+      serverOauth.connected = true;
+      serverOauth.login = j.login;
+      return j.login;
+    }
+    $('stat').textContent = 'GitHub did not accept the token: ' + (j.error || '');
+  } catch (e) { /* the server may be gone; the browser copy still works */ }
+  return null;
+}
+
 function storeAuth(j) {
+  sendTokenToServer(j.access_token);          // fire-and-forget; local only
   localStorage.setItem('docsync-pat', j.access_token);
   if (j.expires_in) localStorage.setItem('docsync-exp', String(Date.now() + j.expires_in * 1000));
   else localStorage.removeItem('docsync-exp');
@@ -11998,7 +12042,12 @@ $('push').onclick = async () => {
     $('stat').textContent = j.message || 'pushed';
     setPushState(j.ahead);
   } catch (e) {
-    $('stat').textContent = 'push failed: ' + e.message;
+    // The commonest first-machine failure is simply "this computer has no
+    // GitHub credential" — name the way out rather than only the wreck.
+    const authish = /credential|authenticat|permission|403|denied|terminal to answer/i
+      .test(e.message) && !serverOauth.connected;
+    $('stat').textContent = 'push failed: ' + e.message
+      + (authish ? ' — File \u25b8 Connect GitHub sets this computer up' : '');
     setPushState(1);          // still ahead — the try again path stays lit
   }
 };
@@ -12194,6 +12243,21 @@ $('file-newwin').onclick = async () => {
     $('stat').textContent = 'could not open a window: ' + e.message;
   }
 };
+// Connect GitHub: the sign-in panel if the device flow is configured, the
+// paste-a-token prompt otherwise — either way the credential ends up ON THE
+// SERVER (sendTokenToServer via storeAuth/askToken), which is the party that
+// actually pushes in local mode.
+$('file-ghconn').onclick = async () => {
+  $('filepop').hidden = true;
+  const tok = oauthOn() ? await signIn() : await askToken();
+  if (!tok) return;
+  const login = await sendTokenToServer(tok);
+  $('file-ghconn').textContent = login ? 'GitHub: ' + login : 'Connect GitHub…';
+  $('stat').textContent = login
+    ? `connected as ${login} — Push can now reach GitHub from this computer`
+    : 'signed in — but the local server could not keep the credential';
+};
+
 $('open-all').onclick = () => { location.href = 'start.html'; };
 
 $('open-list').onclick = async (e) => {

@@ -108,6 +108,43 @@ def _load_projects() -> dict:
 
 
 PROJECTS = _load_projects()
+
+# ---- GitHub sign-in (device flow, proxied) ---------------------------------
+# GitHub's login endpoints refuse cross-origin BROWSER calls, which is why the
+# hosted editor needs a relay worker. This server has no such problem: it can
+# forward the two device-flow calls itself, so a LOCAL editor signs in with no
+# worker, no Cloudflare account, nothing deployed. The client id is the one
+# per-organisation registration (docs/primer/OAUTH_SETUP.md step 1 — the app,
+# not the relay); it is public by design. Overridable bases so the test suite
+# can stand in for GitHub without network.
+GH_CLIENT = os.environ.get("PRIMER_GH_CLIENT", "")
+GH_BASE = os.environ.get("PRIMER_GH_BASE", "https://github.com")
+GH_API = os.environ.get("PRIMER_GH_API", "https://api.github.com")
+# The token the SERVER pushes with, once someone signs in. One file, account-
+# level (a token is a person, not a project), never committed (.gitignore).
+TOKEN_FILE = SELF_ROOT / ".primer-github-token"
+
+
+def _gh_token() -> dict:
+    try:
+        return json.loads(TOKEN_FILE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _gh_http(url: str, body: dict | None = None, token: str = "") -> dict:
+    """One JSON round-trip to GitHub (or the test stand-in). urllib, not a
+    dependency: two endpoints do not justify a package."""
+    import urllib.request
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(url, data=data, method="POST" if data else "GET")
+    req.add_header("Accept", "application/json")
+    if data:
+        req.add_header("Content-Type", "application/json")
+    if token:
+        req.add_header("Authorization", "Bearer " + token)
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read().decode() or "{}")
 DEFAULT_PROJECT = "budget-primer" if "budget-primer" in PROJECTS else next(iter(PROJECTS), None)
 
 # Foreign-repo projects: nothing under THIS server's docs/ tree can reach
@@ -127,6 +164,22 @@ SELF_DIR_TO_PID = {
     for pid, p in PROJECTS.items()
     if p["root"] == SELF_ROOT and p["binding"].editor
 }
+
+
+def _register_project(pid: str, root: Path, binding) -> None:
+    """Bring a project to life in a RUNNING server — the counterpart of the
+    import-time loaders above, kept in step with all four structures they
+    fill. The watcher picks the new project up on its next pass (it re-reads
+    PROJECTS each sweep), and the start-page registry cache is dropped so the
+    grid shows it immediately."""
+    PROJECTS[pid] = {"root": root, "binding": binding}
+    STATE[pid] = ProjectState()
+    if binding.editor:
+        if root != SELF_ROOT:
+            EXTERNAL_MOUNTS[pid] = binding.editor.dir
+        else:
+            SELF_DIR_TO_PID[binding.editor.dir.name] = pid
+    _default_registry.cache_clear()
 
 
 @functools.lru_cache(maxsize=1)
@@ -349,7 +402,13 @@ def watcher():
     while True:
         time.sleep(0.4)
         WATCH_BEAT[0] = time.time()
-        for pid in PROJECTS:
+        # A project registered while the server runs (/__scaffold, /__adopt)
+        # starts being watched on the next pass — its patterns just join in.
+        for pid, p in PROJECTS.items():
+            if pid not in patterns:
+                patterns[pid] = _watch_patterns(p["root"], p["binding"])
+                STATE[pid].mtimes = _snapshot(patterns[pid])
+        for pid in list(PROJECTS):
             # One bad pass must never end the loop. An exception here used to
             # kill the thread outright and take live-reload with it for the
             # life of the process — observed after two days' uptime, with the
@@ -471,6 +530,11 @@ class Handler(SimpleHTTPRequestHandler):
         pid = (parse_qs(parsed.query).get("project") or [None])[0]
         if clean == "/__ping":
             return self._json(200, self._ping_payload(pid))
+        if clean == "/__oauth/status":
+            t = _gh_token()
+            return self._json(200, {"ok": True, "connected": bool(t.get("token")),
+                                    "login": t.get("login", ""),
+                                    "client_id": GH_CLIENT})
         if clean == "/__events":
             return self._sse(pid)
         # projects.json is per-machine and untracked, so a fresh clone has
@@ -637,7 +701,10 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         path = self.path.split("?")[0]
         if path not in ("/__save", "/__push", "/__export", "/__upload",
-                        "/__update", "/__rollback", "/__window"):
+                        "/__update", "/__rollback", "/__window",
+                        "/__scaffold", "/__adopt",
+                        "/__oauth/device/code", "/__oauth/device/token",
+                        "/__oauth/save"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
         n = int(self.headers.get("Content-Length", 0))
         try:
@@ -646,6 +713,12 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
         if path == "/__window":
             return self._new_window(req)
+        if path == "/__scaffold":
+            return self._scaffold(req)
+        if path == "/__adopt":
+            return self._adopt(req)
+        if path.startswith("/__oauth/"):
+            return self._oauth(path, req)
         if path == "/__update":
             return self._apply_update()              # writes its own response
         if path == "/__rollback":
@@ -669,6 +742,135 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"ok": False, "error": str(e),
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
+
+    def _scaffold(self, req):
+        """A blank local project, from the start page's "+ New report" —
+        no GitHub, no token, no repo access. docsync.new writes the files
+        and the docsync.yml binding; this registers it in the RUNNING server
+        and builds it, so "Create" lands in a working editor."""
+        slug = str(req.get("slug") or "").strip()
+        name = str(req.get("name") or "").strip()
+        size = req.get("size") or {}
+        try:
+            w = float(size.get("w", 8.5))
+            h = float(size.get("h", 11.0))
+        except (TypeError, ValueError):
+            return self._json(200, {"ok": False, "error": "page size must be numbers"})
+        sys.path.insert(0, str(SELF_ROOT))
+        try:
+            from docsync.new import NewProjectError, create
+            create(slug, name, w, h, root=SELF_ROOT)
+        except NewProjectError as e:
+            return self._json(200, {"ok": False, "error": str(e)})
+        except Exception as e:                   # noqa: BLE001 — report it
+            return self._json(200, {"ok": False, "error": f"scaffold failed: {e}"})
+        finally:
+            sys.path.remove(str(SELF_ROOT))
+        binding = _load_bindings(SELF_ROOT).get(slug)
+        if binding is None:
+            return self._json(200, {"ok": False,
+                                    "error": "created, but the binding did not read back"})
+        _register_project(slug, SELF_ROOT, binding)
+        rebuild(slug, "scaffold")
+        err = STATE[slug].error
+        if err:
+            return self._json(200, {"ok": False, "error": f"created, but the first build failed: {err}"})
+        return self._json(200, {"ok": True, "slug": slug})
+
+    def _adopt(self, req):
+        """Register a docsync repo ALREADY ON THIS DISK — the "add the live
+        report later" path. Nothing is written into the adopted repo; this
+        host's projects.json gains entries and the running server mounts
+        them. Every binding the repo declares comes in: half a repo is not a
+        useful adoption."""
+        raw = str(req.get("root") or "").strip()
+        if not raw:
+            return self._json(200, {"ok": False, "error": "name the folder the repo lives in"})
+        root = Path(raw).expanduser()
+        if not (root / "docsync.yml").is_file():
+            return self._json(200, {"ok": False,
+                                    "error": f"{root} has no docsync.yml — not a docsync repo"})
+        try:
+            bindings = _load_bindings(root.resolve())
+        except Exception as e:                   # noqa: BLE001 — report it
+            return self._json(200, {"ok": False, "error": f"could not read its registry: {e}"})
+        if not bindings:
+            return self._json(200, {"ok": False, "error": "its docsync.yml has no bindings"})
+        root = root.resolve()
+        # The repo the editor's Push sends to, learned from the clone itself.
+        origin = ""
+        try:
+            url = _git(root, "remote", "get-url", "origin").strip()
+            m = re.search(r"github\.com[:/]([\w.-]+/[\w.-]+?)(?:\.git)?$", url)
+            origin = m.group(1) if m else ""
+        except Exception:
+            pass
+        reg = DOCS / "primer" / "projects.json"
+        try:
+            registry = json.loads(reg.read_text()) if reg.is_file() else {}
+        except json.JSONDecodeError:
+            registry = {}
+        added = []
+        for pid, b in bindings.items():
+            if pid in PROJECTS or not b.editor:
+                continue
+            _register_project(pid, root, b)
+            registry[pid] = {"name": pid.replace("-", " ").title(),
+                             "base": f"../_repo-{pid}",
+                             **({"repo": origin} if origin else {}),
+                             "local_root": str(root)}
+            rebuild(pid, "adopt")
+            added.append(pid)
+        if not added:
+            return self._json(200, {"ok": False,
+                                    "error": "every project there is already in your list"})
+        reg.parent.mkdir(parents=True, exist_ok=True)
+        # Atomic: a reader that lands mid-write sees the OLD file, never a
+        # truncated one — a partial read parsed as {} made the start page
+        # forget every project for one load.
+        tmp = reg.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(registry, indent=2) + "\n")
+        tmp.replace(reg)
+        return self._json(200, {"ok": True, "added": added})
+
+    def _oauth(self, path, req):
+        """The device flow, proxied — and the token, kept for git.
+
+        /device/code and /device/token forward to GitHub with the server's
+        client id filled in (the browser cannot call GitHub's login endpoints
+        cross-origin; this server can). /save verifies whatever token the
+        browser ends up with — signed in or pasted — against the API and
+        keeps it in TOKEN_FILE, which is what lets THIS SERVER push over
+        https without the keychain ever having been set up."""
+        if path == "/__oauth/save":
+            tok = str(req.get("token") or "").strip()
+            if not tok:
+                return self._json(200, {"ok": False, "error": "no token in the request"})
+            try:
+                who = _gh_http(GH_API + "/user", token=tok)
+            except Exception as e:               # noqa: BLE001 — report it
+                return self._json(200, {"ok": False, "error": f"GitHub did not accept it: {e}"})
+            login = who.get("login") or ""
+            if not login:
+                return self._json(200, {"ok": False, "error": "token works but names no user"})
+            TOKEN_FILE.write_text(json.dumps({"token": tok, "login": login}) + "\n")
+            os.chmod(TOKEN_FILE, 0o600)
+            return self._json(200, {"ok": True, "login": login})
+        client = str(req.get("client_id") or "") or GH_CLIENT
+        if not client:
+            return self._json(200, {"ok": False, "error":
+                "no GitHub App client id configured — see docs/primer/OAUTH_SETUP.md "
+                "step 1, then set PRIMER_GH_CLIENT (or the manifest's oauth block)"})
+        target = (GH_BASE + "/login/device/code" if path.endswith("/device/code")
+                  else GH_BASE + "/login/oauth/access_token")
+        body = {k: v for k, v in req.items() if k != "client_id"}
+        body["client_id"] = client
+        if path.endswith("/device/code"):
+            body.setdefault("scope", "repo")
+        try:
+            return self._json(200, _gh_http(target, body))
+        except Exception as e:                   # noqa: BLE001 — report it
+            return self._json(200, {"error": "relay_unreachable", "detail": str(e)})
 
     def _new_window(self, req):
         """A SECOND editor window on this same server.
@@ -977,9 +1179,23 @@ class Handler(SimpleHTTPRequestHandler):
         p = PROJECTS[pid]
         root = p["root"]
         branch = (p["binding"].editor.branch if p["binding"].editor else "main") or "main"
+        # A signed-in token (File > Connect GitHub) authenticates https pushes
+        # without the keychain ever having been set up — the exact machine a
+        # colleague's fresh install is. Inline -c, nothing persisted: an SSH
+        # remote, or a machine whose keychain already works, is untouched.
+        auth = []
+        tok = _gh_token().get("token")
+        if tok:
+            try:
+                origin_url = _git(root, "remote", "get-url", "origin").strip()
+            except RuntimeError:
+                origin_url = ""
+            if origin_url.startswith("https://github.com/"):
+                auth = ["-c", "url.https://x-access-token:" + tok
+                        + "@github.com/.insteadOf=https://github.com/"]
         try:
-            _git(root, "push", "origin", "HEAD")                     # this branch
-            _git(root, "push", "origin", f"HEAD:{branch}")           # -> deploy
+            _git(root, *auth, "push", "origin", "HEAD")              # this branch
+            _git(root, *auth, "push", "origin", f"HEAD:{branch}")    # -> deploy
         except RuntimeError as e:
             if "rejected" in str(e) or "fetch first" in str(e):
                 raise RuntimeError(
@@ -1020,6 +1236,9 @@ def _git(root: Path, *args, timeout=45):
             "in your own terminal so the keychain caches the credential, then retry.")
     if r.returncode != 0:
         raise RuntimeError(f"git {args[0]} failed:\n{(r.stdout + r.stderr).strip()[-1500:]}")
+    # The output, for the callers that read one (remote get-url); the many
+    # that only care about success/failure ignore it, as they always have.
+    return r.stdout
 
 
 class _IPv6Server(ThreadingHTTPServer):
