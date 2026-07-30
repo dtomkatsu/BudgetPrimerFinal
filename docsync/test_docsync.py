@@ -989,6 +989,65 @@ check_page_raises("a non-numeric width is refused", {"page": {"w": "wide", "h": 
 check_page_raises("an absurd width is refused", {"page": {"w": 0.2, "h": 11}}, "outside")
 check_page_raises("an absurd height is refused", {"page": {"w": 8.5, "h": 900}}, "outside")
 
+# ---- blocks: the PDF download capability -------------------------------
+# A "Download PDF" button and the print CSS that makes its output correct are
+# ONE capability: without @page/margin:0, forced breaks, shadow removal and
+# print-color-adjust, the button hands the reader a PDF with the browser's
+# margins stacked on the page's, grey shadow bands between sheets, and every
+# background dropped to white. pdf_button() therefore carries print_css().
+from docsync.blocks import pdf_button, print_css     # noqa: E402
+
+letter = _layout({"positions": {}, "shapes": [], "page": {"w": 8.5, "h": 11}})
+css = print_css(letter)
+check("print css sizes the sheet and kills its margin", css,
+      "@page{size:8.5in 11in;margin:0}")
+check("print css forces exact sheets", css, "height:11in;page-break-after:always")
+check("the last sheet does not force a trailing blank",
+      css, ".page:last-child{page-break-after:auto}")
+check("print css drops the screen shadow and gutter", css, "margin:0;box-shadow:none")
+check("print css hides on-screen chrome", css, ".noprint{display:none !important}")
+# Chrome prints every background white unless this is set, and it is invalid
+# as a bare declaration — it has to hang off a selector.
+check("print css forces background graphics", css,
+      "*,*::before,*::after{-webkit-print-color-adjust:exact !important")
+check_eq("links are left alone unless asked for", "text-decoration:underline" in css, False)
+check("link_ink underlines and recolours for print",
+      print_css(letter, link_ink="#354F52"), "a{color:#354F52;text-decoration:underline}")
+check("pad overrides the page padding for print only",
+      print_css(letter, pad="0.75in 0.62in"), "padding:0.75in 0.62in")
+
+# A pageless report is one continuous surface: it takes a width and lets the
+# sheet run, and must NOT be cut into fixed-height pages.
+pageless = _layout({"positions": {}, "shapes": [], "page": {"w": 8.5, "h": None}})
+pl = print_css(pageless)
+check("a pageless report prints as one running sheet", pl, "@page{size:8.5in auto;margin:0}")
+check_eq("a pageless report is not cut into fixed sheets",
+         "page-break-after:always" in pl, False)
+check_eq("a pageless report gets no forced height", "height:" in pl, False)
+
+btn = pdf_button(letter)
+check("the button prints through the browser, so it can never go stale",
+      btn, 'onclick="window.print()"')
+check("the button is screen-only chrome", btn, 'class="noprint"')
+check("the button is pinned to the upper-right corner", btn,
+      "position:fixed;top:18px;right:18px")
+check("the button carries the print css with it", btn, "@media print{")
+check_eq("css=False leaves the sheet rules to the caller",
+         "@media print{" in pdf_button(letter, css=False), False)
+check("a second button can skip the duplicate css",
+      pdf_button(letter, css=False), 'onclick="window.print()"')
+
+# The draft editor has its own File > Download (server-side headless Chrome),
+# and a fixed web control floating over the artboard is not document content.
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    ed = pdf_button(letter)
+    check_eq("the button is not drawn on the editor canvas",
+             "window.print()" in ed, False)
+    check("the print rules still ship in edit mode", ed, "@media print{")
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

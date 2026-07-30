@@ -4,7 +4,9 @@ These grew up inside the Budget Primer's renderer and were trapped there — a
 new report scaffolded beside it got plain prose and nothing else. Extracted
 here they travel with the engine: `graphic()` for a movable/resizable inline
 SVG, `card()` for a coloured tile whose title/bullets can optionally be pulled
-apart in the editor, and the `is_light_bg()` contrast test they share.
+apart in the editor, `pdf_button()` for the reader-facing "Download PDF" (with
+the `print_css()` that makes its output correct), and the `is_light_bg()`
+contrast test they share.
 
 Deliberately zero-stylesheet: every visual rule is inlined on the markup, so a
 minimal scaffolded renderer with no CSS of its own gets the same result as the
@@ -14,17 +16,22 @@ handles, independent grab inside a movable — not styling.
 
 Usage, from a project renderer:
 
-    from docsync.blocks import graphic, card
+    from docsync.blocks import graphic, card, pdf_button
 
     graphic(L, "page1.diagram", '<svg viewBox="0 0 100 60">…</svg>', w=2.0)
     card(C, L, "page1.card.title", "page1.card.bullets", "#52796F",
          detachable=True, min_h=1.8)
+
+    # Once, just inside <body> — a reader-facing download that stays in step
+    # with the page, plus the print rules that make the PDF come out right.
+    pdf_button(L, bg="#52796F")
 
 The primer's own render_report.py keeps a thin wrapper (its `graphic()`
 delegates here), so there is one implementation to maintain.
 """
 from __future__ import annotations
 
+import os
 import re
 
 from .layout import fill_css, fill_repr
@@ -54,6 +61,104 @@ def _fit_svg(svg: str) -> str:
         return svg
     return re.sub(r"<svg\b", '<svg style="display:block;width:100%;height:auto"',
                   svg, count=1)
+
+
+def _in(v) -> str:
+    """An inch measurement, without a pointless trailing zero.
+
+    The same size arrives as an int from a renderer's own page=(8.5, 11) and as
+    a float from layout.json's {"h": 11}, and "11in" vs "11.0in" in the CSS is
+    a diff in generated output that means nothing."""
+    return f"{float(v):g}in"
+
+
+def print_css(L, pad: str = "", link_ink: str = "") -> str:
+    """The rules that make a report PRINT as the sheets it was designed as.
+
+    Without these a report prints as what it technically is — a scrolling web
+    page — and every "Download PDF" is wrong in the same four ways: the sheet
+    carries the browser's own margins on top of the page's, the drop shadow and
+    the 24px gutter between pages print as grey bands, nothing forces a break
+    at a page boundary so sheet 2 starts halfway down sheet 1, and Chrome drops
+    every background colour unless told not to. The renderer that art-directs a
+    document cannot be relied on to remember all four, so they live here.
+
+    Emitted as a <style> in the body, which is valid and applies document-wide
+    — the same trick layout.py's page_style() uses, and for the same reason: it
+    can ride along with a call the renderer is already making.
+
+    `pad` overrides the page's padding for print only, for a report whose
+    screen padding is deliberately different from its print margins (the Budget
+    Primer's is). Left empty the screen padding stands, which is what a report
+    designed at its real size wants. `link_ink` re-colours and underlines links
+    for print, off by default: a document whose links are already styled as
+    citations does not want them underlined too.
+    """
+    w = getattr(L, "page_w", 8.5)
+    h = getattr(L, "page_h", 11.0)
+    # A pageless layout ({"h": null}) is one continuous surface: it gets a
+    # width and lets the sheet run, with no fixed height and no forced breaks.
+    pageless = bool(getattr(L, "page", None)) and L.page[1] is None
+    sheet = f"{_in(w)} auto" if pageless else f"{_in(w)} {_in(h)}"
+    box = ["margin:0", "box-shadow:none", "max-width:none"]
+    if not pageless:
+        # Exact sheets, so N pages print as exactly N sheets. .page is
+        # overflow:hidden by convention, so a page whose content genuinely
+        # exceeds its height is clipped rather than spilling a near-blank
+        # extra sheet — the editor's own "page cut in print" warning is what
+        # catches that, before it reaches a PDF.
+        box += [f"height:{_in(h)}", "page-break-after:always"]
+    pagerule = ";".join(box) + (f";padding:{pad}" if pad else "")
+    links = f"a{{color:{link_ink};text-decoration:underline}}" if link_ink else ""
+    return (
+        f"<style>@page{{size:{sheet};margin:0}}@media print{{"
+        # Must hang off a selector — a bare declaration inside @media is
+        # invalid and gets dropped silently.
+        "*,*::before,*::after{-webkit-print-color-adjust:exact !important;"
+        "print-color-adjust:exact !important}"
+        "body{background:#fff}"
+        # The engine-wide opt-out for on-screen chrome: toolbars, download
+        # buttons, tooltips — anything that is part of the web page but not
+        # part of the document.
+        ".noprint{display:none !important}"
+        f".page{{{pagerule}}}"
+        ".page:last-child{page-break-after:auto}"
+        f"{links}}}</style>")
+
+
+def pdf_button(L, label: str = "Download PDF", *, bg: str = "#2F3E46",
+               ink: str = "#FFFFFF", top: str = "18px", right: str = "18px",
+               pad: str = "", link_ink: str = "", css: bool = True) -> str:
+    """A screen-only "Download PDF" control, pinned to the upper-right corner.
+
+    Prints through the browser (window.print() -> "Save as PDF") rather than
+    linking to a PDF file, which is the Budget Primer's approach and the reason
+    it holds up: the download is generated from the page the reader is looking
+    at, so it can never go stale, it needs no build step or committed binary,
+    it works from any host, and the text stays selectable vector with its links
+    live. A pre-rendered PDF beside the page is one content edit away from
+    quietly shipping last month's document.
+
+    Carries print_css() with it by default, because a button that produces a
+    badly formatted PDF is worse than no button — the two halves are one
+    capability. Call once per document; pass css=False for a second button.
+
+    Hidden while editing (DOCSYNC_EDIT): the draft editor has its own
+    File > Download, which exports through headless Chrome server-side, and a
+    fixed-position web control floating over the artboard is chrome the canvas
+    should not have to show.
+    """
+    sheet = print_css(L, pad=pad, link_ink=link_ink) if css else ""
+    if os.environ.get("DOCSYNC_EDIT"):
+        return sheet
+    return sheet + (
+        f'<button type="button" class="noprint" onclick="window.print()" '
+        f'title="Opens your browser\'s print dialog — choose Save as PDF" '
+        f'style="position:fixed;top:{top};right:{right};z-index:60;'
+        f'background:{bg};color:{ink};border:0;border-radius:8px;'
+        f'padding:9px 15px;font-family:inherit;font-size:14px;font-weight:700;'
+        f'cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18)">'
+        f'↓&nbsp;{label}</button>')
 
 
 def graphic(L, el_id: str, svg: str, w: float = 1.5, cls: str = "") -> str:
