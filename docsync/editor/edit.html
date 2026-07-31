@@ -12150,7 +12150,12 @@ $('revert').onclick = async () => {
 // with the bottom edge running off.
 const PAGELESS_H = 200;   // matches layout.py's PAGELESS_H
 const DOC_SIZES = [
-  { id: 'digital',  name: 'Doc (Digital)',  w: 13.33, h: 7.5,   note: 'Widescreen, for reading on a screen' },
+  // The id stays 'digital' — reports resized before the rename stored that
+  // geometry and pickers reference the id — but the tile now says what the
+  // size IS: PowerPoint/Keynote's widescreen slide. 13.333, PowerPoint's own
+  // number; the old 13.33 still matches inside currentDocSize's tolerance.
+  { id: 'digital',  name: 'Slide (16:9)',   w: 13.333, h: 7.5,  note: 'PowerPoint / Keynote widescreen — also reads well on a screen' },
+  { id: 'slide43',  name: 'Slide (4:3)',    w: 10,    h: 7.5,   note: 'Classic PowerPoint' },
   { id: 'pageless', name: 'Doc (Pageless)', w: 8.5,   h: null,  note: 'One continuous page, no breaks' },
   { id: 'a4',       name: 'Doc (A4)',       w: 8.27,  h: 11.69, note: 'ISO A4' },
   { id: 'a3',       name: 'Doc (A3)',       w: 11.69, h: 16.54, note: 'ISO A3' },
@@ -12158,7 +12163,7 @@ const DOC_SIZES = [
   { id: 'letter',   name: 'Doc (Letter)',   w: 8.5,   h: 11,    note: 'US Letter' },
 ];
 
-/** Which of the six this report is currently built at — matched on the actual
+/** Which of these this report is currently built at — matched on the actual
  *  page geometry rather than a stored name, so it stays honest if the size is
  *  changed anywhere else. Nothing matches when a report uses a size not on the
  *  list, which is a fine answer: no tile is marked current. */
