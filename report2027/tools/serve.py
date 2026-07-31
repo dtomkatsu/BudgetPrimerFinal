@@ -117,7 +117,21 @@ PROJECTS = _load_projects()
 # per-organisation registration (docs/primer/OAUTH_SETUP.md step 1 — the app,
 # not the relay); it is public by design. Overridable bases so the test suite
 # can stand in for GitHub without network.
-GH_CLIENT = os.environ.get("PRIMER_GH_CLIENT", "")
+def _gh_client_default() -> str:
+    """The GitHub App's public client id.
+
+    Tracked in github-app.json rather than left to an environment variable:
+    the id is public by design, and every colleague's install needs the same
+    one — an env var set on one machine helps nobody else. The environment
+    still wins, so a test (or a second App) can override it.
+    """
+    try:
+        return json.loads((SELF_ROOT / "github-app.json").read_text()).get("client_id", "")
+    except (OSError, json.JSONDecodeError):
+        return ""
+
+
+GH_CLIENT = os.environ.get("PRIMER_GH_CLIENT") or _gh_client_default()
 GH_BASE = os.environ.get("PRIMER_GH_BASE", "https://github.com")
 GH_API = os.environ.get("PRIMER_GH_API", "https://api.github.com")
 # The token the SERVER pushes with, once someone signs in. One file, account-

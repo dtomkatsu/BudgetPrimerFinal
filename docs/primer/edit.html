@@ -11679,6 +11679,17 @@ function signIn() {
           'could not reach the sign-in relay — falling back to a paste-in token';
         return setTimeout(async () => done(await askToken()), 1400);
       }
+      // GitHub answers 200 with an ERROR BODY for a request it understood but
+      // refused — most often device_flow_disabled, the one checkbox the App
+      // manifest cannot tick. Without this the panel showed an empty code and
+      // polled for fifteen minutes: a dead end that looks like a hang.
+      if (!d || !d.user_code) {
+        const why = (d && d.error) === 'device_flow_disabled'
+          ? 'this GitHub App does not have Device Flow switched on yet'
+          : ((d && (d.error_description || d.error)) || 'no code came back');
+        p.querySelector('.au-msg').textContent = why + ' — use a token instead';
+        return setTimeout(async () => done(await askToken()), 2200);
+      }
       const code = p.querySelector('.au-code');
       code.textContent = d.user_code; code.hidden = false;
       try { await navigator.clipboard.writeText(d.user_code);
