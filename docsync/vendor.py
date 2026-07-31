@@ -51,7 +51,12 @@ VENDOR_LOCAL = ROOT / "vendor.local.yml"
 
 # Engine paths, relative to either repo root. serve.py rides along because
 # consumers run the live server from their own checkout.
-EXTRA = ["report2027/tools/serve.py"]
+EXTRA = ["report2027/tools/serve.py",
+         # The GitHub App's public client id. serve.py reads it from ITS OWN
+         # repo root (SELF_ROOT), and the live report's server runs from the
+         # consumer — without this ride-along, Connect GitHub works in this
+         # repo and silently falls back to paste-a-token everywhere else.
+         "github-app.json"]
 
 
 def _sh(args: list[str], cwd: Path) -> str:
@@ -134,6 +139,13 @@ def _ask_patterns(extra: list[str]) -> list[str]:
     dirs = {"docsync"} | {str(Path(rel).parent) for rel in extra}
     patterns = []
     for d in sorted(dirs):
+        if d == ".":
+            # A root-level EXTRA (github-app.json) guards ITSELF, not the
+            # whole repo — "Edit(./**)" would make the consumer confirm every
+            # file it owns, which is the opposite of a targeted backstop.
+            patterns += [f"Edit({rel})" for rel in extra if str(Path(rel).parent) == "."]
+            patterns += [f"Write({rel})" for rel in extra if str(Path(rel).parent) == "."]
+            continue
         patterns += [f"Edit({d}/**)", f"Write({d}/**)"]
     return patterns
 
