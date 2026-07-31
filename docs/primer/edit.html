@@ -1169,6 +1169,10 @@
     <button class="shp txtpreset" data-k="heading" style="font:700 17px system-ui">Add a heading</button>
     <button class="shp txtpreset" data-k="subheading" style="font:600 14px system-ui">Add a subheading</button>
     <button class="shp txtpreset" data-k="body" style="font:12px system-ui">Add body text</button>
+    <button class="shp txtpreset" data-k="pdfbtn"><span
+      style="display:inline-block;background:#2F3E46;color:#fff;border-radius:7px;
+             padding:5px 12px;font:700 12px system-ui">&#8595;&nbsp;Download PDF</span>
+      <span style="font:12px system-ui">button</span></button>
   </div>
   <!-- The shape array. Each choice is an art tile (square + name underneath),
        so it reads as a gallery of things you can place rather than a menu. The
@@ -4273,6 +4277,13 @@ const TEXT_PRESETS = {
   subheading: { md: 'Subheading',  style: { size: 19, weight: 600 },               w: 3.5 },
   body:       { md: 'Body text. **Bold**, *italic* and [links](https://example.org) work.',
                 style: {},                                                          w: 3 },
+  // A real control, not just styled words: published, this box renders as a
+  // native Download-PDF button (layout.py's act:'pdf'). In the editor it is
+  // an ordinary text box — move it, restyle it, retype its label — so every
+  // existing affordance applies without a single new code path.
+  pdfbtn:     { md: 'Download PDF',
+                style: { size: 14, weight: 700, color: '#FFFFFF', align: 'center' },
+                w: 1.9, fill: '#2F3E46', act: 'pdf' },
 };
 async function addTextBox(kind) {
   const preset = TEXT_PRESETS[kind] || TEXT_PRESETS.body;
@@ -4281,6 +4292,8 @@ async function addTextBox(kind) {
   const id = freeBoxId();
   const box = { id, page, x: placeX(preset.w), y: 2, w: preset.w, z: 2, md: preset.md };
   if (preset.style && Object.keys(preset.style).length) box.style = { ...preset.style };
+  if (preset.fill) box.fill = preset.fill;
+  if (preset.act) box.act = preset.act;
   boxes().push(box);
   setSel($('out').contentDocument, ['text.' + id]);
   markDirty();

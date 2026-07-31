@@ -1081,6 +1081,66 @@ try:
 finally:
     del os.environ["DOCSYNC_EDIT"]
 
+# ---- act boxes: the editor-native Download-PDF button -----------------------
+# A text box carrying act:'pdf' is an ordinary movable in the editor and a
+# REAL button in the published page — layout.text_boxes owns both faces.
+import tempfile as _tf
+from docsync.layout import Layout as _L, LayoutError as _LE
+
+def _act_layout(extra=None):
+    box = {"id": "t1", "page": 1, "x": 1, "y": 2, "w": 1.9,
+           "md": "**Download** PDF", "fill": "#2F3E46",
+           "style": {"size": 14, "color": "#FFFFFF"}, "act": "pdf"}
+    box.update(extra or {})
+    f = Path(_tf.mkstemp(suffix=".json")[1])
+    f.write_text(json.dumps({"boxes": [box]}))
+    return _L(f)
+
+os.environ.pop("DOCSYNC_EDIT", None)
+_pub = _act_layout().text_boxes(1)
+check("published: a real button element", _pub, '<button type="button"')
+check("published: prints, the never-stale download", _pub, 'onclick="window.print()"')
+check("published: absent from the PDF it downloads", _pub,
+      "@media print{.ds-actbtn{display:none}}")
+check("published: the box's own fill styles it", _pub, "background:#2F3E46")
+check("published: the box's own type styles it", _pub, "font-size:14px")
+check("published: markdown works in the label", _pub, "<b>Download</b>")
+check_eq("published: label is one line, not paragraphs",
+         "<p>" in _pub.split("<button")[1], False)
+check_eq("published: no editor hooks leak", "data-el" in _pub, False)
+
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _ed = _act_layout().text_boxes(1)
+    check("editor: an ordinary movable text box", _ed, 'data-el="text.t1"')
+    check_eq("editor: never a live button (it would be unmovable — the drag "
+             "guard skips real controls)", "<button" in _ed, False)
+    check_eq("editor: no print onclick under the artboard",
+             "onclick" in _ed, False)
+    check("editor: same padding as published, so WYSIWYG holds",
+          _ed, "padding:.08in .12in")
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
+# align's inline-slot compensation appends width:100%; on a BOX the box's own
+# width must land after it and win, or every aligned text box spans the page
+# (and the drag math, anchored to the box it meant to draw, flings it left).
+_aligned = _act_layout({"style": {"align": "center"}}).text_boxes(1)
+check_eq("an aligned box keeps its own width (geometry wins the collision)",
+         _aligned.rindex("width:1.9in") > _aligned.rindex("width:100%"), True)
+
+_unfilled = _act_layout({"fill": None}).text_boxes(1)
+check("an unfilled button still reads as a button", _unfilled,
+      "padding:.08in .12in;border-radius:8px")
+
+# check_raises catches ContentError; this is the LAYOUT validator's error.
+try:
+    _act_layout({"act": "launch"})
+    FAILS.append("an unknown act was accepted — it would ship as a dead button")
+except _LE as e:
+    if "unknown act 'launch'" not in str(e):
+        FAILS.append(f"unknown act refused with the wrong words: {e}")
+
 if FAILS:
     print("\n\n".join("FAIL: " + f for f in FAILS))
     print(f"\n{len(FAILS)} failed")

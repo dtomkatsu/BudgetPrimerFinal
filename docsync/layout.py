@@ -32,7 +32,7 @@ from pathlib import Path
 # styler duck-typed), so there is no cycle. A text box is a markdown block that
 # happens to be positioned — block_html already renders exactly that for the
 # overflow slots, and a second renderer for the same thing would drift.
-from .content import block_html, md_inline
+from .content import block_html, md_inline, paragraph
 
 # Letter portrait, because that is what the Budget Primer is. Any report with a
 # different page passes its own size in — this is a default, not a law. It is
@@ -1497,6 +1497,12 @@ class Layout:
                 _num(b["h"], f"{where}.h")
             if not str(b.get("md", "")).strip():
                 raise LayoutError(f"{where}: has no text — 'md' is empty")
+            # A box may ACT: today only 'pdf' (a Download-PDF button). An
+            # allowlist, because act lands in the published page as behaviour
+            # — an unknown value must be a loud error here, not a dead button
+            # discovered by a reader.
+            if b.get("act") is not None and b["act"] != "pdf":
+                raise LayoutError(f"{where}: unknown act '{b['act']}' — only 'pdf'")
             if "z" in b and not isinstance(b["z"], int):
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
             if b.get("fill"):
@@ -1876,7 +1882,17 @@ class Layout:
         # just ones whose own stylesheet happens to style .inline-img.
         out = ['<style>.ds-textbox img.inline-img{display:block;width:100%;'
                'height:auto;margin:0}</style>']
+        edit = bool(os.environ.get("DOCSYNC_EDIT"))
+        # Acting boxes are real controls in the PUBLISHED page, so they carry
+        # their own two rules once: the hand cursor, and absence from print —
+        # a Download-PDF button rendered INTO the PDF it downloads is the
+        # snake eating itself. Self-contained, like everything a box emits,
+        # so it holds in a minimal scaffolded renderer with no CSS of its own.
+        if any(b.get("act") for b in mine):
+            out.append('<style>.ds-actbtn{cursor:pointer}'
+                       '@media print{.ds-actbtn{display:none}}</style>')
         for b in mine:
+            act = b.get("act")
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
             if b.get("h"):
@@ -1886,6 +1902,11 @@ class Layout:
                 # edge; padding only when filled, so a plain box's text keeps
                 # sitting exactly where it was put.
                 css += f';background:{fill_css(b["fill"])};padding:.08in .12in;border-radius:8px'
+            elif act:
+                # A button reads as a button even unfilled: same room, same
+                # corners, in BOTH modes, so what the editor shows is what
+                # the reader gets.
+                css += ';padding:.08in .12in;border-radius:8px'
             if b.get("rot"):
                 css += f';transform:rotate({b["rot"]}deg)'
             if b.get("alpha") is not None:
@@ -1893,9 +1914,36 @@ class Layout:
             if b.get("shadow"):
                 css += f';box-shadow:{shadow_css(b["shadow"])}'
             style = text_css(b.get("style") or {})
-            tag = f' data-el="text.{b["id"]}"' if os.environ.get("DOCSYNC_EDIT") else ""
+            # Style FIRST, geometry second — the geometry must win their one
+            # collision: align's inline-slot compensation appends width:100%
+            # (right for a span with no box of its own), and written after the
+            # box's own width it silently overrode it, so any aligned text box
+            # spanned the whole page — and the drag math, anchored to the box
+            # it MEANT to draw, flung it to the left margin.
+            full = f'{style + ";" if style else ""}{css}'
+            tag = f' data-el="text.{b["id"]}"' if edit else ""
+            if act and not edit:
+                # Published: a REAL button. window.print(), the same never-
+                # stale choice blocks.pdf_button makes and for the same
+                # reasons — generated from the page being read, no build
+                # step, no committed binary, works from any host. The label
+                # is the box's own markdown, collapsed to one line: a button
+                # is a label, not a column of paragraphs.
+                out.append(
+                    f'<button type="button" class="ds-actbtn noprint" '
+                    f'onclick="window.print()" '
+                    f'title="Opens your browser\'s print dialog — choose '
+                    f'Save as PDF" '
+                    f'style="{full};display:block;border:0;'
+                    f'font-family:inherit;box-sizing:border-box">'
+                    f'{paragraph(b["md"])}</button>')
+                continue
+            # In the EDITOR an acting box stays a plain div on purpose: a
+            # live <button> would be excluded from the canvas's drag-start
+            # guard (real controls must keep working mid-edit), which is
+            # exactly how it would become unmovable.
             out.append(f'<div class="ds-textbox"{tag} '
-                       f'style="{css}{";" + style if style else ""}">'
+                       f'style="{full}">'
                        f'{block_html(b["md"])}</div>')
         return "".join(out)
 
