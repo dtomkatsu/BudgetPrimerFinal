@@ -290,6 +290,94 @@ def _ahead(root: Path) -> int:
         return 0
 
 
+# ---- report-content updates (the OTHER repo) -------------------------------
+# tools/selfupdate.py keeps the EDITOR current. A report that lives in its own
+# repo — the live Budget Primer on a colleague's machine — had no equivalent:
+# new content pushed by someone else was invisible until their next Push was
+# rejected with "fetch first". Same contract as the editor's update, so there
+# is one idea to learn rather than two: check in the background, tell the
+# person, never apply anything under a running editor.
+CONTENT_POLL = 5 * 60
+# root(str) -> {"behind", "can", "why", "log"}. Keyed by ROOT, not project:
+# several projects can share one checkout, and it is the checkout that is
+# behind. SELF_ROOT is deliberately absent — selfupdate owns that one, and two
+# mechanisms fast-forwarding the same checkout is how you get a merge nobody
+# asked for.
+CONTENT: dict[str, dict] = {}
+
+
+def _content_roots() -> set:
+    return {p["root"] for p in PROJECTS.values() if p["root"] != SELF_ROOT}
+
+
+def _content_status(root: Path) -> dict:
+    """How far behind origin this checkout is, and whether it can safely
+    catch up. Fetch first — `behind` is meaningless against a stale remote."""
+    blank = {"behind": 0, "can": False, "why": "", "log": []}
+    if not (root / ".git").exists():
+        return dict(blank, why="not a git checkout")
+    try:
+        _git(root, "fetch", "--quiet", "origin", timeout=60)
+    except RuntimeError as e:
+        return dict(blank, why=f"could not reach GitHub: {str(e)[:120]}")
+    try:
+        behind = int(_git(root, "rev-list", "--count", "HEAD..@{u}").strip() or 0)
+    except (RuntimeError, ValueError):
+        return dict(blank, why="no upstream branch to compare with")
+    if not behind:
+        return blank
+    log = [l for l in _git(root, "log", "--format=%s", "-5", "HEAD..@{u}"
+                           ).splitlines() if l.strip()]
+    ahead = _ahead(root)
+    dirty = bool(_git(root, "status", "--porcelain", "--untracked-files=no").strip())
+    # Fast-forward ONLY. Unsaved edits or unpushed commits of their own mean a
+    # real merge, which is a decision — and one a person mid-edit should not
+    # discover as a side effect of a button labelled "update".
+    if dirty:
+        why = "you have unsaved changes on disk — Save or discard them first"
+    elif ahead:
+        why = f"you have {ahead} commit{'s' if ahead > 1 else ''} not pushed yet — Push first"
+    else:
+        why = ""
+    return {"behind": behind, "can": not (dirty or ahead), "why": why, "log": log}
+
+
+def content_watcher():
+    """Catch up at startup, then report every CONTENT_POLL.
+
+    The FIRST pass applies a safe fast-forward, the rest only offer. That
+    split is the whole point: server startup IS app launch — no editor is
+    open yet, so nobody is mid-sentence — and it mirrors what selfupdate.py
+    already does for the editor's own code at exactly the same moment. Once
+    someone is working, an update arriving under them is theirs to accept,
+    which is what the button is for.
+
+    Safe means fast-forward only, and _content_status already refused when
+    the person has uncommitted work or unpushed commits.
+    """
+    first = True
+    while True:
+        for root in _content_roots():
+            try:
+                st = _content_status(root)
+                if first and st["behind"] and st["can"]:
+                    try:
+                        _git(root, "merge", "--ff-only", "@{u}")
+                        print(f"  [{root.name}] updated — {st['behind']} change"
+                              f"{'s' if st['behind'] > 1 else ''} from GitHub")
+                        st = _content_status(root)
+                        for pid, p in PROJECTS.items():
+                            if p["root"] == root:
+                                rebuild(pid, "content-launch")
+                    except RuntimeError as e:
+                        print(f"  [{root.name}] could not update: {str(e)[:120]}")
+                CONTENT[str(root)] = st
+            except Exception as e:                   # noqa: BLE001 — never die
+                print(f"  content check error for {root} (continuing): {e!r}")
+        first = False
+        time.sleep(CONTENT_POLL)
+
+
 def rebuild(pid: str, reason: str = "") -> None:
     """Run this ONE project's build command; record its version and any
     error, then wake everyone watching it. Serialised per-project, so a save
@@ -604,6 +692,7 @@ class Handler(SimpleHTTPRequestHandler):
         # who it belongs to can be checked instead of trusted.
         payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"]),
                    "project": pid, "update": _update_payload(),
+                   "content": CONTENT.get(str(PROJECTS[pid]["root"]), {}),
                    "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
         if st.error:
             payload["error"] = st.error
@@ -716,7 +805,7 @@ class Handler(SimpleHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path not in ("/__save", "/__push", "/__export", "/__upload",
                         "/__update", "/__rollback", "/__window",
-                        "/__scaffold", "/__adopt",
+                        "/__scaffold", "/__adopt", "/__pull",
                         "/__oauth/device/code", "/__oauth/device/token",
                         "/__oauth/save"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
@@ -727,6 +816,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(400, {"ok": False, "error": f"bad request: {e}"})
         if path == "/__window":
             return self._new_window(req)
+        if path == "/__pull":
+            return self._pull_content(req)
         if path == "/__scaffold":
             return self._scaffold(req)
         if path == "/__adopt":
@@ -756,6 +847,43 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"ok": False, "error": str(e),
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
+
+    def _pull_content(self, req):
+        """Fast-forward a report's own repo to what is on GitHub, then rebuild
+        every project living in it.
+
+        Only ever a fast-forward, and only when _content_status already said
+        it could be: this re-checks rather than trusting the button, because
+        the person may have typed something in the seconds since.
+        """
+        pid = req.get("project") or DEFAULT_PROJECT
+        if pid not in PROJECTS:
+            return self._json(200, {"ok": False, "error": f"unknown project '{pid}'"})
+        root = PROJECTS[pid]["root"]
+        if root == SELF_ROOT:
+            return self._json(200, {"ok": False, "error":
+                "this report lives in the editor's own repo — the version chip "
+                "in the toolbar updates it"})
+        st = _content_status(root)
+        CONTENT[str(root)] = st
+        if not st["behind"]:
+            return self._json(200, {"ok": True, "message": "already up to date"})
+        if not st["can"]:
+            return self._json(200, {"ok": False, "error": st["why"] or "cannot fast-forward"})
+        try:
+            _git(root, "merge", "--ff-only", "@{u}")
+        except RuntimeError as e:
+            return self._json(200, {"ok": False, "error": f"could not update: {str(e)[:200]}"})
+        CONTENT[str(root)] = _content_status(root)
+        n = 0
+        for other, p in PROJECTS.items():
+            if p["root"] == root:
+                rebuild(other, "content-pull")
+                n += 1
+        return self._json(200, {"ok": True,
+                                "message": f"updated — {st['behind']} change"
+                                           f"{'s' if st['behind'] > 1 else ''} from GitHub",
+                                "rebuilt": n})
 
     def _scaffold(self, req):
         """A blank local project, from the start page's "+ New report" —
@@ -1280,6 +1408,7 @@ def main():
         rebuild(pid, "startup")
     threading.Thread(target=watcher, daemon=True).start()
     threading.Thread(target=update_watcher, daemon=True).start()
+    threading.Thread(target=content_watcher, daemon=True).start()
     # Two loopback listeners (IPv4 + IPv6), NOT a dual-stack `::` bind — the save/
     # push/export endpoints must stay off the LAN. If IPv6 loopback is somehow
     # unavailable, fall back to IPv4-only rather than refuse to start.

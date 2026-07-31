@@ -223,6 +223,13 @@
          padding:4px 12px; font:600 11.5px system-ui; cursor:pointer;
          white-space:nowrap; transition:filter .12s; }
   #upd:hover { filter:brightness(1.12); }
+  /* Report content, not editor version. Deliberately NOT the same sage as
+     #upd: two update buttons in one bar that look alike is how someone
+     presses the wrong one. */
+  #cupd { background:#4E7C94; color:#fff; border:0; border-radius:99px;
+          font:600 11.5px system-ui; padding:4px 11px; cursor:pointer; flex:none; }
+  #cupd:hover { filter:brightness(1.12); }
+  #cupd[disabled] { opacity:.6; cursor:default; }
   #upd[disabled] { opacity:.6; cursor:default; }
   /* one button language everywhere: quiet by default, sage when primary.
      Scoped to the bar's OWN buttons (direct children, plus the zoom segment):
@@ -1076,6 +1083,10 @@
   <button id="redo" disabled aria-label="Redo (⌘⇧Z)">↷</button>
   <button id="save" disabled>Save draft</button>
   <button id="push" hidden disabled aria-label="Send commits saved locally to GitHub">Push</button>
+  <!-- The REPORT's own repo being behind, which is a different thing from the
+       editor being out of date (#upd). Hidden unless there is something to
+       take, so its presence is the alert. -->
+  <button id="cupd" hidden aria-label="Bring in newer report content from GitHub"></button>
   <span class="bar-sep"></span>
   <!-- Kept, but only shown when it says something the picker does not: which
        DRAFT branch you are on. detectLocal() hides it for the live local
@@ -9779,6 +9790,40 @@ let liveVer = -1;
  *  and updates even when nothing else about the page changed (a rebuild
  *  version bump is not required, unlike onBump below).
  */
+/** The report repo's own "there is newer content" state. Same contract as
+ *  the editor's update chip: only ever offered, never applied on its own, and
+ *  an update that CANNOT be taken is a tooltip rather than a dead button. */
+function contentHealth(d) {
+  const c = d && d.content;
+  const b = $('cupd');
+  if (!b) return;
+  if (!c || !c.behind) { b.hidden = true; return; }
+  b.hidden = false;
+  b.disabled = !c.can;
+  b.textContent = 'Update report (' + c.behind + ')';
+  b.title = (c.log && c.log.length
+      ? 'Newer content on GitHub:\n  • ' + c.log.join('\n  • ')
+      : c.behind + ' newer change' + (c.behind > 1 ? 's' : ''))
+    + (c.can ? '\n\nBrings them in and rebuilds. Your own work is untouched.'
+             : '\n\nNot applied: ' + (c.why || 'cannot fast-forward'));
+}
+
+$('cupd').addEventListener('click', async () => {
+  $('cupd').disabled = true;
+  $('stat').textContent = 'bringing in newer content…';
+  try {
+    const j = await postLocal('/__pull', { project: M.id });
+    if (!j.ok) throw new Error(j.error || 'update failed');
+    $('stat').textContent = j.message || 'updated';
+    $('cupd').hidden = true;
+    // The rebuild bumps the version, so the live-reload path pulls the new
+    // content in by itself — nothing to re-render from here.
+  } catch (e) {
+    $('stat').textContent = 'could not update the report: ' + e.message;
+    $('cupd').disabled = false;
+  }
+});
+
 function setPushState(ahead) {
   if (typeof ahead !== 'number') return;
   const b = $('push');
@@ -9798,6 +9843,7 @@ async function detectLocal() {
       const j = await r.json();
       liveVer = j.v;
       setPushState(j.ahead);
+      contentHealth(j);        // the first ping already knows; don't wait for SSE
     } catch (e) {} }
   } catch (e) { local = false; }
   if (!local) return;
@@ -9839,7 +9885,8 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  startLive(d => { setPushState(d.ahead); watchHealth(d); updateHealth(d); onBump(d.v, d.error); });
+  startLive(d => { setPushState(d.ahead); watchHealth(d); updateHealth(d);
+                   contentHealth(d); onBump(d.v, d.error); });
   $('upd').onclick = installUpdate;
   $('ver').onclick = goBackAVersion;
 }
