@@ -3262,17 +3262,16 @@ function layerMenu(d, el, e) {
                     duration: (cur && cur.duration) || 0.6,
                     delay: (cur && cur.delay) || 0 };
         markDirty(); await render();
-        // Feedback: play it once, right now, on the re-rendered element.
-        const d2 = $('out').contentDocument;
-        const el2 = d2 && d2.querySelector(
-          `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
-        if (el2) replayAnims(d2, el2);
+        previewAnim(id);          // feedback: play it once, right now
         $('stat').textContent = `${label} — plays when the published page `
-          + 'scrolls to it, and on its slide in presentation mode';
+          + 'scrolls to it, and on its slide in presentation mode; '
+          + '▶ in the toolbar plays it again';
       }, cur && cur.kind === k));
       if (cur) {
-        // Timing, right where the kind was chosen. Live on input; the
-        // renderer's word on release, like every other slider in this menu.
+        // Timing, right where the kind was chosen. The value tracks the drag,
+        // but the PLAY waits for release: restarting on every input tick
+        // means the animation never once runs to the end, which reads as a
+        // stutter rather than a preview of what you are choosing.
         [['duration', 0.1, 3, 'speed'], ['delay', 0, 3, 'delay']]
           .forEach(([key, min, max, label]) => {
             const w = d.createElement('label');
@@ -3287,14 +3286,12 @@ function layerMenu(d, el, e) {
               st.anim = { ...(st.anim || cur), [key]: +r.value };
               const el2 = d.querySelector(
                 `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
-              if (el2) {
-                el2.setAttribute(key === 'duration' ? 'data-ds-ad' : 'data-ds-aw',
-                                 String(+r.value));
-                replayAnims(d, el2);
-              }
+              if (el2) el2.setAttribute(
+                key === 'duration' ? 'data-ds-ad' : 'data-ds-aw', String(+r.value));
             });
             r.addEventListener('change', async () => {
               markDirty(); closeMenu(d); await render();
+              previewAnim(id);      // hear the timing you just chose
             });
             w.appendChild(r);
             sub.appendChild(w);
@@ -4417,12 +4414,35 @@ function replayAnims(d, root) {
   const els = root.matches && root.matches('[data-ds-anim]')
     ? [root] : [...root.querySelectorAll('[data-ds-anim]')];
   els.forEach(el => {
+    // Restart by taking the animation away INLINE first, then flushing that.
+    // Removing the class and reading geometry is the usual trick, but it
+    // leans on a flush that the browser is free to skip: ds-anim-in changes
+    // only animation properties, which affect no layout, so the read can be
+    // answered from cache and remove+add inside one task then coalesces into
+    // no change at all — a replay that silently does nothing. Writing
+    // animation:none is a real computed-style change either way, which makes
+    // the flush between the two writes something the browser cannot elide.
     el.classList.remove('ds-anim-in');
-    void el.getBoundingClientRect();          // reflow, so it restarts
+    el.style.animation = 'none';
+    void el.getBoundingClientRect();
+    el.style.animation = '';                  // back to the stylesheet's rule
     el.style.animationDuration = (el.getAttribute('data-ds-ad') || '.6') + 's';
     el.style.animationDelay = (el.getAttribute('data-ds-aw') || '0') + 's';
     el.classList.add('ds-anim-in');
   });
+}
+
+/** Play one element's entrance once, now. Always re-finds the node in the
+ *  CURRENT document: every caller has just re-rendered, and the node the menu
+ *  or the toolbar was opened over belongs to a document that no longer
+ *  exists. Returns false if the element isn't on the page (a box on another
+ *  sheet), so a caller can say so instead of appearing to do nothing. */
+function previewAnim(id) {
+  const d = $('out').contentDocument;
+  const el = d && d.querySelector(
+    `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+  if (el) replayAnims(d, el);
+  return !!el;
 }
 
 /** A toggle's targets, always as an array — target may be one id or a list. */
@@ -6390,6 +6410,22 @@ function showMini(d, els) {
     bar.appendChild(b);
     return b;
   };
+  // Play, first and only for one element that HAS an entrance. An animation
+  // is the single property you cannot see by looking at the canvas — the
+  // editor keeps animated elements deliberately static — so without this the
+  // only ways to watch one back are publishing or presenting. It leads the
+  // strip because it is the one button here that changes nothing.
+  const soloAnim = mine.length === 1
+    ? (storeOf(idOf(mine[0])) || {}).anim : null;
+  if (soloAnim) {
+    btn(`Play the ${soloAnim.kind} entrance`,
+      '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><path d="M4.2 2.4 11.6 7 4.2 11.6Z"/></svg>',
+      () => {
+        previewAnim(idOf(mine[0]));
+        $('stat').textContent = `playing ${soloAnim.kind}`
+          + (soloAnim.delay ? ` after ${soloAnim.delay}s` : '');
+      });
+  }
   const dupDisabled = ![...selIds].every(id => dupModeOf(d, id));
   btn(dupDisabled ? 'Duplicate — an endnote reorders instead: drag it up or down the list'
                   : 'Duplicate (⌘D)',
