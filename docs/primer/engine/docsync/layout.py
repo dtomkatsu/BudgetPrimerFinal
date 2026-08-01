@@ -473,16 +473,33 @@ def _z(s: dict) -> int:
 # Animate.css was considered and rejected: it relicensed from MIT to the
 # Hippocratic License, which is not open source and travels with anything
 # vendored from it.
-ANIM_KINDS = ("fade", "rise", "drop", "slide-left", "slide-right", "grow", "pop")
+ANIM_KINDS = ("fade", "rise", "drop", "slide-left", "slide-right", "grow", "pop",
+              "bars")
+
+# Kinds that animate an element's PARTS rather than the element. The whole
+# chart stays put and visible — its bars grow out of the axis, one after the
+# next — so these deliberately do NOT take the opacity:0 wait state the others
+# use, and they only mean anything on the thing that has those parts.
+ANIM_PART_KINDS = ("bars",)
+# What each part kind needs to be drawn on, for the refusal message.
+ANIM_PART_HOSTS = {"bars": "a chart"}
 
 
-def _anim_check(a, where: str) -> None:
+def _anim_check(a, where: str, host: str = "") -> None:
     if not isinstance(a, dict):
         raise LayoutError(f"{where}: anim must be an object like "
                           '{"kind": "fade", "duration": 0.6, "delay": 0}')
-    if a.get("kind") not in ANIM_KINDS:
-        raise LayoutError(f"{where}: anim kind {a.get('kind')!r} — one of "
+    kind = a.get("kind")
+    if kind not in ANIM_KINDS:
+        raise LayoutError(f"{where}: anim kind {kind!r} — one of "
                           + ", ".join(ANIM_KINDS))
+    # A part animation on something with no such parts would validate, render,
+    # and then simply never happen — the reader waits for a reveal that has
+    # nothing to reveal. Refuse it here, where the message can say what it
+    # needed instead.
+    if kind in ANIM_PART_KINDS and host != kind:
+        raise LayoutError(f"{where}: anim kind {kind!r} only works on "
+                          f"{ANIM_PART_HOSTS[kind]}")
     d = a.get("duration", 0.6)
     w = a.get("delay", 0)
     if not isinstance(d, (int, float)) or not 0.05 <= d <= 10:
@@ -636,9 +653,33 @@ def _ch_hook(c: dict, what: str) -> str:
     return f' data-ch="{what}" style="cursor:text"'
 
 
-def chart_svg(c: dict, x: float, y: float, w: float, h: float) -> str:
+def bar_anim_attrs(anim, i: int) -> str:
+    """Per-bar timing for the 'bars' entrance, baked at render time.
+
+    The reveal script only toggles a class on the CHART; the bars take their
+    own duration and delay from here, so each one starts a beat after the last
+    and the row reads left to right instead of arriving all at once. Baked
+    rather than set from script because the stagger is per-bar and the script
+    has one element to talk to.
+    """
+    if not anim or anim.get("kind") != "bars":
+        return ""
+    dur = anim.get("duration", 0.6)
+    # The whole row still finishes in about `duration`: the step shrinks as
+    # bars multiply, so a 20-bar chart does not take twenty times as long.
+    step = min(0.09, dur / 8)
+    return (f' style="animation-duration:{dur:g}s;'
+            f'animation-delay:{anim.get("delay", 0) + i * step:.3f}s"')
+
+
+def chart_svg(c: dict, x: float, y: float, w: float, h: float,
+              anim=None) -> str:
     """A chart as SVG, in the page's inch coordinates. Every length here is an
-    inch, so the drawing scales with the box the way any other shape does."""
+    inch, so the drawing scales with the box the way any other shape does.
+
+    `anim` is the SHAPE's entrance, passed in because a part animation ('bars')
+    is drawn INTO the parts — the chart data has no idea it is being animated.
+    """
     kind = c.get("type", "bar")
     labels = [str(v) for v in (c.get("labels") or [])]
     series = _chart_series(c)
@@ -664,6 +705,10 @@ def chart_svg(c: dict, x: float, y: float, w: float, h: float) -> str:
 
     ink = {"label": c_label, "axis": c_axis, "grid": c_grid}
     args = (c, kind, labels, series, x, top, w, body_h, fs, ink)
+    # Only the bar family has bars to grow; every other chart type takes a
+    # whole-element entrance instead, which needs nothing drawn into it.
+    bar_anim = anim if kind not in ("pie", "donut", "line", "scatter", "radar",
+                                    "funnel", "packed", "treemap") else None
     if kind in ("pie", "donut"):
         parts.append(_pie_svg(*args))
     elif kind in ("line", "scatter"):
@@ -677,9 +722,9 @@ def chart_svg(c: dict, x: float, y: float, w: float, h: float) -> str:
     elif kind == "treemap":
         parts.append(_treemap_svg(*args))
     elif kind == "histogram":
-        parts.append(_histogram_svg(*args))
+        parts.append(_histogram_svg(*args, anim=bar_anim))
     else:
-        parts.append(_bars_svg(*args))
+        parts.append(_bars_svg(*args, anim=bar_anim))
 
     if legend:
         ly = y + h - fs * 0.5
@@ -710,7 +755,7 @@ def _slice_color(c: dict, i: int) -> str:
     return CHART_COLORS[i % len(CHART_COLORS)]
 
 
-def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink, anim=None) -> str:
     """'bar' = vertical columns, 'row' = horizontal bars ('column' is the old
     name for row), each also available STACKED. Stacking is the same geometry
     with the bars laid end to end instead of side by side, so it shares every
@@ -770,8 +815,11 @@ def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
                 blen = pw * frac
                 by = base if stacked else base + si * bw
                 bx0 = px + (pw * run if stacked else 0)
-                parts.append(f'<rect x="{bx0:.4f}" y="{by:.4f}" width="{blen:.4f}" '
-                             f'height="{bw * 0.86:.4f}" fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
+                parts.append(f'<rect class="ds-cbar ds-cbar-x" x="{bx0:.4f}" '
+                             f'y="{by:.4f}" width="{blen:.4f}" '
+                             f'height="{bw * 0.86:.4f}" fill="{s["color"]}" '
+                             f'rx="{min(0.02, bw * 0.2):.4f}"'
+                             f'{bar_anim_attrs(anim, gi)}/>')
                 if stacked:
                     run += frac
                 if show_vals and not stacked:
@@ -782,9 +830,10 @@ def _bars_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
                 bh = ph * frac
                 bx = base if stacked else base + si * bw
                 by0 = py + ph - bh - (ph * run if stacked else 0)
-                parts.append(f'<rect x="{bx:.4f}" y="{by0:.4f}" '
+                parts.append(f'<rect class="ds-cbar" x="{bx:.4f}" y="{by0:.4f}" '
                              f'width="{bw * 0.86:.4f}" height="{bh:.4f}" '
-                             f'fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"/>')
+                             f'fill="{s["color"]}" rx="{min(0.02, bw * 0.2):.4f}"'
+                             f'{bar_anim_attrs(anim, gi)}/>')
                 if stacked:
                     run += frac
                 if show_vals and not stacked:
@@ -913,7 +962,7 @@ def _xy_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
     return "".join(parts)
 
 
-def _histogram_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
+def _histogram_svg(c, kind, labels, series, x, y, w, h, fs, ink, anim=None) -> str:
     """Bins the FIRST series' raw numbers — a histogram's input is a list of
     observations, not one value per category, which is what separates it from
     a bar chart."""
@@ -938,9 +987,10 @@ def _histogram_svg(c, kind, labels, series, x, y, w, h, fs, ink) -> str:
     bw = pw / nb
     for i, ct in enumerate(counts):
         bh = ph * (ct / cmax if cmax else 0)
-        parts.append(f'<rect x="{px + i * bw + bw * 0.06:.4f}" y="{py + ph - bh:.4f}" '
+        parts.append(f'<rect class="ds-cbar" x="{px + i * bw + bw * 0.06:.4f}" '
+                     f'y="{py + ph - bh:.4f}" '
                      f'width="{bw * 0.88:.4f}" height="{bh:.4f}" '
-                     f'fill="{_slice_color(c, i)}"/>')
+                     f'fill="{_slice_color(c, i)}"{bar_anim_attrs(anim, i)}/>')
         if c.get("values") and ct:
             parts.append(f'<text x="{px + i * bw + bw / 2:.4f}" y="{py + ph - bh - fs * 0.22:.4f}" '
                          f'text-anchor="middle" font-size="{fs * 0.75:.4f}" '
@@ -1419,7 +1469,9 @@ class Layout:
             if s.get("alpha") is not None:
                 _alpha(s["alpha"], f"{where}.alpha")
             if s.get("anim") is not None:
-                _anim_check(s["anim"], where)
+                # A chart is the one shape with parts of its own to animate.
+                _anim_check(s["anim"], where,
+                            "bars" if s.get("kind") == "chart" else "")
             if s.get("shadow") is not None:
                 _check_shadow(s["shadow"], f"{where}.shadow")
             if s.get("r") is not None and _num(s["r"], f"{where}.r") < 0:
@@ -1747,16 +1799,38 @@ class Layout:
             "to{opacity:1;translate:0 0}}"
             "@keyframes ds-a-pop{0%{opacity:0;scale:.85}"
             "70%{opacity:1;scale:1.04}100%{opacity:1;scale:1}}"
+            # Bars grow out of the axis they stand on: fill-box so the origin
+            # is the bar's own edge, which for a column IS the baseline.
+            "@keyframes ds-a-bar{from{scale:1 0}to{scale:1 1}}"
+            "@keyframes ds-a-bar-x{from{scale:0 1}to{scale:1 1}}"
+            ".ds-cbar{transform-box:fill-box;transform-origin:bottom}"
+            ".ds-cbar-x{transform-origin:left}"
             ".ds-anim-wait{opacity:0}"
             ".ds-anim-in{animation-fill-mode:both;"
             "animation-timing-function:cubic-bezier(.2,.7,.3,1)}"
             + "".join(f'.ds-anim-in[data-ds-anim="{k}"]{{animation-name:ds-a-{k}}}'
-                      for k in ANIM_KINDS)
+                      for k in ANIM_KINDS if k not in ANIM_PART_KINDS)
+            # A part animation leaves its element alone: the chart, its axes
+            # and its labels are all there from the start — only the bars
+            # arrive. Higher specificity than .ds-anim-wait, and after it, so
+            # the shared opacity:0 never takes hold on one of these.
+            + '[data-ds-anim="bars"].ds-anim-wait{opacity:1}'
+            '[data-ds-anim="bars"].ds-anim-wait .ds-cbar{scale:1 0}'
+            '[data-ds-anim="bars"].ds-anim-wait .ds-cbar-x{scale:0 1}'
+            '[data-ds-anim="bars"].ds-anim-in .ds-cbar{animation-name:ds-a-bar;'
+            "animation-fill-mode:both;"
+            "animation-timing-function:cubic-bezier(.2,.7,.3,1)}"
+            '[data-ds-anim="bars"].ds-anim-in .ds-cbar-x'
+            "{animation-name:ds-a-bar-x}"
             + "@media print{[data-ds-anim]{opacity:1 !important;"
             "animation:none !important;translate:none !important;"
-            "scale:none !important}}"
+            "scale:none !important}"
+            # A bar left at scale 0 prints as no bar at all — a chart of empty
+            # axes, which reads as missing data rather than as missing motion.
+            ".ds-cbar{animation:none !important;scale:1 1 !important}}"
             "@media (prefers-reduced-motion:reduce){[data-ds-anim]"
-            "{opacity:1 !important;animation:none !important}}")
+            "{opacity:1 !important;animation:none !important}"
+            ".ds-cbar{animation:none !important;scale:1 1 !important}}")
         if os.environ.get("DOCSYNC_EDIT"):
             return f"<style>{css}</style>"
         # Deferred to DOM-ready, NOT run at its own position: this block is
@@ -2437,7 +2511,7 @@ class Layout:
             return (f'<g {" ".join(attrs)}>'
                     f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{bg}"'
                     f' pointer-events="all"/>'
-                    f'{chart_svg(s.get("chart") or {}, x, y, w, h)}</g>')
+                    f'{chart_svg(s.get("chart") or {}, x, y, w, h, s.get("anim"))}</g>')
         if s["kind"] == "icon":
             # A nested <svg> so the icon's own viewBox does the scaling: the
             # glyph fits the box in inches whatever grid it was drawn on.

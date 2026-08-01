@@ -1108,6 +1108,75 @@ _moved = card(_CardC(),
 check("card: a moved tile's position:absolute lands after the frame rule",
       _moved, "padding:16px 18px;margin:0;position:absolute")
 
+# ---- chart entrances: bars that grow out of the axis ------------------------
+# A part animation, unlike the seven whole-element kinds: the chart, its axes
+# and its labels are there from the start and only the bars arrive. So it must
+# NOT take the shared opacity:0 wait state, and print and reduced-motion must
+# hand back full-height bars — a chart of empty axes reads as missing data,
+# not as missing motion.
+def _chart_layout(anim=None, ctype="bar", kind="chart"):
+    sh = {"id": "c1", "page": 1, "kind": kind, "x": 1, "y": 1, "w": 4, "h": 3,
+          "chart": {"type": ctype, "labels": ["A", "B", "C"],
+                    "series": [{"name": "S", "data": [12, 19, 8]}]}}
+    if anim:
+        sh["anim"] = anim
+    return _layout({"positions": {}, "shapes": [sh]})
+
+_BARS = {"kind": "bars", "duration": 0.8, "delay": 0.1}
+_cb = _chart_layout(_BARS).layer(1)
+check("chart bars: every bar is marked so the entrance can find it",
+      _cb, 'class="ds-cbar"')
+check("chart bars: the chart carries the kind", _cb, 'data-ds-anim="bars"')
+# Staggered, so the row reads across rather than arriving at once — and each
+# bar carries its own timing, since the script only talks to the chart.
+check("chart bars: the first bar starts at the chart's own delay",
+      _cb, "animation-delay:0.100s")
+check("chart bars: the next one starts a beat later", _cb, "animation-delay:0.190s")
+check("chart bars: and the third a beat after that", _cb, "animation-delay:0.280s")
+check("chart bars: each takes the chosen duration", _cb, "animation-duration:0.8s")
+# The chart stays visible; only the bars are held back.
+check("chart bars: the chart is NOT hidden while it waits",
+      _cb, '[data-ds-anim="bars"].ds-anim-wait{opacity:1}')
+check("chart bars: the bars are what waits",
+      _cb, '[data-ds-anim="bars"].ds-anim-wait .ds-cbar{scale:1 0}')
+check("chart bars: they grow from the bar's own baseline",
+      _cb, ".ds-cbar{transform-box:fill-box;transform-origin:bottom}")
+check("chart bars: print draws them at full height",
+      _cb, ".ds-cbar{animation:none !important;scale:1 1 !important}")
+check_eq("chart bars: the chart itself gets no whole-element animation",
+         '.ds-anim-in[data-ds-anim="bars"]{animation-name' in _cb, False)
+# A row chart grows sideways, from the axis it starts at.
+_rows = _chart_layout(_BARS, ctype="row").layer(1)
+check("chart bars: a row chart grows from the left", _rows, 'class="ds-cbar ds-cbar-x"')
+check("chart bars: sideways has its own keyframes",
+      _rows, "@keyframes ds-a-bar-x{from{scale:0 1}to{scale:1 1}}")
+# No animation asked for: no timing baked into the bars at all.
+check_eq("chart bars: an unanimated chart bakes no timing",
+         "animation-delay" in _chart_layout().layer(1), False)
+# A whole-element kind still works on a chart, and touches no bar.
+check("chart: a plain entrance still applies to the whole drawing",
+      _chart_layout({"kind": "rise"}).layer(1), 'data-ds-anim="rise"')
+check_eq("chart: a whole-element entrance bakes no per-bar timing",
+         "animation-delay" in _chart_layout({"kind": "rise"}).layer(1), False)
+
+# 'bars' is refused anywhere it would have nothing to animate — it would
+# validate, render, and then never happen.
+for bad, why in (
+    (lambda: _chart_layout(_BARS, kind="rect"), "a rect shape"),
+    (lambda: _layout({"positions": {}, "shapes": [],
+                      "boxes": [{"id": "b", "page": 1, "x": 1, "y": 1, "w": 2,
+                                 "md": "hi", "anim": _BARS}]}), "a text box"),
+    (lambda: _layout({"positions": {"basics.h1": {"x": 1, "y": 1,
+                                                  "anim": _BARS}},
+                      "shapes": []}), "a designed element"),
+):
+    try:
+        bad()
+        FAILS.append(f"anim 'bars' on {why} should be refused")
+    except LayoutError as e:
+        if "only works on a chart" not in str(e):
+            FAILS.append(f"anim 'bars' on {why}: unhelpful message {e}")
+
 # ---- the expand button's chevron -------------------------------------------
 # Drawn art, not a glyph: it turns to point up when the section opens, it is
 # present on the EDITOR canvas too (where the button used to have none), and

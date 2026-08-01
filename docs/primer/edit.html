@@ -3253,7 +3253,16 @@ function layerMenu(d, el, e) {
   // menu serves, in the same store rot/alpha/shadow use — so a designed
   // element gets pinned by ensureStore exactly as recolouring pins it.
   if (!surface) {
-    const ANIMS = [['fade', 'Fade in'], ['rise', 'Rise'], ['drop', 'Drop'],
+    // A chart can animate its PARTS instead of itself: the axes and labels
+    // stay put and the bars grow out of the baseline in turn. Offered first,
+    // because for a chart it is the one people mean. Bar-family only — a pie
+    // has no bars to grow, and the engine refuses the kind there.
+    const chartOf = (layout.shapes.find(s => s.id === id) || {});
+    const barChart = chartOf.kind === 'chart'
+      && !['pie', 'donut', 'line', 'scatter', 'radar', 'funnel', 'packed',
+           'treemap'].includes((chartOf.chart || {}).type || 'bar');
+    const ANIMS = [...(barChart ? [['bars', 'Bars grow in']] : []),
+                   ['fade', 'Fade in'], ['rise', 'Rise'], ['drop', 'Drop'],
                    ['slide-left', 'Slide from right'], ['slide-right', 'Slide from left'],
                    ['grow', 'Grow'], ['pop', 'Pop']];
     const curAnim = () => (storeOf(id) || {}).anim || null;
