@@ -6367,6 +6367,14 @@ function paintSel(d) {
   const gs = selGroups();
   const wholeGroup = gs.length === 1 && gs[0].length === selIds.size
     && gs[0].every(id => selIds.has(id));
+  // A group shows no resize handles — they only ever appear for a selection
+  // of exactly one — so say how to reach one piece. Without this the way in
+  // is invisible, and "I clicked the button and there are no size handles"
+  // is the only possible conclusion.
+  if (wholeGroup && els.length > 1) {
+    $('stat').textContent = `group of ${els.length} — drag to move it as one; `
+      + 'click or double-click a piece to get inside and resize it';
+  }
   els.forEach(el => {
     // A CSS outline on an SVG child paints around the whole page-sized <svg>
     // viewport, not the shape — so shapes get a plain OVERLAY ring drawn at
@@ -6505,6 +6513,11 @@ function selectClick(d, id, e) {
     paintSel(d);
     return !on;
   }
+  // Already inside a group, on the very piece that IS the selection: stay
+  // there. Re-expanding to the whole group would bounce you straight back
+  // out of the group the moment you clicked the thing you had just drilled
+  // into — and a double-click meant for the words would only ever re-drill.
+  if (selIds.size === 1 && selIds.has(id)) return true;
   // Clicking inside the current selection keeps it (so the group/multi drags);
   // clicking outside replaces it.
   if (!members.every(m => selIds.has(m))) setSel(d, members);
@@ -7154,6 +7167,10 @@ const canGroup = () => selIds.size >= 2 &&
   !(selGroups().length === 1 && selGroups()[0].length === selIds.size
     && selGroups()[0].every(id => selIds.has(id)));
 const canUngroup = () => selGroups().length > 0;
+
+// The last "get inside a group" and when — a real double-click delivers a
+// mouseup AND a dblclick, and both want to act on the same gesture.
+let lastDrill = { id: null, t: 0 };
 
 let lastNudge = 0;
 function nudgeSel(d, d4) {
@@ -9057,7 +9074,28 @@ function dragify(d) {
     // drag it shares with every other placed thing. An image's double-click
     // is Canva's: it opens the crop.
     if ((el.dataset.el || '').startsWith('text.'))
-      el.addEventListener('dblclick', e => { e.preventDefault(); editBox(d, el); });
+      el.addEventListener('dblclick', e => {
+        e.preventDefault();
+        // Inside a group, the first double-click gets INSIDE the group, not
+        // into the words — every other design tool works this way, and
+        // without it a group's pieces were unreachable: two quick clicks
+        // (the natural way to ask for "just this one") fire dblclick too,
+        // so the drill-in was overtaken by the text editor every time and
+        // an expandable section's button could never be resized.
+        // Once the piece IS the selection on its own, double-click edits it.
+        const bid = idOf(el);
+        const g = groupOf(bid);
+        const justDrilled = lastDrill.id === bid && Date.now() - lastDrill.t < 700;
+        if (g && g.length > 1
+            && (justDrilled || !(selIds.size === 1 && selIds.has(bid)))) {
+          setSel(d, [bid]);
+          lastDrill = { id: bid, t: Date.now() };
+          $('stat').textContent = 'inside the group — drag the handles to resize, '
+            + 'double-click again to edit the words, Escape to leave';
+          return;
+        }
+        editBox(d, el);
+      });
     else if ((el.dataset.el || '').startsWith('endnote.'))
       // Like a text box: its two fields (citation text + URL) don't fit the
       // one-slot-one-string model [data-slot] editing assumes, so it gets its
@@ -9375,6 +9413,11 @@ function startDrag(d, el, e0, drillIn = false) {
       // a click on any other member goes back to moving the whole group.
       if (drillIn) {
         setSel(d, [idOf(el)]);
+        // Remember it: a real double-click sends this mouseup AND a dblclick,
+        // so without a note the drill-in would narrow the selection and the
+        // dblclick that follows would find a solo element and open the text
+        // editor — the very thing the drill-in was reaching past.
+        lastDrill = { id: idOf(el), t: Date.now() };
         $('stat').textContent = 'inside the group — drag the handles to resize '
           + 'this piece, Escape to leave';
       }
