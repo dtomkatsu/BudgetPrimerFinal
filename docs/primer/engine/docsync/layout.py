@@ -1683,6 +1683,31 @@ class Layout:
             s += f';opacity:{p["alpha"]:g}'
         return s
 
+    def tgl_arrow(self, box_id: str, edit: bool) -> str:
+        """The expand button's chevron: down when the section is shut, up when
+        it is open (the .ds-tgl-on rule turns it).
+
+        A real inline SVG rather than the ▾ glyph it used to be, for two
+        reasons. It is drawn art, so it takes a colour of its own — keyed
+        under `tglarrow.<box>` in the same `fill` map every other recolourable
+        piece of artwork uses, which is what makes it restylable by clicking
+        it. And it renders in the EDITOR too, where the button used to have no
+        arrow at all: the affordance a reader will see should be the one the
+        person placing the button is looking at.
+
+        Its data-el makes it selectable, never movable — see edit.html's
+        dragify. Pinning it into positions{} would take it out of the flow and
+        out of its own button.
+        """
+        aid = f"tglarrow.{box_id}"
+        ink = self.fill(aid) or "currentColor"
+        tag = f' data-el="{aid}"' if edit else ""
+        return (f'<svg class="ds-tgl-i ds-tgl-svg" viewBox="0 0 16 16"'
+                f' width="1em" height="1em" aria-hidden="true"{tag}>'
+                f'<path d="M3.5 6L8 10.5L12.5 6" fill="none" stroke="{ink}"'
+                f' stroke-width="2" stroke-linecap="round"'
+                f' stroke-linejoin="round"/></svg>')
+
     def _anim_block(self) -> str:
         """Keyframes for every animated element, and — published only — the
         observer that triggers them on scroll-in. Emitted once, the first
@@ -2081,7 +2106,7 @@ class Layout:
                        '@media print{.ds-actbtn{display:none}}'
                        '.ds-tglable:not(.ds-tgl-open){display:none}'
                        '.ds-tgl-i{display:inline-block;margin-left:.35em;'
-                       'transition:transform .15s}'
+                       'vertical-align:-.12em;transition:transform .15s}'
                        '.ds-tgl-on .ds-tgl-i{transform:rotate(180deg)}'
                        '@media print{.ds-tglable:not(.ds-tgl-open)'
                        '{display:revert}}</style>')
@@ -2140,7 +2165,7 @@ class Layout:
                     f'style="{full};display:block;border:0;'
                     f'font-family:inherit;box-sizing:border-box">'
                     f'{paragraph(b["md"])}'
-                    f'<span class="ds-tgl-i">\u25be</span></button>')
+                    f'{self.tgl_arrow(b["id"], edit)}</button>')
                 continue
             if act and not edit:
                 # Published: a REAL button. window.print(), the same never-
@@ -2169,9 +2194,14 @@ class Layout:
             if not edit and b["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{b["id"]}"'
+            # A toggle button keeps its chevron on the editor canvas too —
+            # it is part of what the button IS, and it is the thing you click
+            # to recolour it. Shut-side (pointing down), because that is the
+            # state a reader meets the button in.
+            arrow = self.tgl_arrow(b["id"], edit) if act == "toggle" else ""
             out.append(f'<div class="{klass}"{extra}{tag}{an} '
                        f'style="{full}">'
-                       f'{block_html(b["md"])}</div>')
+                       f'{block_html(b["md"])}{arrow}</div>')
         return "".join(out)
 
     def box(self, box_id: str) -> dict | None:

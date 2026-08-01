@@ -2808,6 +2808,8 @@ function svgMarkEl(id) {
   const d = $('out').contentDocument;
   const el = d && d.querySelector(`[data-el="${CSS.escape(id)}"]`);
   if (!el) return null;
+  // An expand button's chevron IS the svg, rather than a wrapper holding one.
+  if (el.matches('svg.ds-tgl-svg')) return el;
   return el.querySelector('img[src$=".svg"], svg.logo-img') ? el : null;
 }
 
@@ -3700,6 +3702,9 @@ function isHeadingEl(el) {
 }
 
 function handlesFor(el) {
+  // The toggle chevron sizes itself off its button's type (1em) and cannot be
+  // positioned, so it has nothing to drag — colour is the whole of it.
+  if (el.classList && el.classList.contains('ds-tgl-svg')) return [];
   // Shapes and text boxes resize from every edge and corner. Graphics scale
   // uniformly, so their handles are the four corners (each drives the one
   // scale factor). A designed prose slot reflows on width alone — no height to
@@ -3727,11 +3732,18 @@ function handlesFor(el) {
 
 function showHandles(d, page, el) {
   hideHandles(d);
+  const dirs = handlesFor(el);
+  // Nothing to drag at all — the expand button's chevron, whose size comes
+  // from its button's type and which has no position of its own. Return
+  // before the overlay: the no-corners branch below would otherwise hand it
+  // a dangling ROTATE handle, and rotating it pins it into positions{},
+  // which is exactly how it would end up absolutely placed outside the
+  // button it labels.
+  if (!dirs.length) return;
   const b = shapeBox(el, page);
   const ov = d.createElement('div');
   ov.className = 'ds-handles';
   ov.style.cssText = `left:${b.x}in;top:${b.y}in;width:${b.w}in;height:${b.h}in`;
-  const dirs = handlesFor(el);
   // Canva's own trick: a corner does double duty. A ring OUTSIDE each corner's
   // resize square rotates; the square itself still resizes. The ring is
   // painted (and appended) BEFORE its resize square, so the square — same
@@ -7773,18 +7785,47 @@ const CTX_CLEAR = 58;
  *  place on the page before and after. An offset from the centre does not.
  *
  *  Null when there is no document yet — the first paint has no centre to keep. */
+// The last centre measured while the report could actually SCROLL. Zoom out
+// far enough and the whole thing fits the pane: scrollTop is then pinned to 0
+// and the centre it reports is the middle of the DOCUMENT, not the part
+// anyone was reading. Each further zoom step re-anchors on that, so a trip
+// out and back came home to the middle of the report — the position was
+// destroyed while zoomed out, not on the way back in. Remembering the last
+// real one is what makes the round trip reversible.
+let zoomAnchor = null;
+// Set when the last restore could NOT put the anchor under the middle — the
+// scroller clamped it. Consumed by the next viewCentre, so it carries the
+// anchor across exactly the steps that could not honour it and then lets a
+// real measurement take over again.
+let restoreClamped = false;
+
 function viewCentre() {
   const out = $('out'), stage = $('stage');
   const d = out && out.contentDocument;
   const sc = d && d.scrollingElement;
   if (!sc) return null;
+  const stale = restoreClamped;      // one-shot
+  restoreClamped = false;
+  // What is on screen right now is a clamp, not a choice: measuring it would
+  // replace the reader's position with the top (or the middle) of the report.
+  if (stale && zoomAnchor) return zoomAnchor;
   const s = curScale;
   const ml = parseFloat(out.style.marginLeft) || 0;
   const frameW = parseFloat(out.style.width) || VIEW_W;
-  return {
+  const c = {
     dx: (stage.scrollLeft + stage.clientWidth / 2 - ml) / s - frameW / 2,
     y: sc.scrollTop + (stage.clientHeight / s) / 2,
   };
+  // A canvas that fits the pane is centred by margin and pinned at 0 on that
+  // axis, so that number says nothing about where anyone was looking either.
+  const canScrollY = sc.scrollHeight - sc.clientHeight > 1;
+  const canScrollX = stage.scrollWidth - stage.clientWidth > 1;
+  if (canScrollY || canScrollX) {
+    zoomAnchor = { dx: canScrollX || !zoomAnchor ? c.dx : zoomAnchor.dx,
+                   y: canScrollY || !zoomAnchor ? c.y : zoomAnchor.y };
+    return zoomAnchor;
+  }
+  return zoomAnchor || c;
 }
 
 /** Put that same canvas point back under the middle of the pane at scale `s`.
@@ -7797,8 +7838,16 @@ function restoreCentre(c, s) {
   if (!sc) return;
   const ml = parseFloat(out.style.marginLeft) || 0;
   const frameW = parseFloat(out.style.width) || VIEW_W;
-  stage.scrollLeft = (frameW / 2 + c.dx) * s + ml - stage.clientWidth / 2;
-  sc.scrollTop = c.y - (stage.clientHeight / s) / 2;
+  const wantX = (frameW / 2 + c.dx) * s + ml - stage.clientWidth / 2;
+  const wantY = c.y - (stage.clientHeight / s) / 2;
+  stage.scrollLeft = wantX;
+  sc.scrollTop = wantY;
+  // Did it take? A scroller refuses anything past its own ends, and at a
+  // zoom where the whole report fits there is nowhere to put the anchor at
+  // all. Say so, so the next measurement does not mistake the clamp for the
+  // reader's position and lose it for good.
+  restoreClamped = Math.abs(sc.scrollTop - Math.max(0, wantY)) > 1
+                || Math.abs(stage.scrollLeft - Math.max(0, wantX)) > 1;
 }
 
 function applyZoom(recompute = true) {
@@ -9021,6 +9070,20 @@ function dragify(d) {
     // ds-detachable marks a designed sub-part that the renderer built to come
     // apart — a content card's title or bullets, laid out inside the tile by
     // default but meant to be pulled out and moved on its own.
+    // An expand button's chevron: selectable so it can be recoloured like any
+    // other piece of drawn artwork, but never draggable. It belongs inside
+    // its button — pinning it into positions{} would position it absolutely
+    // and tear it out of both the flow and the button it labels.
+    if (el.classList.contains('ds-tgl-svg')) {
+      el.addEventListener('mousedown', e => {
+        if (editing || e.button !== 0) return;
+        e.preventDefault(); e.stopPropagation();
+        setSel(d, [idOf(el)]);
+        $('stat').textContent = "the button's arrow — set its colour in the toolbar; "
+          + 'it turns to point up when the section is open';
+      });
+      return;
+    }
     const independentObject = isGraphic(el) || el.classList.contains('ds-textbox')
       || el.classList.contains('ds-detachable');
     if (!independentObject && el.parentElement && el.parentElement.closest('[data-el]')) return;

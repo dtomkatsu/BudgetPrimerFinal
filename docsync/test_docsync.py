@@ -1108,6 +1108,53 @@ _moved = card(_CardC(),
 check("card: a moved tile's position:absolute lands after the frame rule",
       _moved, "padding:16px 18px;margin:0;position:absolute")
 
+# ---- the expand button's chevron -------------------------------------------
+# Drawn art, not a glyph: it turns to point up when the section opens, it is
+# present on the EDITOR canvas too (where the button used to have none), and
+# it takes a colour of its own from the same `fill` map every other
+# recolourable piece of artwork uses — which is what "click it and restyle it"
+# rests on.
+def _tgl_layout(fill=None):
+    d = {"positions": {}, "shapes": [],
+         "boxes": [{"id": "b", "page": 1, "x": 1, "y": 1, "w": 2,
+                    "md": "Show details", "act": "toggle", "target": "c"},
+                   {"id": "c", "page": 1, "x": 1, "y": 2, "w": 2,
+                    "md": "Hidden content"}]}
+    if fill:
+        d["fill"] = fill
+    return _layout(d)
+
+_pub = _tgl_layout().text_boxes(1)
+check("chevron: published as a real svg, not a glyph", _pub, 'class="ds-tgl-i ds-tgl-svg"')
+check_eq("chevron: the old text glyph is gone", "▾" in _pub, False)
+check("chevron: it turns to point up when the section is open",
+      _pub, ".ds-tgl-on .ds-tgl-i{transform:rotate(180deg)}")
+check("chevron: it inherits the button's ink until recoloured",
+      _pub, 'stroke="currentColor"')
+check_eq("chevron: no editing hook in the published page",
+         "tglarrow." in _pub, False)
+# Recoloured: keyed per button, so two buttons colour independently.
+check("chevron: a recolour reaches the drawn stroke",
+      _tgl_layout({"tglarrow.b": "#C0603F"}).text_boxes(1), 'stroke="#C0603F"')
+
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _ed = _tgl_layout().text_boxes(1)
+    check("chevron: drawn on the editor canvas too", _ed, 'class="ds-tgl-i ds-tgl-svg"')
+    check("chevron: selectable there, under its own id", _ed, 'data-el="tglarrow.b"')
+    # The button is a plain div while editing (a live <button> would escape the
+    # drag guard) — the arrow has to ride that div, not the published <button>.
+    check_eq("chevron: no live button on the canvas", "<button" in _ed, False)
+    check("chevron: a recolour shows while editing, not just when published",
+          _tgl_layout({"tglarrow.b": "#C0603F"}).text_boxes(1), 'stroke="#C0603F"')
+    # Only the toggle gets one — a plain box has nothing to expand.
+    check_eq("chevron: a plain text box grows no arrow",
+             "ds-tgl-svg" in _layout({"positions": {}, "shapes": [],
+                 "boxes": [{"id": "p", "page": 1, "x": 1, "y": 1, "w": 2,
+                            "md": "plain"}]}).text_boxes(1), False)
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
 # ---- the mount marker: where an insert may land, and as which page ---------
 # The editor stamps a page onto every new element and the validator refuses
 # one without a real page number, so a page it cannot work out is not a
