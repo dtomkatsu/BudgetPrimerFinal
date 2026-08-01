@@ -462,6 +462,50 @@ def _z(s: dict) -> int:
         raise LayoutError(f"shape '{s.get('id')}': z {z!r} is not a layer number")
 
 
+# Entrance animations. An allowlist like `act`: a kind lands in the published
+# page as behaviour, so an unknown one must be a loud error here rather than
+# an element that quietly never appears.
+#
+# The vocabulary follows AOS (github.com/michalsnik/aos, MIT) — fade / fade-up
+# / fade-down / slide / zoom — because it is the settled naming for exactly
+# this data-attribute + observer + keyframes shape. The keyframes themselves
+# are written here, in translate/scale form (see _anim_block for why).
+# Animate.css was considered and rejected: it relicensed from MIT to the
+# Hippocratic License, which is not open source and travels with anything
+# vendored from it.
+ANIM_KINDS = ("fade", "rise", "drop", "slide-left", "slide-right", "grow", "pop")
+
+
+def _anim_check(a, where: str) -> None:
+    if not isinstance(a, dict):
+        raise LayoutError(f"{where}: anim must be an object like "
+                          '{"kind": "fade", "duration": 0.6, "delay": 0}')
+    if a.get("kind") not in ANIM_KINDS:
+        raise LayoutError(f"{where}: anim kind {a.get('kind')!r} — one of "
+                          + ", ".join(ANIM_KINDS))
+    d = a.get("duration", 0.6)
+    w = a.get("delay", 0)
+    if not isinstance(d, (int, float)) or not 0.05 <= d <= 10:
+        raise LayoutError(f"{where}: anim duration {d!r} — seconds, 0.05 to 10")
+    if not isinstance(w, (int, float)) or not 0 <= w <= 10:
+        raise LayoutError(f"{where}: anim delay {w!r} — seconds, 0 to 10")
+
+
+def anim_attrs(a) -> str:
+    """The data attributes an animated element carries — in BOTH modes.
+
+    The editor needs them too: presentation mode replays a slide's entrances
+    from exactly these, and stamping them everywhere costs the published page
+    three data attributes. What differs by mode is the SCRIPT (publish only,
+    where it applies the initial hidden state) — never the markup.
+    """
+    if not a:
+        return ""
+    return (f' data-ds-anim="{a["kind"]}"'
+            f' data-ds-ad="{a.get("duration", 0.6):g}"'
+            f' data-ds-aw="{a.get("delay", 0):g}"')
+
+
 def _num(v, where: str) -> float:
     try:
         return float(v)
@@ -1345,6 +1389,8 @@ class Layout:
             if p.get("flip") is not None and p["flip"] not in ("h", "v", "hv"):
                 raise LayoutError(f"position '{el}': flip {p['flip']!r} must be "
                                   f"h, v or hv")
+            if p.get("anim") is not None:
+                _anim_check(p["anim"], f"position '{el}'")
         seen = set()
         for i, s in enumerate(self.shapes):
             where = f"shape #{i + 1}"
@@ -1372,6 +1418,8 @@ class Layout:
                 _num(s["rot"], f"{where}.rot")
             if s.get("alpha") is not None:
                 _alpha(s["alpha"], f"{where}.alpha")
+            if s.get("anim") is not None:
+                _anim_check(s["anim"], where)
             if s.get("shadow") is not None:
                 _check_shadow(s["shadow"], f"{where}.shadow")
             if s.get("r") is not None and _num(s["r"], f"{where}.r") < 0:
@@ -1504,6 +1552,8 @@ class Layout:
                 raise LayoutError(f"{where}: 'page' must be a page number or blank-page id")
             for k in ("x", "y", "w"):
                 _num(b.get(k), f"{where}.{k}")
+            if b.get("anim") is not None:
+                _anim_check(b["anim"], where)
             if b.get("h") is not None:      # optional min-height (never clips)
                 _num(b["h"], f"{where}.h")
             if not str(b.get("md", "")).strip():
@@ -1550,6 +1600,8 @@ class Layout:
 
         for i, t in enumerate(self.tables):
             where = f"table #{i + 1}"
+            if t.get("anim") is not None:
+                _anim_check(t["anim"], where)
             tid = t.get("id")
             if not tid:
                 raise LayoutError(f"{where}: needs an 'id'")
@@ -1631,6 +1683,81 @@ class Layout:
             s += f';opacity:{p["alpha"]:g}'
         return s
 
+    def _anim_block(self) -> str:
+        """Keyframes for every animated element, and — published only — the
+        observer that triggers them on scroll-in. Emitted once, the first
+        time any emitter renders while the layout holds an animation.
+
+        The initial hidden state is applied BY THE SCRIPT, never by static
+        CSS: a page whose JavaScript never runs (noscript, a blocked file,
+        an ancient browser) must show everything, and so must print and a
+        reader who asked for reduced motion. The keyframes ship in the
+        EDITOR too — elements there stay static, but presentation mode
+        replays a slide's entrances from these same rules.
+
+        translate/scale, not transform: an element's rotation lives in its
+        transform, and a keyframe that animated transform would silently
+        erase it mid-flight.
+        """
+        if getattr(self, "_anim_emitted", False):
+            return ""
+        has = (any(b.get("anim") for b in self.boxes)
+               or any(x.get("anim") for x in self.shapes)
+               or any(t.get("anim") for t in self.tables)
+               or any(p.get("anim") for p in self.positions.values()))
+        if not has:
+            return ""
+        self._anim_emitted = True
+        css = (
+            "@keyframes ds-a-fade{from{opacity:0}to{opacity:1}}"
+            "@keyframes ds-a-rise{from{opacity:0;translate:0 14px}"
+            "to{opacity:1;translate:0 0}}"
+            "@keyframes ds-a-slide-left{from{opacity:0;translate:-18px 0}"
+            "to{opacity:1;translate:0 0}}"
+            "@keyframes ds-a-slide-right{from{opacity:0;translate:18px 0}"
+            "to{opacity:1;translate:0 0}}"
+            "@keyframes ds-a-grow{from{opacity:0;scale:.92}"
+            "to{opacity:1;scale:1}}"
+            "@keyframes ds-a-drop{from{opacity:0;translate:0 -14px}"
+            "to{opacity:1;translate:0 0}}"
+            "@keyframes ds-a-pop{0%{opacity:0;scale:.85}"
+            "70%{opacity:1;scale:1.04}100%{opacity:1;scale:1}}"
+            ".ds-anim-wait{opacity:0}"
+            ".ds-anim-in{animation-fill-mode:both;"
+            "animation-timing-function:cubic-bezier(.2,.7,.3,1)}"
+            + "".join(f'.ds-anim-in[data-ds-anim="{k}"]{{animation-name:ds-a-{k}}}'
+                      for k in ANIM_KINDS)
+            + "@media print{[data-ds-anim]{opacity:1 !important;"
+            "animation:none !important;translate:none !important;"
+            "scale:none !important}}"
+            "@media (prefers-reduced-motion:reduce){[data-ds-anim]"
+            "{opacity:1 !important;animation:none !important}}")
+        if os.environ.get("DOCSYNC_EDIT"):
+            return f"<style>{css}</style>"
+        # Deferred to DOM-ready, NOT run at its own position: this block is
+        # emitted by whichever emitter fires first, which is usually the
+        # page's shape layer — rendered BEFORE the text boxes in the same
+        # section. Run inline, the query saw only the elements above it and
+        # everything after was never observed (found by the publish e2e: the
+        # top text box simply never animated in).
+        script = (
+            "(function(){function go(){"
+            "if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;"
+            "var els=[].slice.call(document.querySelectorAll('[data-ds-anim]'));"
+            "if(!els.length||!window.IntersectionObserver)return;"
+            "els.forEach(function(e){e.classList.add('ds-anim-wait')});"
+            "var io=new IntersectionObserver(function(es){es.forEach(function(en){"
+            "if(!en.isIntersecting)return;var e=en.target;io.unobserve(e);"
+            "e.style.animationDuration=(e.getAttribute('data-ds-ad')||'.6')+'s';"
+            "e.style.animationDelay=(e.getAttribute('data-ds-aw')||'0')+'s';"
+            "e.classList.remove('ds-anim-wait');e.classList.add('ds-anim-in');"
+            "})},{threshold:.15});"
+            "els.forEach(function(e){io.observe(e)})}"
+            "if(document.readyState==='loading')"
+            "document.addEventListener('DOMContentLoaded',go);else go()"
+            "})();")
+        return f"<style>{css}</style><script>{script}</script>"
+
     def attr(self, el_id: str, extra: str = "") -> str:
         """Attributes for an element with no style of its own.
 
@@ -1658,6 +1785,8 @@ class Layout:
         both = ";".join(x for x in (css, extra, hide) if x)
         if both:
             bits.append(f'style="{both}"')
+        if p and p.get("anim"):
+            bits.append(anim_attrs(p["anim"]).strip())
         return (" " + " ".join(bits)) if bits else ""
 
     def spacer(self, el_id: str) -> str:
@@ -1912,7 +2041,8 @@ class Layout:
         # width is the one thing the editor's resize drags, so the picture
         # must follow it. Engine-owned so it holds in every project, not
         # just ones whose own stylesheet happens to style .inline-img.
-        out = ['<style>.ds-textbox img.inline-img{display:block;width:100%;'
+        out = [self._anim_block(),
+               '<style>.ds-textbox img.inline-img{display:block;width:100%;'
                'height:auto;margin:0}</style>']
         edit = bool(os.environ.get("DOCSYNC_EDIT"))
         # Acting boxes are real controls in the PUBLISHED page, so they carry
@@ -1940,6 +2070,7 @@ class Layout:
                        '{display:revert}}</style>')
         for b in mine:
             act = b.get("act")
+            an = anim_attrs(b.get("anim"))
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
                    f'width:{b["w"]}in;z-index:{int(b.get("z", 2))}')
             if b.get("h"):
@@ -1982,7 +2113,7 @@ class Layout:
                 arr = ",".join(f"'ds-x-{t}'" for t in tgts)
                 controls = " ".join(f"ds-x-{t}" for t in tgts)
                 out.append(
-                    f'<button type="button" class="ds-actbtn ds-tglbtn" '
+                    f'<button type="button" class="ds-actbtn ds-tglbtn"{an} '
                     f"onclick=\"var o=!this.classList.contains('ds-tgl-on');"
                     f"[{arr}].forEach(function(i){{"
                     f"document.getElementById(i).classList.toggle('ds-tgl-open',o)}});"
@@ -2002,7 +2133,7 @@ class Layout:
                 # is the box's own markdown, collapsed to one line: a button
                 # is a label, not a column of paragraphs.
                 out.append(
-                    f'<button type="button" class="ds-actbtn noprint" '
+                    f'<button type="button" class="ds-actbtn noprint"{an} '
                     f'onclick="window.print()" '
                     f'title="Opens your browser\'s print dialog — choose '
                     f'Save as PDF" '
@@ -2021,7 +2152,7 @@ class Layout:
             if not edit and b["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{b["id"]}"'
-            out.append(f'<div class="{klass}"{extra}{tag} '
+            out.append(f'<div class="{klass}"{extra}{tag}{an} '
                        f'style="{full}">'
                        f'{block_html(b["md"])}</div>')
         return "".join(out)
@@ -2115,7 +2246,8 @@ class Layout:
             if not edit and t["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{t["id"]}"'
-            out.append(f'<table class="{klass}"{extra}{tag} '
+            out.append(f'<table class="{klass}"{extra}{tag}'
+                       f'{anim_attrs(t.get("anim"))} '
                        f'style="{css}{";" + style if style else ""}">'
                        f'{colgroup}{body}</table>')
         return "".join(out)
@@ -2193,7 +2325,8 @@ class Layout:
                            f'<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>'
                            f'</marker>')
         defs = f'<defs>{"".join(defbits)}</defs>' if defbits else ""
-        return (f'<svg class="shape-layer" style="position:absolute;left:0;top:0;'
+        return self._anim_block() + (
+                f'<svg class="shape-layer" style="position:absolute;left:0;top:0;'
                 f'width:{self.page_w}in;height:{self.page_h}in;pointer-events:none;'
                 f'z-index:{z}" viewBox="0 0 {self.page_w} {self.page_h}">{defs}{body}</svg>')
 
@@ -2205,6 +2338,9 @@ class Layout:
         tgl = ("" if os.environ.get("DOCSYNC_EDIT")
                or s["id"] not in self.toggle_targets
                else f' id="ds-x-{s["id"]}" class="ds-tglable"')
+        # Animation data attributes ride the same node — in both modes, since
+        # presentation replay (an editor feature) reads them there too.
+        tgl += anim_attrs(s.get("anim"))
         # A gradient fill becomes fill="url(#…)" and a <defs> entry that _svg
         # collects; a hex/none stays verbatim, so a solid shape is byte-identical.
         fill, _ = fill_svg_paint(s.get("fill"), f"ds-fill-{s['id']}")

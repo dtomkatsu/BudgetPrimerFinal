@@ -3231,6 +3231,79 @@ function layerMenu(d, el, e) {
       const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     }
   }
+  // Animate: an entrance for the published page (and for presentation mode,
+  // which replays a slide's entrances on entry). Lives on any element the
+  // menu serves, in the same store rot/alpha/shadow use — so a designed
+  // element gets pinned by ensureStore exactly as recolouring pins it.
+  if (!surface) {
+    const ANIMS = [['fade', 'Fade in'], ['rise', 'Rise'], ['drop', 'Drop'],
+                   ['slide-left', 'Slide from right'], ['slide-right', 'Slide from left'],
+                   ['grow', 'Grow'], ['pop', 'Pop']];
+    const curAnim = () => (storeOf(id) || {}).anim || null;
+    submenuRow(d, m, 'Animate \u25b8', sub => {
+      const pick = (label, fn, on2) => {
+        const b2 = d.createElement('button');
+        b2.textContent = (on2 ? '\u2713 ' : '') + label;
+        b2.addEventListener('click', async () => { closeMenu(d); await fn(); });
+        sub.appendChild(b2);
+      };
+      const cur = curAnim();
+      pick('None', async () => {
+        if (!cur) return;
+        pushHistory();
+        const st = ensureStore(d, el);
+        delete st.anim;
+        markDirty(); await render();
+      }, !cur);
+      ANIMS.forEach(([k, label]) => pick(label, async () => {
+        pushHistory();
+        const st = ensureStore(d, el);
+        st.anim = { kind: k,
+                    duration: (cur && cur.duration) || 0.6,
+                    delay: (cur && cur.delay) || 0 };
+        markDirty(); await render();
+        // Feedback: play it once, right now, on the re-rendered element.
+        const d2 = $('out').contentDocument;
+        const el2 = d2 && d2.querySelector(
+          `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+        if (el2) replayAnims(d2, el2);
+        $('stat').textContent = `${label} — plays when the published page `
+          + 'scrolls to it, and on its slide in presentation mode';
+      }, cur && cur.kind === k));
+      if (cur) {
+        // Timing, right where the kind was chosen. Live on input; the
+        // renderer's word on release, like every other slider in this menu.
+        [['duration', 0.1, 3, 'speed'], ['delay', 0, 3, 'delay']]
+          .forEach(([key, min, max, label]) => {
+            const w = d.createElement('label');
+            w.className = 'ds-menu-slider';
+            w.textContent = label;
+            const r = d.createElement('input');
+            r.type = 'range'; r.min = min; r.max = max; r.step = 0.05;
+            r.value = cur[key] != null ? cur[key] : (key === 'duration' ? 0.6 : 0);
+            r.addEventListener('pointerdown', () => pushHistory());
+            r.addEventListener('input', () => {
+              const st = ensureStore(d, el);
+              st.anim = { ...(st.anim || cur), [key]: +r.value };
+              const el2 = d.querySelector(
+                `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+              if (el2) {
+                el2.setAttribute(key === 'duration' ? 'data-ds-ad' : 'data-ds-aw',
+                                 String(+r.value));
+                replayAnims(d, el2);
+              }
+            });
+            r.addEventListener('change', async () => {
+              markDirty(); closeMenu(d); await render();
+            });
+            w.appendChild(r);
+            sub.appendChild(w);
+          });
+      }
+    });
+    const sepA = d.createElement('div'); sepA.className = 'ds-menu-sep'; m.appendChild(sepA);
+  }
+
   // A toggle button's wiring, where its other verbs already live. With more
   // of the selection than just the button, one click points the button at
   // the rest — the way a person actually builds "this reveals those".
@@ -4334,6 +4407,24 @@ async function addTextBox(kind) {
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place`;
 }
+/** Restart entrance animations under `root` (or on root itself). The one
+ *  mechanism behind both the editor's pick-a-kind preview and presentation
+ *  mode's entering-a-slide replay — the published page has its own copy of
+ *  this logic inside layout.py's observer script, reading the same data
+ *  attributes, so the three can never mean different things by "play". */
+function replayAnims(d, root) {
+  if (d.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const els = root.matches && root.matches('[data-ds-anim]')
+    ? [root] : [...root.querySelectorAll('[data-ds-anim]')];
+  els.forEach(el => {
+    el.classList.remove('ds-anim-in');
+    void el.getBoundingClientRect();          // reflow, so it restarts
+    el.style.animationDuration = (el.getAttribute('data-ds-ad') || '.6') + 's';
+    el.style.animationDelay = (el.getAttribute('data-ds-aw') || '0') + 's';
+    el.classList.add('ds-anim-in');
+  });
+}
+
 /** A toggle's targets, always as an array — target may be one id or a list. */
 const toggleTargets = bx =>
   Array.isArray(bx.target) ? bx.target : bx.target ? [bx.target] : [];
@@ -11607,6 +11698,10 @@ function presentApply(d) {
   const n = $('present-n');
   if (n) n.textContent = (presentIdx + 1) + ' / ' + pages.length;
   presentFit(d);
+  // Entering a slide plays its entrances — every element the person animated
+  // for the published page animates here too, delays and all. Backing out
+  // and returning replays, which is what presenting wants.
+  if (pages[presentIdx]) replayAnims(d, pages[presentIdx]);
 }
 
 function presentGo(delta) {

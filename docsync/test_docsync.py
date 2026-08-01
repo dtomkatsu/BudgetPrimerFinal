@@ -1230,6 +1230,79 @@ for name, kw, want in [
         if want not in str(e):
             FAILS.append(f"{name} — wrong words: {e}")
 
+# ---- entrance animations ----------------------------------------------------
+# anim: {kind, duration, delay} on any element. AOS-vocabulary kinds; the
+# initial hidden state is applied BY THE SCRIPT (a page whose JS never runs
+# shows everything), print and reduced-motion always show content, and the
+# keyframes animate translate/scale so an element's own rotation survives.
+def _anim_layout():
+    f = Path(_tf.mkstemp(suffix=".json")[1])
+    f.write_text(json.dumps({
+        "boxes": [{"id": "t1", "page": 1, "x": 1, "y": 1, "w": 3,
+                   "md": "Animated", "anim": {"kind": "rise",
+                                              "duration": 0.8, "delay": 0.2}}],
+        "shapes": [{"id": "s1", "page": 1, "kind": "rect", "x": 1, "y": 3,
+                    "w": 2, "h": 1, "fill": "#6B9E78", "rot": 15,
+                    "anim": {"kind": "pop"}}],
+        "tables": [{"id": "t3", "page": 1, "x": 1, "y": 5, "w": 3,
+                    "rows": [["A"]], "anim": {"kind": "fade"}}],
+        "positions": {"basics.h1": {"x": 1, "y": 0.5,
+                                    "anim": {"kind": "slide-left"}}}}))
+    return _L(f)
+
+os.environ.pop("DOCSYNC_EDIT", None)
+_A = _anim_layout()
+_ab, _al, _ah, _aa = (_A.text_boxes(1), _A.layer(1), _A.tables_html(1),
+                      _A.attr("basics.h1"))
+check("anim: a box carries kind, duration and delay", _ab,
+      'data-ds-anim="rise" data-ds-ad="0.8" data-ds-aw="0.2"')
+check("anim: a shape carries it on its data-shape node", _al, 'data-ds-anim="pop"')
+check("anim: the shape's own rotation survives (translate/scale keyframes)",
+      _al, 'transform="rotate(15')
+check("anim: a table carries it", _ah, 'data-ds-anim="fade"')
+check("anim: a designed element carries it via attr()", _aa,
+      'data-ds-anim="slide-left"')
+_blob = _ab + _al + _ah
+check_eq("anim: keyframes emitted exactly once", _blob.count("@keyframes ds-a-fade"), 1)
+check("anim: hidden state is applied by the script, so no-JS shows everything",
+      _blob, "e.classList.add('ds-anim-wait')")
+check("anim: the script waits for the DOM — it is emitted before most of the "
+      "elements it must observe", _blob, "DOMContentLoaded")
+check("anim: reduced motion opts out", _blob, "prefers-reduced-motion")
+check("anim: print always shows content", _blob,
+      "@media print{[data-ds-anim]{opacity:1 !important")
+
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _E = _anim_layout()
+    _eb = _E.text_boxes(1) + _E.layer(1) + _E.tables_html(1)
+    check("anim editor: data attributes present (presentation replays from them)",
+          _eb, 'data-ds-anim="rise"')
+    check("anim editor: keyframes ship for the replay", _eb, "@keyframes ds-a-rise")
+    check_eq("anim editor: no observer, no hiding — elements stay static",
+             "IntersectionObserver" in _eb, False)
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
+for raw, want in [
+    ({"boxes": [{"id": "t1", "page": 1, "x": 1, "y": 1, "w": 2, "md": "x",
+                 "anim": {"kind": "spin"}}]}, "anim kind"),
+    ({"boxes": [{"id": "t1", "page": 1, "x": 1, "y": 1, "w": 2, "md": "x",
+                 "anim": {"kind": "fade", "duration": 99}}]}, "duration"),
+    ({"shapes": [{"id": "s1", "page": 1, "kind": "rect", "x": 1, "y": 1,
+                  "w": 1, "h": 1, "anim": "fade"}]}, "must be an object"),
+    ({"positions": {"e": {"x": 1, "y": 1,
+                          "anim": {"kind": "fade", "delay": -1}}}}, "delay"),
+]:
+    try:
+        f = Path(_tf.mkstemp(suffix=".json")[1])
+        f.write_text(json.dumps(raw))
+        _L(f)
+        FAILS.append(f"anim refusal missed: {want}")
+    except _LE as e:
+        if want not in str(e):
+            FAILS.append(f"anim refusal wrong words for {want}: {e}")
+
 # check_raises catches ContentError; this is the LAYOUT validator's error.
 try:
     _act_layout({"act": "launch"})
