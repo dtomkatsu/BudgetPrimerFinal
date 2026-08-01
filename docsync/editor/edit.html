@@ -1169,6 +1169,10 @@
     <button class="shp txtpreset" data-k="heading" style="font:700 17px system-ui">Add a heading</button>
     <button class="shp txtpreset" data-k="subheading" style="font:600 14px system-ui">Add a subheading</button>
     <button class="shp txtpreset" data-k="body" style="font:12px system-ui">Add body text</button>
+    <button class="shp txtpreset" data-k="expand"><span
+      style="display:inline-block;background:#52796F;color:#fff;border-radius:7px;
+             padding:5px 12px;font:700 12px system-ui">Expandable section&nbsp;&#9662;</span>
+      <span style="font:12px system-ui">button + hidden content</span></button>
     <button class="shp txtpreset" data-k="pdfbtn"><span
       style="display:inline-block;background:#2F3E46;color:#fff;border-radius:7px;
              padding:5px 12px;font:700 12px system-ui">&#8595;&nbsp;Download PDF</span>
@@ -4300,8 +4304,37 @@ async function addTextBox(kind) {
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place`;
 }
+/** An expandable section is a PAIR: a toggle button box (act:'toggle') and
+ *  the content box it reveals, wired by id and grouped so they move as one
+ *  until the user ungroups them. Published, the content starts collapsed and
+ *  the button shows/hides it (layout.py's act 'toggle'); in the editor both
+ *  stay visible — collapsed content you cannot see is content you cannot
+ *  edit. */
+async function addExpandable() {
+  const page = visiblePageId();
+  pushHistory();
+  const contentId = freeBoxId();
+  const content = { id: contentId, page, x: placeX(5), y: 2.55, w: 5, z: 2,
+    md: 'This content starts hidden on the published page — the button above reveals it. '
+      + 'Put anything here: text, **bold**, [links](https://example.org).' };
+  boxes().push(content);
+  const btnId = freeBoxId();
+  boxes().push({ id: btnId, page, x: placeX(5), y: 2, w: 2.6, z: 2,
+    md: 'Show details',
+    style: { size: 14, weight: 700, color: '#FFFFFF' },
+    fill: '#52796F', act: 'toggle', target: contentId });
+  layout.groups = layout.groups || [];
+  layout.groups.push(['text.' + btnId, 'text.' + contentId]);
+  setSel($('out').contentDocument, ['text.' + btnId, 'text.' + contentId]);
+  markDirty();
+  await render();
+  $('stat').textContent = 'expandable section added — the button reveals the '
+    + 'content on the published page; here both stay visible so you can edit them';
+}
+
 document.querySelectorAll('#textpop .shp[data-k]').forEach(b =>
-  b.addEventListener('click', () => addTextBox(b.dataset.k)));
+  b.addEventListener('click', () =>
+    b.dataset.k === 'expand' ? addExpandable() : addTextBox(b.dataset.k)));
 
 const freeTableId = () => freeTId();
 
@@ -6590,10 +6623,28 @@ async function deleteSel(d) {
     }
   });
   forgetInGroups(gone);            // a group loses its deleted members
+  // A toggle whose CONTENT was just deleted must not survive as a wired
+  // button: its target would fail layout validation and the whole draft
+  // would refuse to build over one deletion. The button stays — nothing the
+  // person did not delete disappears — it just becomes a plain box again.
+  const goneBoxIds = new Set(gone.filter(x => x.startsWith('text.')).map(x => x.slice(5)));
+  let demoteNote = '';
+  if (goneBoxIds.size) {
+    boxes().forEach(bx => {
+      if (bx.act === 'toggle' && goneBoxIds.has(bx.target)) {
+        delete bx.act; delete bx.target;
+        demoteNote = 'the section a button revealed was deleted — '
+          + 'the button is a plain text box now';
+      }
+    });
+  }
   selIds.clear();
   if (!touched) { past.pop(); return; }
   markDirty();
   await render();
+  // AFTER the render: the pipeline writes its own status ("unsaved changes"),
+  // and a note printed before it is a note nobody sees.
+  if (demoteNote) $('stat').textContent = demoteNote;
 }
 
 /** Drop ids from any group and discard groups the removal empties below two. */
@@ -6758,6 +6809,7 @@ async function pasteClip(d) {
   const page = visiblePageId();
   const off = 0.2 * (++clip.pastes);         // repeated pastes cascade
   const copies = [];
+  const idMap = new Map();                   // original box id -> its copy's
   clip.items.forEach(it => {
     if (it.kind === 'shape') {
       const nid = freeShapeId(it.data.kind);
@@ -6770,8 +6822,19 @@ async function pasteClip(d) {
       boxes().push({ ...it.data, id: nid, page,
         x: Math.min(it.data.x + off, PAGE_W_IN - Math.min(it.data.w, PAGE_W_IN)),
         y: Math.min(it.data.y + off, PAGE_H_IN - 0.4) });
+      idMap.set(it.data.id, nid);
       copies.push('text.' + nid);
     }
+  });
+  // A copied toggle whose CONTENT came along in the same paste controls the
+  // COPY, not the original — otherwise duplicating an expandable pair made a
+  // second button wired to the first button's content, which reads as broken
+  // the moment either is moved. A toggle pasted alone keeps its target: one
+  // section with two buttons is a legitimate thing to build.
+  copies.forEach(cid => {
+    if (!cid.startsWith('text.')) return;
+    const bx = boxes().find(x => x.id === cid.slice(5));
+    if (bx && bx.act === 'toggle' && idMap.has(bx.target)) bx.target = idMap.get(bx.target);
   });
   if (clip.wasGroup && copies.length > 1) {   // a copied group pastes as a group
     layout.groups = layout.groups || [];

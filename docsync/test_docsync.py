@@ -1133,6 +1133,56 @@ _unfilled = _act_layout({"fill": None}).text_boxes(1)
 check("an unfilled button still reads as a button", _unfilled,
       "padding:.08in .12in;border-radius:8px")
 
+# ---- act 'toggle': the expandable section -----------------------------------
+def _pair_layout(btn_extra=None, tgt_extra=None):
+    btn = {"id": "t1", "page": 1, "x": 1, "y": 1, "w": 2.6, "md": "Show details",
+           "fill": "#52796F", "act": "toggle", "target": "t2"}
+    tgt = {"id": "t2", "page": 1, "x": 1, "y": 1.6, "w": 5, "md": "Hidden words."}
+    btn.update(btn_extra or {}); tgt.update(tgt_extra or {})
+    f = Path(_tf.mkstemp(suffix=".json")[1])
+    f.write_text(json.dumps({"boxes": [btn, tgt]}))
+    return _L(f)
+
+os.environ.pop("DOCSYNC_EDIT", None)
+_tp = _pair_layout().text_boxes(1)
+check("toggle published: a real button", _tp, 'class="ds-actbtn ds-tglbtn"')
+check("toggle published: flips the target by id", _tp,
+      "getElementById('ds-x-t2')")
+check("toggle published: the target carries that id", _tp, 'id="ds-x-t2"')
+check("toggle published: the target starts collapsed", _tp,
+      "ds-textbox ds-tglable")
+check("toggle published: PRINT shows everything — collapsing is a screen "
+      "affordance", _tp, "@media print{.ds-tglable{display:block}}")
+check("toggle published: aria state tracks the flip", _tp,
+      "setAttribute('aria-expanded',o)")
+check("toggle published: the arrow that turns", _tp, "ds-tgl-i")
+
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _te = _pair_layout().text_boxes(1)
+    check("toggle editor: button is an ordinary movable", _te, 'data-el="text.t1"')
+    check("toggle editor: target is an ordinary movable", _te, 'data-el="text.t2"')
+    check_eq("toggle editor: no live button on the artboard", "<button" in _te, False)
+    check_eq("toggle editor: the target stays VISIBLE — collapsed content you "
+             "cannot see is content you cannot edit",
+             "ds-textbox ds-tglable" in _te, False)
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
+for name, kw, want in [
+    ("a toggle with no target is refused", {"btn_extra": {"target": None}}, "needs a 'target'"),
+    ("a target that is not a box is refused", {"btn_extra": {"target": "ghost"}}, "is not a box"),
+    ("a self-toggling button is refused", {"btn_extra": {"target": "t1"}}, "cannot reveal itself"),
+    ("a target id that could break the script is refused",
+     {"btn_extra": {"target": "a'b"}}, "letters, digits"),
+]:
+    try:
+        _pair_layout(**kw)
+        FAILS.append(name + " — accepted")
+    except _LE as e:
+        if want not in str(e):
+            FAILS.append(f"{name} — wrong words: {e}")
+
 # check_raises catches ContentError; this is the LAYOUT validator's error.
 try:
     _act_layout({"act": "launch"})

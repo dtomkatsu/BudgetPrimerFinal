@@ -1497,12 +1497,28 @@ class Layout:
                 _num(b["h"], f"{where}.h")
             if not str(b.get("md", "")).strip():
                 raise LayoutError(f"{where}: has no text — 'md' is empty")
-            # A box may ACT: today only 'pdf' (a Download-PDF button). An
+            # A box may ACT: 'pdf' (a Download-PDF button) or 'toggle' (an
+            # expandable section — the button shows/hides another box). An
             # allowlist, because act lands in the published page as behaviour
             # — an unknown value must be a loud error here, not a dead button
             # discovered by a reader.
-            if b.get("act") is not None and b["act"] != "pdf":
-                raise LayoutError(f"{where}: unknown act '{b['act']}' — only 'pdf'")
+            if b.get("act") is not None and b["act"] not in ("pdf", "toggle"):
+                raise LayoutError(f"{where}: unknown act '{b['act']}' — "
+                                  "'pdf' or 'toggle'")
+            if b.get("act") == "toggle":
+                tgt = b.get("target")
+                if not tgt:
+                    raise LayoutError(f"{where}: act 'toggle' needs a 'target' "
+                                      "— the id of the box it reveals")
+                if not re.match(r"^[A-Za-z0-9_-]+$", str(tgt)):
+                    raise LayoutError(f"{where}: target '{tgt}' — letters, "
+                                      "digits, - and _ only (it lands inside "
+                                      "the button's own script)")
+                if not any(x.get("id") == tgt for x in self.boxes):
+                    raise LayoutError(f"{where}: target '{tgt}' is not a box — "
+                                      "a toggle can only reveal a text box (for now)")
+                if tgt == bid:
+                    raise LayoutError(f"{where}: a toggle cannot reveal itself")
             if "z" in b and not isinstance(b["z"], int):
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
             if b.get("fill"):
@@ -1889,8 +1905,19 @@ class Layout:
         # snake eating itself. Self-contained, like everything a box emits,
         # so it holds in a minimal scaffolded renderer with no CSS of its own.
         if any(b.get("act") for b in mine):
+            # Toggle mechanics ride along: a target starts collapsed on
+            # screen, the button's arrow turns when open, and PRINT shows
+            # everything — collapsed content is part of the document; hiding
+            # it is a screen affordance, and a PDF with invisible sections
+            # would read as missing content.
             out.append('<style>.ds-actbtn{cursor:pointer}'
-                       '@media print{.ds-actbtn{display:none}}</style>')
+                       '@media print{.ds-actbtn{display:none}}'
+                       '.ds-tglable{display:none}'
+                       '.ds-tglable.ds-tgl-open{display:block}'
+                       '.ds-tgl-i{display:inline-block;margin-left:.35em;'
+                       'transition:transform .15s}'
+                       '.ds-tgl-on .ds-tgl-i{transform:rotate(180deg)}'
+                       '@media print{.ds-tglable{display:block}}</style>')
         for b in mine:
             act = b.get("act")
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
@@ -1922,6 +1949,24 @@ class Layout:
             # it MEANT to draw, flung it to the left margin.
             full = f'{style + ";" if style else ""}{css}'
             tag = f' data-el="text.{b["id"]}"' if edit else ""
+            if act == "toggle" and not edit:
+                # Published: a real button whose click flips the target's
+                # ds-tgl-open class. Inline and dependency-free, like every
+                # other behaviour a box ships. The target id is validated at
+                # load, so getElementById cannot miss.
+                tgt = b["target"]
+                out.append(
+                    f'<button type="button" class="ds-actbtn ds-tglbtn" '
+                    f"onclick=\"var e=document.getElementById('ds-x-{tgt}'),"
+                    f"o=e.classList.toggle('ds-tgl-open');"
+                    f"this.classList.toggle('ds-tgl-on',o);"
+                    f"this.setAttribute('aria-expanded',o)\" "
+                    f'aria-expanded="false" aria-controls="ds-x-{tgt}" '
+                    f'style="{full};display:block;border:0;'
+                    f'font-family:inherit;box-sizing:border-box">'
+                    f'{paragraph(b["md"])}'
+                    f'<span class="ds-tgl-i">\u25be</span></button>')
+                continue
             if act and not edit:
                 # Published: a REAL button. window.print(), the same never-
                 # stale choice blocks.pdf_button makes and for the same
@@ -1941,8 +1986,16 @@ class Layout:
             # In the EDITOR an acting box stays a plain div on purpose: a
             # live <button> would be excluded from the canvas's drag-start
             # guard (real controls must keep working mid-edit), which is
-            # exactly how it would become unmovable.
-            out.append(f'<div class="ds-textbox"{tag} '
+            # exactly how it would become unmovable. A toggle TARGET likewise
+            # stays visible there: collapsed content you cannot see is
+            # content you cannot edit.
+            klass = "ds-textbox"
+            extra = ""
+            if not edit and any(x.get("act") == "toggle"
+                                and x.get("target") == b["id"] for x in self.boxes):
+                klass += " ds-tglable"
+                extra = f' id="ds-x-{b["id"]}"'
+            out.append(f'<div class="{klass}"{extra}{tag} '
                        f'style="{full}">'
                        f'{block_html(b["md"])}</div>')
         return "".join(out)
