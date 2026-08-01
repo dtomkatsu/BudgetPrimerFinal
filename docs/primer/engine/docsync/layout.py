@@ -2034,17 +2034,34 @@ class Layout:
         grows past it. A box with no `h` is auto-height, as before.
         """
         mine = [b for b in self.boxes if b.get("page") == page]
+        edit = bool(os.environ.get("DOCSYNC_EDIT"))
+        # WHERE a new element may land, and under which number. Only the
+        # Primer's own renderer stamps data-page on its sections; demo-report,
+        # rxkids, our-mission, tax-testimony and everything docsync.scaffold
+        # builds stamp nothing, so the editor was left guessing the page for
+        # every insert — and guessed `undefined`. The first text box added to
+        # any of them carried no page at all and the validator refused the
+        # whole draft ("'page' must be a page number or blank-page id"), which
+        # is how a brand-new report bricked on the first thing someone added.
+        #
+        # A renderer calls this with the very number it will look boxes up by,
+        # so that number — stamped where the editor can read it — is the
+        # truth, and it beats counting sections: a sheet the renderer never
+        # mounts (demo-report's endnotes page) gets no marker, so nothing can
+        # be dropped into a page that would silently swallow it. Edit-mode
+        # only; the published page is byte-identical to before.
+        mount = (f'<div class="ds-mount" data-ds-mount="{page}"'
+                 ' style="display:none" aria-hidden="true"></div>') if edit else ""
         if not mine:
-            return ""
+            return mount
         # An image inside a box (the Insert-image flow stores one as a box
         # whose markdown is just the image) is sized BY the box: the box's
         # width is the one thing the editor's resize drags, so the picture
         # must follow it. Engine-owned so it holds in every project, not
         # just ones whose own stylesheet happens to style .inline-img.
-        out = [self._anim_block(),
+        out = [mount, self._anim_block(),
                '<style>.ds-textbox img.inline-img{display:block;width:100%;'
                'height:auto;margin:0}</style>']
-        edit = bool(os.environ.get("DOCSYNC_EDIT"))
         # Acting boxes are real controls in the PUBLISHED page, so they carry
         # their own two rules once: the hand cursor, and absence from print —
         # a Download-PDF button rendered INTO the PDF it downloads is the

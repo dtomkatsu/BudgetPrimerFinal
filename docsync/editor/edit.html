@@ -6644,9 +6644,18 @@ arField('ar-rot', (d, el, page, v) => {
 
 /** Members of the selection on one page — cross-page alignment has no
  *  meaning, so operations quietly act on the first element's page. */
+/** Drop members nested inside other members. A detachable card's title and
+ *  bullets are DOM children of its tile: the tile IS their coordinate frame,
+ *  so moving both means moving a thing and the frame it is measured in —
+ *  they land displaced by exactly the tile's offset ("the text disappeared").
+ *  In flow they follow the tile for free; pinned, their tile-local coords
+ *  ride its containing block. Either way the outermost member is the move. */
+const outermost = els =>
+  els.filter(m => !els.some(o => o !== m && o.contains(m)));
+
 function pageMembers(d) {
   // Locked means hands off — from align and distribute as much as from a drag.
-  const els = selEls(d).filter(el => !isLocked(idOf(el)));
+  const els = outermost(selEls(d).filter(el => !isLocked(idOf(el))));
   if (!els.length) return { page: null, els: [] };
   const page = els[0].closest('section.page') || d.querySelector('section.page');
   return { page, els: els.filter(el => (el.closest('section.page')) === page) };
@@ -7097,7 +7106,7 @@ const canUngroup = () => selGroups().length > 0;
 
 let lastNudge = 0;
 function nudgeSel(d, d4) {
-  const els = selEls(d).filter(el => !isLocked(idOf(el)));
+  const els = outermost(selEls(d).filter(el => !isLocked(idOf(el))));
   if (!els.length) return;
   // One undo step per burst of presses, not one per pixel of progress.
   const now = Date.now();
@@ -7618,17 +7627,37 @@ const placeX = w => Math.max(0.3, (PAGE_W_IN - w) / 2);
 /** The identity of the page whose middle is nearest the viewport middle. */
 function visiblePageId() {
   const d = $('out').contentDocument;
-  if (!d) return pageOrder()[0];
+  // NEVER undefined. Every insert stamps this onto the new element and the
+  // validator refuses one without a real page, so a blank here does not
+  // degrade — it stops the whole draft building on the first thing added.
+  const first = () => pageOrder()[0] ?? 1;
+  if (!d) return first();
+  // Three sources, most authoritative first.
+  //  1. The section's own id — only the Primer's renderer stamps these.
+  //  2. The engine's edit-mode mount marker, which carries the number that
+  //     renderer really looks boxes up by. A sheet it never mounts has no
+  //     marker and so is never offered: dropping a box on demo-report's
+  //     endnotes page would validate and then silently never appear.
+  //  3. Failing both (an older staged engine), the sheets' own order.
+  let pages = [...d.querySelectorAll('section[data-page]')].map(pg => {
+    const pid = pg.dataset.page;
+    return { pg, id: /^\d+$/.test(pid) ? +pid : pid };
+  });
+  if (!pages.length)
+    pages = [...d.querySelectorAll('[data-ds-mount]')].map(m => {
+      const pid = m.dataset.dsMount;
+      return { pg: m.closest('section.page') || m,
+               id: /^\d+$/.test(pid) ? +pid : pid };
+    });
+  if (!pages.length)
+    pages = [...d.querySelectorAll('section.page')].map((pg, i) => ({ pg, id: i + 1 }));
+  if (!pages.length) return first();
   const mid = d.defaultView.innerHeight / 2;
-  let best = pageOrder()[0], dist = Infinity;
-  d.querySelectorAll('section[data-page]').forEach(pg => {
+  let best = pages[0].id, dist = Infinity;
+  pages.forEach(({ pg, id }) => {
     const r = pg.getBoundingClientRect();
     const dd = Math.abs((r.top + r.bottom) / 2 - mid);
-    if (dd < dist) {
-      dist = dd;
-      const pid = pg.dataset.page;
-      best = /^\d+$/.test(pid) ? +pid : pid;
-    }
+    if (dd < dist) { dist = dd; best = id; }
   });
   return best;
 }
@@ -9018,6 +9047,23 @@ function placer(d, el, page) {
         el.style.transform = cs.transform;
       }
     }
+  } else if (!shapeId && !bx && heldFlow) {
+    // An IN-FLOW piece about to go absolute resolves against its nearest
+    // positioned ancestor too — for a detachable card's title or bullets
+    // that is the tile (position:relative from birth, precisely so this
+    // frame can never change under a saved coordinate). While it is still
+    // static, offsetParent names that ancestor. Its containing block is the
+    // ancestor's PADDING box: border-box origin plus border widths — those
+    // computed px are layout px, 96/in, whatever the zoom. Without this the
+    // piece's page inches were written straight into tile-local left/top
+    // and it leapt from the cursor by exactly the tile's offset.
+    const a = el.offsetParent;
+    if (a && a !== page && page.contains(a)) {
+      const ab = inchBox(a, page);
+      const acs = d.defaultView.getComputedStyle(a);
+      delta = { x: +(ab.x + (parseFloat(acs.borderLeftWidth) || 0) / 96).toFixed(3),
+                y: +(ab.y + (parseFloat(acs.borderTopWidth) || 0) / 96).toFixed(3) };
+    }
   }
   const stored = shapeId ? layout.shapes.find(s => s.id === shapeId)
                          : (bx || layout.positions[id]);
@@ -9188,6 +9234,9 @@ function startDrag(d, el, e0) {
   let members = selIds.size > 1 && selIds.has(idOf(el))
     ? selEls(d).filter(m => (m.closest('section.page')) === page && !isLocked(idOf(m)))
     : [el];
+  // A member inside another member rides it (see outermost) — pinning both
+  // wrote the pieces into the very frame that was moving.
+  members = outermost(members);
   if (!members.length) members = [el];
   const px = DPI * zoomOf(page);
   const grab = { x: e0.clientX, y: e0.clientY };

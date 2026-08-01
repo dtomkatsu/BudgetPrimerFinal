@@ -1081,6 +1081,64 @@ try:
 finally:
     del os.environ["DOCSYNC_EDIT"]
 
+# ---- blocks: a card is its detached pieces' coordinate frame ----------------
+# The tile must be a containing block FROM BIRTH (position:relative). Its
+# title/bullets/icon pin against the nearest positioned ancestor; when the
+# static tile only became positioned on its first move, every coordinate saved
+# before that re-based against it — the words landed displaced by exactly the
+# tile's offset, clipped or white-on-white ("the text disappeared").
+from docsync.blocks import card                       # noqa: E402
+
+class _CardC:
+    def t(self, k): return "Key points"
+    def list(self, k): return ["one", "two"]
+    def ul_attr(self, k): return ""
+
+_card = card(_CardC(), letter, "kp.title", "kp.bullets", "#52796F",
+             detachable=True)
+check("card: the tile is a containing block from birth, so a piece's saved "
+      "frame can never change under it", _card, "position:relative")
+# A MOVED tile appends its override after the base style, so its
+# position:absolute is the later declaration and wins — while the tile
+# stays a containing block either way.
+_moved = card(_CardC(),
+              _layout({"positions": {"card.kp.bullets": {"x": 1, "y": 2}},
+                       "shapes": []}),
+              "kp.title", "kp.bullets", "#52796F", detachable=True)
+check("card: a moved tile's position:absolute lands after the frame rule",
+      _moved, "padding:16px 18px;margin:0;position:absolute")
+
+# ---- the mount marker: where an insert may land, and as which page ---------
+# The editor stamps a page onto every new element and the validator refuses
+# one without a real page number, so a page it cannot work out is not a
+# degraded guess — it bricks the draft on the FIRST thing added. Only the
+# Primer's renderer stamps data-page on its sections; every other report
+# relies on this marker, which carries the number the renderer itself looks
+# boxes up by. Published output must not change at all.
+_mt = _layout({"positions": {}, "shapes": [], "boxes": []})
+check_eq("mount: the published page carries no editing scaffolding",
+         _mt.text_boxes(1), "")
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _m1 = _layout({"positions": {}, "shapes": [], "boxes": []}).text_boxes(1)
+    check("mount: an empty page still says it can host an insert",
+          _m1, 'data-ds-mount="1"')
+    check("mount: it is invisible and out of the a11y tree",
+          _m1, 'style="display:none" aria-hidden="true"')
+    # The number is the RENDERER'S, not the section's position: a report may
+    # mount only some of its sheets, or number them its own way.
+    check("mount: it carries the page number the renderer asked for",
+          _layout({"positions": {}, "shapes": [], "boxes": []}).text_boxes(7),
+          'data-ds-mount="7"')
+    # And it must survive the page actually having boxes on it.
+    _m2 = _layout({"positions": {}, "shapes": [],
+                   "boxes": [{"id": "b1", "page": 1, "x": 1, "y": 1, "w": 2,
+                              "md": "hi"}]}).text_boxes(1)
+    check("mount: a page WITH boxes is marked too", _m2, 'data-ds-mount="1"')
+    check("mount: the boxes still render alongside it", _m2, "hi")
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
 # ---- act boxes: the editor-native Download-PDF button -----------------------
 # A text box carrying act:'pdf' is an ordinary movable in the editor and a
 # REAL button in the published page — layout.text_boxes owns both faces.

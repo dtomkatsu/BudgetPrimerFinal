@@ -217,7 +217,16 @@ def card(C, L, title_key: str, bullets_key: str, bg, light=None,
         light = is_light_bg(fill_repr(bg))
     color = ink if light else "#fff"
     override = L.style(el_id, "")
-    style = (f"background:{fill_css(bg)};color:{color};"
+    # position:relative from birth: the tile is the coordinate frame for any
+    # movable laid out inside it (a detached title or bullets, an icon
+    # graphic), and a frame must exist BEFORE anything is saved against it.
+    # When the tile was static its pieces pinned against the page; the first
+    # move of the tile then made it their containing block and every saved
+    # coordinate re-based against it — the text landed displaced by exactly
+    # the tile's offset, clipped or white-on-white: "the words disappeared".
+    # The override appends after this, so a moved tile's position:absolute
+    # still wins (later declaration takes the property).
+    style = (f"background:{fill_css(bg)};color:{color};position:relative;"
              f"border-radius:{radius}px;padding:16px 18px")
     if override:
         style += ";" + override
