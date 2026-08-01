@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
+<!-- The render engine's assets, started at HTML-parse time. The script tag
+     that asks for them sits at the END of this (large) document, and its
+     loader then fetches them one after another — so the 10MB wasm did not
+     even begin downloading until everything else had parsed. The preload
+     scanner runs these four from the first bytes of the page instead.
+     Each hint must match how Pyodide's loader really asks for the file, or
+     the browser fetches it twice: crossorigin for its fetch() calls, bare
+     as="script" for the classic loader script, and modulepreload for
+     pyodide.asm.js, which is an ES module — as="script" double-fetched
+     exactly that one. boot-perf.spec.js counts one request per asset. -->
+<link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js" as="script">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.js">
+<link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.asm.wasm" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/python_stdlib.zip" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide-lock.json" as="fetch" crossorigin="anonymous">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#2F3E46">
@@ -364,8 +379,15 @@
      otherwise fire the report's mobile media queries, and a drag would record
      the phone layout's geometry into layout.json as if it were the page. */
   #stage { flex:1; min-height:0; overflow:auto; position:relative; background:var(--canvas); }
-  #out { border:0; display:block; width:1200px; height:100%;
+  /* #ds-warm is the warm-boot preview: the last render, painted into its OWN
+     overlay iframe while Pyodide compiles, and removed by the first real
+     swap. Its own frame and not #out, so that "#out has a page in it" keeps
+     meaning what it has always meant — the LIVE document is up. Anything that
+     waits on that (the test fixture, muscle memory, code) must never be
+     satisfied by a read-only stand-in. */
+  #out, #ds-warm { border:0; display:block; width:1200px; height:100%;
          transform-origin:0 0; background:var(--canvas); }
+  #ds-warm { position:absolute; inset:0; z-index:5; }
   /* Page strip: Canva's filmstrip across the bottom — each chip is a real
      PREVIEW of its page (the rendered section itself, cloned into a shadow
      root and scaled), numbered, drag to reorder, eye to hide. */
@@ -1511,6 +1533,17 @@
 // let its CDN serve a copy several commits old — a page that renders fine and is
 // quietly wrong. Staged here, the engine can only be the one that shipped with
 // this editor.
+// The engine starts compiling the moment this script parses. boot() still has
+// a registry to read, a manifest to fetch, a local server to ping and a draft
+// to resolve before it can use Python — and all of that used to run FIRST, in
+// series, with the 13MB wasm compile waiting politely behind it. Created here,
+// awaited there, the two waits overlap. The typeof guard keeps a blocked CDN
+// failing where it always failed (boot's catch, which names the cause and the
+// fix) instead of at parse time; the no-op catch keeps an early failure from
+// surfacing as an unhandled rejection before boot() gets around to awaiting.
+const pyodideBoot = typeof loadPyodide === 'undefined' ? null : loadPyodide();
+if (pyodideBoot) pyodideBoot.catch(() => {});
+
 let M = null;                          // the manifest
 let REPO = '';                         // owner/name we save to
 let BRANCH = 'main';                    // the deploy branch drafts fork from and publish to
@@ -7825,14 +7858,17 @@ function viewCentre() {
     dx: (stage.scrollLeft + stage.clientWidth / 2 - ml) / s - frameW / 2,
     y: sc.scrollTop + (stage.clientHeight / s) / 2,
   };
-  // A canvas that fits the pane is centred by margin and pinned at 0 on that
-  // axis, so that number says nothing about where anyone was looking either.
+  // While ANYTHING scrolls, the whole measurement is live — including an X
+  // that cannot scroll, because a narrower-than-pane canvas is centred by
+  // margin and its dx is a real, correct 0. (Mixing a remembered dx into a
+  // live measurement put the canvas ~100px off centre on a wide window: the
+  // stale axis was from another zoom's geometry.) Only a document that fits
+  // the pane ENTIRELY has nothing to say about where anyone was looking.
   const canScrollY = sc.scrollHeight - sc.clientHeight > 1;
   const canScrollX = stage.scrollWidth - stage.clientWidth > 1;
   if (canScrollY || canScrollX) {
-    zoomAnchor = { dx: canScrollX || !zoomAnchor ? c.dx : zoomAnchor.dx,
-                   y: canScrollY || !zoomAnchor ? c.y : zoomAnchor.y };
-    return zoomAnchor;
+    zoomAnchor = c;
+    return c;
   }
   return zoomAnchor || c;
 }
@@ -10115,6 +10151,13 @@ async function boot() {
   // The registry's display name when there is one, the id otherwise.
   document.title = (REGISTRY && REGISTRY[PROJECT] && REGISTRY[PROJECT].name) || M.id
     || 'Draft editor';
+  // Fire-and-forget, the moment the project is known: the canvas paints while
+  // the ping below and the engine compile run. A draft link skips it — that
+  // content comes from the draft branch, and flashing the live copy first
+  // would put the WRONG report on screen. (draftBranch still holds the raw
+  // URL param here; resolveDraft() runs later, and the guard wants the
+  // person's intent, not the resolution.)
+  if (!draftBranch) showWarmPreview();
   await detectLocal();          // local live server? then Save writes to disk
   // Seed the build stamp with what THIS page was loaded from, then keep an
   // eye on it — a rebuild whose bump never reached this tab is exactly the
@@ -10130,8 +10173,11 @@ async function boot() {
   await resolveDraft();         // ?draft=… in the URL, or your own saved draft
 
   const urls = Object.keys(M.files);
+  // pyodideBoot has been compiling since the page parsed; a null means the
+  // CDN script never arrived, and calling loadPyodide() reproduces the old
+  // ReferenceError so the failure lands in the same catch it always did.
   const [pyodide, ...files] =
-    await Promise.all([loadPyodide(),
+    await Promise.all([pyodideBoot || loadPyodide(),
       ...urls.map(u => BINARY_RE.test(u) ? getBytes(withBase(u)) : get(withBase(u)))]);
   // Viewing or continuing a draft: its content and layout come from the draft
   // branch, not the deployed copies (which are main's). The engine code itself
@@ -10774,6 +10820,78 @@ async function _pull() {
  *  every caller's await resolves only after a render that included its state.
  */
 let renderRunning = false, renderAgain = false, renderWaiters = [];
+// --- warm-boot preview ------------------------------------------------------
+// Pyodide takes ~1.5s to compile even fully cached, and the canvas used to sit
+// BLANK for all of it. The last successful render is kept in the Cache API
+// (per project, origin-wide, survives shell updates — sw.js exempts it) and
+// painted into #out the moment the manifest is known: read-only, since wire()
+// never runs against it, but scrollable — and the scroll carries into the real
+// first render through the same scrollTopWas every swap already keeps. A
+// first-ever open falls back to the deployed copy beside the editor when one
+// exists, and otherwise stays blank exactly as before.
+const PREVIEW_CACHE = 'ds-preview-v1';
+const previewKey = () => '/__preview/' + (PROJECT || 'default');
+
+let previewT = null;
+function schedulePreviewStore(html) {
+  // A draft's render must not become another session's preview: the draft is
+  // someone's fork, and the preview slot is what the LIVE report looks like.
+  if (draftBranch) return;
+  // Debounced well past the render cadence: a drag commits a render per drop,
+  // and writing ~100KB-1MB into CacheStorage on each would be pure waste.
+  clearTimeout(previewT);
+  previewT = setTimeout(() => {
+    try {
+      caches.open(PREVIEW_CACHE).then(c => c.put(previewKey(),
+        new Response(html, { headers: { 'Content-Type': 'text/html' } })))
+        .catch(() => {});
+    } catch (e) { /* file:// or storage denied — a preview is a bonus */ }
+  }, 2500);
+}
+
+async function showWarmPreview() {
+  try {
+    let html = null;
+    try {
+      const hit = await (await caches.open(PREVIEW_CACHE)).match(previewKey());
+      if (hit) html = await hit.text();
+    } catch (e) { /* storage unavailable */ }
+    if (!html) {
+      const r = await fetch(bust(withBase('index.html')), { cache: 'no-store' });
+      if (!r.ok) return;
+      html = await r.text();
+      if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
+      html = html.replace(/<\/head>/i, '<style>.page{max-width:none}</style></head>');
+    }
+    // The engine may have WON the race — a warm cache renders in well under a
+    // second, and the first swap may already have happened. Painting a stale
+    // stand-in OVER a live document is the one thing this must never do.
+    if (py) return;
+    // Its own overlay frame, never #out: the live iframe stays empty until a
+    // real render fills it, so everything that treats "#out has pages" as
+    // "the editor is up" (the test fixture above all) stays true. The first
+    // swap removes the overlay in the same breath it fills #out.
+    const fr = document.createElement('iframe');
+    fr.id = 'ds-warm';
+    fr.title = 'last render (read-only preview)';
+    $('out').parentNode.appendChild(fr);
+    fr.srcdoc = html;
+    // The note rides the CANVAS, not the status row — detectLocal writes its
+    // own line there moments later and the last writer wins. A fixed chip
+    // needs no contest: the first real render's swap removes it.
+    if (!$('ds-warmchip')) {
+      const chip = document.createElement('div');
+      chip.id = 'ds-warmchip';
+      chip.textContent = 'last render — the live engine is warming up…';
+      chip.style.cssText = 'position:fixed;bottom:16px;left:50%;'
+        + 'transform:translateX(-50%);background:#2F3E46;color:#fff;'
+        + 'padding:6px 13px;border-radius:9px;font:12.5px system-ui;'
+        + 'z-index:40;opacity:.93;pointer-events:none';
+      document.body.appendChild(chip);
+    }
+  } catch (e) { /* never let a bonus break the boot */ }
+}
+
 async function render() {
   if (renderRunning) {
     renderAgain = true;
@@ -10841,7 +10959,10 @@ open('/repo/' + OUT).read()
   // Keep the reader's place. Assigning srcdoc reloads the iframe, which
   // scrolls to the top — after every edit, on a twelve-page report, that alone
   // made the thing miserable to use.
-  const prev = $('out').contentDocument;
+  // …and if the person has been READING THE PREVIEW, their place is in the
+  // overlay frame, not the still-empty #out — carry it into the first render.
+  const warm = $('ds-warm');
+  const prev = (warm || $('out')).contentDocument;
   const keep = prev && prev.scrollingElement ? prev.scrollingElement.scrollTop : scrollTopWas;
   scrollTopWas = keep;
   // srcdoc resolves relative URLs (assets/…) against THIS page. Right for the
@@ -10906,12 +11027,25 @@ open('/repo/' + OUT).read()
       pendingFrame = null; pendingResolve = null;
       old.remove();
       nu.id = 'out';
+      // What tells a LIVE document from the warm-boot preview: the preview
+      // is srcdoc painted onto the boot iframe with no wiring, and anything
+      // that waits for "the report is up" (the test fixture, above all) must
+      // wait for a document that came through THIS swap — the preview shows
+      // the same .page divs and satisfied any selector that only looked for
+      // those, which let tests start against a canvas about to be replaced.
+      nu.setAttribute('data-ds-live', '1');
       nu.style.visibility = '';
       nu.style.position = '';
       nu.style.inset = '';
       wire();
       const se = nu.contentDocument.scrollingElement;
       if (se) se.scrollTop = scrollTopWas;
+      // the warm-boot preview and its note die with the first real swap
+      const warmFr = $('ds-warm');
+      if (warmFr) warmFr.remove();
+      const chip = $('ds-warmchip');
+      if (chip) chip.remove();
+      schedulePreviewStore(html);      // this render is the next boot's instant canvas
       resolve();
     };
     // srcdoc BEFORE insertion: a bare iframe added to the DOM loads
@@ -12879,7 +13013,8 @@ import sys, os, io, runpy, contextlib
 os.environ.pop('DOCSYNC_EDIT', None)        # the published bytes, not the editable ones
 open('/repo/' + CONTENT, 'w').write(SRC)
 if LAYOUT_PATH: open('/repo/' + LAYOUT_PATH, 'w').write(LAYOUT)
-for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
+if PURGE:
+    for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
 with contextlib.redirect_stdout(io.StringIO()):
     runpy.run_path('/repo/' + RENDER, run_name='__main__')
 open('/repo/' + OUT).read()
