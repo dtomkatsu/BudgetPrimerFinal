@@ -2489,7 +2489,7 @@ function endnoteMenu(d, host, e) {
   m.className = 'ds-menu';
   // Keep the editor focused when a menu button is pressed — otherwise the
   // click blurs it, commits the edit, and the caret this menu targets is gone.
-  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.addEventListener('mousedown', menuKeepFocus);
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
   const head = d.createElement('div');
@@ -2518,7 +2518,7 @@ function textMenu(d, host, e) {
   const range = saveRange(d, host);
   const m = d.createElement('div');
   m.className = 'ds-menu';
-  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.addEventListener('mousedown', menuKeepFocus);
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
 
@@ -3068,6 +3068,21 @@ function closeMenu(d) {
   d.querySelectorAll('.ds-menu').forEach(m => m.remove());
 }
 
+/** Every menu cancels mousedown to keep the editor focused: without it the
+ *  click blurs the text being edited, commits it, and the caret the menu was
+ *  opened about is gone.
+ *
+ *  A form control is the exception, and it is not cosmetic. Cancelling
+ *  mousedown on <input type=range> also cancels the gesture that IS the
+ *  control — the thumb never follows the pointer, so the slider renders,
+ *  reports its value, and cannot be dragged at all. That is what happened to
+ *  the animation speed/delay sliders: present, correct, and immovable. A
+ *  control has no caret to protect, so let its own default through. */
+const menuKeepFocus = ev => {
+  if (ev.target.closest('input, select, textarea, [contenteditable]')) return;
+  ev.preventDefault();
+};
+
 /** A row that opens a NESTED menu beside itself. Used where a single action
  *  hides a choice behind it — "Insert endnote" is really "a new one" or "one
  *  you already have", and flattening both into the parent buried the common
@@ -3088,7 +3103,7 @@ function submenuRow(d, parent, label, build) {
     shut();
     child = d.createElement('div');
     child.className = 'ds-menu ds-submenu';
-    child.addEventListener('mousedown', ev => ev.preventDefault());
+    child.addEventListener('mousedown', menuKeepFocus);
     build(child);
     d.body.appendChild(child);
     const r = b.getBoundingClientRect();
@@ -4833,7 +4848,7 @@ function tableMenu(d, td, e) {
   // panel are always talking about the same cell.
   selectCell(idOf(tableEl), ri, ci);
   const m = d.createElement('div'); m.className = 'ds-menu ds-tmenu';
-  m.addEventListener('mousedown', ev => ev.preventDefault());
+  m.addEventListener('mousedown', menuKeepFocus);
   m.style.left = (e.clientX + d.defaultView.scrollX) + 'px';
   m.style.top = (e.clientY + d.defaultView.scrollY) + 'px';
   /** A menu row. `fn` may be sync (a layout edit, wrapped in history + render)
@@ -9018,6 +9033,14 @@ function dragify(d) {
       e.preventDefault();
       e.stopPropagation();
       const id = idOf(el);
+      // Was this element's whole group ALREADY the selection before this
+      // click? If so a second, movement-free click drills into the piece
+      // under the pointer (see startDrag's mouseup) — the only way to get
+      // resize handles onto one member, since handles need a selection of
+      // exactly one and clicking a group always selects all of it.
+      const grp = groupOf(id);
+      const drillIn = !!grp && grp.length > 1 && selIds.size === grp.length
+        && grp.every(m => selIds.has(m));
       // One place decides the selection — group expansion, shift, alt — so
       // this and the hit-test can never disagree.
       const selected = selectClick(d, id, e);
@@ -9027,7 +9050,7 @@ function dragify(d) {
         $('stat').textContent = `${[...selIds].filter(isLocked)[0]} is locked — unlock it to move it`;
         return;
       }
-      startDrag(d, el, e);
+      startDrag(d, el, e, drillIn);
     });
     // A text box has no [data-slot] inside it — its words live in layout.json —
     // so it needs its own way in. Double-click, since a single click is the
@@ -9248,7 +9271,7 @@ function altClone(d, members, page) {
   });
 }
 
-function startDrag(d, el, e0) {
+function startDrag(d, el, e0, drillIn = false) {
   const page = el.closest('section.page') || d.querySelector('section.page');
   const pr = page.getBoundingClientRect();
   const rect = el.getBoundingClientRect();
@@ -9342,7 +9365,21 @@ function startDrag(d, el, e0) {
     d.removeEventListener('mouseup', up);
     // Never crossed the dead zone — it was a click, and the selection made on
     // mousedown is all it meant. Nothing to lift, settle, commit or undo.
-    if (!started) { clearGuides(d); paintSel(d); return; }
+    if (!started) {
+      // Except when the group was already selected and this click did not
+      // move it: then it means "get inside" — select just the piece under
+      // the pointer, which is what puts resize handles on it. An expandable
+      // section's button and its content are grouped so they travel
+      // together; without this neither could ever be resized, because
+      // handles only ever appear for a selection of exactly one. Escape or
+      // a click on any other member goes back to moving the whole group.
+      if (drillIn) {
+        setSel(d, [idOf(el)]);
+        $('stat').textContent = 'inside the group — drag the handles to resize '
+          + 'this piece, Escape to leave';
+      }
+      clearGuides(d); paintSel(d); return;
+    }
     members.forEach(m => {
       m.classList.remove('ds-lifted');
       m.classList.add('ds-settling');      // ~120ms ease into the snapped spot
