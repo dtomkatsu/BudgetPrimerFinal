@@ -3231,6 +3231,36 @@ function layerMenu(d, el, e) {
       const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
     }
   }
+  // A toggle button's wiring, where its other verbs already live. With more
+  // of the selection than just the button, one click points the button at
+  // the rest — the way a person actually builds "this reveals those".
+  const tglBox = !surface && boxOf(id);
+  if (tglBox && tglBox.act === 'toggle') {
+    const head2 = d.createElement('div');
+    head2.className = 'ds-menu-head';
+    const n = toggleTargets(tglBox).length;
+    head2.textContent = `reveals ${n} element${n === 1 ? '' : 's'}`;
+    m.appendChild(head2);
+    const others = [...selIds].filter(x => x !== id)
+      .map(x => x.replace(/^(text|table)\./, ''))
+      .filter(x => x !== tglBox.id);
+    if (others.length) {
+      item(`Reveal the ${others.length} selected element${others.length > 1 ? 's' : ''}`,
+        async () => {
+          pushHistory();
+          tglBox.target = others.length === 1 ? others[0] : others;
+          markDirty(); await render();
+          $('stat').textContent = `button now reveals ${others.length} `
+            + `element${others.length > 1 ? 's' : ''} on the published page`;
+        });
+    }
+    item('Stop revealing (plain text box)', async () => {
+      pushHistory();
+      delete tglBox.act; delete tglBox.target;
+      markDirty(); await render();
+    });
+    const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
+  }
   // Copy / paste (objects) and the format painter (copy / paste style). Acting
   // through the menu selects the clicked element first, so it operates on what
   // was right-clicked rather than a stale selection.
@@ -4304,6 +4334,10 @@ async function addTextBox(kind) {
   await render();
   $('stat').textContent = `text.${id} added to page ${page} — double-click to write, drag to place`;
 }
+/** A toggle's targets, always as an array — target may be one id or a list. */
+const toggleTargets = bx =>
+  Array.isArray(bx.target) ? bx.target : bx.target ? [bx.target] : [];
+
 /** An expandable section is a PAIR: a toggle button box (act:'toggle') and
  *  the content box it reveals, wired by id and grouped so they move as one
  *  until the user ungroups them. Published, the content starts collapsed and
@@ -6627,11 +6661,21 @@ async function deleteSel(d) {
   // button: its target would fail layout validation and the whole draft
   // would refuse to build over one deletion. The button stays — nothing the
   // person did not delete disappears — it just becomes a plain box again.
-  const goneBoxIds = new Set(gone.filter(x => x.startsWith('text.')).map(x => x.slice(5)));
+  // Deleted ids by BARE store id, whatever the kind: boxes and tables carry
+  // prefixes in selIds, shapes do not — and a toggle's target list speaks
+  // bare ids for all three.
+  const goneBare = new Set(gone.map(x => x.replace(/^(text|table)\./, '')));
   let demoteNote = '';
-  if (goneBoxIds.size) {
+  if (goneBare.size) {
     boxes().forEach(bx => {
-      if (bx.act === 'toggle' && goneBoxIds.has(bx.target)) {
+      if (bx.act !== 'toggle') return;
+      const kept = toggleTargets(bx).filter(t => !goneBare.has(t));
+      if (kept.length === toggleTargets(bx).length) return;
+      if (kept.length) {
+        bx.target = kept.length === 1 ? kept[0] : kept;
+        demoteNote = 'a revealed element was deleted — the button still '
+          + 'reveals the other' + (kept.length > 1 ? 's' : '');
+      } else {
         delete bx.act; delete bx.target;
         demoteNote = 'the section a button revealed was deleted — '
           + 'the button is a plain text box now';
@@ -6816,6 +6860,7 @@ async function pasteClip(d) {
       layout.shapes.push({ ...it.data, id: nid, page,
         x: Math.min(it.data.x + off, PAGE_W_IN - Math.min(it.data.w, PAGE_W_IN)),
         y: Math.min(it.data.y + off, PAGE_H_IN - Math.min(it.data.h, PAGE_H_IN)) });
+      idMap.set(it.data.id, nid);   // a toggle's target may be a shape too
       copies.push(nid);
     } else {
       const nid = freeBoxId();
@@ -6834,7 +6879,11 @@ async function pasteClip(d) {
   copies.forEach(cid => {
     if (!cid.startsWith('text.')) return;
     const bx = boxes().find(x => x.id === cid.slice(5));
-    if (bx && bx.act === 'toggle' && idMap.has(bx.target)) bx.target = idMap.get(bx.target);
+    if (!bx || bx.act !== 'toggle') return;
+    const mapped = toggleTargets(bx).map(t => idMap.get(t) || t);
+    if (mapped.some((t, i) => t !== toggleTargets(bx)[i])) {
+      bx.target = mapped.length === 1 ? mapped[0] : mapped;
+    }
   });
   if (clip.wasGroup && copies.length > 1) {   // a copied group pastes as a group
     layout.groups = layout.groups || [];

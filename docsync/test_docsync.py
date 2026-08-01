@@ -1146,13 +1146,14 @@ def _pair_layout(btn_extra=None, tgt_extra=None):
 os.environ.pop("DOCSYNC_EDIT", None)
 _tp = _pair_layout().text_boxes(1)
 check("toggle published: a real button", _tp, 'class="ds-actbtn ds-tglbtn"')
-check("toggle published: flips the target by id", _tp,
-      "getElementById('ds-x-t2')")
+check("toggle published: flips the target by id", _tp, "['ds-x-t2']")
+check("toggle published: the button's own state drives the flip", _tp,
+      "var o=!this.classList.contains('ds-tgl-on')")
 check("toggle published: the target carries that id", _tp, 'id="ds-x-t2"')
 check("toggle published: the target starts collapsed", _tp,
       "ds-textbox ds-tglable")
 check("toggle published: PRINT shows everything — collapsing is a screen "
-      "affordance", _tp, "@media print{.ds-tglable{display:block}}")
+      "affordance", _tp, "@media print{.ds-tglable:not(.ds-tgl-open){display:revert}}")
 check("toggle published: aria state tracks the flip", _tp,
       "setAttribute('aria-expanded',o)")
 check("toggle published: the arrow that turns", _tp, "ds-tgl-i")
@@ -1169,9 +1170,55 @@ try:
 finally:
     del os.environ["DOCSYNC_EDIT"]
 
+# A toggle can reveal shapes, tables and several things at once — each kind
+# stamps its hook on the node it already owns.
+def _trio_layout():
+    f = Path(_tf.mkstemp(suffix=".json")[1])
+    f.write_text(json.dumps({
+        "boxes": [
+            {"id": "t1", "page": 1, "x": 1, "y": 1, "w": 2.6, "md": "Show all",
+             "act": "toggle", "target": ["t2", "s1", "t3"]},
+            {"id": "t2", "page": 1, "x": 1, "y": 1.6, "w": 5, "md": "Box."}],
+        "shapes": [{"id": "s1", "page": 1, "kind": "rect",
+                    "x": 1, "y": 3, "w": 2, "h": 1, "fill": "#6B9E78"}],
+        "tables": [{"id": "t3", "page": 1, "x": 1, "y": 4.5, "w": 3,
+                    "rows": [["A", "B"]]}]}))
+    return _L(f)
+
+os.environ.pop("DOCSYNC_EDIT", None)
+_L3 = _trio_layout()
+_b3, _l3, _h3 = _L3.text_boxes(1), _L3.layer(1), _L3.tables_html(1)
+check("trio: one click drives all three", _b3, "['ds-x-t2','ds-x-s1','ds-x-t3']")
+check("trio: aria-controls names them all", _b3,
+      'aria-controls="ds-x-t2 ds-x-s1 ds-x-t3"')
+check("trio: the SHAPE carries the hook on its own node", _l3,
+      'id="ds-x-s1" class="ds-tglable"')
+check("trio: the TABLE carries the hook", _h3, "ds-table ds-tglable")
+
+os.environ["DOCSYNC_EDIT"] = "1"
+try:
+    _E3 = _trio_layout()
+    check_eq("trio editor: no shape hook stamped",
+             'ds-tglable' in _E3.layer(1), False)
+    check_eq("trio editor: no table hook stamped",
+             'ds-table ds-tglable' in _E3.tables_html(1), False)
+finally:
+    del os.environ["DOCSYNC_EDIT"]
+
+try:
+    f = Path(_tf.mkstemp(suffix=".json")[1])
+    f.write_text(json.dumps({"boxes": [
+        {"id": "t1", "page": 1, "x": 1, "y": 1, "w": 2, "md": "x",
+         "act": "toggle", "target": ["nope"]}]}))
+    _L(f)
+    FAILS.append("a list target with an unknown id was accepted")
+except _LE as e:
+    if "not a box, shape or table" not in str(e):
+        FAILS.append(f"unknown list target refused with the wrong words: {e}")
+
 for name, kw, want in [
     ("a toggle with no target is refused", {"btn_extra": {"target": None}}, "needs a 'target'"),
-    ("a target that is not a box is refused", {"btn_extra": {"target": "ghost"}}, "is not a box"),
+    ("a target that exists nowhere is refused", {"btn_extra": {"target": "ghost"}}, "not a box, shape or table"),
     ("a self-toggling button is refused", {"btn_extra": {"target": "t1"}}, "cannot reveal itself"),
     ("a target id that could break the script is refused",
      {"btn_extra": {"target": "a'b"}}, "letters, digits"),

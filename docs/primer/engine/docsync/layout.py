@@ -1287,6 +1287,17 @@ class Layout:
         # regenerated on every build, so absence has to be an override here,
         # not an edit to the output.
         self.hidden = raw.get("hidden") or []
+        # Every element some toggle button reveals, flattened: target may be
+        # one id or a list, and boxes, shapes and tables all consult this to
+        # stamp their publish-mode hook. Built once, here, so the three
+        # renderers cannot disagree about who is toggleable.
+        self.toggle_targets = set()
+        for _b in (raw.get("boxes") or []):
+            if _b.get("act") == "toggle":
+                _t = _b.get("target")
+                for _x in (_t if isinstance(_t, list) else [_t]):
+                    if _x:
+                        self.toggle_targets.add(str(_x))
         self.imgs = raw.get("img") or {}
         # Ruler guides the editor snaps to, as {x:[in…], y:[in…]}. Editor-only,
         # like `locked`: the renderer never emits a guide, so it cannot move a
@@ -1507,18 +1518,23 @@ class Layout:
                                   "'pdf' or 'toggle'")
             if b.get("act") == "toggle":
                 tgt = b.get("target")
-                if not tgt:
+                tgts = tgt if isinstance(tgt, list) else [tgt] if tgt else []
+                if not tgts:
                     raise LayoutError(f"{where}: act 'toggle' needs a 'target' "
-                                      "— the id of the box it reveals")
-                if not re.match(r"^[A-Za-z0-9_-]+$", str(tgt)):
-                    raise LayoutError(f"{where}: target '{tgt}' — letters, "
-                                      "digits, - and _ only (it lands inside "
-                                      "the button's own script)")
-                if not any(x.get("id") == tgt for x in self.boxes):
-                    raise LayoutError(f"{where}: target '{tgt}' is not a box — "
-                                      "a toggle can only reveal a text box (for now)")
-                if tgt == bid:
-                    raise LayoutError(f"{where}: a toggle cannot reveal itself")
+                                      "— the id (or list of ids) it reveals")
+                known = ({x.get("id") for x in self.boxes}
+                         | {x.get("id") for x in self.shapes}
+                         | {x.get("id") for x in self.tables})
+                for one in tgts:
+                    if not re.match(r"^[A-Za-z0-9_-]+$", str(one)):
+                        raise LayoutError(f"{where}: target '{one}' — letters, "
+                                          "digits, - and _ only (it lands "
+                                          "inside the button's own script)")
+                    if one == bid:
+                        raise LayoutError(f"{where}: a toggle cannot reveal itself")
+                    if one not in known:
+                        raise LayoutError(f"{where}: target '{one}' is not a "
+                                          "box, shape or table on this layout")
             if "z" in b and not isinstance(b["z"], int):
                 raise LayoutError(f"{where}: z {b['z']!r} is not a layer number")
             if b.get("fill"):
@@ -1910,14 +1926,18 @@ class Layout:
             # everything — collapsed content is part of the document; hiding
             # it is a screen affordance, and a PDF with invisible sections
             # would read as missing content.
+            # :not() + revert, ONE rule for every target kind: display:none
+            # hides a div, a table and an SVG node alike, and revert hands
+            # each back its own natural display — block, table, inline — which
+            # a hard-coded `block` got wrong for two of the three.
             out.append('<style>.ds-actbtn{cursor:pointer}'
                        '@media print{.ds-actbtn{display:none}}'
-                       '.ds-tglable{display:none}'
-                       '.ds-tglable.ds-tgl-open{display:block}'
+                       '.ds-tglable:not(.ds-tgl-open){display:none}'
                        '.ds-tgl-i{display:inline-block;margin-left:.35em;'
                        'transition:transform .15s}'
                        '.ds-tgl-on .ds-tgl-i{transform:rotate(180deg)}'
-                       '@media print{.ds-tglable{display:block}}</style>')
+                       '@media print{.ds-tglable:not(.ds-tgl-open)'
+                       '{display:revert}}</style>')
         for b in mine:
             act = b.get("act")
             css = (f'position:absolute;left:{b["x"]}in;top:{b["y"]}in;'
@@ -1954,14 +1974,21 @@ class Layout:
                 # ds-tgl-open class. Inline and dependency-free, like every
                 # other behaviour a box ships. The target id is validated at
                 # load, so getElementById cannot miss.
-                tgt = b["target"]
+                _t = b["target"]
+                tgts = _t if isinstance(_t, list) else [_t]
+                # The button's own state drives every target to the SAME
+                # side, so a list can never drift half-open — and the same
+                # script serves one target or ten.
+                arr = ",".join(f"'ds-x-{t}'" for t in tgts)
+                controls = " ".join(f"ds-x-{t}" for t in tgts)
                 out.append(
                     f'<button type="button" class="ds-actbtn ds-tglbtn" '
-                    f"onclick=\"var e=document.getElementById('ds-x-{tgt}'),"
-                    f"o=e.classList.toggle('ds-tgl-open');"
+                    f"onclick=\"var o=!this.classList.contains('ds-tgl-on');"
+                    f"[{arr}].forEach(function(i){{"
+                    f"document.getElementById(i).classList.toggle('ds-tgl-open',o)}});"
                     f"this.classList.toggle('ds-tgl-on',o);"
                     f"this.setAttribute('aria-expanded',o)\" "
-                    f'aria-expanded="false" aria-controls="ds-x-{tgt}" '
+                    f'aria-expanded="false" aria-controls="{controls}" '
                     f'style="{full};display:block;border:0;'
                     f'font-family:inherit;box-sizing:border-box">'
                     f'{paragraph(b["md"])}'
@@ -1991,8 +2018,7 @@ class Layout:
             # content you cannot edit.
             klass = "ds-textbox"
             extra = ""
-            if not edit and any(x.get("act") == "toggle"
-                                and x.get("target") == b["id"] for x in self.boxes):
+            if not edit and b["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{b["id"]}"'
             out.append(f'<div class="{klass}"{extra}{tag} '
@@ -2084,7 +2110,12 @@ class Layout:
                     sty = f' style="{";".join(bits)}"' if bits else ""
                     cells += f'<{name}{hook}{sty}>{md_inline(str(c))}</{name}>'
                 body += f"<tr>{cells}</tr>"
-            out.append(f'<table class="ds-table"{tag} '
+            klass = "ds-table"
+            extra = ""
+            if not edit and t["id"] in self.toggle_targets:
+                klass += " ds-tglable"
+                extra = f' id="ds-x-{t["id"]}"'
+            out.append(f'<table class="{klass}"{extra}{tag} '
                        f'style="{css}{";" + style if style else ""}">'
                        f'{colgroup}{body}</table>')
         return "".join(out)
@@ -2168,13 +2199,19 @@ class Layout:
 
     def _shape(self, s: dict) -> str:
         x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
+        # Publish-mode hook for a shape some toggle reveals — on the same one
+        # node that carries data-shape, whatever kind it is. display:none and
+        # the :not rule work on SVG elements exactly as on HTML ones.
+        tgl = ("" if os.environ.get("DOCSYNC_EDIT")
+               or s["id"] not in self.toggle_targets
+               else f' id="ds-x-{s["id"]}" class="ds-tglable"')
         # A gradient fill becomes fill="url(#…)" and a <defs> entry that _svg
         # collects; a hex/none stays verbatim, so a solid shape is byte-identical.
         fill, _ = fill_svg_paint(s.get("fill"), f"ds-fill-{s['id']}")
         stroke = s.get("stroke", "none")
         sw = s.get("sw", 0.02)
         common = (f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}" '
-                  f'data-shape="{s["id"]}"')
+                  f'data-shape="{s["id"]}"') + tgl
         # Rotation turns about the shape's own centre; the viewBox is in
         # inches, so the pivot is plain geometry. Opacity and shadow ride the
         # same node — a wrapping <g> would put a second element between the
@@ -2195,7 +2232,7 @@ class Layout:
             # ONE node that covers the whole drawing. The transparent rect
             # underneath is what gives it a grabbable surface — a chart is
             # mostly empty space, and without it a drag would only catch a bar.
-            attrs = [f'data-shape="{s["id"]}"']
+            attrs = [f'data-shape="{s["id"]}"' + tgl]
             if s.get("rot"):
                 attrs.append(f'transform="rotate({s["rot"]} '
                              f'{round(x + w / 2, 4)} {round(y + h / 2, 4)})"')
@@ -2226,7 +2263,7 @@ class Layout:
             # re-emitted below so the editor still finds one node per shape.
             bits = [f'x="{x}"', f'y="{y}"', f'width="{w}"', f'height="{h}"',
                     f'viewBox="{s.get("vb", "0 0 24 24")}"',
-                    f'data-shape="{s["id"]}"', 'overflow="visible"']
+                    f'data-shape="{s["id"]}"' + tgl, 'overflow="visible"']
             css = [f'color:{icon_color(s.get("fill"))}']
             if s.get("shadow"):
                 css.append(shape_shadow_css(s["shadow"]))
