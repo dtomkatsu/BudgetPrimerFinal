@@ -10529,6 +10529,10 @@ window.__fileSig = fileSig;   // test hook, like window.__liveIsLeader
 // Seeded at boot from the very bytes the FS was built from, so the FIRST bump
 // already has a true baseline to compare against.
 const engineSig = new Map();
+// True whenever engine .py files were rewritten in Pyodide's FS since the
+// last successful render: the next render purges sys.modules so the new code
+// is what imports. Starts true so the very first render never trusts a cache.
+let engineDirty = true;
 
 /** Rewrite the engine into Pyodide's FS, and report whether anything actually
  *  MOVED. Every rebuild restages the whole engine, so the overwhelmingly
@@ -10794,6 +10798,7 @@ async function _pull() {
   // authored files or the engine actually moved.
   let engineOk = true, engineMoved = false;
   try { engineMoved = await refreshEngineFiles(); } catch (e) { engineOk = false; }
+  if (engineMoved) engineDirty = true;   // next render re-imports the engine
   if (engineOk && !clash) {
     if (took || engineMoved) {
       await render();
@@ -10935,17 +10940,27 @@ async function renderOnce() {
   py.globals.set('RENDER', M.render);
   py.globals.set('OUT', M.out);
   let html;
+  // The module purge is what lets a hot-reloaded engine (refreshEngineFiles)
+  // actually take: an import cached in sys.modules would keep running the old
+  // Python forever. But paying it on EVERY render re-imported and re-compiled
+  // the whole docsync package per keystroke-commit — the single biggest slice
+  // of the ~0.4s a 12-page re-render cost — when the engine changes maybe
+  // once a session. Purge only after the files really moved. The renderer
+  // script itself still re-executes every time; that IS the render.
+  py.globals.set('PURGE', engineDirty);
   try {
     html = await py.runPythonAsync(`
 import sys, os, io, runpy, contextlib
 os.environ['DOCSYNC_EDIT'] = '1'            # stamp data-slot on prose blocks
 open('/repo/' + CONTENT, 'w').write(SRC)
 if LAYOUT_PATH: open('/repo/' + LAYOUT_PATH, 'w').write(LAYOUT)
-for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
+if PURGE:
+    for m in [m for m in sys.modules if m.startswith('docsync')]: del sys.modules[m]
 with contextlib.redirect_stdout(io.StringIO()):
     runpy.run_path('/repo/' + RENDER, run_name='__main__')
 open('/repo/' + OUT).read()
 `);
+    engineDirty = false;      // the fresh engine is imported; renders may reuse it
   } catch (e) {
     // A validation failure is the guardrail working — show it and keep the
     // source, so the edit that broke it can be fixed rather than lost.
