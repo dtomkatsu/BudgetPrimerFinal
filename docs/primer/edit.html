@@ -2814,9 +2814,9 @@ async function uploadImageFile(d, onDone) {
 
 /** Show just-uploaded images before they are deployed: the page resolves
  *  assets/… against the live site, where a new file does not exist yet. */
-function showLocalImages(d) {
+function showLocalImages(d, roots) {
   if (!localImages.size) return;
-  d.querySelectorAll('img[src^="assets/"]').forEach(img => {
+  within(d, roots, 'img[src^="assets/"]').forEach(img => {
     const local = localImages.get(img.getAttribute('src'));
     if (local) img.src = local;
   });
@@ -3676,10 +3676,10 @@ function layerMenu(d, el, e) {
   d.body.appendChild(m);
 }
 
-function contextify(d) {
+function contextify(d, roots) {
   // data-fill alone (a page, a table row) opens the colour menu too — the
   // querySelectorAll list is deduplicated, so a card matching twice binds once.
-  d.querySelectorAll('[data-el], [data-shape], [data-fill]').forEach(el => {
+  within(d, roots, '[data-el], [data-shape], [data-fill]').forEach(el => {
     el.addEventListener('contextmenu', e => {
       e.preventDefault();
       e.stopPropagation();
@@ -3839,8 +3839,8 @@ const hideHandles = d => d.querySelectorAll('.ds-handles, .ds-mini')
 // min-height override into layout.sections. Dragging back down to the
 // section's natural content height clears the override entirely, so an
 // untouched page stays untouched.
-function wireSections(d) {
-  d.querySelectorAll('[data-sec]').forEach(el => {
+function wireSections(d, roots) {
+  within(d, roots, '[data-sec]').forEach(el => {
     const id = el.dataset.sec;
     if (d.defaultView.getComputedStyle(el).position === 'static') {
       el.style.position = 'relative';           // anchors the grip; edit-only render
@@ -4730,8 +4730,8 @@ function cellUnder(d, table, e) {
   return best;
 }
 
-function wireCells(d) {
-  d.querySelectorAll('table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
+function wireCells(d, roots) {
+  within(d, roots, 'table.ds-table[data-el] td[data-cell], table.ds-table[data-el] th[data-cell]')
     .forEach(td => {
       td.addEventListener('dblclick', e => { e.preventDefault(); e.stopPropagation(); editCell(d, td); });
       td.addEventListener('contextmenu', async e => {
@@ -9103,8 +9103,8 @@ async function redo() {
 $('undo').onclick = undo;
 $('redo').onclick = redo;
 
-function dragify(d) {
-  d.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+function dragify(d, roots) {
+  within(d, roots, '[data-el], [data-shape]').forEach(el => {
     // A movable nested inside another movable — a callout's own paragraphs — is
     // a content sub-part, not a second object; the outer owns the gesture, so
     // dragging the callout doesn't pull its prose out. But a distinct OBJECT
@@ -10969,6 +10969,9 @@ open('/repo/' + OUT).read()
       font:12px/1.5 ui-monospace,monospace">This draft does not build:\n\n${
       tail.replace(/&/g,'&amp;').replace(/</g,'&lt;')}\n\nYour text is still here — fix it and it recovers.</pre>`;
     $('stat').textContent = 'draft does not build';
+    // What stands in #out is now an error page, not a render — so the next
+    // successful one has nothing to diff against and must swap in full.
+    lastHtml = null;
     return;
   }
   // Keep the reader's place. Assigning srcdoc reloads the iframe, which
@@ -10992,6 +10995,33 @@ open('/repo/' + OUT).read()
   // copy, where the canvas scrolls instead. Matters the moment a page is wider
   // than the canvas, which File > Resize makes easy to ask for.
   html = html.replace(/<\/head>/i, '<style>.page{max-width:none}</style></head>');
+  // INCREMENTAL FIRST. Most edits redraw one page of a document whose shape
+  // has not moved, and reloading twelve pages to show a changed one is where
+  // nearly all of a render's time went. patchPages returns null when it
+  // cannot vouch for the result, and the swap below is then exactly as it
+  // was — the fast path never has to be the correct one on its own.
+  const liveNow = $('out').contentDocument;
+  const keepAt = liveNow && liveNow.scrollingElement
+    ? { top: liveNow.scrollingElement.scrollTop,
+        left: liveNow.scrollingElement.scrollLeft } : null;
+  const patched = patchPages(html);
+  if (patched) {
+    lastHtml = html;
+    wire(patched);                     // only the sections it replaced
+    // Nothing reloaded, so the reader's place should be untouched — but
+    // wire's reportFit can show or hide the "cut in print" banner, and that
+    // resizes the stage under the report, which nudges its scroll by the
+    // banner's height. The swap path never noticed: it re-applied a
+    // remembered scrollTop after its reload anyway. Put it back exactly.
+    const sc = liveNow.scrollingElement;
+    if (keepAt && sc && (sc.scrollTop !== keepAt.top || sc.scrollLeft !== keepAt.left)) {
+      sc.scrollTop = keepAt.top; sc.scrollLeft = keepAt.left;
+    }
+    schedulePreviewStore(html);
+    renderSays(dirty ? 'unsaved changes'
+                     : 'click selects and drags · double-click edits text');
+    return;
+  }
   // DOUBLE-BUFFERED: the new document loads in a hidden twin while the old one
   // stays on screen, and they swap only when it is ready. Assigning srcdoc to
   // the visible iframe blanks it to white for however long the ~1s render's
@@ -11060,6 +11090,7 @@ open('/repo/' + OUT).read()
       if (warmFr) warmFr.remove();
       const chip = $('ds-warmchip');
       if (chip) chip.remove();
+      lastHtml = html;                 // what stands in #out, for the next diff
       schedulePreviewStore(html);      // this render is the next boot's instant canvas
       resolve();
     };
@@ -11074,11 +11105,104 @@ open('/repo/' + OUT).read()
   renderSays(dirty ? 'unsaved changes'
                    : 'click selects and drags · double-click edits text');
 }
+// The HTML currently standing in #out. An incremental render diffs the new
+// output against THIS rather than against the live DOM, because the live DOM
+// is not the last render any more: the editor has painted selection rings,
+// handles, the mini toolbar, guides and drag spacers into those very pages,
+// so every section would read as "changed" and nothing could ever be reused.
+let lastHtml = null;
+
+/** Replace only the page sections whose HTML actually moved, in place.
+ *
+ *  Returns the sections it replaced (possibly none), or null to say "not
+ *  patchable — do the full swap". The full swap costs ~236ms on a 12-page
+ *  report and almost none of it is the render: Python is ~37ms and wiring
+ *  ~12ms; the rest is the iframe tearing down a document and parsing,
+ *  styling and laying out a new one. Patching skips exactly that, and keeps
+ *  the scroll position and the reader's place for free, because nothing
+ *  reloads.
+ *
+ *  Deliberately conservative. Anything outside the pages — the head, the
+ *  page-meta JSON, an endnotes list, a script — differing at all, or the
+ *  page COUNT changing, hands the whole render back to the swap, which is
+ *  known-correct. This only claims the common case: an edit that redraws
+ *  some pages of a document whose shape is otherwise identical. */
+function patchPages(html) {
+  const live = $('out').contentDocument;
+  // editing: a render mid-edit is deferred anyway, and the open editor lives
+  // in these very nodes. pendingFrame: a swap is already in flight for this
+  // output, and racing it would patch a document about to be discarded.
+  if (!lastHtml || !live || !live.body || pendingFrame || editing) return null;
+  const parse = h => new DOMParser().parseFromString(h, 'text/html');
+  const shape = doc => ({
+    head: doc.head.innerHTML,
+    pages: [...doc.querySelectorAll('section.page')],
+    // Body children that are NOT pages, in order: they carry the document's
+    // shape, and a change in any of them is out of this function's depth.
+    rest: [...doc.body.children]
+      .filter(n => !(n.tagName === 'SECTION' && n.classList.contains('page')))
+      .map(n => n.outerHTML).join(''),
+  });
+  const A = shape(parse(lastHtml)), B = shape(parse(html));
+  if (!A.pages.length || A.pages.length !== B.pages.length) return null;
+  if (A.head !== B.head || A.rest !== B.rest) return null;
+  const livePages = [...live.querySelectorAll('section.page')];
+  // The live DOM must still BE the last render, page for page. If anything
+  // else has rearranged it, the diff below would be against the wrong thing.
+  if (livePages.length !== A.pages.length) return null;
+  const changed = [];
+  for (let i = 0; i < A.pages.length; i++)
+    if (A.pages[i].outerHTML !== B.pages[i].outerHTML) changed.push(i);
+  // NOTHING moved — which is not the cheap win it looks like. Output identical
+  // to the last render is exactly when the DOM is most likely to have drifted
+  // from it by some other route, and a patch that replaces nothing would leave
+  // that drift standing:
+  //   · opening an inline editor swaps the slot for a contenteditable host,
+  //     and cancelling it renders the same bytes as before — the host stayed,
+  //     and the section it replaced never came back.
+  //   · a drag paints the element's new position straight onto the node, then
+  //     Undo re-renders the state it started in — the same bytes again, while
+  //     the DOM still showed it moved.
+  // Both want the document rebuilt from the render, so hand these to the swap,
+  // which reconciles by construction. Renders that change nothing are rare;
+  // the ones this path exists for always change a page.
+  if (!changed.length) return null;
+  return changed.map(i => {
+    const nu = live.importNode(B.pages[i], true);
+    livePages[i].replaceWith(nu);
+    return nu;
+  });
+}
+
 let pendingFrame = null;              // the hidden twin mid-load, if any
 let pendingResolve = null;            // its render()'s resolver, for supersede
 
-function wire() {
+/** Elements matching `sel` within the given roots — a root that matches
+ *  counts as one of its own. Roots empty/absent means the whole document.
+ *
+ *  One place, because an INCREMENTAL render re-wires only the page sections
+ *  it replaced. Binding an already-bound section a second time is the whole
+ *  hazard of patching in place: two mousedown handlers on one element means
+ *  two startDrags, two pushHistorys, and an undo that needs pressing twice. */
+function within(d, roots, sel) {
+  const rs = roots && roots.length ? roots : [d];
+  const out = [];
+  rs.forEach(r => {
+    if (r.matches && r.matches(sel)) out.push(r);
+    out.push(...r.querySelectorAll(sel));
+  });
+  return out;
+}
+
+/** Arm the report's document. With no argument: a brand-new document, so
+ *  everything binds, document-level listeners included. With page sections:
+ *  an incremental patch replaced exactly those, and only they need arming —
+ *  the document's own listeners are already on it and must NOT be added
+ *  again. Painters (selection, guides, thumbnails, fit) re-run either way;
+ *  they rebuild from state rather than accumulate. */
+function wire(roots) {
   const d = $('out').contentDocument;
+  const fresh = !(roots && roots.length);
   // Self-heal: `editing` true with no editor in THIS document means an open
   // editor was destroyed without its blur/Escape ever running (a removed
   // contenteditable fires no blur). The deferred-swap rule above should make
@@ -11088,26 +11212,32 @@ function wire() {
   if (editing && !d.querySelector('.ds-edit')) {
     editing = false; richHost = null; syncMarksBar();
   }
-  showLocalImages(d);
+  showLocalImages(d, roots);
   // Native image-drag steals the gesture before the editor's mousemove ever
   // fires — grab a placed photo and a ghost image flies while the box stays
   // put. Never wanted in an editor; the editor's own drag does the moving.
-  d.querySelectorAll('section.page img').forEach(i => { i.draggable = false; });
-  dragify(d);
-  contextify(d);
-  wireSections(d);
+  within(d, roots, 'img').forEach(i => {
+    if (i.closest('section.page')) i.draggable = false;
+  });
+  dragify(d, roots);
+  contextify(d, roots);
+  wireSections(d, roots);
   deafenStickyChrome(d);
-  wireCells(d);
+  wireCells(d, roots);
   paintCells(d);               // a cell range is ids, so it survives a render
   // Chart text edits where it is read. Bound on the text node, which sees the
   // dblclick before the shape does, so it never becomes a drag.
-  d.querySelectorAll('g[data-shape] [data-ch]').forEach(n => {
+  within(d, roots, 'g[data-shape] [data-ch]').forEach(n => {
     n.addEventListener('dblclick', e => {
       e.preventDefault(); e.stopPropagation(); editChartText(d, n);
     });
   });
-  keysFor(d);
-  wireMarkState(d);            // chrome B/I state tracks the edit selection
+  // On the DOCUMENT, not its elements: a patch keeps the same document, so
+  // re-adding these would double every keystroke and every selection read.
+  if (fresh) {
+    keysFor(d);
+    wireMarkState(d);          // chrome B/I state tracks the edit selection
+  }
   applyZoom();
   reportFit(d);
   paintSel(d);                 // the selection is ids, so it survives a render
@@ -11116,8 +11246,9 @@ function wire() {
   if (meta) { try { designedPages = JSON.parse(meta.textContent); } catch (e) {} }
   railRender();
   // The strip follows the canvas. Listener on the iframe's own window, which
-  // is replaced wholesale by the next render, so nothing accumulates.
-  d.defaultView.addEventListener('scroll', railScrollSync, { passive: true });
+  // a full render replaces wholesale, so nothing accumulates — but a patch
+  // keeps that window, so it must not be added again.
+  if (fresh) d.defaultView.addEventListener('scroll', railScrollSync, { passive: true });
   // Deferred for the same reason layersRender is below: wire() runs BEFORE the
   // scroll position is restored, so read the page in view after that lands.
   setTimeout(railSyncActive, 0);
@@ -11131,7 +11262,7 @@ function wire() {
   // a thing you can plainly see. So before the marquee gets it, the click is
   // hit-tested against the placed elements by geometry, and the topmost one
   // under the point takes the gesture — select and drag, like any direct hit.
-  d.querySelectorAll('section.page').forEach(pg => {
+  within(d, roots, 'section.page').forEach(pg => {
     pg.addEventListener('mousedown', e => {
       if (e.button !== 0 || editing) return;
       if (e.target.closest('[data-el], [data-shape], [data-slot], a, button, input, '
@@ -11531,11 +11662,15 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
                  border:4px solid transparent; }
     #tt:not(.above)::after { bottom:100%; border-bottom-color:#2F3E46; }
     #tt.above::after { top:100%; border-top-color:#2F3E46; }`;
-  d.head.appendChild(css);
-  wireTooltips(d);
+  // Both belong to the DOCUMENT — the stylesheet in its head, the tooltip
+  // listeners on it — so a patch, which keeps the document, already has them.
+  if (fresh) {
+    d.head.appendChild(css);
+    wireTooltips(d);
+  }
 
   const seen = new Set();
-  d.querySelectorAll('[data-slot]').forEach(el => {
+  within(d, roots, '[data-slot]').forEach(el => {
     const key = el.dataset.slot;
     if (seen.has(key)) return;              // a slot can render several <p>s
     seen.add(key);
@@ -13023,6 +13158,10 @@ async function renderClean() {
   py.globals.set('LAYOUT_PATH', M.layout || '');
   py.globals.set('RENDER', M.render);
   py.globals.set('OUT', M.out);
+  // Its own PURGE, rather than inheriting whatever renderOnce last set: a
+  // publish render that reached Python before any editing render would have
+  // read an unset global and died with NameError.
+  py.globals.set('PURGE', engineDirty);
   return py.runPythonAsync(`
 import sys, os, io, runpy, contextlib
 os.environ.pop('DOCSYNC_EDIT', None)        # the published bytes, not the editable ones
