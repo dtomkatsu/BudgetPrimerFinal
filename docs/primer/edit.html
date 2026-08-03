@@ -288,6 +288,14 @@
   .src-new { background:var(--sage); color:#fff; border:0; border-radius:7px;
     padding:6px 13px; cursor:pointer; font:600 12.5px system-ui; }
   .src-new:hover { background:#7FB08B; }
+  /* Secondary to "+ Add source": adding the section is a once-per-report act,
+     and once it exists this becomes a disabled status line rather than a
+     button competing for the same attention. */
+  .src-endnotes { background:transparent; color:#E8EDE6; border:1px solid rgba(255,255,255,.34);
+    border-radius:7px; padding:6px 11px; cursor:pointer; font:600 12.5px system-ui;
+    margin-right:6px; white-space:nowrap; }
+  .src-endnotes:hover:not(:disabled) { background:rgba(255,255,255,.14); color:#fff; }
+  .src-endnotes:disabled { opacity:.5; cursor:default; border-style:dashed; }
   /* Filter bar: 21 sources is a scroll, so finding one is the primary act. */
   .src-tools { display:flex; align-items:center; gap:8px; padding:10px 14px;
     border-bottom:1px solid #E6ECE8; background:#F7FAF8; flex:none; }
@@ -2521,6 +2529,7 @@ async function newSourceAt(d, host, range) {
   const id = r.id.trim();
   addSource(id, citationText(r), r.url.trim());
   insertNodeAt(d, host, range, makeFnChip(d, id));
+  wantEndnotesSection = true;   // settled when this edit commits
   return id;
 }
 
@@ -2675,6 +2684,7 @@ function buildEndnoteRows(d, m, host, range) {
       b.addEventListener('click', async () => {
         closeMenu(d);
         await insertNodeAt(d, host, range, makeFnChip(d, id));
+        wantEndnotesSection = true;   // settled when this edit commits
       });
       sub.appendChild(b);
     });
@@ -6081,6 +6091,7 @@ function editBox(d, el) {
     host.classList.remove('ds-edit');
     if (keep) {
       if (newVal.trim() && newVal !== b.md) { b.md = newVal.trim(); markDirty(); }
+      settleEndnotesSection();
     }
     await render();
   };
@@ -11953,6 +11964,107 @@ function updateSource(id, text, url) {
   // would splice chunks of the sources block into itself.
   writeSlot('sources', readSlot('sources').replace(srcLineRe(id), () => `[${id}]: ${text} — ${url}`));
 }
+
+/** The endnotes section, if this report has one the EDITOR placed. A report
+ *  whose own renderer builds an endnotes page (the Budget Primer's page 12)
+ *  has none of these and never wants one — its list is already in the
+ *  document, and a second one would be a duplicate that renumbers alongside
+ *  the first. */
+const endnotesBox = () => boxes().find(b => b.act === 'endnotes');
+
+/** True when the RENDERER already draws an endnotes list of its own, so the
+ *  editor must not offer to add a second. The rendered page is the only
+ *  honest source for this: the engine stamps ds-endnotes-sec on the box it
+ *  draws, and everything else carrying endnote hooks (report2027's page 12,
+ *  rxkids' sources section) is the renderer's own. */
+function rendererHasEndnotes() {
+  const d = $('out').contentDocument;
+  if (!d) return false;
+  return [...d.querySelectorAll('[data-el^="endnote."]')]
+    .some(el => !el.closest('.ds-endnotes-sec'));
+}
+
+/** Add the endnotes section at the END of the document, and return its box.
+ *
+ *  A paged report gets a new page for it — endnotes are a back-matter
+ *  section, and dropping the list onto the tail of whatever page happens to
+ *  be last would land it on top of that page's content. A PAGELESS document
+ *  has no page to add, so it goes at the bottom of the one continuous sheet
+ *  instead, below everything already placed.
+ *
+ *  Idempotent: if the section already exists it is returned untouched, which
+ *  is what lets the first-citation path call this unconditionally. */
+async function addEndnotesSection({ silent = false } = {}) {
+  const existing = endnotesBox();
+  if (existing) return existing;
+  pushHistory();
+  const pageless = isPageless();
+  const box = makeEndnotesSection();
+  markDirty();
+  await render();
+  if (!silent) {
+    $('stat').textContent = pageless
+      ? 'endnotes section added at the end — every citation you make lists itself here'
+      : 'endnotes section added on a new page at the end — every citation you '
+        + 'make lists itself here';
+  }
+  return box;
+}
+
+/** addEndnotesSection's mutation half, with no history push and no render.
+ *
+ *  Separate because a citation is created while a prose editor is OPEN: that
+ *  edit already pushed history and already ends in a render of its own, so
+ *  the auto-created section has to ride along inside it. Two renders would
+ *  fight the deferred-swap rule, and a second pushHistory would split one
+ *  user action across two ⌘Z presses. */
+function makeEndnotesSection() {
+  const pageless = isPageless();
+  const order = pageOrder();
+  let pid, y;
+  if (pageless) {
+    // One continuous sheet: stay on it, and start below the lowest thing
+    // already placed so the section reads as the end of the document.
+    pid = order[order.length - 1];
+    y = boxes().concat(layout.shapes || [], layout.tables || [])
+      .filter(o => String(o.page) === String(pid))
+      .reduce((m, o) => Math.max(m, (+o.y || 0) + (+o.h || 1)), 1) + 0.4;
+  } else {
+    const blanks = pageBlanks();
+    let n = 1;
+    while (blanks.some(b => b.id === 'p' + n)) n++;
+    pid = 'p' + n;
+    order.push(pid);
+    writeOrder(order, [...blanks, { id: pid }]);
+    y = 0.75;
+  }
+  const box = {
+    id: freeBoxId(), page: pid, x: 0.62, y,
+    w: Math.max(2, PAGE_W_IN - 1.24), z: 2,
+    act: 'endnotes', md: '## Endnotes',
+  };
+  boxes().push(box);
+  return box;
+}
+
+/** True when this document is one continuous sheet rather than pages. */
+const isPageless = () =>
+  !!(layout.page && (layout.page.h === null || layout.page.h === undefined));
+
+/** Set when a citation is placed with no endnotes section in the document:
+ *  the section is created when that edit COMMITS, inside its own render. */
+let wantEndnotesSection = false;
+
+/** Called from every prose editor's finish(), after the text is written and
+ *  before its render. The first endnote a report gets brings the section that
+ *  lists it — otherwise a citation renders a superscript pointing at nothing,
+ *  and the list it belongs to has to be found and asked for separately. */
+function settleEndnotesSection() {
+  if (!wantEndnotesSection) return;
+  wantEndnotesSection = false;
+  if (endnotesBox() || rendererHasEndnotes()) return;
+  makeEndnotesSection();
+}
 function deleteSource(id) {
   writeSlot('sources', readSlot('sources')
     .replace(new RegExp(`^\\[${rxEsc(id)}\\]:.*(?:\\n|$)`, 'm'), '')
@@ -11990,6 +12102,7 @@ function openSources() {
   srcPanel.id = 'srcpanel';
   srcPanel.innerHTML =
     '<header><b>Sources</b><span class="src-count"></span><span class="src-spacer"></span>'
+    + '<button type="button" class="src-endnotes">+ Endnotes section</button>'
     + '<button type="button" class="src-new">+ Add source</button>'
     + '<button type="button" class="src-x" aria-label="Close">&#10005;</button></header>'
     + '<div class="src-tools">'
@@ -12001,6 +12114,10 @@ function openSources() {
     + 'only changes the list. Right-click a paragraph to cite one.</p>';
   srcPanel.querySelector('.src-x').onclick = closeSources;
   srcPanel.querySelector('.src-new').onclick = addSourceFromPanel;
+  srcPanel.querySelector('.src-endnotes').onclick = async () => {
+    await addEndnotesSection();
+    renderSources();          // the button becomes its "already there" state
+  };
   const q = srcPanel.querySelector('#src-q');
   q.addEventListener('input', () => { srcQuery = q.value.trim().toLowerCase(); renderSources(); });
   srcPanel.querySelector('#src-unused').addEventListener('click', () => {
@@ -12044,6 +12161,23 @@ function renderSources() {
   srcPanel.querySelector('.src-count').textContent =
     all.length + (all.length === 1 ? ' source' : ' sources');
   srcPanel.querySelector('#src-unused').classList.toggle('on', srcUnusedOnly);
+  // The endnotes button describes the document's actual state rather than
+  // offering an add that would silently do nothing (or, worse, produce a
+  // second list renumbering beside the first).
+  const enb = srcPanel.querySelector('.src-endnotes');
+  if (endnotesBox()) {
+    enb.disabled = true;
+    enb.textContent = '✓ Endnotes section';
+    enb.title = 'This report already has one — it updates itself as you cite';
+  } else if (rendererHasEndnotes()) {
+    enb.disabled = true;
+    enb.textContent = '✓ Endnotes section';
+    enb.title = "This report's own design already includes an endnotes page";
+  } else {
+    enb.disabled = false;
+    enb.textContent = '+ Endnotes section';
+    enb.title = 'Add a page at the end that lists every endnote, kept in sync';
+  }
   if (!all.length) {
     list.innerHTML = '<p class="srcempty">No sources yet.<br>Right-click a paragraph and '
       + 'choose <b>Add endnote here</b>, or use <b>+ Add source</b> above.</p>';
@@ -12332,6 +12466,7 @@ function edit(d, key) {
         $('save').disabled = $('revert').disabled = !dirty;
         $('save').classList.toggle('dirty', dirty);
       }
+      settleEndnotesSection();
     }
     await render();
   };

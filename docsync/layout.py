@@ -32,7 +32,7 @@ from pathlib import Path
 # styler duck-typed), so there is no cycle. A text box is a markdown block that
 # happens to be positioned — block_html already renders exactly that for the
 # overflow slots, and a second renderer for the same thing would drift.
-from .content import block_html, md_inline, paragraph
+from .content import Footnotes, block_html, md_inline, paragraph
 
 # Letter portrait, because that is what the Budget Primer is. Any report with a
 # different page passes its own size in — this is a default, not a law. It is
@@ -1345,6 +1345,11 @@ class Layout:
     def __init__(self, path: Path, page: tuple[float, float] = (PAGE_W_IN, PAGE_H_IN)):
         self.path = path
         self.page_w, self.page_h = page
+        # Set by Content's constructor (bind_footnotes) when one is built
+        # against this Layout. None means nobody did — a Layout used on its
+        # own, in a test or a tool — and an endnotes box then renders its
+        # heading with no list rather than raising.
+        self._fn = None
         raw = {}
         if path.exists():
             try:
@@ -1624,9 +1629,9 @@ class Layout:
             # allowlist, because act lands in the published page as behaviour
             # — an unknown value must be a loud error here, not a dead button
             # discovered by a reader.
-            if b.get("act") is not None and b["act"] not in ("pdf", "toggle"):
+            if b.get("act") is not None and b["act"] not in ("pdf", "toggle", "endnotes"):
                 raise LayoutError(f"{where}: unknown act '{b['act']}' — "
-                                  "'pdf' or 'toggle'")
+                                  "'pdf', 'toggle' or 'endnotes'")
             if b.get("act") == "toggle":
                 tgt = b.get("target")
                 tgts = tgt if isinstance(tgt, list) else [tgt] if tgt else []
@@ -2258,10 +2263,12 @@ class Layout:
                 # edge; padding only when filled, so a plain box's text keeps
                 # sitting exactly where it was put.
                 css += f';background:{fill_css(b["fill"])};padding:.08in .12in;border-radius:8px'
-            elif act:
+            elif act and act != "endnotes":
                 # A button reads as a button even unfilled: same room, same
                 # corners, in BOTH modes, so what the editor shows is what
-                # the reader gets.
+                # the reader gets. Not the endnotes section — it is a block of
+                # the document, not a control, and button padding on it just
+                # indents the list away from everything it sits under.
                 css += ';padding:.08in .12in;border-radius:8px'
             if b.get("rot"):
                 css += f';transform:rotate({b["rot"]}deg)'
@@ -2278,6 +2285,26 @@ class Layout:
             # it MEANT to draw, flung it to the left margin.
             full = f'{style + ";" if style else ""}{css}'
             tag = f' data-el="text.{b["id"]}"' if edit else ""
+            if act == "endnotes":
+                # The endnotes SECTION, placed by the editor rather than built
+                # into a report's renderer (see Footnotes.endnotes_html). The
+                # box's own markdown is the heading — so it retitles, restyles,
+                # moves and resizes like any other text box — and the numbered
+                # list is generated under it.
+                #
+                # WHICH list depends on where this call lands relative to the
+                # numbering: settled (order_by/resolve already ran, e.g. a
+                # renderer that emits its boxes last) means render it now;
+                # otherwise leave the mount for resolve() to fill, since the
+                # order is not final and rendering here would freeze a partial
+                # one. Every renderer hits exactly one of those two paths.
+                body = (self._fn.endnotes_html(self)
+                        if self._fn is not None and self._fn.settled
+                        else Footnotes.MOUNT if self._fn is not None else "")
+                out.append(f'<div class="ds-textbox ds-endnotes-sec"{tag}{an} '
+                           f'style="{full}">'
+                           f'{block_html(b["md"])}{body}</div>')
+                continue
             if act == "toggle" and not edit:
                 # Published: a real button whose click flips the target's
                 # ds-tgl-open class. Inline and dependency-free, like every
@@ -2345,6 +2372,23 @@ class Layout:
 
     def box(self, box_id: str) -> dict | None:
         return next((b for b in self.boxes if b.get("id") == box_id), None)
+
+    def bind_footnotes(self, fn) -> None:
+        """Called by Content's constructor with its Footnotes.
+
+        The endnotes list is content (which sources, in which order) drawn as
+        layout (a placed, movable box), so the two have to meet somewhere.
+        Here, once, rather than in every report's renderer — a consumer repo
+        vendors this package but owns its renderer, so anything that needed a
+        line added THERE would not reach the reports that already exist.
+
+        The link runs BOTH ways: resolve() fills a deferred endnotes mount
+        without a Layout in hand, and the list has to carry the same data-el
+        drag hooks either way, or reordering would work on one render path
+        and silently not on the other.
+        """
+        self._fn = fn
+        fn.layout = self
 
     # ---- tables ----------------------------------------------------------
 

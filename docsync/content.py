@@ -277,9 +277,15 @@ def paragraphs(block: str) -> list[str]:
 class Footnotes:
     """Assigns numbers to [^id] refs in order of first appearance."""
 
+    # What Layout.text_boxes() drops where an endnotes box sits when the
+    # numbering is not settled yet; resolve() swaps it for the real list.
+    MOUNT = "<!--ds-endnotes-mount-->"
+
     def __init__(self, sources: dict):
         self.sources = sources
         self.order: list[str] = []          # ids, in first-appearance order
+        self.settled = False                # order_by()/resolve() has run
+        self.layout = None                  # set by Layout.bind_footnotes
 
     def _number(self, sid: str) -> int:
         if sid not in self.sources:
@@ -307,6 +313,10 @@ class Footnotes:
         """
         lead = [s for s in preferred if s in cited and s in self.sources]
         self.order = lead + [s for s in cited if s not in lead and s in self.sources]
+        # Seeded from the whole cited body, so the numbering IS the final one
+        # from here on — resolve() only hands out numbers already decided. An
+        # endnotes box rendered after this point can be filled on the spot.
+        self.settled = True
 
     def resolve(self, html: str) -> str:
         """Replace [^id] runs with <sup>N</sup> (adjacent refs share one <sup>,
@@ -325,7 +335,15 @@ class Footnotes:
         def run(m):
             ids = re.findall(r"\[\^([^\]]+)\]", m.group(0))
             return "<sup>" + "&thinsp;".join(one(i) for i in ids) + "</sup>"
-        return re.sub(r"(?:\[\^[^\]]+\])+", run, html)
+        out = re.sub(r"(?:\[\^[^\]]+\])+", run, html)
+        # Numbering is complete NOW — every ref in this body has been walked —
+        # so an endnotes box that rendered before it can be filled in. A
+        # renderer that emits its boxes AFTER resolve() (rxkids) never leaves a
+        # mount here; text_boxes() sees `settled` and renders the list outright.
+        self.settled = True
+        if self.MOUNT in out:
+            out = out.replace(self.MOUNT, self.endnotes_html())
+        return out
 
     def unused(self) -> list[str]:
         return [s for s in self.sources if s not in self.order]
@@ -339,6 +357,37 @@ class Footnotes:
         source id the draft editor needs to route an in-place edit on the
         Endnotes page back to its own [[sources]] line."""
         return [(sid, *self.sources[sid]) for sid in self.order]
+
+    def endnotes_html(self, layout=None) -> str:
+        """The numbered <ol> for an endnotes section the EDITOR placed.
+
+        A report whose renderer builds its own endnotes page (report2027's
+        page 12) never comes through here — this is for the ones that had
+        none, where an editor asked for the section and the engine has to
+        supply the markup. So it carries the same editing hooks that page
+        hand-rolls: data-el per <li>, so each endnote can be dragged to
+        reorder (Layout.endnote_order() reads the result back), and the
+        anchor ids the in-prose <sup> links point at.
+
+        Zero-stylesheet, like docsync.blocks — a scaffolded report with no CSS
+        of its own still gets a readable list.
+        """
+        layout = layout if layout is not None else self.layout
+        rows = self.endnotes_with_ids()
+        if not rows:
+            # An empty list still renders its heading: the section was asked
+            # for explicitly, and a surface that vanishes when the last
+            # citation is cut reads as the editor having lost it.
+            return ('<ol class="ds-endnotes" style="padding-left:1.4em;margin:0">'
+                    '</ol>')
+        items = []
+        for i, (sid, txt, url) in enumerate(rows, 1):
+            hook = layout.attr(f"endnote.{sid}") if layout is not None else ""
+            items.append(
+                f'<li id="en{i}"{hook} style="margin-bottom:.6em">{txt} '
+                f'<a href="{url}" style="word-break:break-all">{url}</a></li>')
+        return ('<ol class="ds-endnotes" style="padding-left:1.4em;margin:0">'
+                + "".join(items) + "</ol>")
 
 
 class Content:
@@ -361,6 +410,13 @@ class Content:
         self.sources = parse_sources(self._raw.pop("sources"))
         self.fn = Footnotes(self.sources)
         self._used: set[str] = set()
+        # The editor can place an endnotes list as a BOX (layout.json), and a
+        # box is rendered by Layout — which has no footnotes of its own. Hand
+        # it this one, so text_boxes() can render the list without every
+        # report's renderer growing a call it would have to remember. Same
+        # reach argument as _page_style_once(); see Layout.endnotes_html().
+        if styles is not None and hasattr(styles, "bind_footnotes"):
+            styles.bind_footnotes(self.fn)
 
     def raw(self, key: str) -> str:
         if key not in self._raw:
