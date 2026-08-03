@@ -11799,11 +11799,17 @@ stroke-width="2" stroke-linecap="round"/></svg>') 10 10, grab; }
     wireTooltips(d);
   }
 
-  const seen = new Set();
+  // EVERY element carrying a slot is bound, not just the first one per key.
+  // A slot renders one <p> per paragraph (content.py's html()/paragraphs(),
+  // which exist so someone can add a paragraph inside a slot), and each of
+  // them is a separate click target. A `seen` dedup here used to bind only
+  // the first, leaving the lower paragraphs of a multi-paragraph slot dead to
+  // the mouse — "the top of this text edits, the bottom half does nothing".
+  // Binding them all is idempotent, not a route to duplicate editors: edit()
+  // is keyed by SLOT, collecting every block with the key and opening ONE
+  // editor over the whole slot, and it refuses outright while `editing`.
   within(d, roots, '[data-slot]').forEach(el => {
     const key = el.dataset.slot;
-    if (seen.has(key)) return;              // a slot can render several <p>s
-    seen.add(key);
     // A slot inside a movable object — a callout's title, a card's bullets,
     // and now the body prose too (each paragraph block is a movable unit) —
     // edits on DOUBLE-click; single-click belongs to selecting and moving the
