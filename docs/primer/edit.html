@@ -8545,8 +8545,12 @@ function fillPreview(v) {
 $('ar-fill').addEventListener('click', () => {
   const d = $('out').contentDocument;
   const els = selEls(d);
-  if (els.length !== 1) return;
-  openColorPanel(idOf(els[0]));
+  if (els.length === 1) { openColorPanel(idOf(els[0])); return; }
+  // A page selection has no member in selIds — the two selections are one
+  // state, never both (setSelPage clears selIds) — so `els` is empty here
+  // even though pageBar() already showed this very button labelled "Page
+  // colour". Route it to the page's own fill or the swatch is a dead click.
+  if (selPage != null) openColorPanel(pageFillId(selPage));
 });
 
 
@@ -11526,7 +11530,7 @@ function wire(roots) {
     /* Selected PAGE: an outline just outside the sheet, so it reads as the
        page being picked up rather than as a border drawn on it. outline, not
        border — a border would change the box and reflow the whole page. */
-    .ds-pagesel { outline:2px solid rgba(107,158,120,.85); outline-offset:3px; }
+    .ds-pagesel { outline:1.5px solid rgba(107,158,120,.4); outline-offset:3px; }
     .ds-selbox { position:absolute; z-index:9995; pointer-events:none;
        outline:2px solid #6B9E78; outline-offset:2px; }
     .ds-selbox.grouped { outline:1.5px dashed #52796F; outline-offset:3px; }
