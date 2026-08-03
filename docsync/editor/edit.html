@@ -1807,7 +1807,7 @@ const writeSlot = (k, v) => {
 // markup that silently corrupts on save — see boldItalicBlocked().
 const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
-function mdInlineToHtml(text) {
+function mdInlineToHtml(text, fnLabels) {
   // Footnote refs first — an editor-only concept (Python leaves [^id]
   // literal, for later document-wide resolution) — stashed before anything
   // else so no other pass can split or escape into the middle of one.
@@ -1838,8 +1838,17 @@ function mdInlineToHtml(text) {
     const [alt, src] = imgs[+i];
     return `<img class="inline-img" contenteditable="false" src="${escAttr(src)}" alt="${escAttr(alt)}">`;
   });
-  s = s.replace(/\x00FN(\d+)\x00/g, (m, i) =>
-    `<span class="ds-chip ds-fnchip" contenteditable="false" data-fn-id="${escAttr(fns[+i])}">[^${fns[+i]}]</span>`);
+  s = s.replace(/\x00FN(\d+)\x00/g, (m, i) => {
+    const id = fns[+i];
+    // The number the reader already sees, if this exact citation has been
+    // rendered before (fnLabels, from fnRenderedLabels — read off the DOM the
+    // moment before editing replaced it). Falling back to the raw [^id] is
+    // the pre-existing behaviour for a citation that has never rendered yet
+    // (just inserted, or fnLabels' count didn't line up and it declined to
+    // guess) — not wrong, just the one case this can't do better than before.
+    const label = (fnLabels && fnLabels.get(id)) || `[^${id}]`;
+    return `<span class="ds-chip ds-fnchip" contenteditable="false" data-fn-id="${escAttr(id)}">${escAttr(label)}</span>`;
+  });
   return s;
 }
 
@@ -1848,25 +1857,25 @@ function mdInlineToHtml(text) {
  *  allowLists: block_html()'s grammar (headings + lists) — editBox/extras
  *  targets only; every other slot goes through paragraphs(), which has no
  *  block structure beyond blank-line-separated <p>s. */
-function mdToHtml(md, { allowLists = false, inline = false } = {}) {
-  if (inline) return mdInlineToHtml((md || '').trim());
+function mdToHtml(md, { allowLists = false, inline = false, fnLabels } = {}) {
+  if (inline) return mdInlineToHtml((md || '').trim(), fnLabels);
   if (!allowLists) {
     const chunks = (md || '').trim().split(/\n\s*\n/).filter(c => c.trim());
     if (!chunks.length) return '<p><br></p>';
     return chunks.map(c => {
       const line = c.split('\n').map(l => l.trim()).filter(Boolean).join(' ');
-      return `<p>${mdInlineToHtml(line)}</p>`;
+      return `<p>${mdInlineToHtml(line, fnLabels)}</p>`;
     }).join('');
   }
   // block_html()'s line-by-line state machine: '#'/'##' heading, '- '
   // bulleted, 'N.'/'N)' numbered, blank-line-separated paragraphs otherwise.
   const out = [];
   let para = [], items = [];
-  const flushPara = () => { if (para.length) { out.push(`<p>${mdInlineToHtml(para.join(' '))}</p>`); para = []; } };
+  const flushPara = () => { if (para.length) { out.push(`<p>${mdInlineToHtml(para.join(' '), fnLabels)}</p>`); para = []; } };
   // The whole run at once, indentation intact — that is what lets a sub-item
   // nest instead of joining its parent as a sibling.
   const flushItems = () => {
-    if (items.length) { out.push(listsHtml(listItems(items))); items = []; }
+    if (items.length) { out.push(listsHtml(listItems(items, fnLabels))); items = []; }
   };
   for (const raw of (md || '').split('\n')) {
     const s = raw.trim();
@@ -1874,7 +1883,7 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
     const h = s.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       flushPara(); flushItems();
-      out.push(h[1].length <= 2 ? `<h2>${mdInlineToHtml(h[2])}</h2>` : `<h3>${mdInlineToHtml(h[2])}</h3>`);
+      out.push(h[1].length <= 2 ? `<h2>${mdInlineToHtml(h[2], fnLabels)}</h2>` : `<h3>${mdInlineToHtml(h[2], fnLabels)}</h3>`);
       continue;
     }
     if (LIST_ITEM_RE.test(raw.replace(/\t/g, '  '))) {
@@ -1889,6 +1898,38 @@ function mdToHtml(md, { allowLists = false, inline = false } = {}) {
   return out.length ? out.join('') : '<p><br></p>';
 }
 
+/** id -> the number this exact citation is ALREADY showing, read off the
+ *  rendered element right before editing replaces it with raw markdown.
+ *
+ *  Numbering runs document-wide, in Python, at render time (content.py's
+ *  Footnotes) — mdInlineToHtml only ever sees one slot/box/cell's own text,
+ *  so it cannot compute a number from [^id] alone. Without this it fell back
+ *  to printing the token itself, so opening a citation for editing "expanded"
+ *  a small superscript number into the raw source id (often a whole
+ *  descriptive slug) sitting mid-sentence — correct, but exactly the "why
+ *  did my paragraph reflow" surprise a click-to-edit shouldn't cause.
+ *
+ *  Reads sup>digit-or-?< in the SAME order the raw text's [^id] tokens
+ *  appear — resolve() and linkify_footnotes both preserve that order and
+ *  never merge or drop a ref, so a straight zip is exact whenever the counts
+ *  agree. A `?` is content.py's own edit-mode marker for a citation naming no
+ *  source, carried through as a label rather than treated as noise. If the
+ *  counts DON'T agree — a stray unrelated <sup> in the prose, a render this
+ *  text hasn't gone through yet — this declines to guess: every id in that
+ *  slot falls back to mdInlineToHtml's existing [^id] behaviour, unchanged
+ *  from before this function existed. */
+function fnRenderedLabels(els, raw) {
+  const ids = [...raw.matchAll(/\[\^([^\]]+)\]/g)].map(m => m[1]);
+  const map = new Map();
+  if (!ids.length) return map;
+  const list = Array.isArray(els) ? els : [els];
+  const labels = list.filter(Boolean).flatMap(el =>
+    [...el.querySelectorAll('sup')].flatMap(s => s.textContent.match(/\d+|\?/g) || []));
+  if (labels.length !== ids.length) return map;
+  ids.forEach((id, i) => map.set(id, labels[i]));
+  return map;
+}
+
 // --- nested lists -----------------------------------------------------------
 // TWO SPACES PER LEVEL, Markdown's own convention — and, more to the point,
 // exactly what docsync/content.py's _list_items reads back. The editor writes
@@ -1900,14 +1941,14 @@ const LIST_ITEM_RE = /^(\s*)(?:-\s+|(\d+)[.)]\s+)(.*)$/;
 /** List LINES -> [[depth, ordered, inlineHtml], ...], depth 0 at the margin.
  *  A line indented more than one level past its predecessor is clamped rather
  *  than rejected: people indent by 2, 3 or 4 spaces indifferently. */
-function listItems(lines) {
+function listItems(lines, fnLabels) {
   const out = [];
   for (const raw of lines) {
     const m = raw.replace(/\t/g, '  ').match(LIST_ITEM_RE);
     if (!m || !raw.trim()) continue;
     let depth = Math.floor(m[1].length / 2);
     depth = out.length ? Math.min(depth, out[out.length - 1][0] + 1) : 0;
-    out.push([depth, m[2] != null, mdInlineToHtml(m[3].trim())]);
+    out.push([depth, m[2] != null, mdInlineToHtml(m[3].trim(), fnLabels)]);
   }
   return out;
 }
@@ -4925,8 +4966,11 @@ function editCell(d, td, seed) {
   // `seed` is a typed character: typing over a selected cell REPLACES it and
   // keeps the keystroke, the way a spreadsheet (and Canva) does — without it
   // the first letter you type would be swallowed opening the editor.
-  if (seed === undefined) host.innerHTML = mdToHtml(raw, { inline: true });
-  else host.textContent = seed;
+  if (seed === undefined) {
+    // td still holds its rendered numbers here — read them before the next
+    // line clears it.
+    host.innerHTML = mdToHtml(raw, { inline: true, fnLabels: fnRenderedLabels(td, raw) });
+  } else host.textContent = seed;
   td.textContent = '';
   td.appendChild(host);
   host.focus();
@@ -6002,6 +6046,8 @@ function editBox(d, el) {
   // on the cover that was the top of the page, nowhere near the words being
   // edited. So it rides an absolutely positioned wrapper at the box's own
   // inches, above everything while it is open.
+  // Read off el's OWN rendered numbers before replaceWith() below discards it.
+  const fnLabels = fnRenderedLabels(el, b.md);
   const wrap = d.createElement('div');
   wrap.style.cssText = `position:absolute;left:${b.x}in;top:${b.y}in;`
     + `width:${Math.max(b.w, 1.8)}in;z-index:20000`;
@@ -6009,7 +6055,7 @@ function editBox(d, el) {
   host.contentEditable = 'true';
   host.className = 'ds-edit';
   host.dataset.richMode = 'block';
-  host.innerHTML = mdToHtml(b.md, { allowLists: true });
+  host.innerHTML = mdToHtml(b.md, { allowLists: true, fnLabels });
   // Just the words — no toolbar or hint row under them (they added height and
   // shoved the page around; see edit()). Chrome bar has B/I/lists, ⌘K links,
   // right-click cites.
@@ -12226,7 +12272,10 @@ function edit(d, key) {
     host.style.whiteSpace = 'pre-wrap';   // preserve cover.title's <br> lines
     host.textContent = raw;
   } else {
-    host.innerHTML = mdToHtml(raw, { allowLists, inline });
+    // blocks still hold their rendered numbers here — read before replaceWith
+    // below discards blocks[0] and the rest are dropped outright.
+    const fnLabels = fnRenderedLabels(blocks, raw);
+    host.innerHTML = mdToHtml(raw, { allowLists, inline, fnLabels });
     if (!inline && extraClass.length)
       host.querySelectorAll(':scope > p').forEach(p => p.classList.add(...extraClass));
   }
