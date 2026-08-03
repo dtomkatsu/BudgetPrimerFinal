@@ -3385,7 +3385,7 @@ function layerMenu(d, el, e) {
     }
     item('Stop revealing (plain text box)', async () => {
       pushHistory();
-      delete tglBox.act; delete tglBox.target;
+      delete tglBox.act; delete tglBox.target; delete tglBox.tglSpeed;
       markDirty(); await render();
     });
     const sep = d.createElement('div'); sep.className = 'ds-menu-sep'; m.appendChild(sep);
@@ -3677,6 +3677,7 @@ function layerMenu(d, el, e) {
 }
 
 function contextify(d, roots) {
+  const fresh = !(roots && roots.length);
   // data-fill alone (a page, a table row) opens the colour menu too — the
   // querySelectorAll list is deduplicated, so a card matching twice binds once.
   within(d, roots, '[data-el], [data-shape], [data-fill]').forEach(el => {
@@ -3708,21 +3709,32 @@ function contextify(d, roots) {
       layerMenu(d, target, e);
     });
   });
-  d.addEventListener('mousedown', e => {
-    // Button 2 is the right-click that is ABOUT to open a menu. The event
-    // order for a context click is not the same everywhere — a Mac trackpad
-    // two-finger tap and Ctrl+click can deliver `contextmenu` BEFORE this
-    // mousedown — so closing here shut the menu the very same gesture had
-    // just opened, on some clicks and not others. That is the "right-click
-    // works inconsistently" report. Skipping it leaves nothing stale: every
-    // opener (layerMenu, tableMenu, endnoteMenu) calls closeMenu() first.
-    if (e.button === 2) return;
-    if (!e.target.closest || !e.target.closest('.ds-menu')) closeMenu(d);
-  });
-  // A click on the report also dismisses the chrome's own menus — see
-  // bindOutsideClose. Same per-render binding, because the render replaces
-  // this document wholesale.
-  bindOutsideClose(d);
+  // Both of these are DOCUMENT listeners, not element ones — a patch keeps
+  // the same document, so binding them again on every incremental render
+  // would stack another closeMenu/closeOnOutsideClick call onto every single
+  // mousedown, forever. Idempotent in effect (removing an already-removed
+  // menu is a no-op) so nothing user-visible broke, but it is exactly the
+  // double-binding class the rest of wire() guards against, and it is the
+  // mechanism this file's own popovers (layerMenu, pageMenu, and now the
+  // toggle speed popover) rely on to dismiss themselves — bind once.
+  if (fresh) {
+    d.addEventListener('mousedown', e => {
+      // Button 2 is the right-click that is ABOUT to open a menu. The event
+      // order for a context click is not the same everywhere — a Mac trackpad
+      // two-finger tap and Ctrl+click can deliver `contextmenu` BEFORE this
+      // mousedown — so closing here shut the menu the very same gesture had
+      // just opened, on some clicks and not others. That is the "right-click
+      // works inconsistently" report. Skipping it leaves nothing stale: every
+      // opener (layerMenu, tableMenu, endnoteMenu) calls closeMenu() first.
+      if (e.button === 2) return;
+      if (!e.target.closest || !e.target.closest('.ds-menu')) closeMenu(d);
+    });
+    // A click on the report also dismisses the chrome's own menus — see
+    // bindOutsideClose. Same per-render binding, because a FULL render
+    // replaces this document wholesale; a patch does not, which is exactly
+    // why this whole block is behind `fresh`.
+    bindOutsideClose(d);
+  }
 }
 
 // ---------------------------------------------------------------- resizing
@@ -4517,6 +4529,103 @@ function previewAnim(id) {
 /** A toggle's targets, always as an array — target may be one id or a list. */
 const toggleTargets = bx =>
   Array.isArray(bx.target) ? bx.target : bx.target ? [bx.target] : [];
+
+/** A toggle target's node in the CURRENT document, whichever kind it is — a
+ *  bare id can name a box, a table or a shape, and only one of the three
+ *  selectors will ever match. Mirrors the layout.py side's own three publish
+ *  sites (a target has no single tag to look for). */
+const tglTargetEl = (d, tid) => d.querySelector(
+  `[data-el="text.${CSS.escape(tid)}"], [data-el="table.${CSS.escape(tid)}"], `
+  + `[data-shape="${CSS.escape(tid)}"]`);
+
+/** Play an expandable section's open animation, once, in the editor.
+ *
+ *  The target stays PERMANENTLY visible while editing — collapsed content
+ *  you cannot see is content you cannot edit — so there is no real "closed"
+ *  state here to open. This fakes the round trip: collapse instantly (no
+ *  transition — that half is not what anyone asked to see), then animate
+ *  back open at the button's own configured speed, then remove every inline
+ *  style it touched. Nothing is left behind for the next render, drag, or
+ *  edit to trip over — a stale inline max-height would silently clip newly
+ *  typed text the next time this content grew past whatever height happened
+ *  to be measured here.
+ *
+ *  Returns false when the target is not on the current page (rare — the
+ *  button and its target are normally grouped and moved together), so a
+ *  caller can say so instead of the button appearing to do nothing. */
+function previewToggle(tb) {
+  const d = $('out').contentDocument;
+  const els = toggleTargets(tb).map(t => tglTargetEl(d, t)).filter(Boolean);
+  if (!els.length) return false;
+  const dur = tb.tglSpeed != null ? tb.tglSpeed : 0.3;
+  const arrow = d.querySelector(`[data-el="tglarrow.${CSS.escape(tb.id)}"]`);
+  els.forEach(el => {
+    const h = el.scrollHeight;            // BEFORE collapsing — its real height
+    el.style.transition = 'none';
+    el.style.overflow = 'hidden';
+    el.style.maxHeight = '0px';
+    el.style.opacity = '0';
+    void el.offsetHeight;                 // commit the collapsed state as a frame
+    el.style.transition = `max-height ${dur}s cubic-bezier(.2,.7,.3,1),`
+      + `opacity ${dur}s ease`;
+    el.style.maxHeight = h + 'px';
+    el.style.opacity = '1';
+  });
+  if (arrow) {
+    arrow.style.transition = `transform ${dur}s`;
+    arrow.style.transform = 'rotate(180deg)';
+  }
+  setTimeout(() => {
+    els.forEach(el => {
+      el.style.transition = ''; el.style.overflow = '';
+      el.style.maxHeight = ''; el.style.opacity = '';
+    });
+    if (arrow) { arrow.style.transition = ''; arrow.style.transform = ''; }
+  }, dur * 1000 + 150);
+  return true;
+}
+
+/** The toggle button's one setting: how long the published open/close takes.
+ *  A single slider in a small popover, in the same `ds-menu`/`ds-menu-slider`
+ *  chrome the Animate submenu's duration control uses — this is the same
+ *  kind of value (a transition length in seconds), so it looks like the same
+ *  control rather than a new one someone has to learn. */
+function openTglSpeedPopover(d, anchorBtn, tb) {
+  closeMenu(d);
+  const m = d.createElement('div');
+  m.className = 'ds-menu';
+  m.addEventListener('mousedown', menuKeepFocus);
+  const head = d.createElement('div');
+  head.className = 'ds-menu-head';
+  head.textContent = 'Expand speed';
+  m.appendChild(head);
+  const w = d.createElement('label');
+  w.className = 'ds-menu-slider';
+  w.textContent = 'speed';
+  const r = d.createElement('input');
+  r.type = 'range'; r.min = 0.1; r.max = 2; r.step = 0.05;
+  r.value = tb.tglSpeed != null ? tb.tglSpeed : 0.3;
+  r.addEventListener('pointerdown', () => pushHistory());
+  // The value tracks the drag; the render (and the preview it triggers) waits
+  // for release — the same reasoning the Animate sliders use: restarting a
+  // transition on every input tick means it never once plays to completion.
+  r.addEventListener('input', () => { tb.tglSpeed = +r.value; });
+  r.addEventListener('change', async () => {
+    markDirty(); closeMenu(d); await render();
+    previewToggle(tb);            // hear the timing you just chose
+  });
+  w.appendChild(r);
+  m.appendChild(w);
+  d.body.appendChild(m);
+  const rect = anchorBtn.getBoundingClientRect();
+  const sx = d.defaultView.scrollX, sy = d.defaultView.scrollY;
+  m.style.left = (rect.left + sx) + 'px';
+  m.style.top = (rect.bottom + sy + 6) + 'px';
+  const mr = m.getBoundingClientRect();
+  if (mr.right > d.defaultView.innerWidth) {
+    m.style.left = Math.max(0, rect.right + sx - mr.width) + 'px';
+  }
+}
 
 /** An expandable section is a PAIR: a toggle button box (act:'toggle') and
  *  the content box it reveals, wired by id and grouped so they move as one
@@ -6502,6 +6611,27 @@ function showMini(d, els) {
         $('stat').textContent = `playing ${soloAnim.kind}`
           + (soloAnim.delay ? ` after ${soloAnim.delay}s` : '');
       });
+  }
+  // An expandable section's button and its target(s) are grouped, so
+  // selecting either one normally selects both — the pair reads as one
+  // control here, next to Play. Two icons rather than folding the speed into
+  // a menu: the whole point of a preview button is that you cannot see this
+  // property any other way, and hiding its one setting a click deeper would
+  // undercut that.
+  const tglBoxes = mine.map(el => boxOf(idOf(el))).filter(b => b && b.act === 'toggle');
+  if (tglBoxes.length === 1) {
+    const tb = tglBoxes[0];
+    btn('Preview the expand animation',
+      '<svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor"><path d="M4.2 2.4 11.6 7 4.2 11.6Z"/></svg>',
+      () => {
+        const ok = previewToggle(tb);
+        $('stat').textContent = ok
+          ? `previewing the expand — ${(tb.tglSpeed != null ? tb.tglSpeed : 0.3).toFixed(2)}s`
+          : 'nothing to preview — its target is not on this page';
+      });
+    const speedB = btn('Expand speed…',
+      '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5.3"/><path d="M7 4.2v3l2 1.1"/></svg>',
+      () => openTglSpeedPopover(d, speedB, tb));
   }
   const dupDisabled = ![...selIds].every(id => dupModeOf(d, id));
   btn(dupDisabled ? 'Duplicate — an endnote reorders instead: drag it up or down the list'

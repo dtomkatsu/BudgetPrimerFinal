@@ -1386,12 +1386,21 @@ class Layout:
         # stamp their publish-mode hook. Built once, here, so the three
         # renderers cannot disagree about who is toggleable.
         self.toggle_targets = set()
+        # Each target's OWN transition duration, keyed by target id — the
+        # button that reveals it is the natural place to set the speed (one
+        # button, its content), but the CSS transition lives on the target,
+        # so this is the id-indexed reverse of `toggle_targets`. Two buttons
+        # naming the same target is an edge case not worth solving — the
+        # last one scanned wins, same as any other last-write map build.
+        self.toggle_speed = {}
         for _b in (raw.get("boxes") or []):
             if _b.get("act") == "toggle":
                 _t = _b.get("target")
+                _spd = _b.get("tglSpeed", 0.3)
                 for _x in (_t if isinstance(_t, list) else [_t]):
                     if _x:
                         self.toggle_targets.add(str(_x))
+                        self.toggle_speed[str(_x)] = _spd
         self.imgs = raw.get("img") or {}
         # Ruler guides the editor snaps to, as {x:[in…], y:[in…]}. Editor-only,
         # like `locked`: the renderer never emits a guide, so it cannot move a
@@ -1624,6 +1633,11 @@ class Layout:
                 if not tgts:
                     raise LayoutError(f"{where}: act 'toggle' needs a 'target' "
                                       "— the id (or list of ids) it reveals")
+                if b.get("tglSpeed") is not None:
+                    spd = _num(b["tglSpeed"], f"{where}.tglSpeed")
+                    if not 0.1 <= spd <= 2:
+                        raise LayoutError(f"{where}: tglSpeed {spd!r} — "
+                                          "seconds, 0.1 to 2")
                 known = ({x.get("id") for x in self.boxes}
                          | {x.get("id") for x in self.shapes}
                          | {x.get("id") for x in self.tables})
@@ -2167,23 +2181,71 @@ class Layout:
         # snake eating itself. Self-contained, like everything a box emits,
         # so it holds in a minimal scaffolded renderer with no CSS of its own.
         if any(b.get("act") for b in mine):
-            # Toggle mechanics ride along: a target starts collapsed on
-            # screen, the button's arrow turns when open, and PRINT shows
-            # everything — collapsed content is part of the document; hiding
-            # it is a screen affordance, and a PDF with invisible sections
-            # would read as missing content.
-            # :not() + revert, ONE rule for every target kind: display:none
-            # hides a div, a table and an SVG node alike, and revert hands
-            # each back its own natural display — block, table, inline — which
-            # a hard-coded `block` got wrong for two of the three.
+            # Toggle mechanics ride along: a target opens with a real height
+            # transition (max-height, JS-measured — see the shared dsTgl
+            # below), the button's arrow turns, and PRINT shows everything —
+            # collapsed content is part of the document; hiding it is a
+            # screen affordance, and a PDF with invisible sections would read
+            # as missing content.
+            #
+            # ONE rule for box, table AND shape targets alike, on purpose: a
+            # <div> or <table> genuinely has a height that max-height can
+            # animate, but an SVG shape (positioned by the page's own
+            # viewBox, not by document flow) has no CSS box height for
+            # max-height to act on at all — the property is simply inert
+            # there. Only opacity ever did anything for a shape target, on
+            # this rule or the display:none it replaced, so one shared rule
+            # costs nothing and a shape still fades correctly.
             out.append('<style>.ds-actbtn{cursor:pointer}'
                        '@media print{.ds-actbtn{display:none}}'
-                       '.ds-tglable:not(.ds-tgl-open){display:none}'
+                       '.ds-tglable{overflow:hidden;max-height:0;opacity:0;'
+                       'transition:max-height var(--ds-tgl-d,.3s) '
+                       'cubic-bezier(.2,.7,.3,1),opacity var(--ds-tgl-d,.3s) ease}'
+                       '.ds-tglable.ds-tgl-open{opacity:1}'
                        '.ds-tgl-i{display:inline-block;margin-left:.35em;'
-                       'vertical-align:-.12em;transition:transform .15s}'
+                       'vertical-align:-.12em;'
+                       'transition:transform var(--ds-tgl-d,.3s)}'
                        '.ds-tgl-on .ds-tgl-i{transform:rotate(180deg)}'
-                       '@media print{.ds-tglable:not(.ds-tgl-open)'
-                       '{display:revert}}</style>')
+                       '@media print{.ds-tglable{max-height:none!important;'
+                       'opacity:1!important;overflow:visible!important}}'
+                       '@media (prefers-reduced-motion:reduce){'
+                       '.ds-tglable{transition:none!important}'
+                       '.ds-tgl-i{transition:none!important}}</style>')
+            if not edit and not getattr(self, "_tgl_script_emitted", False):
+                self._tgl_script_emitted = True
+                # max-height cannot transition FROM 'none', and a fixed
+                # generous max-height (the no-JS way to fake this) makes the
+                # visible animation finish in whatever sliver of the duration
+                # it takes the real content height to pass it — for typical
+                # short content that reads as an instant snap, not a 0.3s
+                # ease. So this measures: scrollHeight keeps reporting the
+                # full laid-out content height even while max-height:0 is
+                # clipping it, so opening reads it BEFORE animating to it,
+                # and closing writes the CURRENT rendered height first (with
+                # a forced reflow so the browser commits it) before dropping
+                # to 0 — every close starts from a real number, never 'none'.
+                out.append(
+                    '<script>function __dsTgl(btn,ids,dur){'
+                    "var open=!btn.classList.contains('ds-tgl-on');"
+                    'ids.forEach(function(id){'
+                    'var el=document.getElementById(id);if(!el)return;'
+                    'if(open){'
+                    "el.style.maxHeight=el.scrollHeight+'px';"
+                    'var done=function(e){'
+                    "if(e.target!==el||e.propertyName!=='max-height')return;"
+                    "el.style.maxHeight='none';"
+                    "el.removeEventListener('transitionend',done)};"
+                    "el.addEventListener('transitionend',done)"
+                    '}else{'
+                    "el.style.maxHeight=el.scrollHeight+'px';"
+                    'void el.offsetHeight;'
+                    "el.style.maxHeight='0px'}"
+                    "el.classList.toggle('ds-tgl-open',open);"
+                    "el.setAttribute('aria-hidden',String(!open));"
+                    "el.toggleAttribute('inert',!open)});"
+                    "btn.classList.toggle('ds-tgl-on',open);"
+                    "btn.setAttribute('aria-expanded',String(open))}"
+                    '</script>')
         for b in mine:
             act = b.get("act")
             an = anim_attrs(b.get("anim"))
@@ -2225,18 +2287,19 @@ class Layout:
                 tgts = _t if isinstance(_t, list) else [_t]
                 # The button's own state drives every target to the SAME
                 # side, so a list can never drift half-open — and the same
-                # script serves one target or ten.
+                # call serves one target or ten.
                 arr = ",".join(f"'ds-x-{t}'" for t in tgts)
                 controls = " ".join(f"ds-x-{t}" for t in tgts)
+                spd = b.get("tglSpeed", 0.3)
+                # On the BUTTON's own style, not the target's: the arrow's
+                # rotation rides this element, and a var read here is set
+                # once at render time rather than by JS on every click.
+                full_btn = f'{full};--ds-tgl-d:{spd:g}s'
                 out.append(
                     f'<button type="button" class="ds-actbtn ds-tglbtn"{an} '
-                    f"onclick=\"var o=!this.classList.contains('ds-tgl-on');"
-                    f"[{arr}].forEach(function(i){{"
-                    f"document.getElementById(i).classList.toggle('ds-tgl-open',o)}});"
-                    f"this.classList.toggle('ds-tgl-on',o);"
-                    f"this.setAttribute('aria-expanded',o)\" "
+                    f'onclick="__dsTgl(this,[{arr}],{spd:g})" '
                     f'aria-expanded="false" aria-controls="{controls}" '
-                    f'style="{full};display:block;border:0;'
+                    f'style="{full_btn};display:block;border:0;'
                     f'font-family:inherit;box-sizing:border-box">'
                     f'{paragraph(b["md"])}'
                     f'{self.tgl_arrow(b["id"], edit)}</button>')
@@ -2265,16 +2328,18 @@ class Layout:
             # content you cannot edit.
             klass = "ds-textbox"
             extra = ""
+            tglFull = full
             if not edit and b["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{b["id"]}"'
+                tglFull = f'{full};--ds-tgl-d:{self.toggle_speed.get(b["id"], 0.3):g}s'
             # A toggle button keeps its chevron on the editor canvas too —
             # it is part of what the button IS, and it is the thing you click
             # to recolour it. Shut-side (pointing down), because that is the
             # state a reader meets the button in.
             arrow = self.tgl_arrow(b["id"], edit) if act == "toggle" else ""
             out.append(f'<div class="{klass}"{extra}{tag}{an} '
-                       f'style="{full}">'
+                       f'style="{tglFull}">'
                        f'{block_html(b["md"])}{arrow}</div>')
         return "".join(out)
 
@@ -2364,12 +2429,14 @@ class Layout:
                 body += f"<tr>{cells}</tr>"
             klass = "ds-table"
             extra = ""
+            tglSty = ""
             if not edit and t["id"] in self.toggle_targets:
                 klass += " ds-tglable"
                 extra = f' id="ds-x-{t["id"]}"'
+                tglSty = f';--ds-tgl-d:{self.toggle_speed.get(t["id"], 0.3):g}s'
             out.append(f'<table class="{klass}"{extra}{tag}'
                        f'{anim_attrs(t.get("anim"))} '
-                       f'style="{css}{";" + style if style else ""}">'
+                       f'style="{css}{";" + style if style else ""}{tglSty}">'
                        f'{colgroup}{body}</table>')
         return "".join(out)
 
@@ -2454,8 +2521,16 @@ class Layout:
     def _shape(self, s: dict) -> str:
         x, y, w, h = (float(s[k]) for k in ("x", "y", "w", "h"))
         # Publish-mode hook for a shape some toggle reveals — on the same one
-        # node that carries data-shape, whatever kind it is. display:none and
-        # the :not rule work on SVG elements exactly as on HTML ones.
+        # node that carries data-shape, whatever kind it is. .ds-tglable's
+        # rule applies to SVG elements exactly as it does to HTML ones —
+        # `max-height` is simply inert there (a shape has no box-model height
+        # for it to act on), so only its opacity half ever does anything.
+        # No --ds-tgl-d here deliberately: `shadow` below may already add
+        # this node's ONE style="…" attribute, and a second style= on the
+        # same element would be dropped by the parser, not merged — the
+        # default .3s the CSS rule falls back to is worth more than the
+        # per-shape speed. A shape target is also not a path either editor
+        # UI (addExpandable) currently builds.
         tgl = ("" if os.environ.get("DOCSYNC_EDIT")
                or s["id"] not in self.toggle_targets
                else f' id="ds-x-{s["id"]}" class="ds-tglable"')

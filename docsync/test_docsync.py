@@ -1320,17 +1320,56 @@ def _pair_layout(btn_extra=None, tgt_extra=None):
 os.environ.pop("DOCSYNC_EDIT", None)
 _tp = _pair_layout().text_boxes(1)
 check("toggle published: a real button", _tp, 'class="ds-actbtn ds-tglbtn"')
-check("toggle published: flips the target by id", _tp, "['ds-x-t2']")
-check("toggle published: the button's own state drives the flip", _tp,
-      "var o=!this.classList.contains('ds-tgl-on')")
+check("toggle published: flips the target by id, through the shared driver",
+      _tp, "onclick=\"__dsTgl(this,['ds-x-t2'],0.3)\"")
+check("toggle published: the shared driver flips the button's own state",
+      _tp, "var open=!btn.classList.contains('ds-tgl-on')")
 check("toggle published: the target carries that id", _tp, 'id="ds-x-t2"')
 check("toggle published: the target starts collapsed", _tp,
       "ds-textbox ds-tglable")
+check("toggle published: a REAL height transition, not an instant show/hide",
+      _tp, "transition:max-height var(--ds-tgl-d,.3s) cubic-bezier(.2,.7,.3,1),"
+           "opacity var(--ds-tgl-d,.3s) ease")
+check("toggle published: opening measures the target's true height before "
+      "animating to it — a fixed max-height would make short content snap "
+      "open almost instantly instead of easing over the full duration",
+      _tp, "el.style.maxHeight=el.scrollHeight+'px'")
+check("toggle published: opening settles at max-height:none once done, so a "
+      "reflow (a narrower viewport) never clips content that grew",
+      _tp, "el.style.maxHeight='none'")
+check("toggle published: closing commits a real starting height first — "
+      "max-height cannot transition FROM 'none'", _tp,
+      "void el.offsetHeight;el.style.maxHeight='0px'")
+check("toggle published: each button's own configured speed rides its style, "
+      "as the CSS var the transition reads", _tp, "--ds-tgl-d:0.3s")
+check("toggle published: collapsed content leaves the tab order too, not "
+      "just the screen", _tp, "el.toggleAttribute('inert',!open)")
 check("toggle published: PRINT shows everything — collapsing is a screen "
-      "affordance", _tp, "@media print{.ds-tglable:not(.ds-tgl-open){display:revert}}")
+      "affordance", _tp, "@media print{.ds-tglable{max-height:none!important;"
+      "opacity:1!important;overflow:visible!important}}")
+check("toggle published: reduced motion gets the open/closed STATE with no "
+      "animation, not a stuck-mid-transition element", _tp,
+      "@media (prefers-reduced-motion:reduce){.ds-tglable{transition:none!important}")
 check("toggle published: aria state tracks the flip", _tp,
-      "setAttribute('aria-expanded',o)")
+      "setAttribute('aria-expanded',String(open))")
 check("toggle published: the arrow that turns", _tp, "ds-tgl-i")
+check("toggle published: the arrow's own rotation rides the same speed",
+      _tp, "transition:transform var(--ds-tgl-d,.3s)")
+
+_tp2 = _pair_layout(btn_extra={"tglSpeed": 0.9}).text_boxes(1)
+check("toggle published: a configured speed rides both the onclick call and "
+      "the CSS var", _tp2, "__dsTgl(this,['ds-x-t2'],0.9)")
+check("toggle published: …and the target's own style, not just the button's",
+      _tp2, "--ds-tgl-d:0.9s")
+
+try:
+    _pair_layout(btn_extra={"tglSpeed": 3}); FAILS.append("tglSpeed 3 (>2) was accepted")
+except _LE as e:
+    check("tglSpeed above 2s is refused, named", str(e), "tglSpeed")
+try:
+    _pair_layout(btn_extra={"tglSpeed": 0.02}); FAILS.append("tglSpeed 0.02 (<0.1) was accepted")
+except _LE as e:
+    check("tglSpeed below 0.1s is refused", str(e), "tglSpeed")
 
 os.environ["DOCSYNC_EDIT"] = "1"
 try:
