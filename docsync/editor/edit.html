@@ -1085,6 +1085,12 @@
          own pushes are authorised — one code typed at github.com, no token
          to mint, no keychain to have set up. -->
     <button class="shp" id="file-ghconn" hidden>Connect GitHub…</button>
+    <!-- WHICH repo this report pushes to. Invisible until something failed,
+         before this: the slug lives in the staged manifest, and the first sign
+         most people got that it was wrong (or empty) was a 404 mid-Push. A row
+         that always names it turns "am I pointed at the right place?" into a
+         question you can answer BEFORE publishing. -->
+    <button class="shp" id="file-repo" hidden>Repo: …</button>
     <button class="shp" id="file-resize">Resize…</button>
     <p class="pop-h">This report</p>
     <!-- Download and Token MOVED here from the bar. Same ids and the same
@@ -12837,7 +12843,24 @@ function signIn() {
 
 /** The one front door for credentials: a live token, refreshed if stale,
  *  else GitHub sign-in, else the paste-a-token prompt. */
+/** Is this project pointed at a GitHub repo at all?
+ *
+ *  REPO comes from the manifest, which stage.py fills from the checkout's own
+ *  `git remote get-url origin`. A project with no origin — anything started
+ *  fresh rather than cloned — leaves it EMPTY, and every GitHub call then
+ *  builds https://api.github.com/repos// and 404s. tokenWhy() reads that 404
+ *  as a permissions problem, so the person is sent to regenerate a token that
+ *  was never the issue, and regenerating it changes nothing. Say the real
+ *  thing instead, and name the button that fixes it. */
+function requireRepo() {
+  if (REPO) return true;
+  $('stat').textContent =
+    'this report is not connected to a GitHub repo yet — File \u25b8 Connect GitHub';
+  return false;
+}
+
 async function ensureAuth() {
+  if (!requireRepo()) return null;
   await refreshAuth(false);
   const tok = localStorage.getItem('docsync-pat');
   if (tok) return tok;
@@ -13316,6 +13339,16 @@ function renderOpenList() {
 $('file').onclick = () => {
   // "Restore deleted" only exists when something IS deleted, and the count is
   // the only place the number is surfaced — a hidden element draws nothing.
+  // Name the repo this report pushes to, every time the menu opens — the
+  // empty case is the one that matters, and it is exactly the case that used
+  // to be invisible until a Push 404'd.
+  if (local) {
+    $('file-repo').hidden = false;
+    $('file-repo').textContent = REPO ? 'Repo: ' + REPO : 'Repo: not connected';
+    $('file-repo').title = REPO
+      ? 'Saves and Pushes go to github.com/' + REPO + ' — click to change'
+      : 'This report has no GitHub repo yet — click to connect or create one';
+  }
   const h = (layout.hidden || []).length;
   $('file-restore').hidden = !h;
   // No "(0)" — the count only means something when there IS something.
@@ -13385,6 +13418,98 @@ $('file-ghconn').onclick = async () => {
     ? `connected as ${login} — Push can now reach GitHub from this computer`
     : 'signed in — but the local server could not keep the credential';
 };
+
+/** Point this report at a GitHub repo — an existing one, or a new one made
+ *  on the spot.
+ *
+ *  Creating goes through the browser, not the server: the token is already
+ *  here, GitHub's create endpoint is a plain POST, and doing it here means the
+ *  server never needs a credential it does not already hold. Once the repo
+ *  exists, /__connect does the wiring the browser cannot — manifest.json,
+ *  projects.json and the checkout's git remote, which all have to agree. */
+$('file-repo').onclick = async () => {
+  $('filepop').hidden = true;
+  const r = await dsForm('GitHub repository', [
+    { name: 'slug', label: 'Repository (owner/name)', type: 'text',
+      value: REPO, placeholder: 'your-org/your-report', required: true },
+    { name: 'mode', label: 'It…', type: 'select', value: 'existing',
+      options: [{ value: 'existing', label: 'already exists on GitHub' },
+                { value: 'create', label: 'does not exist — create it (private)' }] },
+  ], { okLabel: 'Connect',
+       validate: (v) => /^[\w.-]+\/[\w.-]+$/.test((v.slug || '').trim())
+         ? null : 'Use the owner/name form, e.g. your-org/your-report' });
+  if (!r) return;
+  const slug = r.slug.trim().replace(/\.git$/, '');
+
+  if (r.mode === 'create') {
+    const tok = await ensureAuthForRepo(slug);
+    if (!tok) return;
+    $('stat').textContent = 'creating ' + slug + ' on GitHub…';
+    const [owner, name] = slug.split('/');
+    let login = '';
+    try {
+      login = (await (await fetch('https://api.github.com/user', {
+        headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' },
+      })).json()).login || '';
+    } catch (e) {}
+    // A repo under YOUR account and one under an org are different endpoints;
+    // pick by comparing the owner to who the token belongs to.
+    const url = (login && owner.toLowerCase() === login.toLowerCase())
+      ? 'https://api.github.com/user/repos'
+      : `https://api.github.com/orgs/${owner}/repos`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json',
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, private: true,
+                             description: 'Report edited with the docsync draft editor' }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      $('stat').textContent = res.status === 422 && t.includes('already exists')
+        ? `${slug} already exists — choose "already exists on GitHub" instead`
+        : `could not create ${slug}: ${res.status} ${t.slice(0, 140)}`;
+      return;
+    }
+    $('stat').textContent = 'created ' + slug + ' — wiring it up…';
+  }
+
+  await wireRepo(slug, false);
+};
+
+/** Tell the server which repo this project uses. Retries once with retarget
+ *  when the checkout already points somewhere else and the person confirms —
+ *  silently redirecting a checkout that already pushes is how work goes to the
+ *  wrong place. */
+async function wireRepo(slug, retarget) {
+  let j;
+  try {
+    j = await postLocal('/__connect', { project: M.id, repo: slug, retarget });
+  } catch (e) {
+    $('stat').textContent = 'could not connect: ' + e.message;
+    return;
+  }
+  if (!j.ok && j.needs_retarget) {
+    if (await dsConfirm(`This folder currently pushes to ${j.current}.\n\n`
+        + `Point it at ${slug} instead?`, { okLabel: 'Repoint', danger: true })) {
+      return wireRepo(slug, true);
+    }
+    $('stat').textContent = 'left pointing at ' + j.current;
+    return;
+  }
+  if (!j.ok) { $('stat').textContent = j.error || 'could not connect'; return; }
+  REPO = slug;
+  if (REGISTRY && REGISTRY[M.id]) REGISTRY[M.id].repo = slug;
+  $('stat').textContent = `connected to ${slug} — ${j.remote}. Push sends there.`;
+}
+
+/** ensureAuth, but for a repo we are about to CREATE — the normal guard would
+ *  refuse because REPO is still empty, which is the whole reason we are here. */
+async function ensureAuthForRepo(slug) {
+  const was = REPO;
+  REPO = slug;                     // so the token prompt names the right repo
+  try { return await ensureAuth(); } finally { REPO = was; }
+}
 
 $('open-all').onclick = () => { location.href = 'start.html'; };
 

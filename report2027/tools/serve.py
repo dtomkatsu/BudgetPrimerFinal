@@ -805,7 +805,7 @@ class Handler(SimpleHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path not in ("/__save", "/__push", "/__export", "/__upload",
                         "/__update", "/__rollback", "/__window",
-                        "/__scaffold", "/__adopt", "/__pull",
+                        "/__scaffold", "/__adopt", "/__connect", "/__pull",
                         "/__oauth/device/code", "/__oauth/device/token",
                         "/__oauth/save"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
@@ -820,6 +820,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._pull_content(req)
         if path == "/__scaffold":
             return self._scaffold(req)
+        if path == "/__connect":
+            return self._connect(req)
         if path == "/__adopt":
             return self._adopt(req)
         if path.startswith("/__oauth/"):
@@ -974,6 +976,85 @@ class Handler(SimpleHTTPRequestHandler):
         tmp.write_text(json.dumps(registry, indent=2) + "\n")
         tmp.replace(reg)
         return self._json(200, {"ok": True, "added": added})
+
+    def _connect(self, req):
+        """Point a project at a GitHub repo: manifest, registry, git remote.
+
+        The repo a project pushes to is recorded in THREE places that have to
+        agree — the staged manifest.json the editor reads, docs/primer's
+        projects.json the start page reads, and the checkout's own `origin`
+        that git actually pushes to. Setting one and not the others is how a
+        project ends up claiming a repo it cannot push to, so this does all
+        three or reports which one refused.
+
+        Creating the repo on GitHub is the browser's job (it holds the token
+        and can call the API directly); by the time this is called the repo
+        exists and only the wiring is left.
+        """
+        pid = str(req.get("project") or "").strip()
+        slug = str(req.get("repo") or "").strip().removesuffix(".git")
+        if pid not in PROJECTS:
+            return self._json(200, {"ok": False, "error": f"unknown project '{pid}'"})
+        # A segment of "." or ".." matches a naive [\w.-]+ and would build a
+        # nonsense remote (https://github.com/../evil.git). Neither is a legal
+        # GitHub name, so require at least one alphanumeric per segment.
+        if not re.fullmatch(r"(?=[^/]*[A-Za-z0-9])[\w.-]+/(?=[^/]*[A-Za-z0-9])[\w.-]+", slug):
+            return self._json(200, {"ok": False,
+                                    "error": f"'{slug}' is not an owner/name repo slug"})
+        p = PROJECTS[pid]
+        root, b = p["root"], p["binding"]
+        if not b.editor:
+            return self._json(200, {"ok": False, "error": f"'{pid}' has no editor"})
+
+        # git remote: add when absent, and only RETARGET when asked, so a
+        # checkout that already pushes somewhere is never silently redirected.
+        remote_note = "left as it was"
+        try:
+            current = _git(root, "remote", "get-url", "origin").strip()
+        except Exception:
+            current = ""
+        want = f"https://github.com/{slug}.git"
+        try:
+            if not current:
+                _git(root, "remote", "add", "origin", want)
+                remote_note = f"origin set to {slug}"
+            elif req.get("retarget") and _slug_of(current) != slug:
+                _git(root, "remote", "set-url", "origin", want)
+                remote_note = f"origin retargeted to {slug}"
+            elif _slug_of(current) != slug:
+                return self._json(200, {"ok": False, "error":
+                    f"this checkout already pushes to {_slug_of(current) or current}. "
+                    f"Choose that repo, or confirm the change to point it at {slug}.",
+                    "needs_retarget": True, "current": _slug_of(current)})
+        except Exception as e:                       # noqa: BLE001 — report it
+            return self._json(200, {"ok": False, "error": f"could not set the remote: {e}"})
+
+        # manifest.json — what the editor reads on boot
+        man = b.editor.dir / "engine" / "manifest.json"
+        try:
+            m = json.loads(man.read_text())
+            m["repo"] = slug
+            tmp = man.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(m, indent=2) + "\n")
+            tmp.replace(man)
+        except (OSError, json.JSONDecodeError) as e:
+            return self._json(200, {"ok": False, "error": f"could not write the manifest: {e}"})
+
+        # projects.json — what the start page reads
+        reg = DOCS / "primer" / "projects.json"
+        try:
+            registry = json.loads(reg.read_text()) if reg.is_file() else {}
+        except json.JSONDecodeError:
+            registry = {}
+        entry = registry.get(pid) or dict(_default_registry().get(pid) or {})
+        entry["repo"] = slug
+        registry[pid] = entry
+        reg.parent.mkdir(parents=True, exist_ok=True)
+        tmp = reg.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(registry, indent=2) + "\n")
+        tmp.replace(reg)
+        _default_registry.cache_clear()
+        return self._json(200, {"ok": True, "repo": slug, "remote": remote_note})
 
     def _oauth(self, path, req):
         """The device flow, proxied — and the token, kept for git.
@@ -1403,6 +1484,12 @@ def _tool_path() -> str:
     extra = [str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin",
              "/usr/local/bin", "/opt/local/bin"]
     return os.pathsep.join(seen + [p for p in extra if p and p not in seen])
+
+
+def _slug_of(url: str) -> str:
+    """'owner/name' from either git URL form, or '' when it is neither."""
+    m = re.search(r"[:/]([\w.-]+/[\w.-]+?)(?:\.git)?$", (url or "").strip())
+    return m.group(1) if m else ""
 
 
 def _write_atomic(path: Path, text: str) -> None:
