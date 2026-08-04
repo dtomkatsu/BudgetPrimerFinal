@@ -8080,12 +8080,23 @@ function restoreCentre(c, s) {
   const wantY = c.y - (stage.clientHeight / s) / 2;
   stage.scrollLeft = wantX;
   sc.scrollTop = wantY;
-  // Did it take? A scroller refuses anything past its own ends, and at a
-  // zoom where the whole report fits there is nowhere to put the anchor at
+  // Did it take? A scroller refuses anything past EITHER of its ends, and at
+  // a zoom where the whole report fits there is nowhere to put the anchor at
   // all. Say so, so the next measurement does not mistake the clamp for the
   // reader's position and lose it for good.
-  restoreClamped = Math.abs(sc.scrollTop - Math.max(0, wantY)) > 1
-                || Math.abs(stage.scrollLeft - Math.max(0, wantX)) > 1;
+  //
+  // Compared against the RAW want, not a Math.max(0, …) of it. Pre-clamping
+  // the wanted value made the top of the document invisible to this test: at
+  // scrollTop 0 a negative want compares 0 against 0, no gap, no flag — so
+  // zooming out from the top, where every step wants to scroll ABOVE the
+  // document, was never once reported as clamped. viewCentre then measured
+  // the clamped position as if it were a choice, and since a shorter viewport
+  // anchored at 0 has its centre further down the page, the anchor slid a
+  // little further into the document on every step out. Zooming back in
+  // faithfully restored that drift: 200% → 25% → 200% at the top of the tax
+  // testimony one-pager came back on page 2, 1296px adrift.
+  restoreClamped = Math.abs(sc.scrollTop - wantY) > 1
+                || Math.abs(stage.scrollLeft - wantX) > 1;
 }
 
 function applyZoom(recompute = true) {
