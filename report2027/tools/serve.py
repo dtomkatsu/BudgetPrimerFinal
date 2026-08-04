@@ -1358,6 +1358,28 @@ def _assets_dir(b) -> Path:
     return out.parent / "assets"
 
 
+def _tool_path() -> str:
+    """PATH for the git subprocesses, widened to where tools actually install.
+
+    A launcher-started server is reparented to launchd and inherits its
+    minimal PATH — /usr/bin:/bin:/usr/sbin:/sbin — which has none of the
+    places a Mac puts user-installed binaries. git itself is in /usr/bin so
+    everything LOOKS fine, right up until git shells out to something that
+    isn't: a Git LFS pre-push hook is the one that bites, because it is
+    installed globally via core.hooksPath and then refuses the push of any
+    repo, LFS or not, with "'git-lfs' was not found on your path". The same
+    push from a terminal works, which makes it read as a server bug rather
+    than an environment one.
+
+    Appended, never prepended: a PATH the user really set (running serve.py
+    from a shell) keeps deciding which git and which tools win.
+    """
+    seen = os.environ.get("PATH", "").split(os.pathsep)
+    extra = [str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin",
+             "/usr/local/bin", "/opt/local/bin"]
+    return os.pathsep.join(seen + [p for p in extra if p and p not in seen])
+
+
 def _git(root: Path, *args, timeout=45):
     # A detached dev server has no terminal and no GUI session to answer a
     # credential prompt, so a git that decides to ASK — a first push before the
@@ -1367,7 +1389,8 @@ def _git(root: Path, *args, timeout=45):
     # you can act on. A credential already in the keychain is still used without
     # a prompt, so a push that worked keeps working.
     env = {**os.environ, "GIT_TERMINAL_PROMPT": "0",
-           "GIT_SSH_COMMAND": "ssh -o BatchMode=yes -o ConnectTimeout=10"}
+           "GIT_SSH_COMMAND": "ssh -o BatchMode=yes -o ConnectTimeout=10",
+           "PATH": _tool_path()}
     try:
         r = subprocess.run(["git", "-C", str(root), *args], capture_output=True,
                            text=True, env=env, timeout=timeout)
