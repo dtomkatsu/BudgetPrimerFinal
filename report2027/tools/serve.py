@@ -1275,16 +1275,41 @@ class Handler(SimpleHTTPRequestHandler):
         push you were not ready to make yet."""
         p = PROJECTS[pid]
         root, b = p["root"], p["binding"]
-        wrote = []
+        targets = []
         if req.get("content") is not None:
-            b.content.write_text(req["content"]); wrote.append(b.content.name)
+            targets.append((b.content, req["content"]))
         if req.get("layout") is not None and b.editor and b.editor.layout:
-            b.editor.layout.write_text(req["layout"]); wrote.append(b.editor.layout.name)
-        if not wrote:
+            targets.append((b.editor.layout, req["layout"]))
+        if not targets:
             return "nothing to save"
-        rebuild(pid, "save")                          # so the built page is current
-        if STATE[pid].error:
-            raise RuntimeError("the draft does not build — nothing was saved:\n" + STATE[pid].error)
+
+        # Remember what was on disk BEFORE touching it. The build runs against
+        # the written files, so a draft that does not build has already
+        # overwritten the author's work by the time we find out — and the error
+        # said "nothing was saved", which was simply false: the previous
+        # content.md was gone, recoverable only from git, and only if it had
+        # been committed. Keeping the old bytes lets that promise be true.
+        previous = [(path, path.read_text() if path.exists() else None)
+                    for path, _ in targets]
+        wrote = []
+        try:
+            for path, text in targets:
+                _write_atomic(path, text)
+                wrote.append(path.name)
+            rebuild(pid, "save")                      # so the built page is current
+            if STATE[pid].error:
+                raise RuntimeError(
+                    "the draft does not build — nothing was saved:\n" + STATE[pid].error)
+        except Exception:
+            # Put every file back exactly as it was, then rebuild so the served
+            # page matches the restored source rather than the rejected draft.
+            for path, old in previous:
+                if old is not None:
+                    _write_atomic(path, old)
+                elif path.exists():
+                    path.unlink()
+            rebuild(pid, "save-rollback")
+            raise
         # Commit ONLY these paths — never whatever else happens to be staged.
         # A path-scoped commit ignores the rest of the index, so an unrelated
         # `git add` elsewhere can never ride along on a Save.
@@ -1378,6 +1403,30 @@ def _tool_path() -> str:
     extra = [str(Path.home() / ".local" / "bin"), "/opt/homebrew/bin",
              "/usr/local/bin", "/opt/local/bin"]
     return os.pathsep.join(seen + [p for p in extra if p and p not in seen])
+
+
+def _write_atomic(path: Path, text: str) -> None:
+    """Replace a file's contents in one step, or not at all.
+
+    path.write_text() truncates the target and then writes into it, so a crash,
+    a full disk or a killed server between those two moments leaves the file
+    empty or half-written — and for this server that file is the author's whole
+    document. Writing a sibling temp file and renaming makes the swap atomic on
+    POSIX: readers see either all the old bytes or all the new ones, never a
+    torn middle. The temp file is a sibling, not /tmp, because os.replace is
+    only atomic within a filesystem.
+    """
+    tmp = path.with_name(path.name + ".tmp-save")
+    try:
+        tmp.write_text(text)
+        os.replace(tmp, path)
+    finally:
+        # A failure before the rename leaves the temp behind; never leave litter
+        # next to a report's source.
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
 
 
 def _git(root: Path, *args, timeout=45):
