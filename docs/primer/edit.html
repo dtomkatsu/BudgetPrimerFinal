@@ -10909,18 +10909,25 @@ function updateHealth(d) {
   if (!u) return;                       // older server: no update reporting
   const ver = $('ver');
   if (u.sha) {
-    ver.hidden = false;
-    ver.textContent = u.sha;
+    // Updates arrive on their own, so a bad one reaches everyone at once and
+    // the people it reaches have no git at their fingertips. The way back has
+    // to be somewhere they will actually find it — not a terminal command in
+    // a README — and this chip is still the only thing bound to it.
+    rollbackTo = u.rollback || '';
+    // It no longer SITS there showing the running sha. Seven hex characters
+    // parked beside the zoom bar read as a stray colour code to anyone not
+    // holding a git log, and they were permanent furniture for information
+    // almost nobody needed: which build is running is in the tooltip, and
+    // whether a newer one exists is what the Update button is for. So the
+    // chip appears only when it can actually DO something — undo an update
+    // that has landed — and says that in words rather than in a sha.
+    ver.hidden = !rollbackTo;
+    ver.textContent = rollbackTo ? 'Undo update' : '';
+    ver.classList.toggle('can-undo', !!rollbackTo);
     ver.title = 'Running version ' + u.sha + (u.date ? ' (' + u.date + ')' : '')
       + (u.behind ? '\n' + u.behind + ' newer version'
                     + (u.behind > 1 ? 's are' : ' is') + ' available.'
                   : '\nThis is the latest version.');
-    // Updates arrive on their own, so a bad one reaches everyone at once and
-    // the people it reaches have no git at their fingertips. The way back has
-    // to be somewhere they will actually find it, which is the thing already
-    // showing them a version — not a terminal command in a README.
-    rollbackTo = u.rollback || '';
-    ver.classList.toggle('can-undo', !!rollbackTo);
     if (rollbackTo) {
       ver.title += '\n\nClick to go back to ' + rollbackTo
         + ', the version in use before the last update.';
