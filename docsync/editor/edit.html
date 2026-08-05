@@ -2420,12 +2420,34 @@ function pasteClean(d, host, e, { allowLists = false, inline = false, allowMd = 
       b.replaceWith(...b.childNodes);
     });
   }
-  while (holder.firstChild) frag.appendChild(holder.firstChild);
 
   const r = saveRange(d, host) || (() => {
     const rr = d.createRange(); rr.selectNodeContents(host); rr.collapse(false); return rr;
   })();
   r.deleteContents();                    // a paste DOES replace the selection
+
+  // ONE pasted paragraph joins the paragraph the caret is in; it does not
+  // become a paragraph inside it. mdToHtml wraps everything in a block —
+  // even a single word — so pasting "WORD" mid-sentence produced
+  // <p>Alpha beta <p>WORD</p>gamma delta.</p>. A <p> inside a <p> is not
+  // valid HTML and the browser lays the inner one out as its own block, so
+  // the pasted word appeared on the next line. htmlToMd flattened it again
+  // at commit, which is why nothing was ever LOST and why it looked
+  // intermittent — the break was only ever on screen, until the next render
+  // silently put it back. Several blocks really are several paragraphs, so
+  // those still go in whole.
+  if (!inline) {
+    let n = r.startContainer;
+    if (n.nodeType === Node.TEXT_NODE) n = n.parentElement;
+    const caretBlock = n && n.closest ? n.closest('p, li, h2, h3') : null;
+    const kids = [...holder.children];
+    if (caretBlock && host.contains(caretBlock)
+        && kids.length === 1 && kids[0].tagName === 'P') {
+      kids[0].replaceWith(...kids[0].childNodes);
+    }
+  }
+  while (holder.firstChild) frag.appendChild(holder.firstChild);
+
   const last = frag.lastChild;
   r.insertNode(frag);
   if (last) { r.setStartAfter(last); r.collapse(true); }
