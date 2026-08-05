@@ -13905,6 +13905,238 @@ async function doExport(fmt) {
   }
 }
 
+// =========================== pilot API ====================================
+// window.docsync.api — the stable command surface for driving this editor
+// PROGRAMMATICALLY: an AI pilot, a script, a console session. The UI's click
+// paths are built for a hand and an eye; a program driving them spends its
+// time screenshot-hunting coordinates and re-discovering state. This is the
+// same fast path the test suite has always used — the editor's own verbs —
+// blessed and held stable.
+//
+// The contract, and why it is safe to hand to an automaton:
+//   · every mutating verb goes through pushHistory() FIRST, so anything a
+//     pilot does is one ⌘Z away from undone, exactly like a human edit;
+//   · writes land in source/layout and re-render through the one render() —
+//     the same validation, the same refusals, no private side door;
+//   · nothing here touches the repo, the engine, or Save/Push. Saving stays
+//     an explicit act (api.save() presses the same button) and pushing stays
+//     with the human, as it always has.
+//   · every verb returns plain JSON-serialisable data (geometry in page
+//     INCHES), so a pilot needs no screenshot to know what happened —
+//     status() carries dirty/overflow, mutators return the new geometry.
+//
+// A pilot's loop is: inventory() once to learn the ids, then verbs by id.
+// Element ids are inventory's `elements[].id` (data-el/data-shape); slot
+// keys are `slots[].key`. Mutators refuse while an inline text editor is
+// open (`editing`) — matching edit()'s own rule — rather than committing
+// over someone's caret.
+window.docsync = Object.assign(window.docsync || {}, { api: {
+  version: 1,
+
+  /** Cheap state check — poll after save(), read dirty/overflow anytime. */
+  status() {
+    return {
+      ok: true, project: M.id, dirty, editing, scale: curScale, local,
+      page: { w: PAGE_W_IN, h: PAGE_H_IN,
+              pageless: !!(layout.page && layout.page.h == null) },
+      overflow: [...new Set(lastFit.map(b => b.page))],
+      selected: [...selIds], selectedPage: selPage,
+    };
+  },
+
+  /** The whole document as data: pages in order, every element with its id,
+   *  kind and box in page inches, every slot with a text snippet. Replaces
+   *  the screenshot-and-hunt loop — read this once, then act by id. */
+  inventory() {
+    const d = $('out').contentDocument;
+    const pages = [...d.querySelectorAll('section.page')].map((pg, i) => {
+      const seen = new Set();
+      const elements = [];
+      pg.querySelectorAll('[data-el], [data-shape]').forEach(el => {
+        const id = idOf(el);
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        const sh = layout.shapes.find(s => s.id === id);
+        let box = null;
+        try {
+          const b = sh ? shapeBox(el, pg) : inchBox(el, pg);
+          box = { x: +b.x.toFixed(2), y: +b.y.toFixed(2),
+                  w: +b.w.toFixed(2), h: +b.h.toFixed(2) };
+        } catch (err) { /* an unmeasurable element still lists */ }
+        elements.push({
+          id,
+          kind: sh ? (sh.kind || 'shape')
+            : id.startsWith('text.') ? 'textbox'
+            : id.startsWith('table.') ? 'table'
+            : id.startsWith('endnote.') ? 'endnote'
+            : id.startsWith('para.') ? 'prose' : 'designed',
+          box,
+          locked: isLocked(id),
+          text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80),
+        });
+      });
+      const slotSeen = new Set();
+      const slots = [];
+      pg.querySelectorAll('[data-slot]').forEach(el => {
+        const key = el.dataset.slot;
+        if (slotSeen.has(key)) return;      // a slot can render several <p>s
+        slotSeen.add(key);
+        slots.push({ key,
+          text: (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80) });
+      });
+      return { id: pg.dataset.page != null ? pg.dataset.page : String(i + 1),
+               index: i, elements, slots };
+    });
+    return { ok: true, project: M.id, pageOrder: pageOrder(), pages,
+             sources: parseSources(), ...docsync.api.status() };
+  },
+
+  /** A slot's current markdown, exactly as content.md holds it. */
+  getSlot(key) {
+    if (!slotRe(key).test(source)) return { ok: false, error: `no slot '${key}'` };
+    return { ok: true, key, md: readSlot(key) };
+  },
+
+  /** Replace a slot's markdown. The renderer's own grammar applies — what
+   *  it cannot express is flattened, the same as typing it. */
+  async setSlot(key, md) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    if (!slotRe(key).test(source)) return { ok: false, error: `no slot '${key}'` };
+    if (key === 'sources') {
+      const bad = badSourceLines(md);
+      if (bad.length) return { ok: false, error: `malformed sources line: "${bad[0]}"` };
+    }
+    pushHistory();
+    writeSlot(key, md);
+    markDirty();
+    await render();
+    return docsync.api.status();
+  },
+
+  /** Move and/or size an element, in page inches. Same write path as a drag:
+   *  placer() handles coordinate-space correction for elements inside
+   *  positioned ancestors, clamps to the page, and pins prose width. No
+   *  snapping — exact coordinates were asked for. */
+  async place(id, { x, y, w, h } = {}) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const d = $('out').contentDocument;
+    const sel = `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`;
+    const el = d.querySelector(sel);
+    if (!el) return { ok: false, error: `no element '${id}' — check inventory()` };
+    if (isLocked(id)) return { ok: false, error: `'${id}' is locked — unlock it first` };
+    pushHistory();
+    const page = el.closest('section.page') || d.querySelector('section.page');
+    if (x != null || y != null) {
+      const P = placer(d, el, page);
+      P.commit(P.put(x != null ? +x : P.box.x, y != null ? +y : P.box.y, false));
+    }
+    // Explicit size lands where each kind keeps it — the same fields the
+    // resize handles write. A designed element has no free height (its
+    // content decides), so h applies to shapes and boxes only.
+    const sh = layout.shapes.find(s => s.id === id);
+    const bx = boxOf(id);
+    if (w != null) {
+      if (sh) sh.w = +w;
+      else if (bx) bx.w = +w;
+      else layout.positions[id] = { ...(layout.positions[id] || {}), w: +w };
+    }
+    if (h != null) { if (sh) sh.h = +h; else if (bx) bx.h = +h; }
+    markDirty();
+    await render();
+    const d2 = $('out').contentDocument;
+    const el2 = d2.querySelector(sel);
+    const pg2 = el2 && (el2.closest('section.page') || d2.querySelector('section.page'));
+    let box = null;
+    try {
+      if (el2) {
+        const b = sh ? shapeBox(el2, pg2) : inchBox(el2, pg2);
+        box = { x: +b.x.toFixed(2), y: +b.y.toFixed(2),
+                w: +b.w.toFixed(2), h: +b.h.toFixed(2) };
+      }
+    } catch (err) { /* report status without geometry */ }
+    return { ...docsync.api.status(), id, box };
+  },
+
+  /** Recolour anything fillable: a shape/box/mark id, or 'page.<pid>' for a
+   *  page background. null resets to the design's own colour. */
+  async recolor(id, fill) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    pushHistory();
+    fillTargets(id).set(fill);
+    markDirty();
+    await render();
+    paintSel($('out').contentDocument);
+    return { ...docsync.api.status(), id, fill };
+  },
+
+  /** A new text box; returns its element id ('text.<n>') for place()/edit. */
+  async addTextBox({ page, x, y, w = 3, md = 'Your text here', style, fill } = {}) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    pushHistory();
+    const pid = page != null ? page : visiblePageId();
+    const id = freeBoxId();
+    const box = { id, page: pid, x: x != null ? +x : placeX(w), y: y != null ? +y : 2,
+                  w: +w, z: 2, md };
+    if (style && Object.keys(style).length) box.style = { ...style };
+    if (fill) box.fill = fill;
+    boxes().push(box);
+    markDirty();
+    await render();
+    return { ...docsync.api.status(), id: 'text.' + id, page: pid };
+  },
+
+  /** A blank page after `at` (order index) or after the page in view. */
+  async addPage(at) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const before = new Set(pageBlanks().map(b => b.id));
+    await addBlankPage(at);
+    const added = pageBlanks().map(b => b.id).find(id => !before.has(id)) || null;
+    return { ...docsync.api.status(), id: added, pageOrder: pageOrder() };
+  },
+
+  /** Declare a source; cite it by putting its [^id] token into slot text. */
+  async addSource(id, text, url) {
+    if (!/^[A-Za-z0-9._-]+$/.test(id || ''))
+      return { ok: false, error: 'id must be letters, numbers, . _ - only' };
+    if (sourceIds().includes(id)) return { ok: false, error: `[${id}] already exists` };
+    if (!(text || '').trim() || !/^\S+$/.test(url || ''))
+      return { ok: false, error: 'a citation text and a spaceless url are both required' };
+    pushHistory();
+    addSource(id, text.trim(), url.trim());
+    markDirty();
+    await render();
+    return { ...docsync.api.status(), id };
+  },
+
+  /** The endnotes section at the end of the document (idempotent). Refuses
+   *  where the Sources panel's button disables: a report whose renderer
+   *  draws its own list would get a duplicate that renumbers beside it. */
+  async addEndnotesSection() {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    if (rendererHasEndnotes())
+      return { ok: false, error: 'this report already draws its own endnotes list' };
+    const box = await addEndnotesSection({ silent: true });
+    return { ...docsync.api.status(), id: 'text.' + box.id };
+  },
+
+  async undo() { await undo(); return docsync.api.status(); },
+  async redo() { await redo(); return docsync.api.status(); },
+
+  /** Press Save — the same button, same rules. Refuses (rather than opening
+   *  a confirm dialog no pilot can click) while content overflows the print
+   *  cut. Poll status() until dirty is false. */
+  save() {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    if (lastFit.length) {
+      const pages = [...new Set(lastFit.map(b => b.page))];
+      return { ok: false, error: `page${pages.length > 1 ? 's' : ''} `
+        + `${pages.join(', ')} would be cut off in print — fix the overflow first` };
+    }
+    $('save').click();
+    return { ...docsync.api.status(), note: 'save requested — poll status() until dirty is false' };
+  },
+} });
+
 addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 // Registered here, not blocking boot() — the editor works with no service
 // worker at all (this is a progressive enhancement, not a dependency), and a
