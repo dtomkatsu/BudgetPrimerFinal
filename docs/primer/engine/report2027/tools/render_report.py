@@ -533,7 +533,12 @@ def fig6_chart():
     # Geometry matched to the original: bar width 58.6pt, tallest bar 195.8pt,
     # value 14pt / quintile 11.9pt / range 10.6pt. The SVG renders 720u across
     # the 7.26in text column, so 1u = 0.726pt.
-    W, H, BW = 720, 390, 80
+    # H is the viewBox height, and it is deliberately snug: the deepest ink is
+    # the second range label's descender at ~366u, so 368 leaves a hairline and
+    # nothing more. It used to be 390, and those 24 empty units cost the page
+    # 23px of height that page 11 needs at the bottom — the chart is tall
+    # enough that its own dead space was crowding the closing paragraph.
+    W, H, BW = 720, 368, 80
     BASE, MAXH = 300, 285          # 285u = 207pt tall for the 15% gridline
     gap = (W - 40 - 7 * BW) / 6
     out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
