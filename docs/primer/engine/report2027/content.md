@@ -332,7 +332,7 @@ Percentage of Income Paid in State and Local Taxes by Household Income Quintile 
 [[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the GET, which affects lower-income taxpayers more than others. When a low-income person and a wealthy person purchase the same items, they pay the same dollar amount of GET. However, that dollar amount represents a much larger chunk of the low-income person’s paycheck, making it harder to budget for. Too often, this keeps low-income families trapped in cycles of poverty and debt.
 
-This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Historically, Native Hawaiians were marginalized by
+This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Historically, Native Hawaiians have faced challenges with food security
 
 Hawaiʻi must build a tax system that supports these marginalized groups, by reducing their taxes and investing tax dollars in policies that lower the cost of living. Tax credits (and other forms of assistance) are an excellent way to give people of color and low-income communities more leeway to pay for their basic necessities.
 
