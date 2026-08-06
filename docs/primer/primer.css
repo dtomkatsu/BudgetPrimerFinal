@@ -9,7 +9,14 @@
      for Glober, the brand's licensed print typeface (see sources/original_primer_fy2526.pdf,
      which has Glober Black/Bold/SemiBold embedded). Swap in real Glober by loading
      a licensed webfont kit and overriding --display/--heading. */
-  --display: "Barlow", "Glober Black", sans-serif;
+  /* Cover display face ONLY (.cover-title / .cover-year — nothing else reads
+     --display). The FY2025–26 cover set its title in Encorpada Classic, a
+     licensed high-contrast serif used on page 1 and nowhere else in that book;
+     Glober ran the interior. Noto Serif Display 600 is the closest free stand-in
+     measured against the real outlines: set width within 0.4%, comparable stem
+     weight and hairline contrast — and it has a true ʻokina, which Bodoni Moda,
+     Libre Bodoni, DM Serif and Prata all lack. */
+  --display: "Noto Serif Display", Georgia, "Times New Roman", serif;
   --heading: "Barlow", "Glober Black", sans-serif;
   --body: "Source Sans 3", "Source Sans Pro", sans-serif;
 }
@@ -118,9 +125,13 @@ a { color: var(--dark); }
 .logo-lockup.light { justify-content: center; }
 .logo-img { height: 40px; width: auto; display: block; }
 .cover .logo-img { height: 95px; margin-top: 10px; }
-.cover-title { font-family: var(--display); font-weight: 900; color: var(--sage); font-size: 108px;
+/* 900 was right for Barlow; the serif's matching weight is 600. Size is set so
+   the longest line fills the column, as it did on the FY2025–26 cover, where the
+   title ran nearly the full sheet width. */
+.cover-title { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 158px;
                line-height: .95; margin-top: .35in; border: none; padding: 0; }
-.cover-year { font-family: var(--display); font-weight: 900; color: var(--sage); font-size: 44px;
+/* 0.40 x the title, the ratio Encorpada held on the FY2025–26 cover (48pt/120pt) */
+.cover-year { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 63px;
               text-align: right; margin-top: .25in; }
 
 /* toc page */

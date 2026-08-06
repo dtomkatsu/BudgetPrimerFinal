@@ -205,6 +205,10 @@ FONTS = {
     "Barlow":         [400, 500, 600, 700, 800, 900],
     "Source Sans 3":  [300, 400, 600, 700],
     "Playfair Display": [400, 500, 600, 700, 800, 900],
+    # High-contrast display serif, and one of the few with a true ʻokina
+    # (U+02BB) — Bodoni Moda, Libre Bodoni, DM Serif and Prata all lack it,
+    # which rules them out for any Hawaiian-language title.
+    "Noto Serif Display": [400, 500, 600, 700, 800, 900],
     "Merriweather":   [300, 400, 700, 900],
     "Lora":           [400, 500, 600, 700],
     "Libre Baskerville": [400, 700],

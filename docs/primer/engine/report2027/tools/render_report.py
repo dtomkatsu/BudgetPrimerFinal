@@ -1392,6 +1392,13 @@ html = f"""<!DOCTYPE html>
 <title>Hawaiʻi Budget Primer FY2026–27 — Hawaiʻi Appleseed</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 {L.font_link()}
+<!-- The cover display face, requested separately because font_link() only emits
+     the engine's brand fonts plus whatever layout.json styles ask for, and this
+     family is not in the editor's allowlist (docsync/layout.py FONTS). Stands in
+     for Encorpada Classic, the licensed serif on the FY2025-26 cover: matched on
+     stem weight, hairline contrast and set width, and unlike the Bodoni family
+     it carries a real ʻokina (U+02BB). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600&display=swap">
 <link rel="stylesheet" href="primer.css">
 </head>
 <body{' class="ds-bleed"' if os.environ.get("DOCSYNC_MARKS") else ''}>
