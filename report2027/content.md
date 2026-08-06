@@ -44,16 +44,16 @@ Copyright © 2026 Hawaiʻi Appleseed Center for Law & Economic Justice. All righ
 # BUDGET BASICS
 
 [[basics.p1]]
-**THE INVESTMENTS** that Hawaiʻi's government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage policy decisions that lift up Hawaiʻi's working families.
+**THE INVESTMENTS** that Hawaiʻi’s government makes in its people through the state budget should reflect our shared priorities and values. This budget primer is intended to help readers understand how our state budget works and to encourage policy decisions that lift up Hawaiʻi’s working families.
 
 [[basics.p2]]
-The state budget funds Hawaiʻi's three government branches: the Legislature; the Judiciary; and the Executive. A small portion funds the Office of Hawaiian Affairs (OHA) as well. More than 99 percent of the state budget goes toward funding the executive branch.
+The state budget funds Hawaiʻi’s three government branches: the Legislature; the Judiciary; and the Executive. A small portion funds the Office of Hawaiian Affairs (OHA) as well. More than 99 percent of the state budget goes toward funding the executive branch.
 
 [[basics.branch.legislature.title]]
 ### Legislature
 
 [[basics.branch.legislature.bullets]]
-- Creates laws and decides how the state's money is spent.
+- Creates laws and decides how the state’s money is spent.
 - Consists of the State Senate and House of Representatives, Office of the Auditor, Office of the Ombudsman, and the Legislative Reference Bureau.
 
 [[basics.branch.judiciary.title]]
@@ -141,7 +141,7 @@ Prep of proposed exec budget
 # HOW MONEY IS SPENT
 
 [[spent.p1]]
-Government spending is essential for the economy, especially in times of crisis. The executive branch alone employs over 47,000 workers, not including contractors.[^workforce-profile] These employees are in charge of Hawaiʻi's departments and agencies—a task that is only made possible with billions of dollars in funding.
+Government spending is essential for the economy, especially in times of crisis. The executive branch alone employs over 47,000 workers, not including contractors.[^workforce-profile] These employees are in charge of Hawaiʻi’s departments and agencies—a task that is only made possible with billions of dollars in funding.
 
 [[spent.p2]]
 There are three types of spending: operating, capital improvement, and one-time/emergency appropriations.
@@ -165,7 +165,7 @@ There are three types of spending: operating, capital improvement, and one-time/
 - Temporary funding for unexpected needs, such as disaster response or special projects.
 
 [[spent.p3]]
-Since it manages the state's departments and agencies, the Executive Branch receives almost all of the funds in each spending category.
+Since it manages the state’s departments and agencies, the Executive Branch receives almost all of the funds in each spending category.
 
 [[spent.table1.caption]]
 Budget Breakdown by Branch and Spending Category, Hawaiʻi,
@@ -204,13 +204,13 @@ For detailed, program-level data on the state budget:
 Explore the interactive Budget Tracker →
 
 [[categories.p1]]
-The Executive departments with the largest overall budgets are the Departments of Human Services, Transportation, Budget and Finance, and Education. The Department of Transportation's Capital Improvement Appropriations budget is larger than its operating budget—the state's airports, harbors, and highways are in the middle of a multi-year construction cycle. The Department of Health has a larger operating budget than all but four departments, and the DOE operating budget covers K–12 public school teacher salaries statewide.
+The Executive departments with the largest overall budgets are the Departments of Human Services, Transportation, Budget and Finance, and Education. The Department of Transportation’s Capital Improvement Appropriations budget is larger than its operating budget—the state’s airports, harbors, and highways are in the middle of a multi-year construction cycle. The Department of Health has a larger operating budget than all but four departments, and the DOE operating budget covers K–12 public school teacher salaries statewide.
 
 [[obligated.title]]
 ### Obligated Costs
 
 [[obligated.p1]]
-Before the state can consider any other spending, the Hawaiʻi constitution says it must pay its non-negotiable obligated costs. These costs include pensions, health benefits, Medicaid, and debt payments—and they are worth roughly $5 billion, or a quarter of the state's operating budget. The share of the operating budget that these costs consume is increasing each year, limiting the state's flexibility for new investments in areas like housing, schools, economic development and climate resilience.
+Before the state can consider any other spending, the Hawaiʻi constitution says it must pay its non-negotiable obligated costs. These costs include pensions, health benefits, Medicaid, and debt payments—and they are worth roughly $5 billion, or a quarter of the state’s operating budget. The share of the operating budget that these costs consume is increasing each year, limiting the state’s flexibility for new investments in areas like housing, schools, economic development and climate resilience.
 
 [[obligated.p2]]
 Except for Medicaid expenses, which are included in the budget for the Department of Human Services, the costs named above are covered by the Department of Budget and Finance. These two departments have the largest operating budgets, and obligated costs are a significant share for each.
@@ -234,7 +234,7 @@ General-fund fixed costs have climbed from {oblig_first} billion in FY2018 to {o
 Distribution of Capital Improvement Project Funding,
 
 [[cip.body]]
-The total budget for Capital Improvement Projects (CIP) in FY{fy} is {cip_total}. Transportation-related projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other things, the state's airports, harbors, and its 2,433 miles of roads and highways.[^hidot-visitor]
+The total budget for Capital Improvement Projects (CIP) in FY{fy} is {cip_total}. Transportation-related projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other things, the state’s airports, harbors, and its 2,433 miles of roads and highways.[^hidot-visitor]
 
 [[onetime.photo.alt]]
 Governor Josh Green and lawmakers at the HB 2296 bill signing
@@ -250,7 +250,7 @@ Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov
 
 [[onetime.cards.onetime.bullets]]
 - **Transportation & Budget/Finance:** $700 million in Act 99 — $600 million in county-surcharge transit funding and a new $100 million major disaster fund.[^act99]
-- **Accounting, Transportation, Land:** $200 million in Maui wildfire insurance proceeds to rebuild King Kamehameha III Elementary and restore Lahaina's harbor.[^act123]
+- **Accounting, Transportation, Land:** $200 million in Maui wildfire insurance proceeds to rebuild King Kamehameha III Elementary and restore Lahaina’s harbor.[^act123]
 - **DBEDT:** $49.5 million for the New Aloha Stadium district.[^act184]
 - **UH:** $28.5 million in revenue bonds for student housing.[^act80]
 - **Human Services:** $16.5 million to supplement health-plan premiums for residents losing ACA coverage.[^act21-partii]
@@ -273,10 +273,10 @@ Hawaiʻi Budget Means of Finance,
 ($Billions)[^act175-mof]
 
 [[funding.fig4.note]]
-Note: A few smaller related categories — including "other federal funds" — are currently grouped into "Other Funds"
+Note: A few smaller related categories — including “other federal funds” — are currently grouped into “Other Funds”
 
 [[funding.p1]]
-The state's spending primarily falls under three main categories: general funds, special funds and federal funds.
+The state’s spending primarily falls under three main categories: general funds, special funds and federal funds.
 
 [[funding.cards.general.title]]
 ### General Funds
@@ -309,7 +309,7 @@ Projected Hawaiʻi State Tax Revenue,
 ### General Excise Tax
 
 [[taxes.cards.get.bullets]]
-- The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state's tax revenue, but the tax increases the cost of living and hits low-income families the hardest.
+- The GET is a tax on the sale of goods and services such as retail purchases and rent. Hawaiʻi relies on the GET for half of the state’s tax revenue, but the tax increases the cost of living and hits low-income families the hardest.
 
 [[taxes.cards.iit.title]]
 ### Individual Income Tax
@@ -330,12 +330,12 @@ Projected Hawaiʻi State Tax Revenue,
 Percentage of Income Paid in State and Local Taxes by Household Income Quintile (2024)[^itep-whopays]
 
 [[whopays.p1]]
-In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the GET, which affects lower-income taxpayers more than others. When a low-income person and a wealthy person purchase the same items, they pay the same dollar amount of GET. However, that dollar amount represents a much larger chunk of the low-income person's paycheck, making it harder to budget for—and too often keeping low-income families trapped in cycles of poverty and debt. This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty]
+In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the GET, which affects lower-income taxpayers more than others. When a low-income person and a wealthy person purchase the same items, they pay the same dollar amount of GET. However, that dollar amount represents a much larger chunk of the low-income person’s paycheck, making it harder to budget for. Too often, this keeps low-income families trapped in cycles of poverty and debt.
 
-Hawaiʻi must build a tax system that supports these marginalized groups: by reducing their taxes and investing tax dollars in policies that lower the cost of living. Tax credits (and other forms of assistance) are an excellent way to give people of color and low-income communities more leeway to pay for their basic necessities.
+This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Hawaiʻi must build a tax system that supports these marginalized groups, by reducing their taxes and investing tax dollars in policies that lower the cost of living. Tax credits (and other forms of assistance) are an excellent way to give people of color and low-income communities more leeway to pay for their basic necessities.
 
 [[taxfair.h2]]
-## Making Hawaiʻi's Tax System Fairer
+## Making Hawaiʻi’s Tax System Fairer
 
 [[taxfair.intro]]
 These three policies would raise revenue from those best able to pay more, without affecting working families.
@@ -347,9 +347,9 @@ These three policies would raise revenue from those best able to pay more, witho
 Up to $132M a year
 
 [[taxfair.items.capgains.body]]
-Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 11 percent. As a result, someone who earns their income working a regular job pays the same tax rate—or potentially more—than an investor who profits off their stocks.[^capgains-loophole]
+Hawaiʻi taxes long-term capital gains at 7.25 percent, while wages are taxed up to 13 percent. As a result, someone who earns their income working a regular job pays potentially more than an investor who profits off their stocks.[^capgains-loophole]
 
-Over 70 percent of capital gains flow to households making more than $400,000. Taxing them as ordinary income would raise around $85 million to $132 million a year, with 88 percent of it coming from the top 1 percent.
+Over 70 percent of capital gains flow to households making more than $400,000. Taxing them as ordinary income would raise around $85 million to $132 million in new revenue a year, with 88 percent of it coming from the top 1 percent.
 
 [[taxfair.items.conveyance.title]]
 ### Modernize the Conveyance Tax
@@ -358,9 +358,9 @@ Over 70 percent of capital gains flow to households making more than $400,000. T
 $300M a year
 
 [[taxfair.items.conveyance.body]]
-Paid when a property changes hands, the conveyance tax is one of the few tools that captures revenue from Hawaiʻi's real estate market.[^conveyance-modernize] Its rates have not moved since 2009, even though out-of-state buyers have continued to make housing more expensive for everyone.
+Paid when a property changes hands, the conveyance tax is one of the few tools that allows the state to capture revenue from Hawaiʻi’s real estate market.[^conveyance-modernize] Its rates have not moved since 2009, even though out-of-state buyers have continued to drive up housing prices by turning homes into investment properties.
 
-House Bill 2049 would have shifted the tax to marginal rates—cutting it for most residents, raising it on high-value investment property—and directed up to $300 million a year to the General Fund, affordable housing funds, and the Department of Hawaiian Homelands.[^hb2049]
+House Bill 2049 (2026) would have shifted the tax to marginal rates—cutting it for most residents, while raising it on high-value investment properties. The bill would have directed up to $300 million a year to the General Fund, various affordable housing funds, and the Department of Hawaiian Homelands.[^hb2049]
 
 [[taxfair.items.loopholes.title]]
 ### Close Corporate Loopholes
@@ -385,6 +385,43 @@ The state should be investing more money in tax credits and other means of lifti
 [[endnotes.h1]]
 # ENDNOTES
 
+[[glossary.h1]]
+# KEY TERMS
+
+[[glossary.intro]]
+The words this primer uses most, gathered in one place.
+
+[[glossary.terms]]
+**Fiscal year (FY)** — July 1 through June 30, labeled by the calendar year in which it ends. FY2027 runs from July 2026 through June 2027.
+
+**Biennial budget** — Hawaiʻi budgets two years at a time. The full budget passes in odd-numbered years; the even-numbered year is for adjustments.
+
+**Operating budget** — The money that runs state programs day to day: salaries, services and benefits.
+
+**Capital Improvement Projects (CIP)** — The money that builds and maintains state assets: airports, harbors, roads and school facilities.
+
+**Obligated costs** — Non-negotiable spending the state must cover before anything else: pensions, health benefits, Medicaid and debt payments.
+
+**General funds** — Mostly tax revenue. The main pot of state money, usable for almost any state need.
+
+**Special funds** — Money from tuition, fees, settlements and similar sources, which can only be spent on a specific purpose.
+
+**Federal funds** — Money provided to the state by the federal government, almost always as grants.
+
+**General Excise Tax (GET)** — A tax on the sale of goods and services. Hawaiʻi relies on it for about half of the state’s tax revenue.
+
+**Transient Accommodations Tax (TAT)** — A tax on hotel rooms, short-term rentals and cruise ships, paid mainly by visitors.
+
+**Means of financing** — Which pot of money pays for a given appropriation.
+
+[[back.mission]]
+Hawaiʻi Appleseed is committed to a more socially and economically just Hawaiʻi, where everyone has genuine opportunities to achieve economic security and fulfill their potential.
+
+[[back.contact]]
+hiappleseed.org
+
+733 Bishop Street, Suite 1180, Honolulu, HI 96813
+
 [[table1.header.executive]]
 Executive[^act175-exec]
 
@@ -398,30 +435,30 @@ Legislature[^act1][^act127]
 OHA[^act248]
 
 [[sources]]
-[workforce-profile]: "State of Hawaiʻi Executive Branch Workforce Profile," Hawaiʻi State Department of Human Resources Development, p. 5, December 16, 2024. — https://dhrd.hawaii.gov/wp-content/uploads/2024/12/Workforce-Profile_06302024_FINAL.pdf
-[act175-exec]: "Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
-[act178]: "Act 178," State of Hawaiʻi, 2026 (HB2095 CD1), amending Act 227, Session Laws of Hawaiʻi 2025. — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2095_CD1_.HTM
-[act1]: "Act 1," State of Hawaiʻi, 2026 (HB2240 HD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2240_HD1_.HTM
-[act127]: "Act 127," State of Hawaiʻi, May 29, 2025 (HB1439 CD1), FY2026–27 legislative cost items. — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1227_.PDF
-[act248]: "Act 248," State of Hawaiʻi, June 30, 2025 (HB410 CD1). — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1351_.PDF
-[hidot-visitor]: "Visitor Info," Hawaiʻi Department of Transportation. — https://hidot.hawaii.gov/highways/visitor
-[act99]: "Act 99," State of Hawaiʻi, June 5, 2026 (HB2275 CD2). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2275_CD2_.HTM
-[act123]: "Act 123," State of Hawaiʻi, June 8, 2026 (SB2930 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/SB2930_CD1_.HTM
-[act184]: "Act 184," State of Hawaiʻi, July 6, 2026 (SB2599 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/SB2599_CD1_.HTM
-[act80]: "Act 80," State of Hawaiʻi, June 4, 2026 (HB2339 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2339_CD1_.HTM
-[act21-partii]: "Act 21," State of Hawaiʻi, May 21, 2026 (HB2310 CD1), Part II. — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2310_CD1_.HTM
-[act139]: "Act 139," State of Hawaiʻi, May 30, 2025 (SB1300 CD1), §3–4. — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1239_.PDF
-[act26]: "Act 26," State of Hawaiʻi, May 22, 2026 (HB2272 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2272_CD1_.HTM
-[act21-parti-act33]: "Act 21" Part I and "Act 33," State of Hawaiʻi, May 2026 (HB2310 CD1; HB2271 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2271_CD1_.HTM
-[act175-mof]: "Act 175," State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
-[revenue-plans]: "State Receipt and Revenue Plans FB25–27," Department of Budget and Finance, September 2024. — https://budget.hawaii.gov/wp-content/uploads/2024/12/05.-State-Receipt-and-Revenue-Plans-FB25-27-PFP7Lt.pdf
-[cor-forecast]: Kawafuchi, Kurt, "General Fund Forecast," Council on Revenues, March 12, 2025. — https://files.hawaii.gov/tax/useful/cor/2025gf03-12_with0416_Rpt2Gov.pdf
-[capgains-loophole]: "Hawaiʻi's Two-Tier Tax System," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-two-tier-tax-system-glaring-loophole-rich-pay-less
-[conveyance-modernize]: "Modernize the Conveyance Tax," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax
-[hb2049]: "House Bill 2049," Hawaiʻi State Legislature, 2026. — https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026
-[corp-loopholes]: "Tax Loopholes for Multinational Corporations," Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations
-[itep-wcr]: "Revenue Effect of Mandatory Worldwide Combined Reporting by State," Institute on Taxation and Economic Policy. — https://itep.org/revenue-effect-of-mandatory-worldwide-combined-reporting-by-state/
-[nhpi-poverty]: "Poverty Status in the Past 12 Months," American Community Survey 1-Year Estimates (Table S1701), U.S. Census Bureau, 2024. — https://data.census.gov/table/ACSST1Y2024.S1701?q=poverty+ethnicity&g=040XX00US15&moe=false
-[itep-whopays]: "Hawaiʻi: Who Pays? 7th Edition," Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes. — https://itep.org/whopays/hawaii-who-pays-7th-edition
-[tax-credits]: "Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022," Hawaiʻi Department of Taxation, p. 5, December 2024. — https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf
-[exec-biennium]: "Executive Biennium Budget, FB 2025–2027," Hawaiʻi Department of Budget and Finance. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
+[workforce-profile]: “State of Hawaiʻi Executive Branch Workforce Profile,” Hawaiʻi State Department of Human Resources Development, p. 5, December 16, 2024. — https://dhrd.hawaii.gov/wp-content/uploads/2024/12/Workforce-Profile_06302024_FINAL.pdf
+[act175-exec]: “Act 175,” State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
+[act178]: “Act 178,” State of Hawaiʻi, 2026 (HB2095 CD1), amending Act 227, Session Laws of Hawaiʻi 2025. — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2095_CD1_.HTM
+[act1]: “Act 1,” State of Hawaiʻi, 2026 (HB2240 HD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2240_HD1_.HTM
+[act127]: “Act 127,” State of Hawaiʻi, May 29, 2025 (HB1439 CD1), FY2026–27 legislative cost items. — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1227_.PDF
+[act248]: “Act 248,” State of Hawaiʻi, June 30, 2025 (HB410 CD1). — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1351_.PDF
+[hidot-visitor]: “Visitor Info,” Hawaiʻi Department of Transportation. — https://hidot.hawaii.gov/highways/visitor
+[act99]: “Act 99,” State of Hawaiʻi, June 5, 2026 (HB2275 CD2). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2275_CD2_.HTM
+[act123]: “Act 123,” State of Hawaiʻi, June 8, 2026 (SB2930 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/SB2930_CD1_.HTM
+[act184]: “Act 184,” State of Hawaiʻi, July 6, 2026 (SB2599 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/SB2599_CD1_.HTM
+[act80]: “Act 80,” State of Hawaiʻi, June 4, 2026 (HB2339 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2339_CD1_.HTM
+[act21-partii]: “Act 21,” State of Hawaiʻi, May 21, 2026 (HB2310 CD1), Part II. — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2310_CD1_.HTM
+[act139]: “Act 139,” State of Hawaiʻi, May 30, 2025 (SB1300 CD1), §3–4. — https://www.capitol.hawaii.gov/sessions/session2025/bills/GM1239_.PDF
+[act26]: “Act 26,” State of Hawaiʻi, May 22, 2026 (HB2272 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2272_CD1_.HTM
+[act21-parti-act33]: “Act 21” Part I and “Act 33,” State of Hawaiʻi, May 2026 (HB2310 CD1; HB2271 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB2271_CD1_.HTM
+[act175-mof]: “Act 175,” State of Hawaiʻi, June 26, 2026 (HB1800 CD1). — https://www.capitol.hawaii.gov/sessions/session2026/bills/HB1800_CD1_.HTM
+[revenue-plans]: “State Receipt and Revenue Plans FB25–27,” Department of Budget and Finance, September 2024. — https://budget.hawaii.gov/wp-content/uploads/2024/12/05.-State-Receipt-and-Revenue-Plans-FB25-27-PFP7Lt.pdf
+[cor-forecast]: Kawafuchi, Kurt, “General Fund Forecast,” Council on Revenues, March 12, 2025. — https://files.hawaii.gov/tax/useful/cor/2025gf03-12_with0416_Rpt2Gov.pdf
+[capgains-loophole]: “Hawaiʻi’s Two-Tier Tax System,” Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-two-tier-tax-system-glaring-loophole-rich-pay-less
+[conveyance-modernize]: “Modernize the Conveyance Tax,” Hawaiʻi Appleseed. — https://hiappleseed.org/blog/fair-share-hawaii-future-modernize-conveyance-tax
+[hb2049]: “House Bill 2049,” Hawaiʻi State Legislature, 2026. — https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2049&year=2026
+[corp-loopholes]: “Tax Loopholes for Multinational Corporations,” Hawaiʻi Appleseed. — https://hiappleseed.org/blog/hawaii-tax-loopholes-multinational-corporations
+[itep-wcr]: “Revenue Effect of Mandatory Worldwide Combined Reporting by State,” Institute on Taxation and Economic Policy. — https://itep.org/revenue-effect-of-mandatory-worldwide-combined-reporting-by-state/
+[nhpi-poverty]: “Poverty Status in the Past 12 Months,” American Community Survey 1-Year Estimates (Table S1701), U.S. Census Bureau, 2024. — https://data.census.gov/table/ACSST1Y2024.S1701?q=poverty+ethnicity&g=040XX00US15&moe=false
+[itep-whopays]: “Hawaiʻi: Who Pays? 7th Edition,” Institute on Taxation and Economic Policy, 2024. Note: Includes all family sizes. — https://itep.org/whopays/hawaii-who-pays-7th-edition
+[tax-credits]: “Tax Credits Claimed by Hawaiʻi Taxpayers: Tax Year 2022,” Hawaiʻi Department of Taxation, p. 5, December 2024. — https://files.hawaii.gov/tax/stats/stats/credits/2022credit.pdf
+[exec-biennium]: “Executive Biennium Budget, FB 2025–2027,” Hawaiʻi Department of Budget and Finance. — https://budget.hawaii.gov/budget/executive-biennium-budget-fiscal-budget-2025-2027/
