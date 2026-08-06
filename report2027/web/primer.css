@@ -9,13 +9,24 @@
      for Glober, the brand's licensed print typeface (see sources/original_primer_fy2526.pdf,
      which has Glober Black/Bold/SemiBold embedded). Swap in real Glober by loading
      a licensed webfont kit and overriding --display/--heading. */
-  --display: "Barlow", "Glober Black", sans-serif;
+  /* Cover display face ONLY (.cover-title / .cover-year — nothing else reads
+     --display). The FY2025–26 cover set its title in Encorpada Classic, a
+     licensed high-contrast serif used on page 1 and nowhere else in that book;
+     Glober ran the interior. Noto Serif Display 600 is the closest free stand-in
+     measured against the real outlines: set width within 0.4%, comparable stem
+     weight and hairline contrast — and it has a true ʻokina, which Bodoni Moda,
+     Libre Bodoni, DM Serif and Prata all lack. */
+  --display: "Noto Serif Display", Georgia, "Times New Roman", serif;
   --heading: "Barlow", "Glober Black", sans-serif;
   --body: "Source Sans 3", "Source Sans Pro", sans-serif;
 }
 * { box-sizing: border-box; margin: 0; }
+/* Leading: 1.4, not the 1.5 this started on. At 14.5px, 1.5 puts ~7px of air
+   between lines — more than the 12px paragraph gap can beat, so paragraph
+   breaks stopped reading as breaks and every column looked airy-but-mushy.
+   1.4 (20.3px) keeps the lines comfortable and lets the paragraph gap show. */
 body { background: #EFF2F1; font-family: var(--body); color: var(--ink);
-       font-size: 14.5px; line-height: 1.5; }
+       font-size: 14.5px; line-height: 1.4; }
 
 .page { width: 8.5in; max-width: 100%; min-height: 11in; margin: 24px auto; background: #fff;
         padding: 0.75in 0.62in 0.9in; position: relative; overflow: hidden;
@@ -34,8 +45,18 @@ h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
    OPENS a page has no prose above it — only the 0.75in top margin — so the
    margin is dead space pushing the whole column down. Page 11 opens on one. */
 .page > h3.sub2:first-child { margin-top: 0; }
-.figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
+/* Scoped `.page p.figcap`, not `.figcap`: `.page p` above is (0,1,1) and beat a
+   bare `.figcap` at (0,1,0), so this margin — and .fig-note's — was being
+   silently discarded and every caption ran on the generic 0/12px. */
+.page p.figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
 .figcap b { color: var(--ink); }
+
+/* Where a figure hands off to prose. These sat at 0–4px, so the body text read
+   as part of the figure rather than as the paragraph after it (Will's note on
+   pages 6 and 11). A figure's OWN note (.fig-note) is excluded — it belongs to
+   the figure and stays tight against it; the gap goes below the note instead. */
+.chart + p:not(.fig-note), .pie-row + p:not(.fig-note),
+.lifecycle-wrap + p:not(.fig-note), .legend + p:not(.fig-note) { margin-top: 12px; }
 
 /* Images placed in prose via ![alt](assets/…). Bounded by the text column so
    an upload can never blow out the page grid. */
@@ -44,7 +65,7 @@ img.inline-img { display: block; max-width: 100%; height: auto; margin: 10px 0;
 
 /* Free-floating text: a note placed on a page, from layout.json rather than
    from the prose. No height — it grows with its words, like any text should. */
-.ds-textbox { font-size: 13.5px; line-height: 1.45; }
+.ds-textbox { font-size: 13.5px; line-height: 1.38; }
 .ds-textbox p:last-child { margin-bottom: 0; }
 /* a cropped image: the wrapper is the window, the full image hangs inside it
    at absolute inches; the editor sizes the window, layout.json remembers */
@@ -72,27 +93,54 @@ a { color: var(--dark); }
 
 /* cover */
 .cover { background: var(--mint); padding: 0; }
-.ribbon { position: absolute; height: .55in; width: 70%; }
-.r1 { background: var(--sage); top: .35in; left: 0; transform: skewX(-38deg) translateX(-.6in); }
-.r2 { background: var(--sage-light); top: 1in; left: 0; width: 45%; transform: skewX(-38deg) translateX(-1in); }
-.r3 { background: var(--sage); bottom: .9in; right: 0; transform: skewX(-38deg) translateX(.6in); }
-.r4 { background: var(--sage-light); bottom: .3in; right: 0; width: 45%; transform: skewX(-38deg) translateX(1in); }
-.cover::before, .cover::after { content: ""; position: absolute; width: 3.4in; height: .5in;
-  background: var(--sage); transform: rotate(-38deg); }
-.cover::before { top: 1.1in; right: -0.7in; }
-.cover::after { bottom: 1.6in; left: -0.7in; }
+/* The ribbon frame, ported from the FY2025–26 cover's vector art (its shapes
+   were read straight out of sources/original_primer_fy2526.pdf). Three things
+   the old skewX() version could not do, and why it is clip-path now:
+     1. every angle is exactly 45°, not 38°;
+     2. the top and bottom bands BLEED off the trim edge, then step twice at 45°
+        — a transform can only make a parallelogram, never a stepped profile;
+     3. the corner stripes are PAIRS, a dark stripe with a paler one outboard.
+   Each shape is a full-page box clipped to its polygon, so every coordinate is
+   a percentage of the page and survives the 1.25 screen zoom, print, the bleed
+   export and the mobile breakpoint alike. Colours are this report's palette,
+   not FY2025–26's cooler one — --sage is the middle step of the figure ramp,
+   and the cover should agree with the charts. */
+.ribbon { position: absolute; inset: 0; pointer-events: none; }
+.rb-dark { background: var(--sage); }
+.rb-pale { background: var(--sage-light); }
+/* top: edge band + two 45° steps, then the paired corner stripes */
+.r1 { clip-path: polygon(0% 0%, 100% 0%, 100% 9.457%, 98.317% 8.157%,
+                         59.395% 8.157%, 54.232% 4.179%, 0% 4.179%); }
+.r2 { clip-path: polygon(78.660% 10.669%, 100% 27.146%, 100% 21.591%, 85.850% 10.669%); }
+.r3 { clip-path: polygon(0% 6.679%, 52.876% 6.679%, 59.624% 11.881%, 0% 11.881%); }
+.r4 { clip-path: polygon(89.771% 10.669%, 100% 18.561%, 100% 13.005%, 96.977% 10.669%); }
+/* bottom: the same frame rotated 180° about the page centre */
+.r5 { clip-path: polygon(0% 91.023%, 1.748% 92.361%, 40.670% 92.361%,
+                         45.833% 96.351%, 100% 96.351%, 100% 100%, 0% 100%); }
+.r6 { clip-path: polygon(0% 78.889%, 14.216% 89.861%, 21.405% 89.861%, 0% 73.333%); }
+.r7 { clip-path: polygon(40.441% 88.636%, 100% 88.636%, 100% 93.838%, 47.173% 93.838%); }
+.r8 { clip-path: polygon(0% 87.475%, 3.088% 89.861%, 10.278% 89.861%, 0% 81.919%); }
 .cover-inner { position: relative; z-index: 2; padding: 2.2in .7in 0; }
 .logo-lockup { display: flex; align-items: center; }
 .logo-lockup.light { justify-content: center; }
 .logo-img { height: 40px; width: auto; display: block; }
 .cover .logo-img { height: 95px; margin-top: 10px; }
-.cover-title { font-family: var(--display); font-weight: 900; color: var(--sage); font-size: 108px;
+/* 900 was right for Barlow; the serif's matching weight is 600. Size is set so
+   the longest line fills the column, as it did on the FY2025–26 cover, where the
+   title ran nearly the full sheet width. */
+.cover-title { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 158px;
                line-height: .95; margin-top: .35in; border: none; padding: 0; }
-.cover-year { font-family: var(--display); font-weight: 900; color: var(--sage); font-size: 44px;
+/* 0.40 x the title, the ratio Encorpada held on the FY2025–26 cover (48pt/120pt) */
+.cover-year { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 63px;
               text-align: right; margin-top: .25in; }
 
 /* toc page */
-.toc-page { background: var(--dark); color: #fff; padding-top: 1.2in; }
+/* Top padding clears the logo, which is PLACED (absolute, from layout.json) at
+   1.19in and stands 0.52in tall — it is not in this flow, so nothing else pushes
+   the column down. At the old 1.2in the logo landed directly on top of the URL
+   and author lines. If the logo is ever dragged elsewhere, this number is what
+   needs to follow it. */
+.toc-page { background: var(--dark); color: #fff; padding-top: 1.95in; }
 .toc-head { text-align: center; margin-bottom: .7in; }
 .toc-link a { color: var(--mint); }
 .toc-author { margin-top: 8px; }
@@ -119,12 +167,19 @@ a { color: var(--dark); }
    thing on pages 9 and 10, so the space below it only eats into the clearance
    above the folio. Page 9 is the tightest page in the report. */
 .cards3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin: 14px 0 10px; }
-.cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 10px 0 18px; }
+/* Not 1fr 1fr: One-Time carries 6 bullets and Emergency carries 2, so an even
+   split left one column packed to the millimetre while its neighbour sat 40%
+   empty. Giving the fuller column the extra width lets its bullets wrap to
+   fewer lines — which is what pays for the bullet separation below AND brings
+   the page back inside letter. */
+.cards2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin: 10px 0 18px; }
 /* page 8's One-Time/Emergency cards run tall (6 bullets); tighten their internal
    spacing so the section clears the page folio when printed. Scoped to .cards2,
    which appears only on page 8 (other card sections use .cards3). */
 .cards2 .card { padding: 9px 17px; }
-.cards2 .card li { margin: 1px 0; }
+/* 1px ran the bullets together into one grey block — at this leading a bullet
+   that wraps to three lines was indistinguishable from the next bullet. */
+.cards2 .card li { margin: 6px 0; }
 .card { border-radius: 16px; padding: 16px 18px; color: #fff; }
 .card.light { color: var(--ink); }
 .card h4 { font-size: 15px; margin-bottom: 8px; }
@@ -152,7 +207,12 @@ a { color: var(--dark); }
    reaches every cell and the FY2026 twin at once. Unset, the fallbacks are
    the designed colours. */
 .t1 { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.t1 th { background: var(--th-bg, var(--dark)); color: var(--th-tc, #fff); font-weight: 600; padding: 9px 6px; }
+/* The header row carries the same vertical rules as the body, so the column
+   dividers run the full height of the table instead of starting below the
+   head. Sides only — a horizontal rule here would box the head off from the
+   body it labels. */
+.t1 th { background: var(--th-bg, var(--dark)); color: var(--th-tc, #fff); font-weight: 600; padding: 9px 6px;
+         border-left: 1px solid #A7C0B8; border-right: 1px solid #A7C0B8; }
 .t1 td { border: 1px solid #A7C0B8; padding: 9px 6px; text-align: center; }
 .t1 td:first-child { width: 1.55in; }
 .t1 tr.total td { background: var(--tot-bg, var(--sage-light)); color: var(--tot-tc, inherit); font-weight: 700; }
@@ -201,7 +261,9 @@ a { color: var(--dark); }
 .obligated-panel .legend .lg { font-size: 14px; }
 .obligated-panel .legend .sw { width: 20px; height: 20px; }
 .obligated-note { font-size: 12px; color: #586A6D; margin-top: 10px; }
-.fig-note { font-size: 12px; color: #586A6D; margin: 8px 0 4px; }
+/* Same scoping fix as .figcap. The 14px bottom is the figure→prose gap for the
+   figures that carry a note (pages 6, 9), where the note sits between them. */
+.page p.fig-note { font-size: 12px; color: #586A6D; margin: 8px 0 14px; }
 
 /* print-only page holding the obligated chart, injected by primer.js when the
    expandable is open at print time (see beforeprint handler) */
@@ -278,6 +340,24 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .endnotes li { margin-bottom: 12px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
 
+/* key terms (page 15) — two columns, like the endnotes it follows, so the
+   back matter reads as one section. Terms never split across a column.
+   The columns belong to the WRAPPER: C.html() stamps its class on every
+   paragraph it emits, so putting them on the terms themselves split each single
+   definition into two columns of its own. */
+.glossary { columns: 2; column-gap: .45in; margin-top: 4px; }
+.page p.gl-term { font-size: 13px; break-inside: avoid; margin-bottom: 11px; }
+.gl-term b { color: var(--forest); }
+
+/* back cover (page 16). Inherits .cover's mint field and ribbons; only the
+   stack inside it differs, so the two covers stay obviously a pair. */
+.back-cover .cover-inner { padding: 3.2in .9in 0; text-align: center; }
+.back-cover .logo-img { height: 78px; }
+.page p.back-mission { margin: .5in auto 0; max-width: 5.4in; font-size: 15px;
+                       color: var(--forest); }
+.page p.back-contact { margin-top: .34in; font-size: 14px; font-weight: 700;
+                       color: var(--dark); }
+
 /* toolbar + tooltip (screen only) */
 /* Sits at the top of the document and scrolls away with the content — NOT
    sticky, so it doesn't follow the viewport down the page. */
@@ -304,6 +384,18 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   .lc { position: static; width: auto; margin: 4px 0;
         transform: none !important; text-align: left !important; }
   .cover-title { font-size: 64px; }
+  /* .page drops its 11in min-height here, so a cover collapses to its content
+     — and the ribbon frame, being a percentage of page height, rides up into
+     the type (the bottom band starts at 91%). Reserve the frame's share back. */
+  .cover .cover-inner { padding-bottom: 1.5in; }
+  /* The cover logo ran off a phone's right edge. Its lockup is PLACED, so
+     layout.json gives it an inline width in sheet inches (~7.1in) — a
+     max-width on the image resolves against that, not the page, so the lockup
+     itself has to be released here. Same reasoning as .lc above. The year is
+     wide enough at 44px to break mid-token. */
+  .cover .logo-lockup { position: static !important; width: auto !important; }
+  .cover .logo-img { max-width: 100%; height: auto; }
+  .cover-year { font-size: 32px; white-space: nowrap; }
   .endnotes { columns: 1; }
 }
 

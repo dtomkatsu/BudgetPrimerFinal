@@ -559,7 +559,12 @@ def fig6_chart():
 
 # ---------- figure data (year-parameterized for the FY26/FY27 picker) ----------
 FIG3_ORDER = ["Transportation", "Formal Education", "All Others", "Economic Development", "Health"]
-FIG3_COLORS = [DARK, SAGE_MID, SAGE_LIGHT, MINT, PALE]
+# A ramp, not a spread of tints. The old tail — SAGE_LIGHT/MINT/PALE — was three
+# near-whites that read as one colour at the bottom of every key. Reaching for the
+# darker end of the brand palette instead gives five clearly separable steps.
+# Shared by Figures 3, 4 and 5, so this fixes all three keys at once. Slice labels
+# reverse to white on their own (is_light_bg in pie()), so darkening is safe.
+FIG3_COLORS = [FOREST, DARK, SAGE, SAGE_MID, SAGE_LIGHT]
 FIG4_ORDER = ["General Funds", "Special Funds", "Federal Funds", "Other Funds"]
 
 def fig3_slices_for(budget):
@@ -938,7 +943,12 @@ EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
 # and its number follows. The markup lives here, not in docsync, because "•
 # BUDGET PRIMER" and the left/right alternation are this report's, not the
 # engine's; docsync only computes the order.
-DESIGNED_PAGES = 14
+# 16, not 14: a saddle-stitched booklet folds in sheets of four, so a 14-page
+# report cannot be printed as one. The two added pages are back matter (key
+# terms, back cover) and sit AFTER the endnotes deliberately — everything
+# page-keyed in layout.json is keyed by identity, so appending disturbs no
+# placement, while inserting ahead of page 11 would move the boxes placed there.
+DESIGNED_PAGES = 16
 PAGE_ORDER = L.page_order(DESIGNED_PAGES)
 PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 
@@ -951,7 +961,8 @@ PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process
                5: "How Money Is Spent", 6: "Spending Categories",
                7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
                9: "Funding the Budget", 10: "Taxes", 11: "Who Pays",
-               12: "Tax Credits", 13: "Endnotes", 14: "Endnotes (cont.)"}
+               12: "Tax Credits", 13: "Endnotes", 14: "Endnotes (cont.)",
+               15: "Key Terms", 16: "Back Cover"}
 
 def stamp_page(html, pid):
     """Tag a section with its identity, edit mode only (like data-el)."""
@@ -989,11 +1000,18 @@ pages = []
 # itself carries L.attr (the drag/resize hook), a nested element carries the
 # text-edit data-slot — two style-bearing attributes on one element would
 # silently keep only the first (Layout.attr()'s own docstring warns of this).
+# The eight shapes of the cover ribbon frame (geometry lives in .ribbon/.r1–.r8
+# in primer.css, ported from the FY2025–26 cover). Emitted from one place so the
+# front and back covers can never drift apart.
+RIBBONS = "".join(
+    f'<div class="ribbon {tone} r{i}"></div>' for i, tone in enumerate(
+        ["rb-dark", "rb-dark", "rb-pale", "rb-pale",     # top
+         "rb-dark", "rb-dark", "rb-pale", "rb-pale"], 1))  # bottom
+
 _cover_title = "<br>".join(esc(l) for l in C.lines("cover.title"))
 pages.append(f"""
 <section class="page cover"{L.fill_attr(f"page.1")}>
- {L.layer(1)}{L.text_boxes(1)}{L.tables_html(1)}<div class="ribbon r1"></div><div class="ribbon r2"></div>
- <div class="ribbon r3"></div><div class="ribbon r4"></div>
+ {L.layer(1)}{L.text_boxes(1)}{L.tables_html(1)}{RIBBONS}
  <div class="cover-inner">
   {L.spacer("cover.logo")}<div class="logo-lockup"{L.attr("cover.logo")}>{svg_img("cover.logo", "assets/appleseed-logo.svg", "logo-img", "Hawaiʻi Appleseed — Center for Law &amp; Economic Justice")}</div>
   {L.spacer("cover.title")}<h1 class="cover-title"{L.attr("cover.title")}>{C.slot_span("cover.title", _cover_title)}</h1>
@@ -1017,6 +1035,7 @@ pages.append(f"""
   <div><span>How Money Is Spent</span><span>{pageno(5)}</span></div>
   <div><span>Funding the Budget</span><span>{pageno(9)}</span></div>
   <div><span>Endnotes</span><span>{pageno(13)}</span></div>
+  <div><span>Key Terms</span><span>{pageno(15)}</span></div>
  </div>
  {L.spacer("toc.copyright")}<p class="copyright"{L.attr("toc.copyright")}>{C.slot_span("toc.copyright", "<br>".join(esc(l) for l in C.lines("toc.copyright")))}</p>
  {L.layer(2)}{L.text_boxes(2)}{L.tables_html(2)}{folio(2)}
@@ -1231,6 +1250,30 @@ by_id[14] = f"""
  <ol class="endnotes" {ENDNOTES_START_B}>{ENDNOTES_SLOT_B}</ol>
  {L.layer(14)}{L.text_boxes(14)}{L.tables_html(14)}{folio(14)}
 </section>"""
+# -- page 15: key terms ------------------------------------------------------
+# Every definition here is the report's own wording, condensed — this page
+# gathers what the body already says rather than introducing anything new.
+by_id[15] = f"""
+<section class="page"{L.fill_attr("page.15")}>
+ {L.spacer("glossary.h1")}<h1{L.attr("glossary.h1")}>{C.t("glossary.h1")}</h1>
+ {C.html("glossary.intro", "figcap")}
+ <div class="glossary">{C.html("glossary.terms", "gl-term")}</div>
+ {L.layer(15)}{L.text_boxes(15)}{L.tables_html(15)}{folio(15)}
+</section>"""
+
+# -- page 16: back cover -----------------------------------------------------
+# Carries .cover so it inherits the front cover's mint field and ribbon
+# geometry; no folio, for the same reason page 1 has none.
+by_id[16] = f"""
+<section class="page cover back-cover"{L.fill_attr("page.16")}>
+ {L.layer(16)}{L.text_boxes(16)}{L.tables_html(16)}{RIBBONS}
+ <div class="cover-inner">
+  {L.spacer("back.logo")}<div class="logo-lockup light"{L.attr("back.logo")}>{svg_img("back.logo", "assets/appleseed-logo.svg", "logo-img", "Hawaiʻi Appleseed — Center for Law &amp; Economic Justice")}</div>
+  {C.html("back.mission", "back-mission")}
+  {C.html("back.contact", "back-contact")}
+ </div>
+</section>"""
+
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
 
@@ -1349,6 +1392,13 @@ html = f"""<!DOCTYPE html>
 <title>Hawaiʻi Budget Primer FY2026–27 — Hawaiʻi Appleseed</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 {L.font_link()}
+<!-- The cover display face, requested separately because font_link() only emits
+     the engine's brand fonts plus whatever layout.json styles ask for, and this
+     family is not in the editor's allowlist (docsync/layout.py FONTS). Stands in
+     for Encorpada Classic, the licensed serif on the FY2025-26 cover: matched on
+     stem weight, hairline contrast and set width, and unlike the Bodoni family
+     it carries a real ʻokina (U+02BB). -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600&display=swap">
 <link rel="stylesheet" href="primer.css">
 </head>
 <body{' class="ds-bleed"' if os.environ.get("DOCSYNC_MARKS") else ''}>
