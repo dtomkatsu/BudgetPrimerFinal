@@ -1721,10 +1721,45 @@ let py = null, source = '', original = '', dirty = false, editing = false;
 let lastFit = [];
 let layout = null, layoutOrig = '', scrollTopWas = 0;
 
+// A fetch that cannot hang FOREVER. fetch() has no default timeout, so a
+// request that opens and then stalls — a wedged socket, a proxy, a CDN
+// throttling under load — leaves its promise pending for the life of the
+// page. boot() awaits all of its downloads together, so ONE stalled request
+// meant the editor sat at the last thing it had said, with nothing rendered,
+// nothing logged, nothing thrown and nothing to retry: the silent hang.
+// A bounded wait turns that into an error a caller can name and the boot
+// handler can explain. Generous on purpose — the engine files are local and
+// arrive in milliseconds, but this same helper pulls a report from GitHub
+// Pages on whatever connection the reader has.
+const FETCH_TIMEOUT = 45000;
+// How long boot stays silent before it starts naming what it is waiting on.
+// Comfortably past a normal cold start (a warm Pyodide boots in well under a
+// second; a cold ~30MB one takes seconds), so a healthy load never says a
+// word — this is for the case that would otherwise say nothing at all.
+const BOOT_STALL_S = 20;
+function boundedFetch(u) {
+  let signal;
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+    signal = AbortSignal.timeout(FETCH_TIMEOUT);
+  } else {                                   // older engines: same idea by hand
+    const c = new AbortController();
+    setTimeout(() => c.abort(), FETCH_TIMEOUT);
+    signal = c.signal;
+  }
+  return fetch(bust(u), { cache: 'no-store', signal }).catch(e => {
+    // An abort surfaces as an anonymous DOMException naming neither the URL
+    // nor the reason, which is no better than the hang it replaced.
+    if (e && (e.name === 'TimeoutError' || e.name === 'AbortError')) {
+      throw new Error(`no answer after ${FETCH_TIMEOUT / 1000}s — ${u}`);
+    }
+    throw e;
+  });
+}
+
 async function get(u) {
   // no-store: a query string alone does not reliably defeat the raw CDN,
   // and a stale renderer silently produces a wrong page.
-  const r = await fetch(bust(u), { cache: 'no-store' });
+  const r = await boundedFetch(u);
   if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
   return r.text();
 }
@@ -1737,7 +1772,7 @@ async function get(u) {
 // never came up until a project first staged a raster image.
 const BINARY_RE = /\.(png|jpe?g|gif|webp|ico|bmp|woff2?|ttf|otf)$/i;
 async function getBytes(u) {
-  const r = await fetch(bust(u), { cache: 'no-store' });
+  const r = await boundedFetch(u);
   if (!r.ok) throw new Error(`HTTP ${r.status} — ${u}`);
   return new Uint8Array(await r.arrayBuffer());
 }
@@ -10406,9 +10441,48 @@ async function boot() {
   // pyodideBoot has been compiling since the page parsed; a null means the
   // CDN script never arrived, and calling loadPyodide() reproduces the old
   // ReferenceError so the failure lands in the same catch it always did.
-  const [pyodide, ...files] =
-    await Promise.all([pyodideBoot || loadPyodide(),
-      ...urls.map(u => BINARY_RE.test(u) ? getBytes(withBase(u)) : get(withBase(u)))]);
+  //
+  // LABELLED, and watched. Everything below this line is gated on one
+  // Promise.all, so until it settles the editor shows whatever it last said
+  // and nothing else — and a promise that never settles (as opposed to one
+  // that rejects) produced no error, no console line and no clue: the
+  // reported "boots on a freshly adopted project sometimes hang before the
+  // first render, and a reload does not recover it". boundedFetch now makes
+  // a stalled DOWNLOAD reject like any other failure; the one thing left
+  // that can genuinely take minutes and cannot be aborted cleanly is
+  // Pyodide's ~30MB cold fetch. So rather than guess, say: name what is
+  // still outstanding, keep waiting, and let the next occurrence identify
+  // itself instead of being a mystery.
+  const jobs = [{
+    label: 'the render engine (Pyodide, ~30MB from cdn.jsdelivr.net)',
+    p: pyodideBoot || loadPyodide(),
+  }, ...urls.map(u => ({
+    label: u,
+    p: BINARY_RE.test(u) ? getBytes(withBase(u)) : get(withBase(u)),
+  }))];
+  const waiting = new Set(jobs.map(j => j.label));
+  // settled, not fulfilled: a rejection is reported by the catch, and
+  // counting it as outstanding would blame the wrong thing.
+  jobs.forEach(j => j.p.then(() => waiting.delete(j.label),
+                             () => waiting.delete(j.label)));
+  let stalledFor = 0;
+  const stall = setInterval(() => {
+    stalledFor += BOOT_STALL_S;
+    if (!waiting.size) return;
+    const what = [...waiting];
+    const line = what.length === 1 ? what[0]
+      : `${what.length} files (${what.slice(0, 2).join(', ')}…)`;
+    const msg = `still waiting on ${line} — ${stalledFor}s so far`;
+    $('stat').textContent = msg;
+    $('stat').title = msg;
+    console.warn('[boot] ' + msg);
+  }, BOOT_STALL_S * 1000);
+  let pyodide, files;
+  try {
+    [pyodide, ...files] = await Promise.all(jobs.map(j => j.p));
+  } finally {
+    clearInterval(stall);
+  }
   // Viewing or continuing a draft: its content and layout come from the draft
   // branch, not the deployed copies (which are main's). The engine code itself
   // stays same-origin — only the two authored files differ per draft.
@@ -10496,7 +10570,10 @@ async function boot() {
   markDirty();
   // detectLocal ran before the renders that overwrite the status line; say it
   // again now that the page is settled.
-  if (local) $('stat').textContent = 'live — edits here and from Claude land in the same files';
+  // …unless the first render FAILED, in which case its message is the only
+  // thing on screen explaining the traceback in the canvas. Reassurance that
+  // contradicts what the user is looking at is worse than silence.
+  if (local && !renderFailed) $('stat').textContent = 'live — edits here and from Claude land in the same files';
   else if (cachedRestored) $('stat').textContent =
     'restored unsaved edits from this browser — Save to keep them, or Discard to drop them';
 }
@@ -11198,6 +11275,7 @@ with contextlib.redirect_stdout(io.StringIO()):
 open('/repo/' + OUT).read()
 `);
     engineDirty = false;      // the fresh engine is imported; renders may reuse it
+    renderFailed = false;     // this one built; a previous failure is history
   } catch (e) {
     // A validation failure is the guardrail working — show it and keep the
     // source, so the edit that broke it can be fixed rather than lost.
@@ -11209,6 +11287,7 @@ open('/repo/' + OUT).read()
     // What stands in #out is now an error page, not a render — so the next
     // successful one has nothing to diff against and must swap in full.
     lastHtml = null;
+    renderFailed = true;
     return;
   }
   // Keep the reader's place. Assigning srcdoc reloads the iframe, which
@@ -11348,6 +11427,15 @@ open('/repo/' + OUT).read()
 // handles, the mini toolbar, guides and drag spacers into those very pages,
 // so every section would read as "changed" and nothing could ever be reused.
 let lastHtml = null;
+// Did the LAST render fail to build? renderOnce() handles its own failure —
+// it paints the traceback into the canvas and says so — and then returns
+// NORMALLY, because a draft that does not build is a state to sit in and fix,
+// not an exception to unwind. The cost of that is a caller cannot tell a
+// rendered page from a painted error, and boot()'s closing "live — …" line
+// used to overwrite the message with reassurance: the canvas showed a
+// traceback while the status row said everything was fine, which is the
+// "boots, then nothing renders, and nothing says why" report.
+let renderFailed = false;
 
 /** Replace only the page sections whose HTML actually moved, in place.
  *
