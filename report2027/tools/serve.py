@@ -265,6 +265,11 @@ class ProjectState:
 
 
 STATE = {pid: ProjectState() for pid in PROJECTS}
+# /__inventory's addressable-id list, keyed (project, build version). Learning
+# the ids costs a whole edit-mode render, and they cannot change without a
+# rebuild — so one entry, replaced whenever the version moves, is the entire
+# cache anyone needs.
+INVENTORY_IDS: dict = {}
 
 
 def _snapshot(patterns: list[str]) -> dict:
@@ -639,6 +644,10 @@ class Handler(SimpleHTTPRequestHandler):
                                     "client_id": GH_CLIENT})
         if clean == "/__events":
             return self._sse(pid)
+        if clean == "/__inventory":
+            q = parse_qs(parsed.query)
+            return self._inventory_payload(
+                pid, (q.get("elements") or ["1"])[0] != "0")
         # projects.json is per-machine and untracked, so a fresh clone has
         # none — and the start page then showed "No reports yet" over a server
         # that was happily serving four of them, with "+ New report" disabled
@@ -697,6 +706,159 @@ class Handler(SimpleHTTPRequestHandler):
         if st.error:
             payload["error"] = st.error
         return payload
+
+    # ---- inventory: the document as data, without a browser -----------------
+    # The editor's own docsync.api.inventory() is the richer answer — it
+    # MEASURES the live DOM, so it knows where every designed element actually
+    # paints. This is the headless twin, for a CI check, a script, or an MCP
+    # client with no browser at all: everything the FILES know, exactly, and
+    # nothing guessed.
+    #
+    # What that boundary means in practice, and it is worth stating plainly
+    # rather than letting a caller discover it: layout.json holds geometry only
+    # for things somebody PLACED (shapes, boxes, tables, anything ever dragged).
+    # A designed element sitting where its renderer put it has no stored
+    # coordinates — its position exists only once a browser has laid the page
+    # out — so `placed` covers the first kind and `elements` lists the ids of
+    # both without claiming geometry for the second. Geometry for an unmoved
+    # designed element needs the editor API; everything else is here.
+    def _inventory_payload(self, pid, with_elements=True):
+        pid = pid or DEFAULT_PROJECT
+        p = PROJECTS.get(pid)
+        if p is None:
+            return self._json(404, {"ok": False, "error": f"unknown project '{pid}'",
+                                    "projects": sorted(PROJECTS)})
+        root, b = p["root"], p["binding"]
+        st = STATE[pid]
+        # The registry resolves every path against its own repo root at load,
+        # so these are already absolute — including for a project mounted from
+        # another checkout via projects.json's local_root.
+        try:
+            source = b.content.read_text()
+        except OSError as e:
+            return self._json(200, {"ok": False, "error": f"cannot read content: {e}"})
+        layout = {}
+        lay_path = b.editor.layout if (b.editor and b.editor.layout) else None
+        if lay_path:
+            try:
+                layout = json.loads(lay_path.read_text() or "{}")
+            except (OSError, json.JSONDecodeError) as e:
+                return self._json(200, {"ok": False, "error": f"cannot read layout: {e}"})
+
+        # Slots, parsed the way the editor's own slotRe does: a [[key]] on its
+        # own line owns everything up to the next one. Full markdown, not the
+        # 80-character snippet the browser inventory carries — a headless
+        # caller has no second call to go and fetch the rest with.
+        blocks = re.split(r"^\[\[([^\]]+)\]\]\s*$", source, flags=re.M)
+        raw = {}
+        for i in range(1, len(blocks) - 1, 2):
+            raw[blocks[i]] = blocks[i + 1].strip()
+        sources_block = raw.pop("sources", "")
+        slots = [{"key": k, "md": v} for k, v in raw.items()]
+
+        # Sources, with how many times each is actually cited — an uncited
+        # source blocks publishing, so "which are unused" is exactly the
+        # question a CI check wants to ask and it is one regex away here.
+        sources = []
+        for line in sources_block.splitlines():
+            m = re.match(r"^\[([^\]]+)\]:\s*(.*?)\s+—\s+(\S+)\s*$", line.strip())
+            if m:
+                sid = m.group(1)
+                sources.append({"id": sid, "text": m.group(2), "url": m.group(3),
+                                "cites": len(re.findall(
+                                    r"\[\^" + re.escape(sid) + r"\]", source))})
+
+        # The sheet the report is actually on. layout.json carries a `page`
+        # only once File ▸ Resize has written one, so an untouched report has
+        # none — and reporting null there would be answering "what size is
+        # this?" with a shrug. Fall back to what the binding says it was BUILT
+        # at, which is the size in force until an override exists.
+        page = layout.get("page") or {}
+        built_w, built_h = (b.editor.page if b.editor else (None, None))
+        pageless = "h" in page and page.get("h") is None
+        page_out = {"w": page.get("w") if page.get("w") is not None else built_w,
+                    "h": None if pageless else
+                         (page.get("h") if page.get("h") is not None else built_h),
+                    "pageless": pageless,
+                    "overridden": bool(page)}
+        pages = layout.get("pages") or {}
+        placed = {
+            "shapes": layout.get("shapes") or [],
+            "boxes": layout.get("boxes") or [],
+            "tables": layout.get("tables") or [],
+            "positions": layout.get("positions") or {},
+        }
+        out = {
+            "ok": True, "project": pid, "root": str(root),
+            "version": st.version, "error": st.error,
+            "ahead": _ahead(root),
+            "page": page_out,
+            # EMPTY means "no override" — the renderer's own designed order,
+            # 1..N. The real sequence needs the page count, which only a render
+            # knows, so it rides along with `elements` when that is asked for.
+            "pageOrder": pages.get("order") or [],
+            "blanks": [x.get("id") for x in (pages.get("blanks") or [])],
+            "slots": slots, "sources": sources, "placed": placed,
+            "fill": layout.get("fill") or {},
+            "hidden": layout.get("hidden") or [],
+            "locked": layout.get("locked") or [],
+            "groups": layout.get("groups") or [],
+            "note": "geometry here is what layout.json stores (placed objects only); "
+                    "an unmoved designed element's position needs the editor's "
+                    "docsync.api.inventory(), which measures the rendered page",
+        }
+        if with_elements:
+            out["elements"] = self._addressable_ids(pid, root, b, st)
+        return self._json(200, out)
+
+    def _addressable_ids(self, pid, root, b, st):
+        """Every id the editor could address, discovered by rendering the
+        report in EDIT mode and reading its hooks back.
+
+        The published build stamps no data-el/data-slot at all (Layout.attr
+        and Content.slot_attr gate them behind DOCSYNC_EDIT), so the ids
+        simply are not in the normal output — a render is the only way to
+        learn them without a browser. Cached against the build version, so a
+        caller polling this endpoint pays for one render per rebuild rather
+        than one per request.
+        """
+        if not (b.editor and b.editor.render):
+            return {"ok": False, "error": "this project has no editor render"}
+        key = (pid, st.version)
+        hit = INVENTORY_IDS.get(key)
+        if hit is not None:
+            return hit
+        work = Path(tempfile.mkdtemp(prefix="primer-inv-"))
+        out_html = work / "inventory.html"
+        try:
+            env = dict(os.environ)
+            env["DOCSYNC_EDIT"] = "1"          # the whole point: stamp the hooks
+            env["DOCSYNC_OUT"] = str(out_html)
+            r = subprocess.run(["python3", str(b.editor.render)], cwd=str(root),
+                               env=env, capture_output=True, text=True, timeout=120)
+            if r.returncode != 0:
+                return {"ok": False,
+                        "error": "edit-mode render failed:\n"
+                                 + (r.stdout + r.stderr).strip()[-800:]}
+            html = out_html.read_text(errors="replace")
+        except (OSError, subprocess.SubprocessError) as e:
+            return {"ok": False, "error": f"edit-mode render failed: {e}"}
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+        found = {
+            "ok": True,
+            "els": sorted(set(re.findall(r'data-el="([^"]+)"', html))),
+            "shapes": sorted(set(re.findall(r'data-shape="([^"]+)"', html))),
+            "slots": sorted(set(re.findall(r'data-slot="([^"]+)"', html))),
+            "fills": sorted(set(re.findall(r'data-fill="([^"]+)"', html))),
+            # How many sheets the renderer draws — the other half of pageOrder,
+            # which is empty whenever nobody has reordered anything. With this,
+            # a caller can read the real sequence as 1..pageCount.
+            "pageCount": len(re.findall(r'<section[^>]*class="[^"]*\bpage\b', html)),
+        }
+        INVENTORY_IDS.clear()          # one build's worth is all anyone needs
+        INVENTORY_IDS[key] = found
+        return found
 
     def _reload_script(self, pid: str | None) -> str:
         return RELOAD_JS.replace("%%PID%%", json.dumps(pid or ""))
