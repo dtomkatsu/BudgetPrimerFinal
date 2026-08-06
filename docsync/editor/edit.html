@@ -373,6 +373,11 @@
      there is a real commit sitting here that GitHub does not have. */
   #push.pending { background:#3B6FA0; border-color:#3B6FA0; color:#fff; font-weight:600; }
   #push.pending:hover { background:#2F5A85; border-color:#2F5A85; }
+  /* A Push the server has already determined would fail. Amber, not red, and
+     still clickable: this is a prediction from the last background check, and
+     a stale one must never be what stops someone pushing. */
+  #push.warn, #push.pending.warn { background:#B26B00; border-color:#B26B00; color:#fff; }
+  #push.warn:hover, #push.pending.warn:hover { background:#8F5600; border-color:#8F5600; }
   #publish { background:var(--deep); border-color:var(--deep); color:#fff; font-weight:600; }
   #publish:hover:not(:disabled) { background:#3F5F57; border-color:#3F5F57; }
   /* Below the bars: the page rail and the canvas, side by side. */
@@ -10630,12 +10635,41 @@ $('cupd').addEventListener('click', async () => {
   }
 });
 
+// What the server last learned about whether a Push would actually work, and
+// where it would land. Set from every ping and SSE beat; {} until the first
+// background poll has looked.
+let pushHealth = {};
+
 function setPushState(ahead) {
   if (typeof ahead !== 'number') return;
   const b = $('push');
   b.disabled = ahead === 0;
   b.classList.toggle('pending', ahead > 0);
   b.textContent = ahead > 0 ? `Push (${ahead})` : 'Push';
+  // A Push that CANNOT succeed says so ON the button, before it is pressed.
+  // The case this exists for went undetected for six days: a global Git LFS
+  // pre-push hook refused every push while the button sat there looking
+  // ready, and 45 commits piled up behind it. Still enabled — a stale
+  // diagnosis must never be the thing that stops someone pushing — but
+  // wearing the warning and carrying the reason in its tooltip.
+  const broken = ahead > 0 && pushHealth && pushHealth.ok === false;
+  b.classList.toggle('warn', !!broken);
+  if (broken) {
+    b.textContent = `Push (${ahead}) ⚠`;
+    b.title = 'This will probably fail: ' + pushHealth.why;
+    b.setAttribute('aria-label', `Push ${ahead} commits — likely to fail: ${pushHealth.why}`);
+    return;
+  }
+  // WHERE it lands, when that is not simply "the branch I am on". Pushing
+  // fast-forwards the deploy branch to match HEAD, so on a feature branch one
+  // press can publish far more than the commits just saved.
+  const d = pushHealth || {};
+  const across = ahead > 0 && d.branch && d.deploy && d.branch !== d.deploy;
+  b.title = across
+    ? `Sends ${ahead} commit${ahead > 1 ? 's' : ''} to '${d.branch}', and publishes by `
+      + `fast-forwarding '${d.deploy}' (${d.deployAhead} commit`
+      + `${d.deployAhead === 1 ? '' : 's'} ahead) to match it`
+    : (ahead > 0 ? `Send ${ahead} commit${ahead > 1 ? 's' : ''} saved locally to GitHub` : '');
   b.setAttribute('aria-label', ahead > 0
     ? `Send ${ahead} commit${ahead > 1 ? 's' : ''} saved locally to GitHub`
     : 'Nothing saved locally is waiting to go to GitHub');
@@ -10648,6 +10682,11 @@ async function detectLocal() {
     if (r.ok) { try {
       const j = await r.json();
       liveVer = j.v;
+      // Authoritative, not accumulated: a payload that carries no push
+      // block means NO NEWS, and stale news is worse than none — an
+      // older server, or one that has not polled yet, must not leave a
+      // warning standing over a checkout it no longer describes.
+      pushHealth = j.push || {};
       setPushState(j.ahead);
       contentHealth(j);        // the first ping already knows; don't wait for SSE
     } catch (e) {} }
@@ -10691,7 +10730,7 @@ async function detectLocal() {
     liveVer = v;
     await pullFromDisk();
   };
-  startLive(d => { setPushState(d.ahead); watchHealth(d); updateHealth(d);
+  startLive(d => { pushHealth = d.push || {}; setPushState(d.ahead); watchHealth(d); updateHealth(d);
                    contentHealth(d); onBump(d.v, d.error); });
   $('upd').onclick = installUpdate;
   $('ver').onclick = goBackAVersion;
@@ -13311,9 +13350,26 @@ $('push').onclick = async () => {
   $('push').disabled = true;
   $('stat').textContent = 'pushing…';
   try {
-    const j = await postLocal('/__push', { project: M.id });
+    let j = await postLocal('/__push', { project: M.id });
+    // Not a failure — a question. Pushing publishes by fast-forwarding the
+    // DEPLOY branch to match this one, and on a feature branch that can be a
+    // great many commits: the server refuses until the number has been seen.
+    if (!j.ok && j.needsConfirm) {
+      $('push').disabled = false;
+      $('stat').textContent = 'waiting on you';
+      if (!await dsConfirm(j.error + '.\n\nPublish now?',
+                           { okLabel: 'Publish', danger: true })) {
+        $('stat').textContent = 'not pushed';
+        setPushState(j.ahead);
+        return;
+      }
+      $('push').disabled = true;
+      $('stat').textContent = 'pushing…';
+      j = await postLocal('/__push', { project: M.id, deploy: true });
+    }
     if (!j.ok) throw new Error(j.error || 'push failed');
     $('stat').textContent = j.message || 'pushed';
+    pushHealth = {};          // a successful push retires any stale warning
     setPushState(j.ahead);
   } catch (e) {
     // The commonest first-machine failure is simply "this computer has no

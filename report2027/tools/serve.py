@@ -367,6 +367,68 @@ def _content_roots() -> set:
     return {p["root"] for p in PROJECTS.values() if p["root"] != SELF_ROOT}
 
 
+# ---- will a Push actually work? --------------------------------------------
+# A Push that CANNOT succeed used to be discoverable exactly one way: press it
+# and read the wreck. A global Git LFS pre-push hook (core.hooksPath, a tool
+# not on a launchd-started server's minimal PATH) silently refused every push
+# from this editor for SIX DAYS on one machine — 45 commits piled up behind a
+# button that looked perfectly ready, and nothing anywhere said so.
+#
+# `git push --dry-run` is the honest question, because it runs the SAME
+# machinery the real push does: the hooks, the credential helper, the remote's
+# accept/reject. It transfers no objects and moves no refs. Answering it costs
+# a network round trip, so it rides the background poll rather than the ping,
+# and only when there is something to push — a clean tree asks nobody anything.
+# root(str) -> {"ok", "why", "branch", "deploy", "checked"}
+PUSH_HEALTH: dict[str, dict] = {}
+# The one background job here that touches the NETWORK. Off for the test
+# suite (playwright.config.js), which must not depend on GitHub being
+# reachable — and which would otherwise see a real answer for a real
+# checkout bleed into specs that mock every other endpoint.
+PUSH_PROBE = os.environ.get('PRIMER_PUSH_PROBE', '1') != '0'
+
+
+def _push_health(root: Path, deploy: str) -> dict:
+    """Would a Push from this checkout succeed, and where would it land?"""
+    out = {"ok": True, "why": "", "branch": "", "deploy": deploy,
+           "deployAhead": 0, "checked": time.time()}
+    try:
+        out["branch"] = _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip()
+    except RuntimeError:
+        pass
+    if not _ahead(root):
+        return out                       # nothing to push: nothing to warn about
+    # How far the DEPLOY branch would move. Pushing HEAD:<deploy> is what
+    # actually publishes, and when HEAD is not the deploy branch that number
+    # is the whole story a person needs before pressing (see _push).
+    try:
+        out["deployAhead"] = int(_git(
+            root, "rev-list", "--count", f"origin/{deploy}..HEAD").strip() or 0)
+    except (RuntimeError, ValueError):
+        pass
+    try:
+        _git(root, "push", "--dry-run", "origin", "HEAD", timeout=60)
+    except RuntimeError as e:
+        msg = str(e)
+        out["ok"] = False
+        # Name the causes worth naming; anything else travels verbatim, since
+        # a git message the person can paste beats a guess about it.
+        if "git-lfs" in msg or "git lfs" in msg:
+            out["why"] = ("a Git LFS pre-push hook is refusing the push — git-lfs "
+                          "is not on this server's PATH. Relaunch the editor app; "
+                          "if it persists, install git-lfs or remove the hook "
+                          "named in the error.")
+        elif "rejected" in msg or "fetch first" in msg:
+            out["why"] = ("the remote has commits this checkout does not — "
+                          "reconcile before pushing")
+        elif re.search(r"authenticat|credential|denied|403", msg, re.I):
+            out["why"] = ("this computer has no usable GitHub credential — "
+                          "File ▸ Connect GitHub sets it up")
+        else:
+            out["why"] = msg.strip().splitlines()[-1][:200] if msg.strip() else "push would fail"
+    return out
+
+
 def _content_status(root: Path) -> dict:
     """How far behind origin this checkout is, and whether it can safely
     catch up. Fetch first — `behind` is meaningless against a stale remote."""
@@ -429,6 +491,28 @@ def content_watcher():
                     except RuntimeError as e:
                         print(f"  [{root.name}] could not update: {str(e)[:120]}")
                 CONTENT[str(root)] = st
+                # Would a Push work? Asked here, on the same slow loop, so the
+                # answer is already waiting when someone looks at the button —
+                # rather than being discovered by pressing it. Only when there
+                # IS something to push; _push_health returns early otherwise.
+                # NOT on the first pass. That one runs at server startup, when
+                # the person is waiting for an editor — and this asks the
+                # network, which is exactly the wrong moment for a background
+                # nicety to cost a round trip. (It also kept the test suite's
+                # own server phoning GitHub mid-run, and a real answer for a
+                # real checkout then leaked into specs that mock everything
+                # else.) One poll cycle of latency is nothing against a
+                # condition that went unnoticed for six days.
+                dep = next((p2["binding"].editor.branch or "main"
+                            for p2 in PROJECTS.values()
+                            if p2["root"] == root and p2["binding"].editor), "main")
+                h = {} if (first or not PUSH_PROBE) else _push_health(root, dep)
+                if not h:
+                    continue
+                was = PUSH_HEALTH.get(str(root), {})
+                PUSH_HEALTH[str(root)] = h
+                if not h["ok"] and was.get("why") != h["why"]:
+                    print(f"  [{root.name}] PUSH WOULD FAIL: {h['why']}")
             except Exception as e:                   # noqa: BLE001 — never die
                 print(f"  content check error for {root} (continuing): {e!r}")
         first = False
@@ -754,6 +838,10 @@ class Handler(SimpleHTTPRequestHandler):
         payload = {"ok": True, "v": st.version, "ahead": _ahead(PROJECTS[pid]["root"]),
                    "project": pid, "update": _update_payload(),
                    "content": CONTENT.get(str(PROJECTS[pid]["root"]), {}),
+                   # Whether a Push would actually succeed, and where it would
+                   # land — both answerable BEFORE the button is pressed. Empty
+                   # until the background poll has looked once.
+                   "push": PUSH_HEALTH.get(str(PROJECTS[pid]["root"]), {}),
                    "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
         if st.error:
             payload["error"] = st.error
@@ -1006,6 +1094,7 @@ class Handler(SimpleHTTPRequestHandler):
                 # session) updates every open editor's Push button too.
                 payload = {"v": v, "ahead": _ahead(root), "project": pid,
                            "update": _update_payload(),
+                           "push": PUSH_HEALTH.get(str(root), {}),
                            "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
                 if err:
                     payload["error"] = err
@@ -1055,12 +1144,22 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception as e:                   # noqa: BLE001 — report it
                 return self._json(200, {"ok": False, "error": str(e)})
         try:
-            msg = self._push(pid) if path == "/__push" else self._save(pid, req)
+            msg = (self._push(pid, bool(req.get("deploy")))
+                   if path == "/__push" else self._save(pid, req))
             return self._json(200, {"ok": True, "message": msg, "v": STATE[pid].version,
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
         except Exception as e:                       # noqa: BLE001 — report it
-            return self._json(200, {"ok": False, "error": str(e),
+            # A push that needs the person to SEE where it lands is not a
+            # failure — it is a question, and the editor asks it as one rather
+            # than showing a refusal they cannot act on.
+            txt = str(e)
+            if txt.startswith("NEEDS_CONFIRM|"):
+                return self._json(200, {"ok": False, "needsConfirm": True,
+                                         "error": txt.split("|", 1)[1],
+                                         "project": pid,
+                                         "ahead": _ahead(PROJECTS[pid]["root"])})
+            return self._json(200, {"ok": False, "error": txt,
                                      "project": pid,
                                      "ahead": _ahead(PROJECTS[pid]["root"])})
 
@@ -1680,7 +1779,7 @@ class Handler(SimpleHTTPRequestHandler):
              "--", *paths)
         return "saved locally — Push when you're ready to publish"
 
-    def _push(self, pid: str) -> str:
+    def _push(self, pid: str, req_ok: bool = False) -> str:
         """Send whatever is committed locally (one Save, or several) to
         GitHub: the current branch, and fast-forward the deploy branch to
         match. Two separate remote refs, so either can independently reject a
@@ -1705,17 +1804,50 @@ class Handler(SimpleHTTPRequestHandler):
             if origin_url.startswith("https://github.com/"):
                 auth = ["-c", "url.https://x-access-token:" + tok
                         + "@github.com/.insteadOf=https://github.com/"]
+        # WHERE this lands, said out loud. `branch` is the deploy branch — the
+        # one that builds and publishes — and it defaults to main when a
+        # binding does not name one. On a checkout whose current branch is
+        # something else, one press fast-forwards the deploy branch to match
+        # HEAD, which can be a great many commits: a 45-commit publish looked
+        # exactly like a 1-commit one. Deploying across branches is a real
+        # decision, so it is confirmed rather than assumed — `deploy: true` in
+        # the request is the person having seen the number and said yes.
+        here = ""
+        try:
+            here = _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip()
+        except RuntimeError:
+            pass
+        n = 0
+        try:
+            n = int(_git(root, "rev-list", "--count",
+                         f"origin/{branch}..HEAD").strip() or 0)
+        except (RuntimeError, ValueError):
+            pass
+        if here and here != branch and n > 1 and not req_ok:
+            raise RuntimeError(
+                f"NEEDS_CONFIRM|this would publish {n} commit"
+                f"{'s' if n > 1 else ''} by fast-forwarding '{branch}' "
+                f"(the branch that builds and deploys) to match '{here}'")
         try:
             _git(root, *auth, "push", "origin", "HEAD")              # this branch
             _git(root, *auth, "push", "origin", f"HEAD:{branch}")    # -> deploy
         except RuntimeError as e:
+            if "git-lfs" in str(e) or "git lfs" in str(e):
+                raise RuntimeError(
+                    "a Git LFS pre-push hook refused the push — git-lfs is not on "
+                    "this server's PATH. Relaunch the editor app; if it persists, "
+                    "install git-lfs or remove the hook the error names.") from e
             if "rejected" in str(e) or "fetch first" in str(e):
                 raise RuntimeError(
                     "push rejected — the remote has commits this machine doesn't "
                     "(often build.yml's own rebuild). Ask Claude to reconcile it, "
                     "or run: git fetch && git merge origin/" + branch) from e
             raise
-        return "pushed — GitHub Pages deploys in about a minute"
+        # The health answer is stale the moment a push succeeds; let the next
+        # poll re-ask rather than leave a warning standing over a clean tree.
+        PUSH_HEALTH.pop(str(root), None)
+        where = f" — '{branch}' now matches '{here}'" if here and here != branch else ""
+        return f"pushed{where} — GitHub Pages deploys in about a minute"
 
 
 def _assets_dir(b) -> Path:
