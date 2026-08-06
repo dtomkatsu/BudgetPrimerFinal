@@ -13930,6 +13930,113 @@ async function doExport(fmt) {
 // keys are `slots[].key`. Mutators refuse while an inline text editor is
 // open (`editing`) — matching edit()'s own rule — rather than committing
 // over someone's caret.
+
+// ---- shared cores, so a single verb call and the same verb inside batch()
+// can never disagree about what it does. Each mutating verb splits into a
+// pure VALIDATE (reads only — can it apply?) and a pure APPLY (the actual
+// mutation, nothing else — no pushHistory, no markDirty, no render). The
+// single-verb methods below wrap one core in history+render; batch() wraps
+// several. Order matters: pushHistory() must run BEFORE any mutation, so
+// validation has to be a separate pass batch can run for every op before
+// mutating any of them — otherwise a bad op at index 4 would leave ops 0-3
+// half-applied under a history entry nothing pushed cleanly.
+function _pilotValidateSetSlot(key, md) {
+  if (!slotRe(key).test(source)) return { ok: false, error: `no slot '${key}'` };
+  if (key === 'sources') {
+    const bad = badSourceLines(md);
+    if (bad.length) return { ok: false, error: `malformed sources line: "${bad[0]}"` };
+  }
+  return { ok: true };
+}
+function _pilotApplySetSlot(key, md) { writeSlot(key, md); return { key }; }
+
+function _pilotValidatePlace(id) {
+  const d = $('out').contentDocument;
+  const el = d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+  if (!el) return { ok: false, error: `no element '${id}' — check inventory()` };
+  if (isLocked(id)) return { ok: false, error: `'${id}' is locked — unlock it first` };
+  return { ok: true };
+}
+function _pilotApplyPlace(id, { x, y, w, h } = {}) {
+  const d = $('out').contentDocument;
+  const sel = `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`;
+  const el = d.querySelector(sel);
+  const page = el.closest('section.page') || d.querySelector('section.page');
+  if (x != null || y != null) {
+    const P = placer(d, el, page);
+    P.commit(P.put(x != null ? +x : P.box.x, y != null ? +y : P.box.y, false));
+  }
+  // Explicit size lands where each kind keeps it — the same fields the
+  // resize handles write. A designed element has no free height (its
+  // content decides), so h applies to shapes and boxes only.
+  const sh = layout.shapes.find(s => s.id === id);
+  const bx = boxOf(id);
+  if (w != null) {
+    if (sh) sh.w = +w;
+    else if (bx) bx.w = +w;
+    else layout.positions[id] = { ...(layout.positions[id] || {}), w: +w };
+  }
+  if (h != null) { if (sh) sh.h = +h; else if (bx) bx.h = +h; }
+  return { id };
+}
+// Measured AFTER render, from the fresh DOM — the truth of where the element
+// really painted (placer's clamp may have moved it from what was asked).
+// Shared by place() and addTextBox(), and by batch()'s per-op results.
+function _pilotMeasure(id) {
+  const d = $('out').contentDocument;
+  const el = d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+  if (!el) return null;
+  const pg = el.closest('section.page') || d.querySelector('section.page');
+  try {
+    const sh = layout.shapes.find(s => s.id === id);
+    const b = sh ? shapeBox(el, pg) : inchBox(el, pg);
+    return { x: +b.x.toFixed(2), y: +b.y.toFixed(2), w: +b.w.toFixed(2), h: +b.h.toFixed(2) };
+  } catch (err) { return null; }         // report the op without geometry
+}
+
+// recolor has no failure mode of its own: fillTargets(id) always returns a
+// settable target, even for an id that names nothing (it falls through to a
+// generic layout.fill[id] entry) — true before batch() existed, unchanged.
+function _pilotApplyRecolor(id, fill) { fillTargets(id).set(fill); return { id, fill }; }
+
+function _pilotApplyAddTextBox({ page, x, y, w = 3, md = 'Your text here', style, fill } = {}) {
+  const pid = page != null ? page : visiblePageId();
+  const id = freeBoxId();
+  const box = { id, page: pid, x: x != null ? +x : placeX(w), y: y != null ? +y : 2,
+                w: +w, z: 2, md };
+  if (style && Object.keys(style).length) box.style = { ...style };
+  if (fill) box.fill = fill;
+  boxes().push(box);
+  return { id: 'text.' + id, page: pid };
+}
+
+function _pilotValidateAddSource(id, text, url) {
+  if (!/^[A-Za-z0-9._-]+$/.test(id || ''))
+    return { ok: false, error: 'id must be letters, numbers, . _ - only' };
+  if (sourceIds().includes(id)) return { ok: false, error: `[${id}] already exists` };
+  if (!(text || '').trim() || !/^\S+$/.test(url || ''))
+    return { ok: false, error: 'a citation text and a spaceless url are both required' };
+  return { ok: true };
+}
+function _pilotApplyAddSource(id, text, url) {
+  addSource(id, text.trim(), url.trim());
+  return { id };
+}
+
+// The verbs batch() accepts — each op is {verb, args}, args in the same
+// order as the single-verb call. addPage/addEndnotesSection call shared
+// helpers (addBlankPage, the engine's addEndnotesSection) that already do
+// their own pushHistory+render internally, so they cannot join a batch's
+// single history/render without their own refactor — call them singly.
+const PILOT_BATCH_VERBS = {
+  setSlot: { validate: (d, m) => _pilotValidateSetSlot(d, m), apply: (d, m) => _pilotApplySetSlot(d, m) },
+  place: { validate: id => _pilotValidatePlace(id), apply: (id, o) => _pilotApplyPlace(id, o) },
+  recolor: { validate: () => ({ ok: true }), apply: (id, fill) => _pilotApplyRecolor(id, fill) },
+  addTextBox: { validate: () => ({ ok: true }), apply: o => _pilotApplyAddTextBox(o) },
+  addSource: { validate: (id, t, u) => _pilotValidateAddSource(id, t, u),
+               apply: (id, t, u) => _pilotApplyAddSource(id, t, u) },
+};
+
 window.docsync = Object.assign(window.docsync || {}, { api: {
   version: 1,
 
@@ -14001,13 +14108,10 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
    *  it cannot express is flattened, the same as typing it. */
   async setSlot(key, md) {
     if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
-    if (!slotRe(key).test(source)) return { ok: false, error: `no slot '${key}'` };
-    if (key === 'sources') {
-      const bad = badSourceLines(md);
-      if (bad.length) return { ok: false, error: `malformed sources line: "${bad[0]}"` };
-    }
+    const v = _pilotValidateSetSlot(key, md);
+    if (!v.ok) return v;
     pushHistory();
-    writeSlot(key, md);
+    _pilotApplySetSlot(key, md);
     markDirty();
     await render();
     return docsync.api.status();
@@ -14016,45 +14120,18 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
   /** Move and/or size an element, in page inches. Same write path as a drag:
    *  placer() handles coordinate-space correction for elements inside
    *  positioned ancestors, clamps to the page, and pins prose width. No
-   *  snapping — exact coordinates were asked for. */
-  async place(id, { x, y, w, h } = {}) {
+   *  snapping — exact coordinates were asked for. The returned box is
+   *  measured from the re-rendered document, so a clamp (the page edge, same
+   *  as a drag) is reported rather than pretended away. */
+  async place(id, opts = {}) {
     if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
-    const d = $('out').contentDocument;
-    const sel = `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`;
-    const el = d.querySelector(sel);
-    if (!el) return { ok: false, error: `no element '${id}' — check inventory()` };
-    if (isLocked(id)) return { ok: false, error: `'${id}' is locked — unlock it first` };
+    const v = _pilotValidatePlace(id);
+    if (!v.ok) return v;
     pushHistory();
-    const page = el.closest('section.page') || d.querySelector('section.page');
-    if (x != null || y != null) {
-      const P = placer(d, el, page);
-      P.commit(P.put(x != null ? +x : P.box.x, y != null ? +y : P.box.y, false));
-    }
-    // Explicit size lands where each kind keeps it — the same fields the
-    // resize handles write. A designed element has no free height (its
-    // content decides), so h applies to shapes and boxes only.
-    const sh = layout.shapes.find(s => s.id === id);
-    const bx = boxOf(id);
-    if (w != null) {
-      if (sh) sh.w = +w;
-      else if (bx) bx.w = +w;
-      else layout.positions[id] = { ...(layout.positions[id] || {}), w: +w };
-    }
-    if (h != null) { if (sh) sh.h = +h; else if (bx) bx.h = +h; }
+    _pilotApplyPlace(id, opts);
     markDirty();
     await render();
-    const d2 = $('out').contentDocument;
-    const el2 = d2.querySelector(sel);
-    const pg2 = el2 && (el2.closest('section.page') || d2.querySelector('section.page'));
-    let box = null;
-    try {
-      if (el2) {
-        const b = sh ? shapeBox(el2, pg2) : inchBox(el2, pg2);
-        box = { x: +b.x.toFixed(2), y: +b.y.toFixed(2),
-                w: +b.w.toFixed(2), h: +b.h.toFixed(2) };
-      }
-    } catch (err) { /* report status without geometry */ }
-    return { ...docsync.api.status(), id, box };
+    return { ...docsync.api.status(), id, box: _pilotMeasure(id) };
   },
 
   /** Recolour anything fillable: a shape/box/mark id, or 'page.<pid>' for a
@@ -14062,7 +14139,7 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
   async recolor(id, fill) {
     if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
     pushHistory();
-    fillTargets(id).set(fill);
+    _pilotApplyRecolor(id, fill);
     markDirty();
     await render();
     paintSel($('out').contentDocument);
@@ -14070,19 +14147,13 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
   },
 
   /** A new text box; returns its element id ('text.<n>') for place()/edit. */
-  async addTextBox({ page, x, y, w = 3, md = 'Your text here', style, fill } = {}) {
+  async addTextBox(opts = {}) {
     if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
     pushHistory();
-    const pid = page != null ? page : visiblePageId();
-    const id = freeBoxId();
-    const box = { id, page: pid, x: x != null ? +x : placeX(w), y: y != null ? +y : 2,
-                  w: +w, z: 2, md };
-    if (style && Object.keys(style).length) box.style = { ...style };
-    if (fill) box.fill = fill;
-    boxes().push(box);
+    const { id, page } = _pilotApplyAddTextBox(opts);
     markDirty();
     await render();
-    return { ...docsync.api.status(), id: 'text.' + id, page: pid };
+    return { ...docsync.api.status(), id, page };
   },
 
   /** A blank page after `at` (order index) or after the page in view. */
@@ -14096,16 +14167,54 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
 
   /** Declare a source; cite it by putting its [^id] token into slot text. */
   async addSource(id, text, url) {
-    if (!/^[A-Za-z0-9._-]+$/.test(id || ''))
-      return { ok: false, error: 'id must be letters, numbers, . _ - only' };
-    if (sourceIds().includes(id)) return { ok: false, error: `[${id}] already exists` };
-    if (!(text || '').trim() || !/^\S+$/.test(url || ''))
-      return { ok: false, error: 'a citation text and a spaceless url are both required' };
+    const v = _pilotValidateAddSource(id, text, url);
+    if (!v.ok) return v;
     pushHistory();
-    addSource(id, text.trim(), url.trim());
+    _pilotApplyAddSource(id, text, url);
     markDirty();
     await render();
     return { ...docsync.api.status(), id };
+  },
+
+  /** Apply several ops as ONE undo step and ONE render — for a pilot doing
+   *  many small edits, this collapses a multi-round-trip dance into one
+   *  call. ops is [{verb, args}], args in the same order as the matching
+   *  single-verb call (a bare value or an array of positional args).
+   *  Supported verbs: setSlot, place, recolor, addTextBox, addSource — the
+   *  ones with no side effect beyond source/layout. addPage and
+   *  addEndnotesSection call shared helpers that already push their own
+   *  history and render, so they cannot join a batch; call them singly.
+   *
+   *  ALL-OR-NOTHING: every op is validated before ANY of them mutates, so a
+   *  bad op at index 4 refuses the whole batch rather than leaving ops 0-3
+   *  applied under a history entry nothing pushed. One consequence: an op
+   *  cannot reference something an EARLIER op in the same batch creates (a
+   *  fresh addTextBox's id does not exist to place() until the batch's own
+   *  render has run) — call addTextBox alone first, then batch the rest. */
+  async batch(ops) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    if (!Array.isArray(ops) || !ops.length)
+      return { ok: false, error: 'batch needs a non-empty array of {verb, args}' };
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      const spec = op && PILOT_BATCH_VERBS[op.verb];
+      if (!spec) return { ok: false, error: `op ${i}: unsupported verb `
+        + `'${op && op.verb}' — batch supports ${Object.keys(PILOT_BATCH_VERBS).join(', ')}` };
+      const args = Array.isArray(op.args) ? op.args : [op.args];
+      const v = spec.validate(...args);
+      if (!v.ok) return { ok: false, error: `op ${i} (${op.verb}): ${v.error}` };
+    }
+    pushHistory();
+    const applied = ops.map(op => {
+      const args = Array.isArray(op.args) ? op.args : [op.args];
+      return { verb: op.verb, ...PILOT_BATCH_VERBS[op.verb].apply(...args) };
+    });
+    markDirty();
+    await render();
+    paintSel($('out').contentDocument);   // harmless when nothing needed it
+    const results = applied.map(a => (a.verb === 'place' || a.verb === 'addTextBox')
+      ? { ...a, box: _pilotMeasure(a.id) } : a);
+    return { ...docsync.api.status(), results };
   },
 
   /** The endnotes section at the end of the document (idempotent). Refuses
