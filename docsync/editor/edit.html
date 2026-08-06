@@ -11207,6 +11207,35 @@ function schedulePreviewStore(html) {
   }, 2500);
 }
 
+/** Prepare report HTML for a srcdoc preview. BOTH render paths — the warm boot
+ *  preview and every later render — go through here, so they cannot drift and a
+ *  future third path cannot quietly miss a step.
+ *
+ *  1. srcdoc resolves relative URLs (assets/…) against THIS page. Right for the
+ *     default project, whose deploy puts assets beside the editor; a switched
+ *     project's assets live under its own base, so point the document there.
+ *  2. A srcdoc document's <link> stylesheets are ORDINARY browser subresource
+ *     loads: they never go through get()/bust(), and a report's CSS is usually
+ *     absent from docsync.yml's editor.engine, so NOTHING in the live-reload
+ *     path re-fetches them. The rebuild re-renders the HTML, the browser reuses
+ *     the stylesheet it already holds for that URL, and the change appears only
+ *     after a HARD refresh — while every other live edit lands at once. Stamping
+ *     with the BUILD VERSION (not the clock) means one refetch per rebuild
+ *     rather than one per drag. Cross-origin sheets (webfonts) are mirrored
+ *     rather than inlined and are left alone; an href already carrying cb= was
+ *     stamped by the report's own renderer, so the two compose, never stack.
+ */
+function prepPreviewHtml(html) {
+  if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
+  return html.replace(/<link\b[^>]*>/gi, tag => {
+    if (!/\brel=["']?stylesheet/i.test(tag)) return tag;
+    return tag.replace(/\bhref=(["'])([^"']+)\1/i, (m, q, href) =>
+      /^(?:https?:)?\/\//i.test(href) || /[?&]cb=/.test(href)
+        ? m
+        : 'href=' + q + href + (href.includes('?') ? '&' : '?') + 'cb=' + liveVer + q);
+  });
+}
+
 async function showWarmPreview() {
   try {
     let html = null;
@@ -11218,7 +11247,7 @@ async function showWarmPreview() {
       const r = await fetch(bust(withBase('index.html')), { cache: 'no-store' });
       if (!r.ok) return;
       html = await r.text();
-      if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
+      html = prepPreviewHtml(html);
       html = html.replace(/<\/head>/i, '<style>.page{max-width:none}</style></head>');
     }
     // The engine may have WON the race — a warm cache renders in well under a
@@ -11341,7 +11370,7 @@ open('/repo/' + OUT).read()
   // srcdoc resolves relative URLs (assets/…) against THIS page. Right for the
   // default project, whose deploy puts assets beside the editor; a switched
   // project's assets live under its own base, so point the document there.
-  if (PBASE) html = html.replace(/<head>/i, `<head><base href="${withBase('')}">`);
+  html = prepPreviewHtml(html);
   // The editor draws at TRUE size. Every coordinate in a layout is inches and
   // the editor converts at a fixed 96dpi, so a sheet squashed by .page's
   // max-width:100% would put every shape somewhere it is not. The published
