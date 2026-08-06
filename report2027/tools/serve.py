@@ -27,6 +27,7 @@ is no more one global ROOT/CONTENT/LAYOUT — see PROJECTS.
 from __future__ import annotations
 
 import base64
+import contextlib
 import functools
 import glob
 import importlib.util
@@ -265,6 +266,57 @@ class ProjectState:
 
 
 STATE = {pid: ProjectState() for pid in PROJECTS}
+
+# ---- host-state lock -------------------------------------------------------
+# docsync.yml and docs/primer/projects.json are read-modify-written from more
+# than one process at once: this server (scaffold/adopt/connect), a second
+# server (the user's app while a test run's own server is up), and the test
+# suite's cleanup rewrites. Two concurrent read-modify-writes silently lose
+# one of the updates — which is exactly the docsync.yml scaffold race that
+# left zz-spec-* bindings committed three separate times before it was
+# understood as a pattern. A directory is the one primitive every platform
+# creates atomically, so mkdir IS the lock; the pid inside lets a waiter
+# steal from a holder that died without releasing. The test suite's
+# fixtures/host-state.js takes the SAME directory, which is what makes the
+# guarantee cross-process rather than per-process politeness.
+HOST_LOCK = Path(tempfile.gettempdir()) / "docsync-host-state.lock"
+
+
+@contextlib.contextmanager
+def _host_lock(timeout: float = 30.0):
+    deadline = time.time() + timeout
+    while True:
+        try:
+            HOST_LOCK.mkdir()
+            (HOST_LOCK / "pid").write_text(str(os.getpid()))
+            break
+        except FileExistsError:
+            pid = 0
+            try:
+                pid = int((HOST_LOCK / "pid").read_text() or 0)
+            except (OSError, ValueError):
+                pass
+            if pid:
+                try:
+                    os.kill(pid, 0)
+                except ProcessLookupError:      # holder died mid-hold: steal
+                    shutil.rmtree(HOST_LOCK, ignore_errors=True)
+                    continue
+                except PermissionError:
+                    pass                        # alive, someone else's — wait
+            if time.time() > deadline:
+                # Held beyond any plausible critical section (they are file
+                # writes, milliseconds): a wedged lock must not brick every
+                # scaffold and adopt on the machine. Steal and press on.
+                shutil.rmtree(HOST_LOCK, ignore_errors=True)
+                continue
+            time.sleep(0.02)
+    try:
+        yield
+    finally:
+        shutil.rmtree(HOST_LOCK, ignore_errors=True)
+
+
 # /__inventory's addressable-id list, keyed (project, build version). Learning
 # the ids costs a whole edit-mode render, and they cannot change without a
 # rebuild — so one entry, replaced whenever the version moves, is the entire
@@ -1065,7 +1117,11 @@ class Handler(SimpleHTTPRequestHandler):
         sys.path.insert(0, str(SELF_ROOT))
         try:
             from docsync.new import NewProjectError, create
-            create(slug, name, w, h, root=SELF_ROOT)
+            # create() read-appends docsync.yml; under the host lock so two
+            # concurrent scaffolds (parallel test workers, two tabs) cannot
+            # lose each other's binding.
+            with _host_lock():
+                create(slug, name, w, h, root=SELF_ROOT)
         except NewProjectError as e:
             return self._json(200, {"ok": False, "error": str(e)})
         except Exception as e:                   # noqa: BLE001 — report it
@@ -1112,31 +1168,73 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception:
             pass
         reg = DOCS / "primer" / "projects.json"
-        try:
-            registry = json.loads(reg.read_text()) if reg.is_file() else {}
-        except json.JSONDecodeError:
-            registry = {}
         added = []
-        for pid, b in bindings.items():
-            if pid in PROJECTS or not b.editor:
-                continue
-            _register_project(pid, root, b)
-            registry[pid] = {"name": pid.replace("-", " ").title(),
-                             "base": f"../_repo-{pid}",
-                             **({"repo": origin} if origin else {}),
-                             "local_root": str(root)}
-            rebuild(pid, "adopt")
-            added.append(pid)
+        already = []          # served from THIS same checkout — adopt is a no-op
+        # The registry read-modify-write sits under the host lock; the
+        # rebuilds happen AFTER release — a build takes seconds, and holding
+        # a cross-process lock through one would serialise every scaffold and
+        # cleanup on the machine behind it for no correctness gain.
+        with _host_lock():
+            try:
+                registry = json.loads(reg.read_text()) if reg.is_file() else {}
+            except json.JSONDecodeError:
+                registry = {}
+            for pid, b in bindings.items():
+                if not b.editor:
+                    continue
+                cur = PROJECTS.get(pid)
+                if cur is not None:
+                    # Already serving this id — three cases, three answers.
+                    # From THIS same checkout: adopting is a no-op, and a
+                    # no-op should open the project rather than scold
+                    # (below). From a DIFFERENT checkout still on disk: a
+                    # genuine conflict, refused as ever. But a registration
+                    # whose root has VANISHED — the folder deleted since it
+                    # was adopted — is a memory of a project, not a project,
+                    # and it used to block re-adopting the id until someone
+                    # restarted the server: nothing could remove it, and
+                    # everything that touched it (ping, rebuild, the grid)
+                    # just errored. Evict the ghost and let the new checkout
+                    # have the name.
+                    if cur["root"] == root:
+                        already.append(pid)
+                        continue
+                    if cur["root"].exists():
+                        continue
+                    PROJECTS.pop(pid, None)
+                    STATE.pop(pid, None)
+                    EXTERNAL_MOUNTS.pop(pid, None)
+                    CONTENT.pop(str(cur["root"]), None)
+                    _default_registry.cache_clear()
+                _register_project(pid, root, b)
+                registry[pid] = {"name": pid.replace("-", " ").title(),
+                                 "base": f"../_repo-{pid}",
+                                 **({"repo": origin} if origin else {}),
+                                 "local_root": str(root)}
+                added.append(pid)
+            if added:
+                reg.parent.mkdir(parents=True, exist_ok=True)
+                # Atomic: a reader that lands mid-write sees the OLD file,
+                # never a truncated one — a partial read parsed as {} made
+                # the start page forget every project for one load.
+                tmp = reg.with_suffix(".json.tmp")
+                tmp.write_text(json.dumps(registry, indent=2) + "\n")
+                tmp.replace(reg)
         if not added:
+            if already:
+                # Everything this repo declares is already being served from
+                # this very folder — adopting it again is a no-op, and a no-op
+                # is not an error. Answer with the projects so the start page
+                # opens one, exactly as a successful adoption would; erroring
+                # here just told the person "you can't have what you already
+                # have" and left them stranded on the grid.
+                return self._json(200, {"ok": True, "added": already,
+                                        "message": "already in your list — opening"})
             return self._json(200, {"ok": False,
-                                    "error": "every project there is already in your list"})
-        reg.parent.mkdir(parents=True, exist_ok=True)
-        # Atomic: a reader that lands mid-write sees the OLD file, never a
-        # truncated one — a partial read parsed as {} made the start page
-        # forget every project for one load.
-        tmp = reg.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(registry, indent=2) + "\n")
-        tmp.replace(reg)
+                                    "error": "every project there is already served "
+                                             "from a different checkout"})
+        for pid in added:
+            rebuild(pid, "adopt")
         return self._json(200, {"ok": True, "added": added})
 
     def _connect(self, req):
@@ -1202,19 +1300,23 @@ class Handler(SimpleHTTPRequestHandler):
         except (OSError, json.JSONDecodeError) as e:
             return self._json(200, {"ok": False, "error": f"could not write the manifest: {e}"})
 
-        # projects.json — what the start page reads
+        # projects.json — what the start page reads. Under the host lock:
+        # this is a read-modify-write of a file /__adopt and the test
+        # suite's cleanup also read-modify-write, and unlocked concurrent
+        # writers silently lose one side's update.
         reg = DOCS / "primer" / "projects.json"
-        try:
-            registry = json.loads(reg.read_text()) if reg.is_file() else {}
-        except json.JSONDecodeError:
-            registry = {}
-        entry = registry.get(pid) or dict(_default_registry().get(pid) or {})
-        entry["repo"] = slug
-        registry[pid] = entry
-        reg.parent.mkdir(parents=True, exist_ok=True)
-        tmp = reg.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(registry, indent=2) + "\n")
-        tmp.replace(reg)
+        with _host_lock():
+            try:
+                registry = json.loads(reg.read_text()) if reg.is_file() else {}
+            except json.JSONDecodeError:
+                registry = {}
+            entry = registry.get(pid) or dict(_default_registry().get(pid) or {})
+            entry["repo"] = slug
+            registry[pid] = entry
+            reg.parent.mkdir(parents=True, exist_ok=True)
+            tmp = reg.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(registry, indent=2) + "\n")
+            tmp.replace(reg)
         _default_registry.cache_clear()
         return self._json(200, {"ok": True, "repo": slug, "remote": remote_note})
 
