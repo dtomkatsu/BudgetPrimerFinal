@@ -34,6 +34,47 @@ def render(content_path, edit_mode):
     return r.returncode == 0, (r.stdout + r.stderr)
 
 
+def check_css_cache_bust():
+    """The editor's preview is an iframe assigned via srcdoc, so primer.css is a
+    plain browser subresource — outside the editor's cache-busted fetches, and
+    absent from docsync.yml's editor.engine, so nothing in the live-reload path
+    re-fetches it. Unstamped, a CSS edit only shows after a HARD refresh while
+    every other live edit lands at once. Both halves matter: edit mode MUST
+    stamp the href, and publish mode MUST NOT — the deployed page has no reason
+    to carry a local mtime, and that is what keeps published bytes stable."""
+    import re
+    for edit_mode, want_stamp in ((True, True), (False, False)):
+        env = dict(os.environ, DOCSYNC_CONTENT=str(CONTENT))
+        if edit_mode:
+            env["DOCSYNC_EDIT"] = "1"
+        else:
+            env.pop("DOCSYNC_EDIT", None)
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            out_path = f.name
+        env["DOCSYNC_OUT"] = out_path
+        r = subprocess.run([sys.executable, "tools/render_report.py"],
+                           cwd=str(REPORT), env=env, capture_output=True, text=True)
+        if r.returncode != 0:
+            FAILS.append(f"render failed in {'edit' if edit_mode else 'publish'} "
+                         f"mode while checking the stylesheet href:\n{(r.stdout + r.stderr)[-400:]}")
+            os.unlink(out_path)
+            continue
+        html = Path(out_path).read_text()
+        os.unlink(out_path)
+        m = re.search(r'<link rel="stylesheet" href="(primer\.css[^"]*)"', html)
+        if not m:
+            FAILS.append("no local stylesheet <link> in the rendered head at all")
+            continue
+        stamped = "?cb=" in m.group(1)
+        if stamped != want_stamp:
+            FAILS.append(
+                f"{'edit' if edit_mode else 'publish'} mode: stylesheet href is "
+                f"{m.group(1)!r}, expected {'a ?cb= stamp' if want_stamp else 'no stamp'}. "
+                "Without the stamp in edit mode a primer.css change needs a hard "
+                "refresh; with it in publish mode the deployed page carries a "
+                "local mtime.")
+
+
 def check_editor_js():
     """The editor's inline <script> is one giant JS blob whose stylesheet is a
     template literal — a stray backtick or ${...} in a CSS COMMENT ends the
@@ -64,6 +105,7 @@ def check_editor_js():
 
 def main():
     check_editor_js()
+    check_css_cache_bust()
     src = CONTENT.read_text()
     # Pick any footnote citation the fixture has, and drop just that token so the
     # source it names is orphaned while everything else stays valid.

@@ -128,19 +128,26 @@ a { color: var(--dark); }
 /* 900 was right for Barlow; the serif's matching weight is 600. Size is set so
    the longest line fills the column, as it did on the FY2025–26 cover, where the
    title ran nearly the full sheet width. */
+/* Title and year are ONE lockup: same family, weight, colour and tracking, and
+   only the size differs. The tracking is spelled out on both rather than left to
+   the `h1` rule the title happens to match — .cover-year is a <div>, so it was
+   silently getting `normal` while the title got .5px, and any change to h1 would
+   have widened that gap again. */
 .cover-title { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 158px;
-               line-height: .95; margin-top: .35in; border: none; padding: 0; }
+               line-height: .95; letter-spacing: .5px; margin-top: .35in;
+               border: none; padding: 0; }
 /* 0.40 x the title, the ratio Encorpada held on the FY2025–26 cover (48pt/120pt) */
 .cover-year { font-family: var(--display); font-weight: 600; color: var(--sage); font-size: 63px;
-              text-align: right; margin-top: .25in; }
+              letter-spacing: .5px; text-align: right; margin-top: .25in; }
 
 /* toc page */
-/* Top padding clears the logo, which is PLACED (absolute, from layout.json) at
-   1.19in and stands 0.52in tall — it is not in this flow, so nothing else pushes
-   the column down. At the old 1.2in the logo landed directly on top of the URL
-   and author lines. If the logo is ever dragged elsewhere, this number is what
-   needs to follow it. */
-.toc-page { background: var(--dark); color: #fff; padding-top: 1.95in; }
+/* 1.2in, not the 1.95in this briefly carried. The logo here is PLACED (absolute,
+   from layout.json) but its entry has `reserve: 0.42`, so the renderer emits a
+   spacer holding its flow slot — the URL and author lines already sit below it
+   and cannot be overlapped. Padding beyond 1.2in was therefore not clearing
+   anything, just opening 0.75in of dead space between the logo and the two
+   lines that belong with it. */
+.toc-page { background: var(--dark); color: #fff; padding-top: 1.2in; }
 .toc-head { text-align: center; margin-bottom: .7in; }
 .toc-link a { color: var(--mint); }
 .toc-author { margin-top: 8px; }

@@ -254,7 +254,12 @@ def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0,
         t = "".join(f'<tspan x="{lx:.0f}" dy="{dy:.0f}" >{l}</tspan>' if i else
                     f'<tspan x="{lx:.0f}">{l}</tspan>' for i, l in enumerate(lab))
         # a label sitting inside a dark slice needs reversed (white) text
-        lab_fill = ' fill="#fff"' if (big and not is_light_bg(color)) else ''
+        # Inline STYLE, not a presentation attribute: .pie-lab in primer.css
+        # sets `fill: var(--ink)`, and in SVG any CSS rule beats a presentation
+        # attribute — so a bare fill="#fff" here silently lost, and the labels
+        # inside the dark first slices (Transportation, General Funds, GET)
+        # rendered ink-on-forest. Only an inline style outranks the stylesheet.
+        lab_fill = ' style="fill:#fff"' if (big and not is_light_bg(color)) else ''
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
                       f'class="pie-lab"{lab_fill} font-size="{lab_u:.1f}">{t}</text>')
         a += sweep
@@ -1382,6 +1387,22 @@ if unused:
                 "<page> is one of: " + ", ".join(EXTRA_PAGES))
     raise ContentError(msg)
 
+# The editor previews the report in an iframe assigned via srcdoc, so this
+# stylesheet is an ORDINARY browser subresource load — it does not go through
+# the editor's own cache-busted fetches, and primer.css is not in docsync.yml's
+# editor.engine list either, so nothing in the live-reload path ever re-fetches
+# it. Without a stamp the browser keeps the copy it already has: every other
+# live edit lands instantly while a CSS edit needs a HARD refresh. Stamped with
+# the file's mtime so it changes exactly when the file does (a per-render stamp
+# would refetch on every drag), and ONLY in edit mode — the published bytes are
+# byte-identical to before this existed.
+_css_href = "primer.css"
+if os.environ.get("DOCSYNC_EDIT"):
+    try:
+        _css_href += f"?cb={int((HERE / 'web' / 'primer.css').stat().st_mtime)}"
+    except OSError:
+        pass                      # no stylesheet on disk yet: ship the bare href
+
 html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1399,7 +1420,7 @@ html = f"""<!DOCTYPE html>
      stem weight, hairline contrast and set width, and unlike the Bodoni family
      it carries a real ʻokina (U+02BB). -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600&display=swap">
-<link rel="stylesheet" href="primer.css">
+<link rel="stylesheet" href="{_css_href}">
 </head>
 <body{' class="ds-bleed"' if os.environ.get("DOCSYNC_MARKS") else ''}>
 <div class="toolbar noprint">

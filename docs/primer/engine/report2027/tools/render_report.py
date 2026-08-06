@@ -254,7 +254,12 @@ def pie(slices, size=400, r=158, cls="", width_in=3.6, label_pt=14.0, start=0.0,
         t = "".join(f'<tspan x="{lx:.0f}" dy="{dy:.0f}" >{l}</tspan>' if i else
                     f'<tspan x="{lx:.0f}">{l}</tspan>' for i, l in enumerate(lab))
         # a label sitting inside a dark slice needs reversed (white) text
-        lab_fill = ' fill="#fff"' if (big and not is_light_bg(color)) else ''
+        # Inline STYLE, not a presentation attribute: .pie-lab in primer.css
+        # sets `fill: var(--ink)`, and in SVG any CSS rule beats a presentation
+        # attribute — so a bare fill="#fff" here silently lost, and the labels
+        # inside the dark first slices (Transportation, General Funds, GET)
+        # rendered ink-on-forest. Only an inline style outranks the stylesheet.
+        lab_fill = ' style="fill:#fff"' if (big and not is_light_bg(color)) else ''
         labels.append(f'<text x="{lx:.0f}" y="{ty:.0f}" text-anchor="{anchor}" '
                       f'class="pie-lab"{lab_fill} font-size="{lab_u:.1f}">{t}</text>')
         a += sweep
