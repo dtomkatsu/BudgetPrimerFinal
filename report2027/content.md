@@ -355,7 +355,7 @@ Over 70 percent of capital gains flow to households making more than $400,000. T
 ### Modernize the Conveyance Tax
 
 [[taxfair.items.conveyance.tag]]
-$300M a year
+$70M - $80M a year
 
 [[taxfair.items.conveyance.body]]
 Paid when a property changes hands, the conveyance tax is one of the few tools that allows the state to capture revenue from Hawaiʻi’s real estate market.[^conveyance-modernize] Its rates have not moved since 2009, even though out-of-state buyers have continued to drive up housing prices by turning homes into investment properties.
