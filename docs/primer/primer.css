@@ -30,10 +30,6 @@ h2.sub { font-family: var(--body); font-weight: 300; font-size: 30px;
          color: var(--sage); margin-bottom: 16px; }
 h3.sub2 { font-family: var(--body); font-weight: 600; font-size: 19px;
           color: var(--sage); margin: 18px 0 10px; }
-/* That 18px separates a sub-head from the prose above it. A sub-head that
-   OPENS a page has no prose above it — only the 0.75in top margin — so the
-   margin is dead space pushing the whole column down. Page 11 opens on one. */
-.page > h3.sub2:first-child { margin-top: 0; }
 .figcap { color: #586A6D; font-size: 13.5px; margin: 10px 0 8px; }
 .figcap b { color: var(--ink); }
 
