@@ -259,7 +259,12 @@ a { color: var(--dark); }
    this row and Figure 3 now share a page that used to be two. */
 ul.approp-brief { margin: 0 0 6px; padding-left: 20px; font-size: 13px; }
 ul.approp-brief li { margin: 2px 0; }
-.approp { margin-top: 2px; }
+/* Two classes, so this beats `.obligated`'s shorthand no matter which comes
+   later in the file. That shorthand opens with margin-top:-8px, tuned to tuck
+   the obligated-costs expandable under the callout above it — but this one
+   follows a note with no bottom margin, so the same -8px dragged the control
+   up over the last line of text. */
+.obligated.approp { margin-top: 6px; }
 /* Its own class rather than .fig-note: this is the LAST flowed element on the
    page, and .fig-note's 14px bottom margin overhung the padding box and grew
    the sheet past 11in even though the text itself cleared. */
