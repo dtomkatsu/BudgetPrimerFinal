@@ -289,11 +289,11 @@ a { color: var(--dark); }
 .pie-row { display: flex; align-items: center; gap: .28in; justify-content: center;
            flex-wrap: nowrap; margin-inline: -0.34in; }
 .pie-row .pie { flex: 0 0 auto; }
-.pie-cip { width: 5.10in; }
+.pie-cip { width: 4.85in; }
 /* Must stay in step with the width_in passed to pie() in render_report.py:
    that argument does not size the pie (this rule does) — it converts label_pt
    into user units, so a mismatch silently mis-sizes the slice labels. */
-.pie-mof { width: 4.85in; }
+.pie-mof { width: 4.65in; }
 .pie-tax { width: 4.80in; }
 .pie-row .legend { flex: 0 1 auto; min-width: 0; gap: 20px; }
 .pie-row .legend .lg { line-height: 1.2; white-space: nowrap; }
@@ -340,11 +340,11 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .photocap { font-size: 11.5px; line-height: 1.4; margin-top: 7px !important; }
 
 /* endnotes */
-/* The list now spans two physical pages (13-14, render_report.py splits the
-   entries by count), so each page only holds about half — no need to cram
-   everything into one page's three tight columns. */
-.endnotes { columns: 2; column-gap: .45in; padding-left: 20px; font-size: 13px; }
-.endnotes li { margin-bottom: 12px; break-inside: avoid; }
+/* The whole list on ONE page (render_report.py no longer splits it), which is
+   what forces the three tight columns and the smaller size — at two columns of
+   13px, half the entries ran off the sheet. */
+.endnotes { columns: 3; column-gap: .3in; padding-left: 18px; font-size: 12px; }
+.endnotes li { margin-bottom: 10px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
 
 /* toolbar + tooltip (screen only) */
@@ -399,8 +399,14 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
   }
   body { background: #fff; }
   .noprint, .toolbar { display: none !important; }
+  /* NO padding here. The base .page rule already sets it, so restating it was
+     redundant for eleven pages — and wrong for the two that override padding:
+     .cover (0) and .toc-page (1.2in top) tie this selector on specificity, so
+     this later rule beat them IN PRINT ONLY. The cover slid 0.75in down (the
+     year onto the ribbon stripe), the TOC column 0.45in up (the URL onto the
+     logo), while every screen check looked perfect. */
   .page { margin: 0; box-shadow: none; page-break-after: always; height: 11in;
-          width: 8.5in; max-width: none; padding: 0.75in 0.62in 0.9in; }
+          width: 8.5in; max-width: none; }
   .page:last-child { page-break-after: auto; }
   a { color: var(--dark); text-decoration: underline; }
 }

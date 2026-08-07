@@ -978,7 +978,7 @@ EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
 # and its number follows. The markup lives here, not in docsync, because "•
 # BUDGET PRIMER" and the left/right alternation are this report's, not the
 # engine's; docsync only computes the order.
-DESIGNED_PAGES = 14
+DESIGNED_PAGES = 13
 PAGE_ORDER = L.page_order(DESIGNED_PAGES)
 PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 
@@ -991,7 +991,7 @@ PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process
                5: "How Money Is Spent", 6: "Spending Categories",
                7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
                9: "Funding the Budget", 10: "Taxes", 11: "Who Pays",
-               12: "Tax Credits", 13: "Endnotes", 14: "Endnotes (cont.)"}
+               12: "Tax Credits", 13: "Endnotes"}
 
 def stamp_page(html, pid):
     """Tag a section with its identity, edit mode only (like data-el)."""
@@ -1167,7 +1167,7 @@ pages.append(f"""
  </details>
  {L.spacer("cip.h3")}<h3 class="sub2"{L.attr("cip.h3")}>{C.t("cip.h3")}</h3>
  {L.spacer("cip.fig3.caption")}<p class="figcap"{L.attr("cip.fig3.caption")}><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
- <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=5.10, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=4.85, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
 {C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}{L.tables_html(7)}{folio(7)}
@@ -1191,7 +1191,7 @@ pages.append(f"""
 <section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
- <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=4.85, label_pt=14.6)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=4.65, label_pt=14.6)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
  {C.html("funding.fig4.note", cls="fig-note")}
  {C.html("funding.p1")}
  <div class="cards3">
@@ -1248,35 +1248,22 @@ pages.append(f"""
  {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>""")
 
-# -- pages 13-14: endnotes ---------------------------------------------------
+# -- page 13: endnotes --------------------------------------------------------
 # Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
 # assembled body FIRST so numbering follows the page ORDER, then build the
-# endnotes pages from the order that produced.
+# endnotes page from the order that produced.
 #
-# The list is long enough to need two physical pages, not one cramped one: the
-# entries are split roughly in half by COUNT (not by measuring — every entry
-# is a similar few lines, so a count split tracks page-fill closely enough,
-# and it stays exact regardless of column count or font size). The second
-# page's <ol> carries start= so numbering continues instead of restarting.
-#
-# The endnotes list is a product of resolving the very body it sits in, so both
-# pages are assembled as shells holding placeholders, the whole ordered body is
-# resolved, and the placeholders are filled with their half of the numbered
-# list after — split at the same point the shells were built for.
-ENDNOTES_SLOT_A = "<!--ds-endnotes-a-->"
-ENDNOTES_SLOT_B = "<!--ds-endnotes-b-->"
-ENDNOTES_START_B = "ds-endnotes-start-b"  # replaced with start="N+1" once N is known
+# One page, three columns (.endnotes in primer.css) — the two-page split is
+# gone. The list is a product of resolving the very body it sits in, so the
+# page is assembled as a shell holding a placeholder, the whole ordered body is
+# resolved, and the placeholder is filled with the numbered list after.
+ENDNOTES_SLOT = "<!--ds-endnotes-->"
 by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..12
 by_id[13] = f"""
 <section class="page"{L.fill_attr("page.13")}>
  {L.spacer("endnotes.h1")}<h1{L.attr("endnotes.h1")}>{C.t("endnotes.h1")}</h1>
- <ol class="endnotes">{ENDNOTES_SLOT_A}</ol>
+ <ol class="endnotes">{ENDNOTES_SLOT}</ol>
  {L.layer(13)}{L.text_boxes(13)}{L.tables_html(13)}{folio(13)}
-</section>"""
-by_id[14] = f"""
-<section class="page"{L.fill_attr("page.14")}>
- <ol class="endnotes" {ENDNOTES_START_B}>{ENDNOTES_SLOT_B}</ol>
- {L.layer(14)}{L.text_boxes(14)}{L.tables_html(14)}{folio(14)}
 </section>"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
@@ -1321,10 +1308,7 @@ notes = C.fn.endnotes()
 # Split by count, first half on page 13, the rest on page 14. A qualifying
 # entry earlier in the doc always lands before one later, so the split point
 # is just "how many", independent of how the two halves are laid out.
-_split = (len(entries) + 1) // 2
-en_a = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(entries[:_split]))
-en_b = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(entries[_split:], start=_split))
-start_b_attr = f'start="{_split + 1}"' if _split < len(entries) else ""
+en_all = "".join(endnote_link(i + 1, sid, t, u) for i, (sid, t, u) in enumerate(entries))
 
 def linkify_footnotes(markup):
     """Turn every <sup>N</sup> marker into a clickable ref the JS can pop.
@@ -1347,11 +1331,10 @@ def linkify_footnotes(markup):
         return "<sup>" + "&thinsp;".join(out) + "</sup>"
     return re.sub(r"<sup>(.*?)</sup>", repl, markup, flags=re.S)
 
-# The endnotes pages were assembled as shells holding placeholders; fill them
-# now that the numbering they depend on exists. Neither half carries footnote
-# markers, so these substitutions are safe after resolve.
-body = body.replace(ENDNOTES_SLOT_A, en_a).replace(ENDNOTES_SLOT_B, en_b)
-body = body.replace(ENDNOTES_START_B, start_b_attr)
+# The endnotes page was assembled as a shell holding a placeholder; fill it
+# now that the numbering it depends on exists. The list carries no footnote
+# markers, so this substitution is safe after resolve.
+body = body.replace(ENDNOTES_SLOT, en_all)
 
 # Teach the editor's rail every designed page and its name (edit mode only, so
 # the published bytes are untouched). Hidden pages are absent from the DOM; this
