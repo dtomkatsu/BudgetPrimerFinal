@@ -332,7 +332,7 @@ Percentage of Income Paid in State and Local Taxes by Household Income Quintile 
 [[whopays.p1]]
 In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the GET, which affects lower-income taxpayers more than others. When a low-income person and a wealthy person purchase the same items, they pay the same dollar amount of GET. However, that dollar amount represents a much larger chunk of the low-income person’s paycheck, making it harder to budget for. Too often, this keeps low-income families trapped in cycles of poverty and debt.
 
-This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Historically, Native Hawaiians have faced challenges with food security, economic security, and housing rooted in colonization: the ʻāina that once fed communities became plantations and then resorts, leaving families in low-wage work and priced out of their own islands.
+This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Historically, Native Hawaiians have faced
 
 Hawaiʻi must build a tax system that supports these marginalized groups, by reducing their taxes and investing tax dollars in policies that lower the cost of living. Tax credits (and other forms of assistance) are an excellent way to give people of color and low-income communities more leeway to pay for their basic necessities.
 
@@ -380,7 +380,7 @@ Multinational corporations are able to shift profits they earn in Hawaiʻi to 
 Tax credits can lower or even eliminate the taxes that people or businesses owe to the state. These tax credits stimulate the economy by reducing costs either for businesses or struggling families that need help purchasing their basic necessities.
 
 [[whopays.callout.p2]]
-In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Renewable Energy Technologies Tax Credit and Film/Media Production Credit.
+In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Film/Media Production Credit.
 
 The state should be investing more money in tax credits and other means of lifting up working families. It could, for example, create a state-level Child Tax Credit (CTC). At the national level, the CTC brought 2.9 million children out of poverty in 2021. Other options include programs like RxKids—which has successfully delivered millions of dollars in no-strings-attached benefits to mothers with infants throughout Michigan.
 
