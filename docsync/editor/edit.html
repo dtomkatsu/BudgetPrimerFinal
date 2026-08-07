@@ -10771,6 +10771,26 @@ async function detectLocal() {
   $('ver').onclick = goBackAVersion;
 }
 
+// Tell the server this window EXISTS. The launcher nohups the server and
+// exits, so nothing ever stopped it when the last window closed — it outlived
+// its window by days, running ever-staler code. hello on load and on pageshow
+// (bfcache restores skip load), goodbye as a pagehide beacon — the one API
+// built to fire during teardown. The server exits PRIMER_LINGER seconds after
+// the last window says goodbye; a force-quit sends nothing, which is what the
+// server-side TTL (re-hello every 30 min) is for.
+const WINDOW_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
+const sayHello = () => {
+  try { fetch(withProject('/__hello'), { method: 'POST', body: WINDOW_ID,
+                                         keepalive: true }).catch(() => {}); }
+  catch (e) {}
+};
+sayHello();
+window.addEventListener('pageshow', sayHello);
+setInterval(sayHello, 30 * 60 * 1000);
+window.addEventListener('pagehide', () => {
+  try { navigator.sendBeacon(withProject('/__bye'), WINDOW_ID); } catch (e) {}
+});
+
 // ONE connection for ALL tabs. Each tab opening its own /__events stream piled
 // them up against Chromium's six-per-origin cap, and a few stale tabs then
 // deadlocked the whole origin — "localhost won't load" with a perfectly healthy

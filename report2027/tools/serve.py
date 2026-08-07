@@ -602,6 +602,55 @@ def rebuild(pid: str, reason: str = "") -> None:
 # which then surface far away as a stale validator rejecting new values. This
 # is published in /__ping so the editor can say so instead of going quiet.
 WATCH_BEAT = [time.time()]
+
+# ---- editor-window lifecycle ------------------------------------------------
+# The launcher nohups this server and exits; nothing ever stopped it when the
+# last editor window closed, so it outlived its window by days — running ever
+# staler code (see BOOT_SIG) and holding the port. The windows now say hello
+# (on load and pageshow) and goodbye (a pagehide beacon), and when the last
+# one has been gone for PRIMER_LINGER seconds the server exits on its own, so
+# the next app-open always boots the current code. 0 disables — the Playwright
+# suite does, because its pages come and go constantly by design.
+#
+# A hello with no goodbye (a force-quit browser sends no pagehide) would pin
+# the server forever, hence the TTL: live tabs re-hello every 30 minutes, so
+# an entry older than 2 hours is a ghost. And a server nobody ever opened a
+# window on (make live before the browser starts) is left alone until the
+# first hello — exit is armed by presence, never by absence alone.
+CLIENTS: dict[str, float] = {}          # editor tab id -> last hello
+# Armed at the /__hello ENDPOINT, not by the reaper observing CLIENTS: the
+# reaper samples every 5s, so a window that opened and closed inside one tick
+# was never seen at all and the exit stayed disarmed — the spec caught it.
+EVER_HELLO = [False]
+CLIENT_TTL = 2 * 3600
+LINGER = int(os.environ.get("PRIMER_LINGER", "120"))
+SERVERS: list = []                       # filled by main(); reaper shuts these down
+
+
+def _idle_reaper():
+    gone_since = None
+    while True:
+        time.sleep(5)
+        now = time.time()
+        for cid, t in list(CLIENTS.items()):
+            if now - t > CLIENT_TTL:
+                CLIENTS.pop(cid, None)
+        if CLIENTS:
+            gone_since = None
+            continue
+        if not EVER_HELLO[0]:
+            continue
+        # Never exit under a build/Save/Push — st.lock is held through those.
+        if any(st.lock.locked() for st in STATE.values()):
+            gone_since = None
+            continue
+        gone_since = gone_since or now
+        if now - gone_since >= LINGER:
+            print(f"  last editor window gone {LINGER}s — exiting so the next "
+                  "open starts on current code")
+            for srv in SERVERS:
+                threading.Thread(target=srv.shutdown, daemon=True).start()
+            return
 # What the server's code looked like when this process started. Compared
 # against the live value on every ping — see _engine_sig().
 BOOT_SIG = _engine_sig()
@@ -1156,6 +1205,18 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
+        if path in ("/__hello", "/__bye"):
+            # sendBeacon bodies are plain text (the tab's own id), not JSON —
+            # and /__bye must stay parse-proof: it is fired during pagehide,
+            # where a rejected beacon cannot be retried.
+            raw = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            cid = (raw or b"").decode("utf-8", "replace").strip()[:64] or "anon"
+            if path == "/__hello":
+                CLIENTS[cid] = time.time()
+                EVER_HELLO[0] = True
+            else:
+                CLIENTS.pop(cid, None)
+            return self._json(200, {"ok": True, "clients": len(CLIENTS)})
         if path not in ("/__save", "/__push", "/__export", "/__upload",
                         "/__update", "/__rollback", "/__window",
                         "/__scaffold", "/__adopt", "/__connect", "/__pull",
@@ -2189,6 +2250,9 @@ def main():
         print(f"    {pid} -> {p['root']}")
     if os.environ.get("PRIMER_OPEN", "1") == "1":
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
+    SERVERS[:] = servers
+    if LINGER > 0:
+        threading.Thread(target=_idle_reaper, daemon=True).start()
     try:
         _serve_forever(servers)
     except KeyboardInterrupt:
