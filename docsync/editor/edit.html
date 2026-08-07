@@ -1901,7 +1901,8 @@ function mdInlineToHtml(text, fnLabels) {
     // (just inserted, or fnLabels' count didn't line up and it declined to
     // guess) — not wrong, just the one case this can't do better than before.
     const label = (fnLabels && fnLabels.get(id)) || `[^${id}]`;
-    return `<span class="ds-chip ds-fnchip" contenteditable="false" data-fn-id="${escAttr(id)}">${escAttr(label)}</span>`;
+    // A <sup>, matching the marker it stands in for — see makeFnChip.
+    return `<sup class="ds-chip ds-fnchip" contenteditable="false" data-fn-id="${escAttr(id)}">${escAttr(label)}</sup>`;
   });
   return s;
 }
@@ -2621,8 +2622,15 @@ function endnoteNumbers() {
   return map;
 }
 
+/** A <sup>, not a <span>, and that is the whole point: reports neutralise the
+ *  superscript's own line box (report2027's stylesheet says
+ *  sup { font-size:11px; line-height:0 }) so a raised marker adds no height to
+ *  the line. A span could never inherit that rule, so it took the paragraph's
+ *  full line-height, vertical-align:super lifted it, and every cited line grew
+ *  ~4px the moment you clicked in — the reflow edit() exists to avoid. The tag
+ *  is the mechanism: the numbers belong to each report, not to the engine. */
 function makeFnChip(d, id) {
-  const chip = d.createElement('span');
+  const chip = d.createElement('sup');
   chip.className = 'ds-chip ds-fnchip';
   chip.contentEditable = 'false';
   chip.dataset.fnId = id;
@@ -10736,9 +10744,16 @@ async function detectLocal() {
   const onBump = async (v, err) => {
     if (err) { $('stat').textContent = 'build failed on disk — see the terminal'; return; }
     if (v === liveVer) return;
-    liveVer = v;
-    await pullFromDisk();
+    // Mark the build seen ONLY once the pull actually happened. pullFromDisk
+    // declines while a text editor is open (or a pull is already in flight),
+    // and consuming the version first dropped that rebuild for good: every
+    // later ping carries the same v and short-circuits on the line above, so a
+    // change made on disk while someone had a text box open never appeared
+    // until the page was reloaded. Left unconsumed, the next 2s heartbeat
+    // simply retries — the pull lands the moment the editor closes.
+    if (await pullFromDisk()) liveVer = v;
   };
+  window.__onBump = onBump;            // test hook, like window.__fileSig
   startLive(d => { pushHealth = d.push || {}; setPushState(d.ahead); watchHealth(d); updateHealth(d);
                    contentHealth(d); onBump(d.v, d.error); });
   $('upd').onclick = installUpdate;
@@ -10851,11 +10866,15 @@ let pulling = false;
 /** Adopt a change Claude (or your text editor) made on disk. Prose and layout
  *  are separate files, so a change to one is folded in while your unsaved edits
  *  to the OTHER stay put. Only a genuine same-file overlap asks you to choose. */
+/** Returns TRUE only if the pull actually happened. The caller uses that to
+ *  decide whether the build has been seen: a declined pull must leave the
+ *  version unconsumed so the next heartbeat retries it. */
 async function pullFromDisk() {
-  if (editing || pulling) return;      // never yank the textarea out mid-edit,
-  pulling = true;                      // and never let two pulls race a render
+  if (editing || pulling) return false;   // never yank the textarea out mid-edit,
+  pulling = true;                         // and never let two pulls race a render
   try {
     await _pull();
+    return true;
   } finally { pulling = false; }
 }
 
@@ -11757,7 +11776,11 @@ function wire(roots) {
        a JS template literal, and either would end it early.) */
     .ds-chip { border-radius:3px; padding:0 3px; background:rgba(107,158,120,.14);
                outline:1px solid #B9C9BE; cursor:default; user-select:all; }
-    .ds-chip.ds-fnchip { font-size:.85em; vertical-align:super; color:#2F3E46; }
+    /* No font-size and no vertical-align: the chip IS a sup now, so the
+       report's own superscript rule supplies both — including the line-height:0
+       that keeps a cited line the same height being edited as it is rendered.
+       Setting either here would put the reflow straight back. */
+    .ds-chip.ds-fnchip { color:#2F3E46; }
     .ds-endnote-edit { display:block; padding:2px 0; }
     .ds-endnote-edit input { display:block; width:100%; box-sizing:border-box; font:inherit;
                color:inherit; margin:0 0 4px; padding:2px 4px; border:2px solid #6B9E78;
