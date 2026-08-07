@@ -387,43 +387,6 @@ The state should be investing more money in tax credits and other means of lifti
 [[endnotes.h1]]
 # ENDNOTES
 
-[[glossary.h1]]
-# KEY TERMS
-
-[[glossary.intro]]
-The words this primer uses most, gathered in one place.
-
-[[glossary.terms]]
-**Fiscal year (FY)** — July 1 through June 30, labeled by the calendar year in which it ends. FY2027 runs from July 2026 through June 2027.
-
-**Biennial budget** — Hawaiʻi budgets two years at a time. The full budget passes in odd-numbered years; the even-numbered year is for adjustments.
-
-**Operating budget** — The money that runs state programs day to day: salaries, services and benefits.
-
-**Capital Improvement Projects (CIP)** — The money that builds and maintains state assets: airports, harbors, roads and school facilities.
-
-**Obligated costs** — Non-negotiable spending the state must cover before anything else: pensions, health benefits, Medicaid and debt payments.
-
-**General funds** — Mostly tax revenue. The main pot of state money, usable for almost any state need.
-
-**Special funds** — Money from tuition, fees, settlements and similar sources, which can only be spent on a specific purpose.
-
-**Federal funds** — Money provided to the state by the federal government, almost always as grants.
-
-**General Excise Tax (GET)** — A tax on the sale of goods and services. Hawaiʻi relies on it for about half of the state’s tax revenue.
-
-**Transient Accommodations Tax (TAT)** — A tax on hotel rooms, short-term rentals and cruise ships, paid mainly by visitors.
-
-**Means of financing** — Which pot of money pays for a given appropriation.
-
-[[back.mission]]
-Hawaiʻi Appleseed is committed to a more socially and economically just Hawaiʻi, where everyone has genuine opportunities to achieve economic security and fulfill their potential.
-
-[[back.contact]]
-hiappleseed.org
-
-733 Bishop Street, Suite 1180, Honolulu, HI 96813
-
 [[table1.header.executive]]
 Executive[^act175-exec]
 

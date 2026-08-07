@@ -347,24 +347,6 @@ svg .brk { stroke: var(--sage); stroke-width: 2; fill: none; stroke-linecap: rou
 .endnotes li { margin-bottom: 12px; break-inside: avoid; }
 .endnotes a { word-break: break-all; }
 
-/* key terms (page 15) — two columns, like the endnotes it follows, so the
-   back matter reads as one section. Terms never split across a column.
-   The columns belong to the WRAPPER: C.html() stamps its class on every
-   paragraph it emits, so putting them on the terms themselves split each single
-   definition into two columns of its own. */
-.glossary { columns: 2; column-gap: .45in; margin-top: 4px; }
-.page p.gl-term { font-size: 13px; break-inside: avoid; margin-bottom: 11px; }
-.gl-term b { color: var(--forest); }
-
-/* back cover (page 16). Inherits .cover's mint field and ribbons; only the
-   stack inside it differs, so the two covers stay obviously a pair. */
-.back-cover .cover-inner { padding: 3.2in .9in 0; text-align: center; }
-.back-cover .logo-img { height: 78px; }
-.page p.back-mission { margin: .5in auto 0; max-width: 5.4in; font-size: 15px;
-                       color: var(--forest); }
-.page p.back-contact { margin-top: .34in; font-size: 14px; font-weight: 700;
-                       color: var(--dark); }
-
 /* toolbar + tooltip (screen only) */
 /* Sits at the top of the document and scrolls away with the content — NOT
    sticky, so it doesn't follow the viewport down the page. */
