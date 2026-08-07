@@ -619,6 +619,36 @@ WARNING_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd
 CROSS_ICON = ('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
               '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>')
 
+# Page 5's three spending-type tiles — the one card row that carried no icon
+# while pages 8, 9 and 10 all did. GEAR for the operating budget: the machinery
+# of government running day to day. SHOVEL for capital improvements, which are
+# construction and nothing else. The third reuses WARNING_ICON, the same glyph
+# page 8 gives One-Time & Emergency, so the two places that name that category
+# are visibly the same thing rather than two unrelated symbols.
+# The gear's teeth are separate rects UNDER one annulus path; the hole is
+# evenodd within that single path, because fill-rule cannot punch one element
+# through another.
+OPERATING_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" fill-rule="evenodd" aria-hidden="true">'
+    '<rect x="14.2" y="0.8" width="3.6" height="7" rx="1.2"/>'
+    '<rect x="14.2" y="24.2" width="3.6" height="7" rx="1.2"/>'
+    '<rect x="0.8" y="14.2" width="7" height="3.6" rx="1.2"/>'
+    '<rect x="24.2" y="14.2" width="7" height="3.6" rx="1.2"/>'
+    '<rect x="14.2" y="0.8" width="3.6" height="7" rx="1.2" transform="rotate(45 16 16)"/>'
+    '<rect x="14.2" y="24.2" width="3.6" height="7" rx="1.2" transform="rotate(45 16 16)"/>'
+    '<rect x="0.8" y="14.2" width="7" height="3.6" rx="1.2" transform="rotate(45 16 16)"/>'
+    '<rect x="24.2" y="14.2" width="7" height="3.6" rx="1.2" transform="rotate(45 16 16)"/>'
+    '<path d="M16 4.6a11.4 11.4 0 1 0 0 22.8 11.4 11.4 0 0 0 0-22.8z'
+    'm0 7a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z"/>'
+    '</svg>')
+CAPITAL_ICON = (
+    '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">'
+    '<g transform="rotate(-45 16 16)">'
+    '<rect x="11.6" y="2.6" width="8.8" height="3.4" rx="1.7"/>'
+    '<rect x="14.4" y="5.4" width="3.2" height="12.4"/>'
+    '<path d="M10.1 17h11.8l-1.3 5a4.9 4.9 0 0 1-9.2 0z"/>'
+    '</g></svg>')
+
 # Page 9's fund tiles, in the same icon-left-of-title lockup page 8 uses.
 # GENERAL — a stack of coins: the main pot, spendable on almost anything.
 # SPECIAL — a padlock: money that may only be spent on one stated purpose.
@@ -1093,9 +1123,9 @@ pages.append(f"""
  {C.html("spent.p1")}
  {C.html("spent.p2")}
  <div class="cards3">
-  {card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK, key="spent.cards.operating.bullets", detachable=True, min_h=1.83)}
-  {card(C.t("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID, key="spent.cards.capital.bullets")}
-  {card(C.t("spent.cards.onetime.title", esc=True), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True, key="spent.cards.onetime.bullets")}
+  {card(C.t("spent.cards.operating.title"), C.list("spent.cards.operating.bullets"), DARK, key="spent.cards.operating.bullets", icon=OPERATING_ICON, icon_id="spent.cards.operating.icon", detachable=True, min_h=1.83)}
+  {card(C.t("spent.cards.capital.title"), C.list("spent.cards.capital.bullets"), SAGE_MID, key="spent.cards.capital.bullets", icon=CAPITAL_ICON, icon_id="spent.cards.capital.icon")}
+  {card(C.t("spent.cards.onetime.title", esc=True), C.list("spent.cards.onetime.bullets"), SAGE_LIGHT, light=True, key="spent.cards.onetime.bullets", icon=WARNING_ICON, icon_id="spent.cards.onetime.icon")}
  </div>
  {C.html("spent.p3")}
  {L.spacer("spent.table1.caption")}<p class="figcap"{L.attr("spent.table1.caption")}><b>Table 1.</b> {C.t("spent.table1.caption")} {fy_picker("table1", FY_LABEL[2027], FY_LABEL[2026])}</p>
