@@ -10754,7 +10754,7 @@ async function detectLocal() {
     if (await pullFromDisk()) liveVer = v;
   };
   window.__onBump = onBump;            // test hook, like window.__fileSig
-  startLive(d => { pushHealth = d.push || {}; setPushState(d.ahead); watchHealth(d); updateHealth(d);
+  startLive(d => { pushHealth = d.push || {}; setPushState(d.ahead); watchHealth(d); serverHealth(d); updateHealth(d);
                    contentHealth(d); onBump(d.v, d.error); });
   $('upd').onclick = installUpdate;
   $('ver').onclick = goBackAVersion;
@@ -11075,6 +11075,42 @@ function watchHealth(d) {
   $('stat').classList.add('err');
   $('stat').title = 'The file watcher is no longer running, so edits on disk will '
     + 'not reach this page. Your work here is unaffected.';
+}
+
+/** The SERVER's own code has moved on since it booted.
+ *
+ *  Distinct from watchHealth (the watcher died) and from the stale-build
+ *  warning (this PAGE is older than the last build): here the long-lived
+ *  server process is running code that no longer matches the disk, because it
+ *  was updated, or an engine was vendored over it, under a process that
+ *  imported everything once at launch. Silent until now, and the symptoms are
+ *  baffling — a fix that is demonstrably on disk and demonstrably has no
+ *  effect, or an endpoint the client knows about answering "unknown". Only a
+ *  relaunch fixes it, so say that. Ranks below a dead watcher, which stops
+ *  reload entirely; this only means the newest server code is not live yet. */
+const SRV_STALE_MSG = 'editor server is running old code — relaunch the editor app';
+function serverHealth(d) {
+  if (!d || typeof d.serverStale !== 'boolean') return;   // older server: no opinion
+  const stat = $('stat');
+  if (!d.serverStale) {
+    if (stat.dataset.srvstale) {                          // it was fixed: stand down
+      stat.dataset.srvstale = ''; stat.classList.remove('err');
+      if (stat.textContent === SRV_STALE_MSG) stat.textContent = '';
+    }
+    return;
+  }
+  if (stat.dataset.watchdead) return;                     // a dead watcher outranks this
+  // RE-asserted every ping, not latched once. Boot writes its own status
+  // AFTER the first ping lands, so a one-shot warning was set and then
+  // immediately overwritten — with the flag already set, it never came back.
+  // This condition is persistent and consequential (nothing shipped since the
+  // server booted is live), so it outranks the steady-state status line.
+  if (stat.textContent === SRV_STALE_MSG) return;
+  stat.dataset.srvstale = '1';
+  stat.textContent = SRV_STALE_MSG;
+  stat.classList.add('err');
+  stat.title = 'The server started before the current server/engine code was '
+    + 'written, so anything fixed since is not live yet. Your work here is unaffected.';
 }
 
 /** Which build is running, and whether a newer one is waiting.

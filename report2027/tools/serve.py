@@ -42,6 +42,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import hashlib
 import threading
 import time
 import webbrowser
@@ -51,6 +52,27 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 SELF_ROOT = Path(__file__).resolve().parents[2]   # this repo — wherever serve.py lives
+
+
+def _engine_sig() -> str:
+    """A fingerprint of the server's OWN code, as it currently sits on disk.
+
+    A long-lived server keeps running whatever it imported at launch. Update it,
+    vendor a new engine over it, switch branches — the process does not care,
+    and nothing in the UI said so. That is not theoretical: a server booted
+    before serve.py grew /__pilot answered `unknown endpoint` to a client whose
+    editor had the feature, with no way to tell that the SERVER was the old one.
+    Compared against the value taken at boot, a difference means the code on
+    disk has moved on and only a relaunch will pick it up.
+    """
+    h = hashlib.sha256()
+    files = [Path(__file__)] + sorted((SELF_ROOT / "docsync").glob("*.py"))
+    for f in files:
+        try:
+            h.update(f.read_bytes())
+        except OSError:          # deleted mid-read: that is itself a change
+            h.update(b"\0")
+    return h.hexdigest()[:16]
 DOCS = SELF_ROOT / "docs"           # shared UI + any project staged directly under this repo
 # The report is a Chrome-printed PDF; export reuses the same engine. Override
 # with CHROME_BIN on a non-mac host.
@@ -580,6 +602,9 @@ def rebuild(pid: str, reason: str = "") -> None:
 # which then surface far away as a stale validator rejecting new values. This
 # is published in /__ping so the editor can say so instead of going quiet.
 WATCH_BEAT = [time.time()]
+# What the server's code looked like when this process started. Compared
+# against the live value on every ping — see _engine_sig().
+BOOT_SIG = _engine_sig()
 
 # ---- staying current --------------------------------------------------------
 # The app is distributed as a real checkout that fast-forwards itself, and it
@@ -849,6 +874,11 @@ class Handler(SimpleHTTPRequestHandler):
                    # until the background poll has looked once.
                    "push": PUSH_HEALTH.get(str(PROJECTS[pid]["root"]), {}),
                    "watchAge": round(time.time() - WATCH_BEAT[0], 1),
+                   # True once the code on disk has moved past what this
+                   # process is running. Only a relaunch fixes it, so the
+                   # editor says exactly that rather than leaving the person
+                   # to wonder why a shipped fix has no effect.
+                   "serverStale": _engine_sig() != BOOT_SIG,
                    # Only ADVERTISED here, never handed out (see _sse). The
                    # leader's own 2s poll is what covers an SSE reconnect gap;
                    # a follower reading this simply never claims.
