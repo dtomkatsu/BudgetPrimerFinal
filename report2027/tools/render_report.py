@@ -535,16 +535,19 @@ def fig6_chart():
             ("Middle 20%", "$44,200–$80,100", 14.2), ("Fourth 20%", "$80,100–$136,600", 13.4),
             ("Next 15%", "$136,600–$278,200", 11.8), ("Next 4%", "$278,200–$594,900", 10.2),
             ("Top 1%", "Over $594,900", 10.1)]
-    # Geometry matched to the original: bar width 58.6pt, tallest bar 195.8pt,
-    # value 14pt / quintile 11.9pt / range 10.6pt. The SVG renders 720u across
-    # the 7.26in text column, so 1u = 0.726pt.
-    # H is the viewBox height, and it is deliberately snug: the deepest ink is
-    # the second range label's descender at ~366u, so 368 leaves a hairline and
-    # nothing more. It used to be 390, and those 24 empty units cost the page
-    # 23px of height that page 11 needs at the bottom — the chart is tall
-    # enough that its own dead space was crowding the closing paragraph.
-    W, H, BW = 720, 368, 80
-    BASE, MAXH = 300, 285          # 285u = 207pt tall for the 15% gridline
+    # The SVG renders 720u across the 7.26in text column, so 1u = 0.726pt, and
+    # the rendered HEIGHT is whatever H is — .chart is width:100%/height:auto.
+    # Shrinking the chart therefore means shrinking H, and H is only shrinkable
+    # by shortening the bars: everything below BASE is the label block (~68u:
+    # quintile, then one or two range lines and their descenders) and everything
+    # above the tallest bar is just the value label's ascender.
+    #
+    # MAXH is the 15% gridline, so every bar scales by the same factor and the
+    # comparison the figure exists to make is untouched. 285 -> 230 takes the
+    # figure from 3.71in to about 3.2in, with BASE moved up to keep the label
+    # block and roughly 10u of headroom over the tallest value label.
+    W, H, BW = 720, 320, 80
+    BASE, MAXH = 252, 230          # 230u = 167pt tall for the 15% gridline
     gap = (W - 40 - 7 * BW) / 6
     out = [f'<svg viewBox="0 0 {W} {H}" class="chart" role="img">']
     for i, (q, rng, v) in enumerate(data):
