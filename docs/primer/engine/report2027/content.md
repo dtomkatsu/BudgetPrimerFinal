@@ -249,19 +249,19 @@ View all appropriations
 ### FY27 One-Time Appropriations
 
 [[onetime.cards.onetime.bullets]]
-- **Transportation & Budget/Finance:** $700 million in Act 99 — $600 million in county-surcharge transit funding and a new $100 million major disaster fund.[^act99]
-- **Accounting, Transportation, Land:** $200 million in Maui wildfire insurance proceeds to rebuild King Kamehameha III Elementary and restore Lahaina’s harbor.[^act123]
-- **DBEDT:** $49.5 million for the New Aloha Stadium district.[^act184]
-- **UH:** $28.5 million in revenue bonds for student housing.[^act80]
-- **Human Services:** $16.5 million to supplement health-plan premiums for residents losing ACA coverage.[^act21-partii]
-- **Education:** $3.4 million to expand free school meals to all ALICE households — the FY27 expansion promised in Act 139 (2025).[^act139] [Act 236](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) also lowered the share of meal-preparation costs schools must cover.
+- **$700M** Transportation & Budget/Finance — county-surcharge transit funding ($600M) and a new major disaster fund ($100M), under Act 99.[^act99]
+- **$200M** Accounting, Transportation, Land — Maui wildfire insurance proceeds, to rebuild King Kamehameha III Elementary and restore Lahaina’s harbor.[^act123]
+- **$49.5M** DBEDT — the New Aloha Stadium district.[^act184]
+- **$28.5M** UH — revenue bonds for student housing.[^act80]
+- **$16.5M** Human Services — health-plan premium support for residents losing ACA coverage.[^act21-partii]
+- **$3.4M** Education — free school meals for all ALICE households, the FY27 expansion promised in Act 139 (2025).[^act139] [Act 236](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) also lowered the share of meal-preparation costs schools must cover.
 
 [[onetime.cards.emergency.title]]
 ### FY27 Emergency Appropriations
 
 [[onetime.cards.emergency.bullets]]
-- **Various Executive Departments:** $2,871,954 in collective-bargaining cost items for Bargaining Unit 11 employees.[^act26]
-- The 2026 session also passed roughly $110 million in *FY26* emergency appropriations — a $14.2 million backfill of funds redirected to food assistance during the 2025 federal shutdown, and $95.8 million for labor-grievance cost items.[^act21-parti-act33]
+- **$2.87M** Various Executive Departments — collective-bargaining cost items for Bargaining Unit 11 employees ($2,871,954).[^act26]
+- **~$110M** *FY26*, also passed in the 2026 session — a $14.2M backfill of funds redirected to food assistance during the 2025 federal shutdown, and $95.8M for labor-grievance cost items.[^act21-parti-act33]
 
 [[funding.h1]]
 # FUNDING THE BUDGET

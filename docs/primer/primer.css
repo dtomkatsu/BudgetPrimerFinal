@@ -257,8 +257,20 @@ a { color: var(--dark); }
    all six one-time plus both emergency — lives in the .approp expandable
    below, which is noprint like the obligated-costs one. Compact on purpose:
    this row and Figure 3 now share a page that used to be two. */
-ul.approp-brief { margin: 0 0 6px; padding-left: 20px; font-size: 13px; }
-ul.approp-brief li { margin: 2px 0; }
+/* Amount-led rows, not bullets. The dollar figure is the most scannable thing
+   here and it used to sit mid-sentence behind a department name; leading with
+   it turns the list into a column the eye can run down. The marker goes with
+   it — the amount IS the marker now — which also buys back the indent, so the
+   rows wrap less and the block stays the same height it was as a plain list.
+   Hairlines rather than gaps: this sits between a heading and an expandable,
+   and a ruled block reads as one object instead of loose text. */
+ul.approp-brief { list-style: none; margin: 0 0 6px; padding-left: 0;
+                  font-size: 13px; border-bottom: 1px solid var(--mint); }
+ul.approp-brief li { margin: 0; padding: 2px 0; border-top: 1px solid var(--mint); }
+/* The amount only goes sage HERE. The same bullets are reused inside the
+   expandable's dark tiles, where sage on --dark would fail contrast — there it
+   stays bold white and still leads the line. */
+ul.approp-brief li > b:first-child { color: var(--dark); margin-right: 2px; }
 /* Two classes, so this beats `.obligated`'s shorthand no matter which comes
    later in the file. That shorthand opens with margin-top:-8px, tuned to tuck
    the obligated-costs expandable under the callout above it — but this one
