@@ -236,14 +236,14 @@ Distribution of Capital Improvement Project Funding,
 [[cip.body]]
 The total FY{fy} Capital Improvement Projects (CIP) budget is {cip_total}. Transportation projects usually take more than half, maintaining the state’s airports, harbors, and 2,433 miles of roads and highways.[^hidot-visitor]
 
-[[onetime.photo.alt]]
-Governor Josh Green and lawmakers at the HB 2296 bill signing
-
-[[onetime.photo.caption]]
-Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) into law as Act 236, SLH 2026. The law lowers the share of meal preparation costs that must be covered by schools, giving the Department of Education more leeway to offer free and reduced-price school meals. // Office of the Governor
-
 [[onetime.h3]]
 ### One-Time and Emergency Appropriations
+
+[[onetime.brief]]
+Plus further one-time appropriations for UH student housing, ACA premium support and school meals, and $2.9 million in FY27 emergency appropriations.
+
+[[onetime.summary]]
+View all appropriations
 
 [[onetime.cards.onetime.title]]
 ### FY27 One-Time Appropriations
@@ -254,7 +254,7 @@ Governor Josh Green signed [House Bill (HB) 2296](https://www.capitol.hawaii.gov
 - **DBEDT:** $49.5 million for the New Aloha Stadium district.[^act184]
 - **UH:** $28.5 million in revenue bonds for student housing.[^act80]
 - **Human Services:** $16.5 million to supplement health-plan premiums for residents losing ACA coverage.[^act21-partii]
-- **Education:** $3.4 million to expand free school meals to all ALICE households — the FY27 expansion promised in Act 139 (2025).[^act139]
+- **Education:** $3.4 million to expand free school meals to all ALICE households — the FY27 expansion promised in Act 139 (2025).[^act139] [Act 236](https://www.capitol.hawaii.gov/session/measure_indiv.aspx?billtype=HB&billnumber=2296&year=2026) also lowered the share of meal-preparation costs schools must cover.
 
 [[onetime.cards.emergency.title]]
 ### FY27 Emergency Appropriations

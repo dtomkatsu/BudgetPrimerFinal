@@ -253,6 +253,18 @@ a { color: var(--dark); }
 .reform.ondark h4 { color: #fff; }
 .reform.ondark .reform-tag { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
 
+/* The three headline appropriations, kept in PRINT. The full itemised list —
+   all six one-time plus both emergency — lives in the .approp expandable
+   below, which is noprint like the obligated-costs one. Compact on purpose:
+   this row and Figure 3 now share a page that used to be two. */
+ul.approp-brief { margin: 0 0 6px; padding-left: 20px; font-size: 13px; }
+ul.approp-brief li { margin: 2px 0; }
+.approp { margin-top: 2px; }
+/* Its own class rather than .fig-note: this is the LAST flowed element on the
+   page, and .fig-note's 14px bottom margin overhung the padding box and grew
+   the sheet past 11in even though the text itself cleared. */
+.page p.approp-note { font-size: 12px; color: #586A6D; margin: 6px 0 0; }
+
 /* obligated-costs expandable (web only) */
 .obligated { margin: -8px 0 18px; }
 .obligated > summary { cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
@@ -289,7 +301,7 @@ a { color: var(--dark); }
 .pie-row { display: flex; align-items: center; gap: .28in; justify-content: center;
            flex-wrap: nowrap; margin-inline: -0.34in; }
 .pie-row .pie { flex: 0 0 auto; }
-.pie-cip { width: 4.85in; }
+.pie-cip { width: 4.05in; }
 /* Must stay in step with the width_in passed to pie() in render_report.py:
    that argument does not size the pie (this rule does) — it converts label_pt
    into user units, so a mismatch silently mis-sizes the slice labels. */

@@ -978,7 +978,7 @@ EXTRA_PAGES = ["basics", "process", "spent", "categories", "cip",
 # and its number follows. The markup lives here, not in docsync, because "•
 # BUDGET PRIMER" and the left/right alternation are this report's, not the
 # engine's; docsync only computes the order.
-DESIGNED_PAGES = 13
+DESIGNED_PAGES = 12
 PAGE_ORDER = L.page_order(DESIGNED_PAGES)
 PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 
@@ -989,9 +989,9 @@ PAGE_POS = {pid: i + 1 for i, pid in enumerate(PAGE_ORDER)}
 # report's business, hence here and not in docsync.
 PAGE_LABELS = {1: "Cover", 2: "Contents", 3: "Budget Basics", 4: "Budget Process",
                5: "How Money Is Spent", 6: "Spending Categories",
-               7: "Capital & Fixed Costs", 8: "One-Time & Emergency",
-               9: "Funding the Budget", 10: "Taxes", 11: "Who Pays",
-               12: "Tax Credits", 13: "Endnotes"}
+               7: "Capital, Fixed Costs & Appropriations",
+               8: "Funding the Budget", 9: "Taxes", 10: "Who Pays",
+               11: "Tax Credits", 12: "Endnotes"}
 
 def stamp_page(html, pid):
     """Tag a section with its identity, edit mode only (like data-el)."""
@@ -1062,8 +1062,8 @@ pages.append(f"""
  <div class="toc-list">
   <div><span>Budget Basics</span><span>{pageno(3)}</span></div>
   <div><span>How Money Is Spent</span><span>{pageno(5)}</span></div>
-  <div><span>Funding the Budget</span><span>{pageno(9)}</span></div>
-  <div><span>Endnotes</span><span>{pageno(13)}</span></div>
+  <div><span>Funding the Budget</span><span>{pageno(8)}</span></div>
+  <div><span>Endnotes</span><span>{pageno(12)}</span></div>
  </div>
  {L.spacer("toc.copyright")}<p class="copyright"{L.attr("toc.copyright")}>{C.slot_span("toc.copyright", "<br>".join(esc(l) for l in C.lines("toc.copyright")))}</p>
  {L.layer(2)}{L.text_boxes(2)}{L.tables_html(2)}{folio(2)}
@@ -1153,7 +1153,6 @@ pages.append(f"""
 {callout_open("obligated")}
   <h4>{C.t("obligated.title")}</h4>
   {C.html("obligated.p1")}
-  {C.html("obligated.p2")}
  </div>
  <details class="obligated noprint">
   <summary>{C.t("obligated.summary")}</summary>
@@ -1162,33 +1161,31 @@ pages.append(f"""
    {C.t("obligated.panel.hint")}</span></p>
    {fig_obligated()}
    {legend([(esc(n), c) for n, _k, c in OBLIG_BANDS])}
+   {C.html("obligated.p2")}
    <p class="obligated-note">{C("obligated.panel.note").format(oblig_first=f"${OBLIG['series']['2018']['_printed_subtotal']/1e9:.2f}", oblig_last=f"${OBLIG['series']['2027']['_printed_subtotal']/1e9:.2f}")}</p>
   </div>
  </details>
  {L.spacer("cip.h3")}<h3 class="sub2"{L.attr("cip.h3")}>{C.t("cip.h3")}</h3>
  {L.spacer("cip.fig3.caption")}<p class="figcap"{L.attr("cip.fig3.caption")}><b>Figure 3.</b> {C.t("cip.fig3.caption")} {fy_picker("fig3")} ($Millions)</p>
- <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=4.85, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
+ <div class="pie-row">{fy_pie_swap("fig3", fig3_slices_for(BUD), fig3_slices_for(BUD26), cls="pie-cip", width_in=4.05, label_pt=13.7)}{legend([(esc(n), c) for n, c in zip(FIG3_ORDER, FIG3_COLORS)])}</div>
  <p data-fig="fig3" data-fy="2027"{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2027, cip_total=words(cip_total_for(BUD)))}</p>
  <p data-fig="fig3" data-fy="2026" hidden{C.slot_attr("cip.body")}>{C("cip.body").format(fy=2026, cip_total=words(cip_total_for(BUD26)))}</p>
-{C.extras("cip")} {L.layer(7)}{L.text_boxes(7)}{L.tables_html(7)}{folio(7)}
+{L.spacer("onetime.h3")}<h3 class="sub2"{L.attr("onetime.h3")}>{C.t("onetime.h3")}</h3>
+ <ul class="approp-brief">{"".join(f"<li>{b}</li>" for b in ONE_TIME_BULLETS[:3])}</ul>
+ {C.html("onetime.brief", "approp-note")}
+ <details class="obligated approp noprint">
+  <summary>{C.t("onetime.summary")}</summary>
+  <div class="cards2">
+   {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets", icon=WARNING_ICON, icon_id="onetime.cards.onetime.icon")}
+   {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets", icon=CROSS_ICON, icon_id="onetime.cards.emergency.icon")}
+  </div>
+ </details>
+{C.extras("cip")}{C.extras("onetime")} {L.layer(7)}{L.text_boxes(7)}{L.tables_html(7)}{folio(7)}
 </section>""")
 
-# -- page 8: photo + one-time/emergency
+# -- page 8: funding the budget
 pages.append(f"""
 <section class="page"{L.fill_attr(f"page.8")}>
- {L.spacer("onetime.photo")}{img_el("onetime.photo", "photo", "assets/hb2296-signing.jpg", esc(C.text("onetime.photo.alt")))}
- {C.html("onetime.photo.caption", "photocap")}
- {L.spacer("onetime.h3")}<h3 class="sub2"{L.attr("onetime.h3")}>{C.t("onetime.h3")}</h3>
- <div class="cards2">
-  {card(C.t("onetime.cards.onetime.title"), ONE_TIME_BULLETS, DARK, key="onetime.cards.onetime.bullets", icon=WARNING_ICON, icon_id="onetime.cards.onetime.icon")}
-  {card(C.t("onetime.cards.emergency.title"), EMERG_BULLETS, DARKEST, key="onetime.cards.emergency.bullets", icon=CROSS_ICON, icon_id="onetime.cards.emergency.icon")}
- </div>
-{C.extras("onetime")} {L.layer(8)}{L.text_boxes(8)}{L.tables_html(8)}{folio(8)}
-</section>""")
-
-# -- page 9: funding the budget
-pages.append(f"""
-<section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("funding.h1")}<h1{L.attr("funding.h1")}>{C.t("funding.h1")}</h1>
  {L.spacer("funding.fig4.caption")}<p class="figcap"{L.attr("funding.fig4.caption")}><b>Figure 4.</b> {C.t("funding.fig4.caption")} {fy_picker("fig4")} {C.t("funding.fig4.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig4", fig4_slices_for(BUD), fig4_slices_for(BUD26), cls="pie-mof", width_in=4.65, label_pt=14.6)}{legend([(esc(n), c) for n, c in zip(FIG4_ORDER, FIG3_COLORS)])}</div>
@@ -1199,12 +1196,12 @@ pages.append(f"""
   {card(C.t("funding.cards.special.title"), C.list("funding.cards.special.bullets"), SAGE_MID, key="funding.cards.special.bullets", icon=SPECIAL_FUNDS_ICON, icon_id="funding.cards.special.icon")}
   {card(C.t("funding.cards.federal.title"), C.list("funding.cards.federal.bullets"), SAGE_LIGHT, light=True, key="funding.cards.federal.bullets", icon=FEDERAL_FUNDS_ICON, icon_id="funding.cards.federal.icon")}
  </div>
-{C.extras("funding")} {L.layer(9)}{L.text_boxes(9)}{L.tables_html(9)}{folio(9)}
+{C.extras("funding")} {L.layer(8)}{L.text_boxes(8)}{L.tables_html(8)}{folio(8)}
 </section>""")
 
-# -- page 10: taxes
+# -- page 9: taxes
 pages.append(f"""
-<section class="page"{L.fill_attr(f"page.10")}>
+<section class="page"{L.fill_attr(f"page.9")}>
  {L.spacer("taxes.h2")}<h2 class="sub"{L.attr("taxes.h2")}>{C.t("taxes.h2")}</h2>
  {L.spacer("taxes.fig5.caption")}<p class="figcap"{L.attr("taxes.fig5.caption")}><b>Figure 5.</b> {C.t("taxes.fig5.caption")} {fy_picker("fig5")} {C.t("taxes.fig5.caption.suffix")}</p>
  <div class="pie-row">{fy_pie_swap("fig5", fig5_slices_for(REV), fig5_slices_for(REV26), cls="pie-tax", width_in=4.80, label_pt=13.1)}{legend([(esc(n), c) for (n, _v, c, _l) in fig5_slices_for(REV)])}</div>
@@ -1213,26 +1210,26 @@ pages.append(f"""
   {card(C.t("taxes.cards.iit.title"), C.list("taxes.cards.iit.bullets"), SAGE_MID, key="taxes.cards.iit.bullets", icon=IIT_ICON, icon_id="taxes.cards.iit.icon")}
   {card(C.t("taxes.cards.tat.title"), C.list("taxes.cards.tat.bullets"), SAGE_LIGHT, light=True, key="taxes.cards.tat.bullets", icon=TAT_ICON, icon_id="taxes.cards.tat.icon")}
  </div>
-{C.extras("taxes")} {L.layer(10)}{L.text_boxes(10)}{L.tables_html(10)}{folio(10)}
+{C.extras("taxes")} {L.layer(9)}{L.text_boxes(9)}{L.tables_html(9)}{folio(9)}
 </section>""")
 
-# -- page 11: who pays
+# -- page 10: who pays
 pages.append(f"""
-<section class="page"{L.fill_attr(f"page.11")}>
+<section class="page"{L.fill_attr(f"page.10")}>
  {L.spacer("whopays.h3")}<h3 class="sub2"{L.attr("whopays.h3")}>{C.t("whopays.h3")}</h3>
  <p class="figcap"><b>Figure 6.</b> {C("whopays.fig6.caption")}</p>
  {fig6_chart()}
  {C.html("whopays.p1")}
-{C.extras("whopays")} {L.layer(11)}{L.text_boxes(11)}{L.tables_html(11)}{folio(11)}
+{C.extras("whopays")} {L.layer(10)}{L.text_boxes(10)}{L.tables_html(10)}{folio(10)}
 </section>""")
 
-# -- page 12: tax credits (the callout was on page 11; moved to its own page)
+# -- page 11: tax credits (the callout was on page 11; moved to its own page)
 # The callout keeps its identity ("callout.whopays"), so any recolour/position
 # it carried follows it here — everything page-keyed stays by identity. Its
 # [^tax-credits] footnote sits right where it did in reading order (last of
 # page 11 -> first of page 12), so endnote numbering is unchanged.
 pages.append(f"""
-<section class="page"{L.fill_attr(f"page.12")}>
+<section class="page"{L.fill_attr(f"page.11")}>
  {L.spacer("taxfair.h2")}<h2 class="sub"{L.attr("taxfair.h2")}>{C.t("taxfair.h2")}</h2>
  {C.html("taxfair.intro", cls="taxfair-intro")}
  <div class="reforms">
@@ -1245,10 +1242,10 @@ pages.append(f"""
   {C.html("whopays.callout.p1")}
   {C.html("whopays.callout.p2")}
  </div>
- {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
+ {L.layer(11)}{L.text_boxes(11)}{L.tables_html(11)}{folio(11)}
 </section>""")
 
-# -- page 13: endnotes --------------------------------------------------------
+# -- page 12: endnotes --------------------------------------------------------
 # Footnote refs live in the prose as stable [^id] tokens. Resolve them across the
 # assembled body FIRST so numbering follows the page ORDER, then build the
 # endnotes page from the order that produced.
@@ -1259,11 +1256,11 @@ pages.append(f"""
 # resolved, and the placeholder is filled with the numbered list after.
 ENDNOTES_SLOT = "<!--ds-endnotes-->"
 by_id = {i + 1: html for i, html in enumerate(pages)}   # designed pages 1..12
-by_id[13] = f"""
-<section class="page"{L.fill_attr("page.13")}>
+by_id[12] = f"""
+<section class="page"{L.fill_attr("page.12")}>
  {L.spacer("endnotes.h1")}<h1{L.attr("endnotes.h1")}>{C.t("endnotes.h1")}</h1>
  <ol class="endnotes">{ENDNOTES_SLOT}</ol>
- {L.layer(13)}{L.text_boxes(13)}{L.tables_html(13)}{folio(13)}
+ {L.layer(12)}{L.text_boxes(12)}{L.tables_html(12)}{folio(12)}
 </section>"""
 for _bid in L.blank_ids():
     by_id[_bid] = blank_page(_bid)
