@@ -273,7 +273,7 @@ Hawaiʻi Budget Means of Finance,
 ($Billions)[^act175-mof]
 
 [[funding.fig4.note]]
-Note: A few smaller related categories — including “other federal funds” — are currently grouped into “Other Funds”
+Note: A few smaller related categories, including “other federal funds,” are currently grouped into “Other Funds”
 
 [[funding.p1]]
 The state’s spending primarily falls under three main categories: general funds, special funds and federal funds.
@@ -380,7 +380,7 @@ Multinational corporations are able to shift profits they earn in Hawaiʻi to 
 Tax credits can lower or even eliminate the taxes that people or businesses owe to the state. These tax credits stimulate the economy by reducing costs either for businesses or struggling families that need help purchasing their basic necessities.
 
 [[whopays.callout.p2]]
-In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Out of this amount, only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit. A larger amount—$168 million—went to tax credits for wealthier taxpayers and businesses, such as the Film/Media Production Credit.
+In 2022, the state gave out $433.9 million in tax credits.[^tax-credits] Only $111 million went to tax credits for lower-income households, such as the Earned Income Tax Credit and Refundable Food/Excise Tax Credit, while a larger $168 million went to tax credits for wealthier taxpayers and businesses, such as the Film/Media Production Credit.
 
 The state should be investing more money in tax credits and other means of lifting up working families. It could, for example, create a state-level Child Tax Credit (CTC). At the national level, the CTC brought 2.9 million children out of poverty in 2021. Other options include programs like RxKids—which has successfully delivered millions of dollars in no-strings-attached benefits to mothers with infants throughout Michigan.
 
