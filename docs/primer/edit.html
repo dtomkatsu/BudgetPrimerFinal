@@ -556,15 +556,26 @@
           font:15px system-ui; line-height:1; color:#5B6E66;
           background:#fff; border:1px solid #C9D6CD; border-left:0;
           border-radius:0 9px 9px 0; box-shadow:3px 0 10px rgba(20,30,35,.14);
-          transition:color .12s, background .12s; }
+          /* right/background/border ride the SAME .16s as the panel's width,
+             so the fold reads as one motion, not a snap after a slide. */
+          transition:color .12s, background .16s ease, border-color .16s ease,
+                     right .16s ease, box-shadow .16s ease; }
+  /* The arrow is what turns — never the pill. Rotating the whole button
+     flipped its asymmetric radius, leaving the flat cut edge facing the
+     canvas and the rounded edge buried: the "snapped off" look. */
+  #side-fold span { display:block; transition:transform .16s ease; }
   #side-fold:hover { background:#EDF4EE; color:var(--ink); }
   /* Folded, the panel has no width, so a chevron hung at right:-13px straddles
      the panel's own left edge — which IS the rail — and sat on top of whichever
      tool the middle of the rail happened to reach (Chart, at most heights).
      Pushed out by its full width instead, so it begins exactly where the rail
      ends and covers nothing. */
-  #side.folded #side-fold { transform:rotate(180deg); border-left:1px solid #C9D6CD;
-          border-radius:0 9px 9px 0; right:-26px; }
+  #side.folded #side-fold { right:-26px;
+          background:var(--chrome2); border-color:var(--line); border-left:0;
+          color:var(--dim); box-shadow:var(--shadow-edge); }
+  #side.folded #side-fold span { transform:rotate(180deg); }
+  #side.folded #side-fold:hover { background:var(--ctl); color:var(--txt);
+          border-color:var(--sage); }
   #side-head { display:flex; align-items:center; justify-content:space-between;
           padding:13px 14px 6px; font:700 15.5px/1.2 system-ui; letter-spacing:-.2px; }
   #side-x { border:0; background:none; font-size:15px; line-height:1; cursor:pointer;
@@ -1521,7 +1532,7 @@
     <div id="side-body"></div>
     <!-- Collapse the panel out of the way without losing it: the tool stays
          open and the chevron stays on the canvas edge to bring it back. -->
-    <button id="side-fold" aria-label="Collapse this panel">‹</button>
+    <button id="side-fold" aria-label="Collapse this panel"><span>‹</span></button>
   </aside>
   <div id="stage"><iframe id="out" title="editable draft"></iframe></div>
 </div>
