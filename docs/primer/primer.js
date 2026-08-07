@@ -1,3 +1,21 @@
+/* Single-page isolation for per-page PNG export. The live server's export
+   endpoint screenshots "file://…/__export.html?only=N" once per page; this
+   hides every page but the Nth and squares it to the viewport top-left so the
+   capture is exactly that trim page. Inert without ?only= — normal loads never
+   see it. */
+(function () {
+  var m = /[?&]only=(\d+)/.exec(location.search);
+  if (!m) return;
+  var n = parseInt(m[1], 10);
+  document.documentElement.style.background = document.body.style.background = '#fff';
+  var tb = document.querySelector('.toolbar');
+  if (tb) tb.style.display = 'none';
+  document.querySelectorAll('section.page').forEach(function (pg, i) {
+    if (i === n - 1) { pg.style.margin = '0'; pg.style.height = '11in'; pg.style.boxShadow = 'none'; }
+    else { pg.style.display = 'none'; }
+  });
+})();
+
 /* Interactive layer: hover tooltips + department preview popovers that surface a
    slice of the Budget Tracker (funding trend + largest programs) in place.
    Progressive enhancement over the inline SVG; print unaffected. */
@@ -31,6 +49,48 @@
         if (el.getAttribute('data-fy') === yr) el.removeAttribute('hidden');
         else el.setAttribute('hidden', '');
       });
+    });
+  });
+
+  // ---- animated unfold for the expandable panels ----
+  // Native <details> snaps open in one frame. Height is animated between the
+  // measured extremes with the Web Animations API instead — CSS alone cannot
+  // transition to height:auto without features Safari/Firefox lack, and the
+  // published page must work everywhere even though the editor app is
+  // Chrome-hosted. Speed comes from --expand-dur in primer.css, so it is
+  // adjustable in one place without touching this script. Reduced-motion
+  // readers keep the native snap: for them the animation IS the regression.
+  document.querySelectorAll('details.obligated').forEach(function (d) {
+    // Whatever follows the summary IS the panel: .obligated-panel on the
+    // obligated-costs one, .cards2 on the appropriations one. Matching a
+    // specific class here silently reverted the second panel to the snap.
+    var sum = d.querySelector('summary');
+    var panel = sum && sum.nextElementSibling;
+    if (!panel || !sum) return;
+    sum.addEventListener('click', function (e) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var dur = parseFloat(getComputedStyle(document.documentElement)
+                  .getPropertyValue('--expand-dur')) * 1000;
+      if (!(dur > 0)) return;                    // 0s / unparsable: native snap
+      if (panel.getAnimations && panel.getAnimations().length) {
+        e.preventDefault(); return;              // mid-animation clicks do nothing
+      }
+      e.preventDefault();
+      panel.style.overflow = 'hidden';
+      var done = function (open) {
+        return function () { panel.style.overflow = ''; if (!open) d.open = false; };
+      };
+      if (!d.open) {
+        d.open = true;                           // content must exist to measure
+        var h = panel.scrollHeight;
+        panel.animate(
+          { height: ['0px', h + 'px'], opacity: [0, 1] },
+          { duration: dur, easing: 'ease' }).onfinish = done(true);
+      } else {
+        panel.animate(
+          { height: [panel.scrollHeight + 'px', '0px'], opacity: [1, 0] },
+          { duration: dur, easing: 'ease' }).onfinish = done(false);
+      }
     });
   });
 

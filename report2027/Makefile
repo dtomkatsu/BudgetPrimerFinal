@@ -21,6 +21,7 @@ editor: render
 pub: editor
 	cp web/index.html ../docs/primer/
 	cp web/primer.css ../docs/primer/
+	cp web/primer.js ../docs/primer/
 	mkdir -p ../docs/primer/assets && cp -R web/assets/. ../docs/primer/assets/
 
 data:

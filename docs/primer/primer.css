@@ -5,6 +5,11 @@
   --sage: #6B9E78; --sage-mid: #95B7A2; --sage-light: #CAD2C5; --mint: #E8EDE6;
   --pale: #D6E0D2; --dark: #52796F; --forest: #354F52; --darkest: #2F3E46;
   --ink: #2F3E46;
+  /* Unfold speed for the expandable panels (View Obligated Costs / View all
+     appropriations) — THE one knob. Seconds; raise for a lazier reveal, drop
+     to 0s for an instant one. Read by primer.js at click time, so a tweak
+     here needs no script change. */
+  --expand-dur: .35s;
   /* Font slots. Display/heading are Barlow (weight 900/800) — a free stand-in
      for Glober, the brand's licensed print typeface (see sources/original_primer_fy2526.pdf,
      which has Glober Black/Bold/SemiBold embedded). Swap in real Glober by loading

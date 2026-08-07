@@ -52,6 +52,48 @@
     });
   });
 
+  // ---- animated unfold for the expandable panels ----
+  // Native <details> snaps open in one frame. Height is animated between the
+  // measured extremes with the Web Animations API instead — CSS alone cannot
+  // transition to height:auto without features Safari/Firefox lack, and the
+  // published page must work everywhere even though the editor app is
+  // Chrome-hosted. Speed comes from --expand-dur in primer.css, so it is
+  // adjustable in one place without touching this script. Reduced-motion
+  // readers keep the native snap: for them the animation IS the regression.
+  document.querySelectorAll('details.obligated').forEach(function (d) {
+    // Whatever follows the summary IS the panel: .obligated-panel on the
+    // obligated-costs one, .cards2 on the appropriations one. Matching a
+    // specific class here silently reverted the second panel to the snap.
+    var sum = d.querySelector('summary');
+    var panel = sum && sum.nextElementSibling;
+    if (!panel || !sum) return;
+    sum.addEventListener('click', function (e) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var dur = parseFloat(getComputedStyle(document.documentElement)
+                  .getPropertyValue('--expand-dur')) * 1000;
+      if (!(dur > 0)) return;                    // 0s / unparsable: native snap
+      if (panel.getAnimations && panel.getAnimations().length) {
+        e.preventDefault(); return;              // mid-animation clicks do nothing
+      }
+      e.preventDefault();
+      panel.style.overflow = 'hidden';
+      var done = function (open) {
+        return function () { panel.style.overflow = ''; if (!open) d.open = false; };
+      };
+      if (!d.open) {
+        d.open = true;                           // content must exist to measure
+        var h = panel.scrollHeight;
+        panel.animate(
+          { height: ['0px', h + 'px'], opacity: [0, 1] },
+          { duration: dur, easing: 'ease' }).onfinish = done(true);
+      } else {
+        panel.animate(
+          { height: [panel.scrollHeight + 'px', '0px'], opacity: [1, 0] },
+          { duration: dur, easing: 'ease' }).onfinish = done(false);
+      }
+    });
+  });
+
   // ---- print the obligated-costs chart on its own page when expanded ----
   // The interactive <details> is noprint; on print, if it's open, we clone its
   // panel into a dedicated .page inserted after the obligated section so the
