@@ -10770,6 +10770,61 @@ async function detectLocal() {
 // leader tab dies its lock goes stale and the next tab takes over. So however
 // many editor/preview tabs are open, and however they die, there is exactly one
 // connection: it cannot pile up. onEvent gets {v, ahead, error} in every tab.
+/** Run ops relayed from POST /__pilot, one at a time, and post each result
+ *  back. SEQUENTIAL on purpose: every verb renders, and two renders racing is
+ *  exactly the "the write landed but the geometry is stale" class of bug the
+ *  pilot API exists to avoid. Only the LEADER tab is ever handed ops (the
+ *  server drains them into the SSE stream, which exactly one tab holds), so
+ *  this cannot double-apply. A verb that throws is reported as a refusal
+ *  rather than swallowed — a pilot's whole contract is that it learns what
+ *  happened without a screenshot. */
+let pilotBusy = false;
+
+/** Claim whatever POST /__pilot has queued and run it. Called by the LEADER
+ *  tab only, from both the live stream and its 2s poll — so the flag is what
+ *  stops those two from claiming concurrently and interleaving renders. The
+ *  re-check at the end catches ops that arrived while we were working. */
+async function claimPilotOps() {
+  if (pilotBusy) return;
+  pilotBusy = true;
+  try {
+    for (;;) {
+      let ops = [];
+      try {
+        const r = await fetch('/__pilot/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project: M && M.id }),
+        });
+        ops = (await r.json()).ops || [];
+      } catch (e) { return; }        // server gone: the caller's timeout says so
+      if (!ops.length) return;
+      await runPilotOps(ops);
+    }
+  } finally { pilotBusy = false; }
+}
+
+async function runPilotOps(ops) {
+  for (const op of ops) {
+    let result;
+    try {
+      const fn = docsync.api[op.verb];
+      result = typeof fn !== 'function'
+        ? { ok: false, error: `unknown verb '${op.verb}' — see docsync.api` }
+        : await fn.apply(docsync.api, op.args || []);
+      // A verb with nothing to say (lock, group) still answers.
+      if (result === undefined) result = { ok: true };
+    } catch (e) {
+      result = { ok: false, error: String((e && e.message) || e) };
+    }
+    try {
+      await fetch('/__pilot/result', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: M && M.id, id: op.id, result }),
+      });
+    } catch (e) { /* the caller's own timeout reports this */ }
+  }
+}
+
 function startLive(onEvent) {
   // Scoped by project id: two projects' edit.html tabs open at once must not
   // elect a shared leader or relay each other's rebuild events.
@@ -10809,6 +10864,11 @@ function startLive(onEvent) {
       es = new EventSource(withProject('/__events'));
       es.onmessage = ev => {
         let d = {}; try { d = JSON.parse(ev.data || '{}'); } catch (e) {}
+        // The stream only ADVERTISES pilot ops; this tab claims them over
+        // HTTP. Claiming from the leader alone keeps every op in ONE tab's
+        // in-memory document — split across two tabs they would edit two
+        // different drafts.
+        if (d.pilotWaiting && mine(d)) claimPilotOps();
         apply(d); relay(d);              // the leader reacts, then tells the rest
       };
     } catch (e) { /* no EventSource: the leader's poll below still catches builds */ }
@@ -10828,7 +10888,12 @@ function startLive(onEvent) {
       // The leader's poll: the fallback if the SSE drops, and how a Save/Push in
       // ANY tab reaches every tab's button. Followers never poll.
       fetch(withProject('/__ping'), { cache: 'no-store' }).then(r => r.json())
-        .then(d => { apply(d); relay(d); }).catch(() => {});
+        .then(d => {
+          // The poll is also the pilot's safety net: if the SSE stream is
+          // mid-reconnect when an op is queued, this picks it up within 2s.
+          if (d.pilotWaiting && mine(d)) claimPilotOps();
+          apply(d); relay(d);
+        }).catch(() => {});
     }, HB_MS);
   };
   const elect = () => {
@@ -11187,7 +11252,18 @@ async function _pull() {
     }
     if ($('stat').dataset.stale) offerEditorReload();   // the warning outranks the status
   }
-  else if (took) { markDirty(); await render(); $('stat').textContent = 'updated from disk'; }
+  // A clash is about CONTENT — the prose or layout you have unsaved. It must
+  // not also suppress an ENGINE change (a renderer edit, a stylesheet, a data
+  // file), which is unrelated to anything you typed. It used to: the branch
+  // above is gated on !clash, so one unsaved word meant every CSS and renderer
+  // change stopped appearing until the page was reloaded. Rendering here is
+  // safe for the same reason it is safe above — render() draws from the
+  // CURRENT source/layout, so your unsaved edit is redrawn, never discarded.
+  else if (took || engineMoved) {
+    if (took) markDirty();
+    await render();
+    $('stat').textContent = took ? 'updated from disk' : 'reloaded';
+  }
   if (clash) {
     $('stat').textContent = 'Claude changed the same thing you have unsaved — '
       + 'Discard to take the disk version, or Save to keep yours';
@@ -14155,10 +14231,20 @@ function _pilotValidateSetSlot(key, md) {
 }
 function _pilotApplySetSlot(key, md) { writeSlot(key, md); return { key }; }
 
-function _pilotValidatePlace(id) {
+// An element a pilot can address is USUALLY in the DOM — but inside a batch,
+// an op can name a box/shape an earlier op just created, which exists only in
+// the layout store until the batch's own render runs. Both count as existing.
+const _pilotStoreOf = id => layout.shapes.find(s => s.id === id) || boxOf(id) || tableOf(id);
+function _pilotValidateExists(id) {
   const d = $('out').contentDocument;
   const el = d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
-  if (!el) return { ok: false, error: `no element '${id}' — check inventory()` };
+  if (!el && !_pilotStoreOf(id))
+    return { ok: false, error: `no element '${id}' — check inventory()` };
+  return { ok: true };
+}
+function _pilotValidatePlace(id) {
+  const v = _pilotValidateExists(id);
+  if (!v.ok) return v;
   if (isLocked(id)) return { ok: false, error: `'${id}' is locked — unlock it first` };
   return { ok: true };
 }
@@ -14166,6 +14252,17 @@ function _pilotApplyPlace(id, { x, y, w, h } = {}) {
   const d = $('out').contentDocument;
   const sel = `[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`;
   const el = d.querySelector(sel);
+  // Not yet rendered (created earlier in this same batch): the store IS the
+  // element. Write it directly with the page-edge clamp a drag would apply;
+  // the batch's render then paints it exactly there.
+  if (!el) {
+    const st = _pilotStoreOf(id);
+    if (w != null) st.w = +w;
+    if (h != null) st.h = +h;
+    if (x != null) st.x = Math.max(0, Math.min(+x, PAGE_W_IN - (st.w || 0)));
+    if (y != null) st.y = Math.max(0, Math.min(+y, PAGE_H_IN - 0.2));
+    return { id };
+  }
   const page = el.closest('section.page') || d.querySelector('section.page');
   if (x != null || y != null) {
     const P = placer(d, el, page);
@@ -14204,15 +14301,95 @@ function _pilotMeasure(id) {
 // generic layout.fill[id] entry) — true before batch() existed, unchanged.
 function _pilotApplyRecolor(id, fill) { fillTargets(id).set(fill); return { id, fill }; }
 
-function _pilotApplyAddTextBox({ page, x, y, w = 3, md = 'Your text here', style, fill } = {}) {
+function _pilotApplyAddTextBox({ page, x, y, w = 3, h, md = 'Your text here', style, fill } = {}) {
   const pid = page != null ? page : visiblePageId();
   const id = freeBoxId();
   const box = { id, page: pid, x: x != null ? +x : placeX(w), y: y != null ? +y : 2,
                 w: +w, z: 2, md };
+  if (h != null) box.h = +h;      // same field place()'s h writes — one call, not two
   if (style && Object.keys(style).length) box.style = { ...style };
   if (fill) box.fill = fill;
   boxes().push(box);
   return { id: 'text.' + id, page: pid };
+}
+
+// A slot key styles through layout.text; a 'text.N' key styles the box's own
+// style object — setStyle() already routes both (the same split the type
+// toolbar rides), so the core only decides whether the key names anything.
+function _pilotValidateSetStyle(key, patch) {
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch))
+    return { ok: false, error: 'style patch must be an object, e.g. { size: 14, color: "#2F3E46" }' };
+  const isBox = (key || '').startsWith('text.') && boxOf(key);
+  if (!isBox && !slotRe(key).test(source))
+    return { ok: false, error: `no slot or text box '${key}' — check inventory()` };
+  return { ok: true };
+}
+function _pilotApplySetStyle(key, patch) {
+  setStyle(key, patch);
+  return { key, style: styleOf(key) };
+}
+
+// A text box's words live in layout.json (b.md), not content.md — setSlot
+// cannot reach them, which left a pilot able to CREATE a box but never to
+// retext one. This is that missing write.
+function _pilotValidateSetBoxText(id, md) {
+  if (!boxOf(id)) return { ok: false, error: `no text box '${id}' — check inventory()` };
+  if (!(md || '').trim())
+    return { ok: false, error: 'md must be non-empty — remove(id) is how a box goes away' };
+  return { ok: true };
+}
+function _pilotApplySetBoxText(id, md) { boxOf(id).md = md.trim(); return { id }; }
+
+function _pilotApplyRotate(id, deg) {
+  const d = $('out').contentDocument;
+  const el = d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+  // A shape/box/table's store works even before the element has rendered (a
+  // batch ref); ensureStore covers the designed-element case, pinning it into
+  // positions{} first — rotating a thing IS placing it, the rotate handle's
+  // own rule.
+  const st = _pilotStoreOf(id) || ensureStore(d, el);
+  const v = +deg || 0;
+  if (v) st.rot = v; else delete st.rot;
+  return { id, rot: v };
+}
+
+function _pilotApplyLock(id, on) {
+  if (on === false) {
+    layout.locked = lockedList().filter(x => x !== id);
+    if (!layout.locked.length) delete layout.locked;
+  } else if (!isLocked(id)) lockedList().push(id);
+  return { id, locked: on !== false };
+}
+
+function _pilotValidateGroup(ids) {
+  if (!Array.isArray(ids) || ids.length < 2)
+    return { ok: false, error: 'group needs an array of 2+ element ids' };
+  const d = $('out').contentDocument;
+  for (const id of ids)
+    if (!d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`))
+      return { ok: false, error: `no element '${id}' — check inventory()` };
+  return { ok: true };
+}
+// Same semantics as groupSel: an element belongs to ONE group, so members are
+// pulled out of any other group first and groups that empties are dropped.
+function _pilotApplyGroup(ids) {
+  const set = new Set(ids);
+  layout.groups = (layout.groups || [])
+    .map(g => g.filter(m => !set.has(m)))
+    .filter(g => g.length >= 2);
+  layout.groups.push([...ids]);
+  return { ids: [...ids] };
+}
+function _pilotValidateUngroup(id) {
+  if (!(layout.groups || []).some(g => g.includes(id)))
+    return { ok: false, error: `'${id}' is not in any group` };
+  return { ok: true };
+}
+function _pilotApplyUngroup(id) {
+  const g = (layout.groups || []).find(x => x.includes(id));
+  layout.groups = (layout.groups || []).filter(x => x !== g);
+  if (!layout.groups.length) delete layout.groups;
+  return { id, members: [...g] };
 }
 
 function _pilotValidateAddSource(id, text, url) {
@@ -14240,6 +14417,14 @@ const PILOT_BATCH_VERBS = {
   addTextBox: { validate: () => ({ ok: true }), apply: o => _pilotApplyAddTextBox(o) },
   addSource: { validate: (id, t, u) => _pilotValidateAddSource(id, t, u),
                apply: (id, t, u) => _pilotApplyAddSource(id, t, u) },
+  setStyle: { validate: (k, p) => _pilotValidateSetStyle(k, p), apply: (k, p) => _pilotApplySetStyle(k, p) },
+  setBoxText: { validate: (id, m) => _pilotValidateSetBoxText(id, m), apply: (id, m) => _pilotApplySetBoxText(id, m) },
+  rotate: { validate: id => _pilotValidatePlace(id), apply: (id, deg) => _pilotApplyRotate(id, deg) },
+  // Existence only — place()'s validate also refuses LOCKED elements, which
+  // here would make unlocking impossible.
+  lock: { validate: id => _pilotValidateExists(id), apply: (id, on) => _pilotApplyLock(id, on) },
+  group: { validate: ids => _pilotValidateGroup(ids), apply: ids => _pilotApplyGroup(ids) },
+  ungroup: { validate: id => _pilotValidateUngroup(id), apply: id => _pilotApplyUngroup(id) },
 };
 
 window.docsync = Object.assign(window.docsync || {}, { api: {
@@ -14400,20 +14585,83 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
     if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
     if (!Array.isArray(ops) || !ops.length)
       return { ok: false, error: 'batch needs a non-empty array of {verb, args}' };
+    // An op may carry `as: 'name'`; later ops may say '@name' where an id
+    // goes (a bare string arg, or an object value one level deep), and get
+    // the id the named op's apply returned. That lifts the old "a batch
+    // cannot reference what it creates" rule — addTextBox-then-place is one
+    // call again. The price is paid honestly below: a '@ref' op cannot be
+    // validated before its referent exists, so its validation runs at apply
+    // time, and a failure there rolls the WHOLE batch back from the snapshot
+    // pushHistory took — all-or-nothing either way, just enforced later.
+    const hasRef = a => typeof a === 'string' ? a.startsWith('@')
+      : (a && typeof a === 'object')
+        ? Object.values(a).some(v => typeof v === 'string' && v.startsWith('@'))
+        : false;
+    const resolve = (a, named) => {
+      const one = v => {
+        if (typeof v !== 'string' || !v.startsWith('@')) return v;
+        if (!(v.slice(1) in named)) throw new Error(`unknown ref '${v}'`);
+        return named[v.slice(1)];
+      };
+      if (typeof a === 'string') return one(a);
+      if (a && typeof a === 'object' && !Array.isArray(a))
+        return Object.fromEntries(Object.entries(a).map(([k, v]) => [k, one(v)]));
+      return a;
+    };
+    const defined = new Set();
+    const deferred = new Set();          // op indexes whose validate waits for apply
     for (let i = 0; i < ops.length; i++) {
       const op = ops[i];
       const spec = op && PILOT_BATCH_VERBS[op.verb];
       if (!spec) return { ok: false, error: `op ${i}: unsupported verb `
         + `'${op && op.verb}' — batch supports ${Object.keys(PILOT_BATCH_VERBS).join(', ')}` };
       const args = Array.isArray(op.args) ? op.args : [op.args];
-      const v = spec.validate(...args);
-      if (!v.ok) return { ok: false, error: `op ${i} (${op.verb}): ${v.error}` };
+      const refs = args.filter(hasRef);
+      if (refs.length) {
+        // Every named ref must point at an EARLIER op's `as` — a forward or
+        // unknown name is a spelling mistake, refused now, not at apply.
+        const names = refs.flatMap(a => typeof a === 'string' ? [a]
+          : Object.values(a).filter(v => typeof v === 'string' && v.startsWith('@')));
+        const bad = names.find(n => !defined.has(n.slice(1)));
+        if (bad) return { ok: false, error: `op ${i} (${op.verb}): ref '${bad}' names `
+          + `no earlier op's 'as' — refs only point backwards` };
+        deferred.add(i);
+      } else {
+        const v = spec.validate(...args);
+        if (!v.ok) return { ok: false, error: `op ${i} (${op.verb}): ${v.error}` };
+      }
+      if (op.as) defined.add(String(op.as));
     }
     pushHistory();
-    const applied = ops.map(op => {
-      const args = Array.isArray(op.args) ? op.args : [op.args];
-      return { verb: op.verb, ...PILOT_BATCH_VERBS[op.verb].apply(...args) };
-    });
+    const named = {};
+    const applied = [];
+    for (let i = 0; i < ops.length; i++) {
+      const op = ops[i];
+      const spec = PILOT_BATCH_VERBS[op.verb];
+      let args = Array.isArray(op.args) ? op.args : [op.args];
+      try {
+        args = args.map(a => resolve(a, named));
+      } catch (e) {
+        // unknown ref can't happen (checked above) — belt and braces
+        const rolled = JSON.parse(past.pop());
+        source = rolled.source; layout = rolled.layout;
+        return { ok: false, error: `op ${i} (${op.verb}): ${e.message}` };
+      }
+      if (deferred.has(i)) {
+        const v = spec.validate(...args);
+        if (!v.ok) {
+          // Nothing has rendered yet: put source/layout back exactly as the
+          // snapshot holds them and withdraw the history entry. dirty was
+          // never set, so the document is untouched by every measure.
+          const rolled = JSON.parse(past.pop());
+          source = rolled.source; layout = rolled.layout;
+          return { ok: false, error: `op ${i} (${op.verb}): ${v.error}` };
+        }
+      }
+      const r = { verb: op.verb, ...spec.apply(...args) };
+      if (op.as && r.id != null) named[String(op.as)] = r.id;
+      applied.push(r);
+    }
     markDirty();
     await render();
     paintSel($('out').contentDocument);   // harmless when nothing needed it
@@ -14431,6 +14679,205 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
       return { ok: false, error: 'this report already draws its own endnotes list' };
     const box = await addEndnotesSection({ silent: true });
     return { ...docsync.api.status(), id: 'text.' + box.id };
+  },
+
+  /** Typography for a slot key or a 'text.N' box — size/weight/color/tracking/
+   *  leading/font/italic/underline/align/case, the same style object the type
+   *  toolbar writes. null/'' in the patch clears that property. */
+  async setStyle(key, patch) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidateSetStyle(key, patch);
+    if (!v.ok) return v;
+    pushHistory();
+    const r = _pilotApplySetStyle(key, patch);
+    markDirty();
+    await render();
+    return { ...docsync.api.status(), ...r };
+  },
+
+  /** Replace a text BOX's markdown (its words live in layout.json, out of
+   *  setSlot's reach). */
+  async setBoxText(id, md) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidateSetBoxText(id, md);
+    if (!v.ok) return v;
+    pushHistory();
+    _pilotApplySetBoxText(id, md);
+    markDirty();
+    await render();
+    return { ...docsync.api.status(), id, box: _pilotMeasure(id) };
+  },
+
+  /** Rotate about the element's centre, degrees clockwise; 0 clears. */
+  async rotate(id, deg) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidatePlace(id);
+    if (!v.ok) return v;
+    pushHistory();
+    const r = _pilotApplyRotate(id, deg);
+    markDirty();
+    await render();
+    return { ...docsync.api.status(), ...r };
+  },
+
+  /** lock(id) / lock(id, false). Locked means hands off: drag, place(),
+   *  remove() all refuse until unlocked. */
+  lock(id, on = true) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidateExists(id);
+    if (!v.ok) return v;
+    pushHistory();
+    const r = _pilotApplyLock(id, on);
+    markDirty();
+    paintSel($('out').contentDocument);   // lock is chrome, not content — no render
+    return { ...docsync.api.status(), ...r };
+  },
+
+  /** Tie 2+ elements so they move as one (each element belongs to one group;
+   *  members are pulled out of other groups first). ungroup(id) dissolves the
+   *  group holding id. */
+  group(ids) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidateGroup(ids);
+    if (!v.ok) return v;
+    pushHistory();
+    const r = _pilotApplyGroup(ids);
+    markDirty();
+    paintSel($('out').contentDocument);
+    return { ...docsync.api.status(), ...r };
+  },
+  ungroup(id) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const v = _pilotValidateUngroup(id);
+    if (!v.ok) return v;
+    pushHistory();
+    const r = _pilotApplyUngroup(id);
+    markDirty();
+    paintSel($('out').contentDocument);
+    return { ...docsync.api.status(), ...r };
+  },
+
+  /** Delete by id(s) — the UI's own Delete, selection set for you: shapes,
+   *  boxes and tables cease to exist; a designed element hides (reversible);
+   *  a pinned designed element resets to its designed place. Locked ids are
+   *  skipped, same as the keyboard path. Own history entry; not batchable. */
+  async remove(ids) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const list = (Array.isArray(ids) ? ids : [ids]).filter(Boolean);
+    if (!list.length) return { ok: false, error: 'remove needs an element id or an array of them' };
+    const d = $('out').contentDocument;
+    for (const id of list) {
+      const v = _pilotValidateExists(id);
+      if (!v.ok) return v;
+    }
+    if (list.every(isLocked))
+      return { ok: false, error: 'everything named is locked — unlock first' };
+    setSel(d, list);
+    await deleteSel(d);                    // pushes history + renders itself
+    return { ...docsync.api.status(), removed: list };
+  },
+
+  /** Duplicate by id(s) — clones shapes/boxes/tables offset 0.2in; a designed
+   *  element hands back its content as a floating text box (the UI's own
+   *  semantics). Returns the copies' ids. Own history entry; not batchable. */
+  async duplicate(ids) {
+    if (editing) return { ok: false, error: 'an inline text editor is open — close it first' };
+    const list = (Array.isArray(ids) ? ids : [ids]).filter(Boolean);
+    if (!list.length) return { ok: false, error: 'duplicate needs an element id or an array of them' };
+    const d = $('out').contentDocument;
+    for (const id of list) {
+      const v = _pilotValidateExists(id);
+      if (!v.ok) return v;
+    }
+    if (!list.some(id => dupModeOf(d, id)))
+      return { ok: false, error: 'nothing named can be duplicated (an endnote reorders instead)' };
+    setSel(d, list);
+    await duplicateSel(d);                 // pushes history + renders itself
+    // duplicateSel leaves the COPIES selected; if the selection is still the
+    // originals, nothing was duplicable after all (it popped its history).
+    const copies = [...selIds].filter(id => !list.includes(id));
+    if (!copies.length) return { ok: false, error: 'nothing was duplicated' };
+    return { ...docsync.api.status(), copies };
+  },
+
+  /** The mechanical eye: every layout problem a screenshot would be taken to
+   *  find, as data. Advisory — taste stays with the pilot; geometry doesn't.
+   *  Kinds: print-overflow (lastFit — would be cut in print, blocks save()),
+   *  off-sheet (a placed element past the page edge), overlap (two placed
+   *  movables sharing >20% of the smaller's area, same page, not grouped
+   *  together — grouped overlap is composition, not collision), orphaned-
+   *  group-member (a group naming an id that no longer exists), uncited-
+   *  source (declared, never referenced — publish refuses these). */
+  audit() {
+    const d = $('out').contentDocument;
+    const issues = [];
+    lastFit.forEach(f => issues.push({ kind: 'print-overflow', page: f.page,
+      ids: [f.who].filter(Boolean), note: `${f.over}in past the print cut — save() refuses` }));
+    // Placed movables only: shapes, boxes, tables, pinned designed elements.
+    // Designed FLOW elements overlap constantly and correctly (backgrounds,
+    // cards, columns) — auditing those would be all noise. Geometry comes
+    // from the STORE where one exists: the page CLIPS a rendered element at
+    // its edge, so a DOM measurement literally cannot see past it — the very
+    // condition off-sheet exists to catch. The DOM fills in only what the
+    // store doesn't know (a box's content-decided height, a pinned designed
+    // element's whole box).
+    const items = [];
+    layout.shapes.forEach(s => items.push({ id: s.id, page: s.page,
+      b: { x: s.x, y: s.y, w: s.w, h: s.h } }));
+    boxes().forEach(bx => {
+      const m = _pilotMeasure('text.' + bx.id);
+      items.push({ id: 'text.' + bx.id, page: bx.page,
+        b: { x: bx.x, y: bx.y, w: bx.w, h: bx.h != null ? bx.h : (m ? m.h : 0.3) } });
+    });
+    tables().forEach(t => {
+      const m = _pilotMeasure('table.' + t.id);
+      items.push({ id: 'table.' + t.id, page: t.page,
+        b: { x: t.x, y: t.y, w: t.w, h: t.h != null ? t.h : (m ? m.h : 0.5) } });
+    });
+    Object.keys(layout.positions || {}).forEach(id => {
+      const m = _pilotMeasure(id);
+      if (!m) return;                        // hidden or unmeasurable: no geometry to judge
+      const el = d.querySelector(`[data-el="${CSS.escape(id)}"], [data-shape="${CSS.escape(id)}"]`);
+      const pg = el && el.closest('section[data-page]');
+      items.push({ id, page: pg ? pg.dataset.page : null, b: m });
+    });
+    const tol = 0.05;
+    const pageH = (layout.page && layout.page.h === null) ? Infinity : PAGE_H_IN;
+    items.forEach(({ id, page, b }) => {
+      if (b.x < -tol || b.y < -tol
+          || b.x + b.w > PAGE_W_IN + tol || b.y + b.h > pageH + tol)
+        issues.push({ kind: 'off-sheet', page, ids: [id],
+          box: { x: +b.x.toFixed(2), y: +b.y.toFixed(2), w: +b.w.toFixed(2), h: +b.h.toFixed(2) },
+          note: 'extends past the page edge' });
+    });
+    const sameGroup = (a, c) =>
+      (layout.groups || []).some(g => g.includes(a) && g.includes(c));
+    for (let a = 0; a < items.length; a++)
+      for (let c = a + 1; c < items.length; c++) {
+        const A = items[a], C = items[c];
+        if (String(A.page) !== String(C.page)) continue;
+        if (sameGroup(A.id, C.id)) continue;
+        const w = Math.min(A.b.x + A.b.w, C.b.x + C.b.w) - Math.max(A.b.x, C.b.x);
+        const h = Math.min(A.b.y + A.b.h, C.b.y + C.b.h) - Math.max(A.b.y, C.b.y);
+        if (w <= 0 || h <= 0) continue;
+        const smaller = Math.min(A.b.w * A.b.h, C.b.w * C.b.h) || 1e-9;
+        const frac = (w * h) / smaller;
+        if (frac > 0.2)
+          issues.push({ kind: 'overlap', page: A.page, ids: [A.id, C.id],
+            note: `${Math.round(frac * 100)}% of the smaller element is covered` });
+      }
+    (layout.groups || []).forEach(g => g.forEach(m => {
+      if (!d.querySelector(`[data-el="${CSS.escape(m)}"], [data-shape="${CSS.escape(m)}"]`))
+        issues.push({ kind: 'orphaned-group-member', ids: [m],
+          note: 'named in a group but no longer in the document' });
+    }));
+    parseSources().forEach(s => {
+      if (!new RegExp(`\\[\\^${rxEsc(s.id)}\\]`).test(source))
+        issues.push({ kind: 'uncited-source', ids: [s.id],
+          note: 'declared in sources but never cited — publish refuses this' });
+    });
+    return { ok: true, issues, counts: issues.reduce(
+      (m, i) => ({ ...m, [i.kind]: (m[i.kind] || 0) + 1 }), {}) };
   },
 
   async undo() { await undo(); return docsync.api.status(); },
