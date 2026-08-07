@@ -195,7 +195,7 @@ One-Time Appr
 Emergency Appr
 
 [[categories.fig2.note]]
-Note: Some capital dollars appear under the department that builds a project  — for example, the Department of Accounting and General Services often manages construction on the behalf of other departments.
+Note: Some capital dollars appear under the department that builds a project — the Department of Accounting and General Services, for example, often manages construction on behalf of other departments.
 
 [[categories.explore]]
 For detailed, program-level data on the state budget:
@@ -210,10 +210,10 @@ The Executive departments with the largest overall budgets are the Departments o
 ### Obligated Costs
 
 [[obligated.p1]]
-Before the state can consider any other spending, the Hawaiʻi constitution says it must pay its non-negotiable obligated costs. These costs include pensions, health benefits, Medicaid, and debt payments—and they are worth roughly $5 billion, or a quarter of the state’s operating budget. The share of the operating budget that these costs consume is increasing each year, limiting the state’s flexibility for new investments in areas like housing, schools, economic development and climate resilience.
+Before any other spending, the Hawaiʻi constitution requires the state to pay its non-negotiable obligated costs: pensions, health benefits, Medicaid, and debt payments—roughly $5 billion, or a quarter of the operating budget. This share is growing each year, limiting the state’s flexibility to invest in housing, schools, economic development, and climate resilience.
 
 [[obligated.p2]]
-Except for Medicaid expenses, which are included in the budget for the Department of Human Services, the costs named above are covered by the Department of Budget and Finance. These two departments have the largest operating budgets, and obligated costs are a significant share for each.
+Except for Medicaid, covered under the Department of Human Services, these costs fall under the Department of Budget and Finance—the two departments with the largest operating budgets, both dominated by obligated costs.
 
 [[obligated.summary]]
 View Obligated Costs
@@ -234,7 +234,7 @@ General-fund fixed costs have climbed from {oblig_first} billion in FY2018 to {o
 Distribution of Capital Improvement Project Funding,
 
 [[cip.body]]
-The total budget for Capital Improvement Projects (CIP) in FY{fy} is {cip_total}. Transportation-related projects usually take up more than half of the CIP budget. This money is necessary for maintaining, among other things, the state’s airports, harbors, and its 2,433 miles of roads and highways.[^hidot-visitor]
+The total FY{fy} Capital Improvement Projects (CIP) budget is {cip_total}. Transportation projects usually take more than half, maintaining the state’s airports, harbors, and 2,433 miles of roads and highways.[^hidot-visitor]
 
 [[onetime.photo.alt]]
 Governor Josh Green and lawmakers at the HB 2296 bill signing
@@ -330,7 +330,7 @@ Projected Hawaiʻi State Tax Revenue,
 Percentage of Income Paid in State and Local Taxes by Household Income Quintile (2024)[^itep-whopays]
 
 [[whopays.p1]]
-In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes compared to wealthy families. This is mostly due to the GET, which affects lower-income taxpayers more than others. When a low-income person and a wealthy person purchase the same items, they pay the same dollar amount of GET. However, that dollar amount represents a much larger chunk of the low-income person’s paycheck, making it harder to budget for. Too often, this keeps low-income families trapped in cycles of poverty and debt.
+In Hawaiʻi, low- and middle-income families spend a larger share of their already stretched income on state and local taxes than wealthy families do. This is mostly due to the GET: a low-income and a wealthy person pay the same dollar amount on the same purchase, but that amount is a far larger share of a low-income paycheck—making it harder to budget for, and often trapping families in cycles of poverty and debt.
 
 This reality is particularly difficult for Native Hawaiians and Pacific Islanders, who report poverty rates of 20 percent—double the state average for Hawaiʻi.[^nhpi-poverty] Historically, Native Hawaiians have faced systemic issues rooted in colonization: throughout the 1800s, large tracts of land that once provided for communities were taken by Western settlers, who built plantations and then resorts for their own benefit. For many Native Hawaiians, this shift led to a rise in food insecurity and reduced access to affordable housing.
 
