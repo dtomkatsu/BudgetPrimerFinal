@@ -263,6 +263,12 @@ class ProjectState:
         self.mtimes: dict[str, float] = {}
         self.lock = threading.Lock()
         self.cond = threading.Condition()
+        # ---- pilot relay (see _pilot). All THREE fields live under self.cond,
+        # deliberately: the SSE loop already waits on that condition, so a
+        # queued op wakes it with no second lock to order against.
+        self.pilot_pending: list[dict] = []   # queued, not yet handed to a tab
+        self.pilot_results: dict[str, dict] = {}   # op id -> what the tab returned
+        self.pilot_n = 0                      # op-id counter
 
 
 STATE = {pid: ProjectState() for pid in PROJECTS}
@@ -842,7 +848,11 @@ class Handler(SimpleHTTPRequestHandler):
                    # land — both answerable BEFORE the button is pressed. Empty
                    # until the background poll has looked once.
                    "push": PUSH_HEALTH.get(str(PROJECTS[pid]["root"]), {}),
-                   "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
+                   "watchAge": round(time.time() - WATCH_BEAT[0], 1),
+                   # Only ADVERTISED here, never handed out (see _sse). The
+                   # leader's own 2s poll is what covers an SSE reconnect gap;
+                   # a follower reading this simply never claims.
+                   "pilotWaiting": len(st.pilot_pending)}
         if st.error:
             payload["error"] = st.error
         return payload
@@ -1086,7 +1096,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return
             while time.time() < deadline:
                 with st.cond:
-                    st.cond.wait_for(lambda: st.version != seen or st.error is not None,
+                    st.cond.wait_for(lambda: st.version != seen or st.error is not None
+                                      or bool(st.pilot_pending),
                                       timeout=min(20, max(0.1, deadline - time.time())))
                     v, err = st.version, st.error
                 # A heartbeat keeps proxies from closing an idle stream. ahead
@@ -1098,6 +1109,15 @@ class Handler(SimpleHTTPRequestHandler):
                            "watchAge": round(time.time() - WATCH_BEAT[0], 1)}
                 if err:
                     payload["error"] = err
+                # ADVERTISE pilot ops; never hand them out here. A stream is
+                # not proof of a live tab: a closed tab's stream lingers until
+                # its 45s lease expires or its next write fails, so delivering
+                # into "whichever stream wakes first" posts the op to a corpse
+                # and the caller times out for no reason. The tab claims over
+                # HTTP instead (POST /__pilot/claim) — a request only a living
+                # tab can make, and an atomic pop, so exactly one gets them.
+                with st.cond:
+                    payload["pilotWaiting"] = len(st.pilot_pending)
                 self.wfile.write(f"data: {json.dumps(payload)}\n\n".encode())
                 self.wfile.flush()
                 seen = v
@@ -1109,6 +1129,7 @@ class Handler(SimpleHTTPRequestHandler):
         if path not in ("/__save", "/__push", "/__export", "/__upload",
                         "/__update", "/__rollback", "/__window",
                         "/__scaffold", "/__adopt", "/__connect", "/__pull",
+                        "/__pilot", "/__pilot/claim", "/__pilot/result",
                         "/__oauth/device/code", "/__oauth/device/token",
                         "/__oauth/save"):
             return self._json(404, {"ok": False, "error": "unknown endpoint"})
@@ -1135,6 +1156,12 @@ class Handler(SimpleHTTPRequestHandler):
             return self._rollback()                  # writes its own response
         if path == "/__export":
             return self._export(req)                 # writes its own response
+        if path == "/__pilot":
+            return self._pilot(req)
+        if path == "/__pilot/claim":
+            return self._pilot_claim(req)
+        if path == "/__pilot/result":
+            return self._pilot_result(req)
         pid = req.get("project") or DEFAULT_PROJECT
         if pid not in PROJECTS:
             return self._json(200, {"ok": False, "error": f"unknown project '{pid}'"})
@@ -1585,6 +1612,106 @@ class Handler(SimpleHTTPRequestHandler):
     # HTML next to the project's own published output (so its relative
     # css/js/assets links resolve); Chrome then prints or screenshots it
     # exactly as the project's own `make pdf`-equivalent would.
+    # ---- pilot relay: drive the open editor over HTTP ----------------------
+    # An AI pilot's slowest step was never the editor — render() is ~50ms — it
+    # was the TRANSPORT: one browser-extension eval per verb, each a full model
+    # round trip, each needing the tab open and fronted. This relays a verb to
+    # the editor tab that already holds the live stream, so the same call is a
+    # curl away: no extension, no JS-string escaping, no tab focus.
+    #
+    # It is NOT the out-of-band write /__inventory refuses to be. The op runs
+    # INSIDE the open editor through window.docsync.api — the document stays
+    # in memory, pushHistory() still runs first (⌘Z undoes a relayed op like a
+    # human's), and render() validates it like any other edit. Nothing here
+    # touches files behind the editor's back.
+    #
+    # Exactly-once by construction: ops are drained by the SSE writer, and the
+    # SSE stream is held by exactly ONE tab (the leader election in edit.html).
+    # A dispatched op is never re-queued — if the tab dies mid-op the caller
+    # gets a timeout, which is honest, where a retry would risk applying the
+    # edit twice.
+    def _pilot(self, req):
+        pid = req.get("project") or DEFAULT_PROJECT
+        if pid not in STATE:
+            return self._json(400, {"ok": False, "error": f"unknown project '{pid}'"})
+        verb = req.get("verb")
+        if not verb or not isinstance(verb, str):
+            return self._json(400, {"ok": False, "error": "verb is required"})
+        args = req.get("args", [])
+        if not isinstance(args, list):
+            args = [args]
+        try:
+            wait = float(req.get("timeout", 30))
+        except (TypeError, ValueError):
+            wait = 30.0
+        wait = max(1.0, min(120.0, wait))
+        st = STATE[pid]
+        # `tab` aims the op at ONE editor (docsync.api.status().tab). Leader
+        # election gives one claimant per browser profile, but two profiles —
+        # or two automated browser contexts — with the same project open each
+        # elect their own, and an untargeted op then goes to whichever claims
+        # first. Naming a tab removes that ambiguity; omitting it is right for
+        # the ordinary one-browser case.
+        tab = req.get("tab")
+        with st.cond:
+            st.pilot_n += 1
+            op_id = f"op{st.pilot_n}"
+            st.pilot_pending.append({"id": op_id, "verb": verb, "args": args,
+                                     "tab": tab})
+            st.cond.notify_all()          # wake the SSE writer holding the stream
+            got = st.cond.wait_for(lambda: op_id in st.pilot_results, timeout=wait)
+            if got:
+                return self._json(200, {"ok": True, "id": op_id,
+                                        "result": st.pilot_results.pop(op_id)})
+            # Undelivered vs delivered-but-unanswered are different problems.
+            still_queued = any(o["id"] == op_id for o in st.pilot_pending)
+            st.pilot_pending = [o for o in st.pilot_pending if o["id"] != op_id]
+        if still_queued:
+            if tab:
+                return self._json(200, {"ok": False, "error":
+                    f"no editor tab '{tab}' claimed the op — that tab is closed "
+                    "or is not the one holding the live stream"})
+            return self._json(200, {"ok": False, "error":
+                "no editor is listening — open the report's edit.html "
+                "(a tab must hold the live stream for a pilot op to run)"})
+        return self._json(200, {"ok": False, "error":
+            f"the editor took the op but did not answer within {wait:g}s"})
+
+    # The claim: an atomic pop, so however many tabs (or zombie streams) heard
+    # the advertisement, exactly one caller carries the ops away. Only the
+    # LEADER tab claims — not for exactly-once (this pop already guarantees
+    # that) but for COHERENCE: each tab holds its own in-memory document, so
+    # ops split across two tabs would edit two different drafts.
+    def _pilot_claim(self, req):
+        pid = req.get("project") or DEFAULT_PROJECT
+        if pid not in STATE:
+            return self._json(400, {"ok": False, "error": f"unknown project '{pid}'"})
+        tab = req.get("tab")
+        st = STATE[pid]
+        with st.cond:
+            # An op naming a tab is only ever handed to that tab; an untargeted
+            # one goes to whoever claims first. Both are an atomic pop, so no
+            # op is handed out twice however many tabs are asking.
+            mine = [o for o in st.pilot_pending if o.get("tab") in (None, tab)]
+            if mine:
+                taken = {o["id"] for o in mine}
+                st.pilot_pending = [o for o in st.pilot_pending
+                                    if o["id"] not in taken]
+        return self._json(200, {"ok": True, "ops": mine})
+
+    def _pilot_result(self, req):
+        pid = req.get("project") or DEFAULT_PROJECT
+        if pid not in STATE:
+            return self._json(400, {"ok": False, "error": f"unknown project '{pid}'"})
+        op_id = req.get("id")
+        if not op_id:
+            return self._json(400, {"ok": False, "error": "id is required"})
+        st = STATE[pid]
+        with st.cond:
+            st.pilot_results[op_id] = req.get("result")
+            st.cond.notify_all()
+        return self._json(200, {"ok": True})
+
     def _export(self, req):
         pid = req.get("project") or DEFAULT_PROJECT
         p = PROJECTS.get(pid)
@@ -1596,6 +1723,21 @@ class Handler(SimpleHTTPRequestHandler):
         fmt = (req.get("fmt") or "pdf").lower()
         if fmt not in ("pdf", "png"):
             return self._json(400, {"ok": False, "error": "fmt must be pdf or png"})
+        # Shape-check page/scale BEFORE the build. Everything below this costs a
+        # full render plus a headless Chrome; a malformed argument should not.
+        try:
+            scale = float(req.get("scale", 2))
+        except (TypeError, ValueError):
+            return self._json(400, {"ok": False, "error": "scale must be a number"})
+        scale = max(0.1, min(4.0, scale))
+        want_page = req.get("page")
+        if want_page is not None:
+            try:
+                want_page = int(want_page)
+            except (TypeError, ValueError):
+                return self._json(400, {"ok": False, "error": "page must be a number"})
+            if want_page < 1:
+                return self._json(400, {"ok": False, "error": "page starts at 1"})
         content, layout = req.get("content"), req.get("layout")
         if content is None or layout is None:
             return self._json(400, {"ok": False, "error": "content and layout required"})
@@ -1623,7 +1765,21 @@ class Handler(SimpleHTTPRequestHandler):
                 data = self._chrome_pdf(out_html)
                 return self._bytes(200, "application/pdf", data, f"{pid}.pdf")
             npages = out_html.read_text().count('<section class="page')
-            data = self._chrome_png_zip(out_html, npages, pid)
+            base = out_html.resolve().as_uri()
+            # ONE page, at whatever resolution was asked for: the cheap visual
+            # check. A pilot deciding "does this look right" wants ~50KB at
+            # scale 0.25, not a multi-megabyte zip of the whole document.
+            if want_page is not None:
+                n = want_page
+                if n > max(npages, 1):
+                    return self._json(400, {"ok": False,
+                        "error": f"page {n} is outside 1..{max(npages, 1)}"})
+                one = self._chrome_png_one(base, n, scale)
+                if one is None:
+                    return self._json(200, {"ok": False,
+                        "error": "Chrome produced no PNG within the time limit."})
+                return self._bytes(200, "image/png", one, f"{pid}-page-{n:02d}.png")
+            data = self._chrome_png_zip(out_html, npages, pid, scale)
             return self._bytes(200, "application/zip", data, f"{pid}-pages.zip")
         except Exception as e:                        # noqa: BLE001 — report it
             return self._json(200, {"ok": False, "error": str(e)})
@@ -1688,27 +1844,36 @@ class Handler(SimpleHTTPRequestHandler):
         finally:
             shutil.rmtree(prof, ignore_errors=True)
 
-    def _chrome_png_zip(self, out_html, npages, slug: str) -> bytes:
-        # One screenshot per page via primer.js's ?only=N isolation; 816x1056 css
-        # px = 8.5x11in, doubled for a crisp raster. A fresh profile per page —
-        # Chrome is killed, not exited, so a reused profile can hold a lock.
+    def _chrome_png_one(self, base: str, i: int, scale: float = 2.0) -> bytes | None:
+        """One page as PNG. 816x1056 css px = 8.5x11in; scale is the device
+        pixel ratio — 2 for a crisp raster, 0.25 for a ~50KB thumbnail a pilot
+        can glance at instead of paying for a full screenshot round trip. A
+        fresh profile per page: Chrome is killed, not exited, so a reused
+        profile can still hold a lock."""
+        prof = Path(tempfile.mkdtemp(prefix="primer-chrome-"))
+        png = prof / f"page-{i}.png"
+        try:
+            if self._chrome_capture(
+                [CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
+                 "--no-first-run", f"--user-data-dir={prof}",
+                 "--virtual-time-budget=8000", "--hide-scrollbars",
+                 f"--force-device-scale-factor={scale:g}", "--window-size=816,1056",
+                 f"--screenshot={png}", f"{base}?only={i}"],
+                png, deadline=30, settle=1.0):
+                return png.read_bytes()
+            return None
+        finally:
+            shutil.rmtree(prof, ignore_errors=True)
+
+    def _chrome_png_zip(self, out_html, npages, slug: str, scale: float = 2.0) -> bytes:
+        # One screenshot per page via primer.js's ?only=N isolation.
         base = out_html.resolve().as_uri()
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
             for i in range(1, max(npages, 1) + 1):
-                prof = Path(tempfile.mkdtemp(prefix="primer-chrome-"))
-                png = prof / f"page-{i}.png"
-                try:
-                    if self._chrome_capture(
-                        [CHROME, "--headless=new", "--disable-gpu", "--no-sandbox",
-                         "--no-first-run", f"--user-data-dir={prof}",
-                         "--virtual-time-budget=8000", "--hide-scrollbars",
-                         "--force-device-scale-factor=2", "--window-size=816,1056",
-                         f"--screenshot={png}", f"{base}?only={i}"],
-                        png, deadline=30, settle=1.0):
-                        z.write(png, f"{slug}-page-{i:02d}.png")
-                finally:
-                    shutil.rmtree(prof, ignore_errors=True)
+                data = self._chrome_png_one(base, i, scale)
+                if data:
+                    z.writestr(f"{slug}-page-{i:02d}.png", data)
         return buf.getvalue()
 
     def _save(self, pid: str, req) -> str:

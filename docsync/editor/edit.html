@@ -10778,6 +10778,12 @@ async function detectLocal() {
  *  this cannot double-apply. A verb that throws is reported as a refusal
  *  rather than swallowed — a pilot's whole contract is that it learns what
  *  happened without a screenshot. */
+// This tab's identity for the relay. Leader election makes ONE tab claim ops
+// per browser profile — but two profiles (or two automated browser contexts)
+// with the same project open each elect their own leader, and an untargeted op
+// then goes to whichever claims first. A caller that needs a SPECIFIC editor
+// passes this id (docsync.api.status().tab) to POST /__pilot.
+const PILOT_TAB = 'tab-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
 let pilotBusy = false;
 
 /** Claim whatever POST /__pilot has queued and run it. Called by the LEADER
@@ -10793,7 +10799,7 @@ async function claimPilotOps() {
       try {
         const r = await fetch('/__pilot/claim', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ project: M && M.id }),
+          body: JSON.stringify({ project: M && M.id, tab: PILOT_TAB }),
         });
         ops = (await r.json()).ops || [];
       } catch (e) { return; }        // server gone: the caller's timeout says so
@@ -14434,6 +14440,9 @@ window.docsync = Object.assign(window.docsync || {}, { api: {
   status() {
     return {
       ok: true, project: M.id, dirty, editing, scale: curScale, local,
+      // Pass this to POST /__pilot as `tab` to aim an op at THIS editor
+      // specifically, rather than at whichever tab claims first.
+      tab: PILOT_TAB,
       page: { w: PAGE_W_IN, h: PAGE_H_IN,
               pageless: !!(layout.page && layout.page.h == null) },
       overflow: [...new Set(lastFit.map(b => b.page))],

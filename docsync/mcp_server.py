@@ -14,21 +14,26 @@ dependencies, by the same argument serve.py makes for urllib over a package:
 two endpoints and a line protocol do not justify one, and this has to run
 wherever the editor already runs.
 
-WHY READ-ONLY, deliberately
----------------------------
-Editing belongs to the browser's window.docsync.api, not here. The editor
-holds the document in MEMORY: open a report, type, and content.md on disk is
-already stale. A write from this side would land on disk under that session
-and be silently overwritten by its next Save — the edit would simply vanish,
-with nothing to see and nothing to undo. The browser API has no such gap:
-every verb runs pushHistory() first, so a pilot's edit is one ⌘Z from undone
-and visibly part of the same document the human is looking at.
+NO OUT-OF-BAND WRITES — and why `pilot` is not one
+--------------------------------------------------
+The editor holds the document in MEMORY: open a report, type, and content.md
+on disk is already stale. A write from this side landing on DISK would be
+silently overwritten by that session's next Save — the edit would vanish, with
+nothing to see and nothing to undo. That hazard is why every read here is a
+read, and why there is still no tool that touches a file.
 
-Reads have no such hazard — a stale read is merely stale, and /__ping's
-version says so. So this server does the half that is safe from outside, and
-leaves the half that needs to be inside, inside. Giving it writes means first
-answering how an out-of-band write coordinates with an open editor's unsaved
-buffer; until there is an answer, "cannot" beats "sometimes eats your work".
+`pilot` is the answer to the question this file used to leave open ("how would
+an out-of-band write coordinate with an open editor's unsaved buffer?"): it
+does not write out of band at all. It POSTs the verb to /__pilot, the dev
+server hands it to the editor tab holding the live stream, and the verb runs
+INSIDE that editor through window.docsync.api — same pushHistory (one ⌘Z
+undoes it), same render() and its validation, same document the human is
+looking at. Nothing is written behind the editor's back; the edit is simply
+made by the editor, on request.
+
+So: use the read tools to decide WHAT to change, and `pilot` to make the
+change. `pilot` needs an editor tab open — with none, it says so rather than
+falling back to a file write.
 """
 from __future__ import annotations
 
@@ -59,6 +64,26 @@ def _get(path: str, params: dict | None = None) -> dict:
     except urllib.error.URLError as e:
         # By far the commonest failure, and worth naming rather than leaking a
         # connection-refused traceback: the editor simply is not running.
+        return {"ok": False, "error": f"no editor server at {BASE} ({e.reason}). "
+                "Start it (the Budget Primer Editor app, or `make -C report2027 "
+                "live`), or set PRIMER_URL if it listens elsewhere."}
+    except (TimeoutError, json.JSONDecodeError) as e:
+        return {"ok": False, "error": f"{BASE}{path}: {e}"}
+
+
+def _post(path: str, body: dict, timeout: float = TIMEOUT) -> dict:
+    req = urllib.request.Request(
+        BASE + path, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            return json.loads(e.read().decode())
+        except Exception:                                   # noqa: BLE001
+            return {"ok": False, "error": f"HTTP {e.code} from {BASE}{path}"}
+    except urllib.error.URLError as e:
         return {"ok": False, "error": f"no editor server at {BASE} ({e.reason}). "
                 "Start it (the Budget Primer Editor app, or `make -C report2027 "
                 "live`), or set PRIMER_URL if it listens elsewhere."}
@@ -144,6 +169,33 @@ def t_uncited_sources(args: dict) -> dict:
                     "when shipping" if bad else ""}
 
 
+def t_pilot(args: dict) -> dict:
+    """Run one window.docsync.api verb in the open editor (see module docstring:
+    this is the editor editing itself on request, not a write behind its back)."""
+    verb = (args.get("verb") or "").strip()
+    if not verb:
+        return {"ok": False, "error": "verb is required"}
+    call = args.get("args", [])
+    if not isinstance(call, list):
+        call = [call]
+    body = {"project": args.get("project"), "verb": verb, "args": call}
+    if args.get("timeout") is not None:
+        body["timeout"] = args["timeout"]
+    # Aims the op at ONE editor. Only matters when the same project is open in
+    # two browser profiles, which each elect their own claimant — but dropping
+    # it silently would send the edit to the wrong document, so it is forwarded
+    # whenever given.
+    if args.get("tab"):
+        body["tab"] = args["tab"]
+    # The relay's own wait is the real clock; give the HTTP call a little more
+    # so a timeout is reported by the server (which knows WHY) rather than here.
+    r = _post("/__pilot", body, timeout=float(body.get("timeout", 30)) + 15)
+    if r.get("ok") is False:
+        return r
+    # Unwrap: the caller cares about the VERB's answer, not the envelope.
+    return r.get("result", {"ok": False, "error": "the editor returned nothing"})
+
+
 TOOLS = [
     {"name": "list_reports", "fn": t_list_reports,
      "description": "List every report the running docsync editor serves.",
@@ -177,19 +229,44 @@ TOOLS = [
      "description": "Sources nothing cites — these block publishing.",
      "inputSchema": {"type": "object", "required": ["project"], "properties": {
          "project": {"type": "string"}}}},
+    {"name": "pilot", "fn": t_pilot,
+     "description": "CHANGE a report: run one window.docsync.api verb in the open "
+                    "editor. Verbs: inventory, status, audit, getSlot, setSlot, "
+                    "setStyle, setBoxText, place, recolor, rotate, lock, group, "
+                    "ungroup, remove, duplicate, addTextBox, addPage, addSource, "
+                    "addEndnotesSection, batch, undo, redo, save. Geometry is in "
+                    "page inches. Every verb is ONE undo step, and returns what "
+                    "actually happened (a clamped box, a refusal) — so no "
+                    "screenshot is needed to know the result. Needs an editor tab "
+                    "open; says so if there is none. Push stays with the human.",
+     "inputSchema": {"type": "object", "required": ["project", "verb"], "properties": {
+         "project": {"type": "string"},
+         "verb": {"type": "string", "description": "e.g. setSlot, place, audit"},
+         "args": {"type": "array",
+                  "description": "positional args, same order as the JS call — "
+                                 "e.g. [\"whopays.p1\", \"new markdown\"]"},
+         "timeout": {"type": "number", "description": "seconds to wait, default 30"},
+         "tab": {"type": "string",
+                 "description": "aim at ONE editor (its docsync.api.status().tab). "
+                                "Only needed when the same report is open in two "
+                                "browser profiles; omit otherwise."}}}},
 ]
 BY_NAME = {t["name"]: t for t in TOOLS}
 
 INSTRUCTIONS = (
-    "Read-only access to the reports served by a running docsync draft editor.\n\n"
+    "Read and drive the reports served by a running docsync draft editor.\n\n"
     "Start with list_reports, then inventory(project) — that one call carries "
     "every slot's markdown, every source, and every addressable element id, "
     "so there is no need to hunt.\n\n"
-    "EDITING IS NOT HERE, on purpose. The editor holds the document in memory, "
-    "so a write from outside would be overwritten by its next Save with nothing "
-    "to see and nothing to undo. To CHANGE a report, drive window.docsync.api "
-    "in the open editor (setSlot/place/recolor/batch — every verb is one undo "
-    "step). Use these tools to decide WHAT to change."
+    "To CHANGE a report use pilot(project, verb, args): it runs the verb inside "
+    "the open editor through window.docsync.api, so the edit is one undo step "
+    "and lands in the document the human is looking at. Nothing here writes a "
+    "file behind the editor's back — with no editor tab open, pilot says so.\n\n"
+    "Prefer batch for several related edits (one undo entry, one render), and "
+    "audit() over screenshots for anything mechanical: overlaps, off-sheet "
+    "elements, print overflow, uncited sources. Every verb returns geometry in "
+    "page inches, so read the RESULT rather than looking at the page. Push "
+    "stays with the human."
 )
 
 
