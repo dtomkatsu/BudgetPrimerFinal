@@ -6381,10 +6381,13 @@ function computedType(key) {
   // A slot by data-slot; a text box by data-el (its words carry no slot).
   const el = $('out').contentDocument.querySelector(
     `[data-slot="${key}"], [data-el="${key}"]`);
-  if (!el) return { size: 16, leading: 1.45, family: '', weight: 400 };
+  if (!el) return { size: 16, leading: 1.45, tracking: 0, family: '', weight: 400 };
   const cs = el.ownerDocument.defaultView.getComputedStyle(el);
   const size = parseFloat(cs.fontSize) || 16;
   const lh = parseFloat(cs.lineHeight);
+  // letter-spacing computes to the keyword 'normal' when untouched, which is
+  // zero extra tracking — the number the slider should sit on.
+  const track = parseFloat(cs.letterSpacing);
   // The primary family in the rendered stack, unquoted and matched to an
   // offered font — so the dropdown can name what the text ACTUALLY is when no
   // override is set, the way the size field shows the real size. A family the
@@ -6395,7 +6398,8 @@ function computedType(key) {
   const fw = cs.fontWeight;
   const weight = fw === 'normal' ? 400 : fw === 'bold' ? 700
     : Number.isFinite(parseInt(fw, 10)) ? parseInt(fw, 10) : 400;
-  return { size, leading: lh ? +(lh / size).toFixed(2) : 1.45, family, weight };
+  return { size, leading: lh ? +(lh / size).toFixed(2) : 1.45,
+           tracking: Number.isFinite(track) ? +track.toFixed(2) : 0, family, weight };
 }
 
 function showType(key) {
@@ -6420,9 +6424,14 @@ function showType(key) {
   // you would be stepping from, not a blank.
   $('ty-size').value = st.size ?? '';
   $('ty-size').placeholder = real.size % 1 ? real.size.toFixed(1) : real.size;
+  // Same rule as the size stepper: with no override set, the box shows the
+  // spacing the page ACTUALLY renders as a placeholder, so the slider is never
+  // parked next to a blank field with nothing to say what it is set to.
   $('ty-track').value = st.tracking ?? '';
-  $('ty-track-r').value = st.tracking ?? 0;
+  $('ty-track').placeholder = real.tracking;
+  $('ty-track-r').value = st.tracking ?? real.tracking;
   $('ty-lead').value = st.leading ?? '';
+  $('ty-lead').placeholder = real.leading;
   $('ty-lead-r').value = st.leading ?? real.leading;
   $('ty-case').value = st.case || 'none';
   $('ty-color').value = /^#[0-9a-f]{6}$/i.test(st.color || '') ? st.color : '#2f3e46';
